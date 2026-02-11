@@ -1,7 +1,7 @@
 ScaleTrack.delete_all
 
-scale_types = ["5tone", "octave"]
-tempos = [100, 120, 140]
+scale_types = [ "5tone", "octave" ]
+tempos = [ 100, 120, 140 ]
 
 scale_types.each do |t|
   tempos.each do |bpm|

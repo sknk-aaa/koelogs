@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_12_073642) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_12_125038) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -31,6 +31,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_073642) do
     t.text "notes"
     t.date "practiced_on"
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["menus"], name: "index_training_logs_on_menus", using: :gin
+    t.index ["user_id", "practiced_on"], name: "index_training_logs_on_user_id_and_practiced_on", unique: true
+    t.index ["user_id"], name: "index_training_logs_on_user_id"
   end
+
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "password_digest", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+  end
+
+  add_foreign_key "training_logs", "users"
 end

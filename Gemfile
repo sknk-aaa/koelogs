@@ -46,4 +46,5 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   gem "rack-cors"# Reactから叩けるように,CORS を入れる
+  gem "bcrypt", "~> 3.1.7"
 end

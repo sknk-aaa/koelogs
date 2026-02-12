@@ -4,7 +4,7 @@ import { styles } from "../styles";
 
 type Props = {
   audioRef: React.RefObject<HTMLAudioElement | null>;
-  src: string;
+  src?: string;
   disabled: boolean;
   isPlaying: boolean;
   onTogglePlay: () => void;
@@ -29,7 +29,7 @@ export default function AudioPlayer({
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
-    a.volume = volume; // 0.0 - 1.0
+    a.volume = volume;
   }, [volume, audioRef]);
 
   // src変わったときも音量は維持
@@ -50,16 +50,23 @@ export default function AudioPlayer({
         {isPlaying ? "⏸ Stop" : "▶ Play"}
       </button>
 
-      <audio
-        ref={audioRef}
-        controls
-        preload="metadata"
-        src={src}
-        style={styles.audio}
-        onPlay={onPlay}
-        onPause={onPause}
-        onEnded={onEnded}
-      />
+      {/* 🔥 ここを修正 */}
+      {src ? (
+        <audio
+          ref={audioRef}
+          controls
+          preload="metadata"
+          src={src}
+          style={styles.audio}
+          onPlay={onPlay}
+          onPause={onPause}
+          onEnded={onEnded}
+        />
+      ) : (
+        <div style={{ ...styles.audio, opacity: 0.6 }}>
+          音源読み込み中...
+        </div>
+      )}
 
       <div style={styles.volumeRow}>
         <span style={styles.volumeLabel}>🔉</span>

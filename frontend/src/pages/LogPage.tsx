@@ -44,7 +44,7 @@ export default function LogPage() {
 
 
   return (
-    <div style={{ padding: 16, maxWidth: 720, margin: "0 auto" }}>
+    <div style={{ padding: 16, maxWidth: 720, margin: "0 auto" ,color: "#000",}}>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>ログ</h1>
 
       {/* カレンダー（最短：date input） */}

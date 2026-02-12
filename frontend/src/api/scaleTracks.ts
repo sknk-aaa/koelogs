@@ -5,12 +5,21 @@ export type ScaleTrack = {
   id: number;
   scale_type: ScaleType;
   tempo: Tempo;
-  file_path: string; 
+  file_path: string;
 };
 
 export async function fetchScaleTracks(): Promise<ScaleTrack[]> {
-  const res = await fetch("/api/scale_tracks");
-  if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+  const res = await fetch("/api/scale_tracks", {
+    credentials: "include", 
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch scale tracks: ${res.status}`);
+  }
+
   return res.json();
 }
 

@@ -6,7 +6,7 @@ export default function RequireAuth() {
   const location = useLocation();
 
   if (isLoading) {
-    return <div style={{ padding: 16 }}>Loading...</div>;
+    return <div style={{ padding: 16, opacity: 0.7 }}>Loading...</div>;
   }
 
   if (!me) {

@@ -1,8 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
 import TrainingPage from "./pages/TrainingPage";
-import LoginPage from "./pages/LoginPage";
 import LogPage from "./pages/LogPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
 import RequireAuth from "./features/auth/RequireAuth";
 import { AuthProvider } from "./features/auth/AuthProvider";
 
@@ -13,12 +14,13 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/log" replace />} />
 
-          {/* ログイン画面はLayout外 */}
+          {/* public（レイアウト外） */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
 
-          {/* 共通ヘッダー/フッターを適用する範囲 */}
+          {/* 共通ヘッダー/フッター */}
           <Route element={<AppLayout />}>
-            {/* ここから下をログイン必須にする */}
+            {/* ログイン必須 */}
             <Route element={<RequireAuth />}>
               <Route path="/log" element={<LogPage />} />
               <Route path="/training" element={<TrainingPage />} />

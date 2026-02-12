@@ -6,7 +6,7 @@ export async function fetchMe(): Promise<Me | null> {
   const res = await fetch(`${API_BASE}/api/me`, {
     method: "GET",
     headers: { Accept: "application/json" },
-    credentials: "include", // ★必須：Cookieを送る
+    credentials: "include",
   });
 
   if (res.status === 401) return null;
@@ -15,11 +15,31 @@ export async function fetchMe(): Promise<Me | null> {
   return (await res.json()) as Me;
 }
 
+export async function signup(email: string, password: string, passwordConfirmation: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      email,
+      password,
+      password_confirmation: passwordConfirmation,
+    }),
+  });
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const msg = json?.error ?? `signup failed: ${res.status}`;
+    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
+  }
+}
+
 export async function login(email: string, password: string): Promise<void> {
   const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    credentials: "include", // ★必須
+    credentials: "include",
     body: JSON.stringify({ email, password }),
   });
 

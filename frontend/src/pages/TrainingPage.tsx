@@ -47,7 +47,7 @@ export default function TrainingPage() {
 
             <AudioPlayer
               audioRef={audioRef}
-              src={selected?.file_path ?? ""}
+              src={selected?.file_path ?? undefined}
               disabled={disabled}
               isPlaying={isPlaying}
               onTogglePlay={togglePlay}

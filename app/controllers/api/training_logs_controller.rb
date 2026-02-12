@@ -22,16 +22,16 @@ module Api
     private
 
     def serialize(log)
-      {
-        id: log.id,
-        practiced_on: log.practiced_on.iso8601,
-        duration_min: log.duration_min,
-        menus: log.menus,
-        notes: log.notes,
-        falsetto_top_note: log.falsetto_top_note,
-        chest_top_note: log.chest_top_note,
-        updated_at: log.updated_at&.iso8601
-      }
-    end
+    {
+      id: log.id,
+      practiced_on: log.practiced_on.iso8601,
+      duration_min: log.duration_min,
+      menus: log.menus,
+      notes: log.notes,
+      falsetto_top_note: log.falsetto_top_note,
+      chest_top_note: log.chest_top_note,
+      updated_at: log.updated_at&.iso8601
+    }
+  end
   end
 end

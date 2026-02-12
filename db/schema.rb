@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_12_070356) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_12_073642) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,9 +27,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_070356) do
     t.datetime "created_at", null: false
     t.integer "duration_min"
     t.string "falsetto_top_note"
-    t.text "menus"
+    t.jsonb "menus", default: [], null: false
     t.text "notes"
     t.date "practiced_on"
     t.datetime "updated_at", null: false
+    t.index ["menus"], name: "index_training_logs_on_menus", using: :gin
   end
 end

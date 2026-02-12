@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect,useState } from "react";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import type { TrainingLog } from "../types/trainingLog";
 
@@ -10,15 +10,6 @@ function todayISO(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function safeParseMenus(menus: string | null): string[] {
-  if (!menus) return [];
-  try {
-    const v = JSON.parse(menus);
-    return Array.isArray(v) ? v.map(String) : [];
-  } catch {
-    return [];
-  }
-}
 
 export default function LogPage() {
   const [selectedDate, setSelectedDate] = useState<string>(() => todayISO());
@@ -51,7 +42,6 @@ export default function LogPage() {
     return () => { cancelled = true; };
   }, [selectedDate]);
 
-  const menus = useMemo(() => safeParseMenus(log?.menus ?? null), [log?.menus]);
 
   return (
     <div style={{ padding: 16, maxWidth: 720, margin: "0 auto" }}>
@@ -110,7 +100,7 @@ export default function LogPage() {
           {!loading && !error && log && (
             <div style={{ display: "grid", gap: 10 }}>
               <Row label="練習時間" value={log.duration_min != null ? `${log.duration_min} 分` : "—"} />
-              <Row label="メニュー" value={menus.length ? menus.join(" / ") : "—"} />
+              <Row label="メニュー" value={log.menus.length ? log.menus.join(" / ") : "—"} />
               <Row label="裏声最高音" value={log.falsetto_top_note ?? "—"} />
               <Row label="地声最高音" value={log.chest_top_note ?? "—"} />
               <Row label="メモ" value={log.notes ? truncate(log.notes, 140) : "—"} />

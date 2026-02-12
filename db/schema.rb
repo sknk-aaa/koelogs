@@ -10,15 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_05_030307) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_12_070356) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "scale_tracks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "file_path"
     t.string "scale_type"
     t.integer "tempo"
-    t.string "file_path"
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "training_logs", force: :cascade do |t|
+    t.string "chest_top_note"
     t.datetime "created_at", null: false
+    t.integer "duration_min"
+    t.string "falsetto_top_note"
+    t.text "menus"
+    t.text "notes"
+    t.date "practiced_on"
     t.datetime "updated_at", null: false
   end
 end

@@ -1,6 +1,22 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { upsertTrainingLog, type UpsertTrainingLogInput } from "../api/trainingLogs";
+import { fetchTrainingLogByDate } from "../api/trainingLogs";
+import type { TrainingLog } from "../types/trainingLog";
+
+import {
+  fetchTrainingMenus,
+  createTrainingMenu,
+  updateTrainingMenu,
+  type TrainingMenu,
+} from "../api/trainingMenus";
+
+function errorMessage(e: unknown, fallback: string) {
+  if (e instanceof Error) return e.message;
+  if (typeof e === "string") return e;
+  return fallback;
+}
+
 
 function todayISO(): string {
   const d = new Date();
@@ -8,10 +24,6 @@ function todayISO(): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
-}
-
-function uniq(arr: string[]): string[] {
-  return Array.from(new Set(arr));
 }
 
 export default function LogNewPage() {
@@ -25,10 +37,8 @@ export default function LogNewPage() {
   const [durationMin, setDurationMin] = useState<string>(""); // input扱いやすさ優先
   const [notes, setNotes] = useState<string>("");
 
-  // メニュー管理：追加/削除 + 複数選択
-  const [menuCatalog, setMenuCatalog] = useState<string[]>(() =>
-    uniq(["liproll", "nay", "wow", "straw", "siren", "humming"])
-  );
+  // メニュー管理：DB由来（追加/論理削除 + 複数選択）
+  const [menuCatalog, setMenuCatalog] = useState<TrainingMenu[]>([]);
   const [menuToAdd, setMenuToAdd] = useState<string>("");
 
   const [selectedMenus, setSelectedMenus] = useState<Set<string>>(() => new Set());
@@ -41,32 +51,108 @@ export default function LogNewPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [initialLoading, setInitialLoading] = useState(false);
 
   const selectedMenusArray = useMemo(() => Array.from(selectedMenus), [selectedMenus]);
 
-  const toggleMenu = (m: string) => {
+  // 初期ロード：メニュー一覧を取得（archived=falseのみ）
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const menus = await fetchTrainingMenus();
+        if (!cancelled) setMenuCatalog(menus);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 初期表示で既存ログを読み込み、あればフォームに反映
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      setInitialLoading(true);
+
+      const res = await fetchTrainingLogByDate(practicedOn);
+      if (cancelled) return;
+
+      if ("error" in res && res.error) {
+        // 取得失敗はフォーム入力を邪魔しない（保存はできる）方針
+        setErrors([`既存ログの取得に失敗しました: ${res.error}`]);
+        setInitialLoading(false);
+        return;
+      }
+
+      const existing = res.data as TrainingLog | null;
+      if (!existing) {
+        setInitialLoading(false);
+        return;
+      }
+
+      // 既存ログでフォームを上書き
+      setDurationMin(existing.duration_min == null ? "" : String(existing.duration_min));
+      setNotes(existing.notes ?? "");
+
+      setSelectedMenus(new Set(existing.menus ?? []));
+
+      const f = existing.falsetto_top_note;
+      setFalsettoEnabled(f != null);
+      setFalsettoTopNote(f ?? "");
+
+      const c = existing.chest_top_note;
+      setChestEnabled(c != null);
+      setChestTopNote(c ?? "");
+
+      setInitialLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // practicedOn が変わると対象日付も変わるので再取得
+  }, [practicedOn]);
+
+  const toggleMenu = (name: string) => {
     setSelectedMenus((prev) => {
       const next = new Set(prev);
-      if (next.has(m)) next.delete(m);
-      else next.add(m);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
       return next;
     });
   };
 
-  const addMenu = () => {
+  const addMenu = async () => {
     const v = menuToAdd.trim();
     if (!v) return;
-    setMenuCatalog((prev) => uniq([...prev, v]));
-    setMenuToAdd("");
+
+    try {
+      const created = await createTrainingMenu(v);
+      setMenuCatalog((prev) => [...prev, created]);
+      setMenuToAdd("");
+    } catch (e) {
+      setErrors([errorMessage(e, "メニュー追加に失敗しました")]);
+    }
   };
 
-  const removeMenuFromCatalog = (m: string) => {
-    setMenuCatalog((prev) => prev.filter((x) => x !== m));
-    setSelectedMenus((prev) => {
-      const next = new Set(prev);
-      next.delete(m);
-      return next;
-    });
+  const removeMenuFromCatalog = async (menu: TrainingMenu) => {
+    try {
+      await updateTrainingMenu(menu.id, { archived: true });
+      setMenuCatalog((prev) => prev.filter((m) => m.id !== menu.id));
+      setSelectedMenus((prev) => {
+        const next = new Set(prev);
+        next.delete(menu.name);
+        return next;
+      });
+    } catch (e) {
+      setErrors([errorMessage(e, "メニュー削除に失敗しました")]);
+    }
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -115,6 +201,12 @@ export default function LogNewPage() {
   return (
     <div style={{ maxWidth: 720, margin: "0 auto" }}>
       <h1 style={{ marginBottom: 16 }}>今日のトレーニングを記録</h1>
+
+      {initialLoading && (
+        <div style={{ marginBottom: 12, opacity: 0.7, fontSize: 13 }}>
+          既存ログを読み込み中…
+        </div>
+      )}
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 16 }}>
         {/* 日付 */}
@@ -169,11 +261,11 @@ export default function LogNewPage() {
           </div>
 
           <div style={{ display: "grid", gap: 8 }}>
-            {menuCatalog.map((m) => {
-              const checked = selectedMenus.has(m);
+            {menuCatalog.map((menu) => {
+              const checked = selectedMenus.has(menu.name);
               return (
                 <div
-                  key={m}
+                  key={menu.id}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -188,14 +280,14 @@ export default function LogNewPage() {
                     <input
                       type="checkbox"
                       checked={checked}
-                      onChange={() => toggleMenu(m)}
+                      onChange={() => toggleMenu(menu.name)}
                     />
-                    <span>{m}</span>
+                    <span>{menu.name}</span>
                   </label>
 
                   <button
                     type="button"
-                    onClick={() => removeMenuFromCatalog(m)}
+                    onClick={() => removeMenuFromCatalog(menu)}
                     style={{
                       border: "none",
                       background: "transparent",

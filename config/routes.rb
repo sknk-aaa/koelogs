@@ -6,6 +6,8 @@ Rails.application.routes.draw do
     get  "training_logs", to: "training_logs#index"
     post "training_logs", to: "training_logs#create"
 
+    resources :training_menus, only: [ :index, :create, :update ]
+
     # auth
     post "auth/signup", to: "auth#signup"
     post "auth/login",  to: "auth#login"

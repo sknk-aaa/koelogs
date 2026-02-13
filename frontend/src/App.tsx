@@ -1,37 +1,52 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import AppLayout from "./components/AppLayout";
-import TrainingPage from "./pages/TrainingPage";
 import LogPage from "./pages/LogPage";
+import LogNewPage from "./pages/LogNewPage";
+import TrainingPage from "./pages/TrainingPage";
+import InsightsPage from "./pages/InsightsPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-import RequireAuth from "./features/auth/RequireAuth";
+
 import { AuthProvider } from "./features/auth/AuthProvider";
+import RequireAuth from "./features/auth/RequireAuth";
+import AppHeader from "./components/AppHeader";
+import AppFooter from "./components/AppFooterTabs";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/log" replace />} />
+    <BrowserRouter>
+      <AuthProvider>
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <AppHeader title="Training Log" />
 
-          {/* public（レイアウト外） */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+          <div style={{ flex: 1, paddingBottom: 65 }}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/log" replace />} />
 
-          {/* 共通ヘッダー/フッター */}
-          <Route element={<AppLayout />}>
-            {/* ログイン必須 */}
-            <Route element={<RequireAuth />}>
-              <Route path="/log" element={<LogPage />} />
-              <Route path="/training" element={<TrainingPage />} />
-              <Route path="/log/new" element={<div style={{ padding: 16 }}>Log New Page (TODO)</div>} />
-              <Route path="/insights" element={<div style={{ padding: 16 }}>Insights Page (TODO)</div>} />
-            </Route>
+              {/* 公開ページ */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
 
-            <Route path="*" element={<Navigate to="/log" replace />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+              {/* 認証が必要なページ */}
+              <Route element={<RequireAuth />}>
+                <Route path="/log" element={<LogPage />} />
+                <Route path="/log/new" element={<LogNewPage />} />
+                <Route path="/training" element={<TrainingPage />} />
+                <Route path="/insights" element={<InsightsPage />} />
+              </Route>
+
+              <Route path="*" element={<Navigate to="/log" replace />} />
+            </Routes>
+          </div>
+
+          <AppFooter />
+        </div>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

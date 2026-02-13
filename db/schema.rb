@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_12_125038) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_13_140542) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -37,6 +37,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_125038) do
     t.index ["user_id"], name: "index_training_logs_on_user_id"
   end
 
+  create_table "training_menus", force: :cascade do |t|
+    t.boolean "archived", default: false, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "archived"], name: "index_training_menus_on_user_id_and_archived"
+    t.index ["user_id", "name"], name: "index_training_menus_on_user_id_and_name", unique: true
+    t.index ["user_id"], name: "index_training_menus_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
@@ -46,4 +57,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_125038) do
   end
 
   add_foreign_key "training_logs", "users"
+  add_foreign_key "training_menus", "users"
 end

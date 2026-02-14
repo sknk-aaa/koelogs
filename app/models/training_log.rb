@@ -15,6 +15,11 @@ class TrainingLog < ApplicationRecord
             numericality: { only_integer: true, greater_than_or_equal_to: 0 },
             allow_nil: true
 
+  NOTE_FORMAT = /\A[A-G](?:#|b)?[0-9]\z/
+
+  validates :falsetto_top_note, format: { with: NOTE_FORMAT }, allow_nil: true
+  validates :chest_top_note, format: { with: NOTE_FORMAT }, allow_nil: true
+
   validate :top_note_required_if_enabled
 
   private

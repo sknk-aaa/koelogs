@@ -10,9 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_13_140542) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_14_103034) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "ai_recommendations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "generated_for_date", null: false
+    t.integer "range_days", default: 7, null: false
+    t.text "recommendation_text", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "generated_for_date"], name: "index_ai_recommendations_on_user_id_and_generated_for_date", unique: true
+    t.index ["user_id"], name: "index_ai_recommendations_on_user_id"
+  end
 
   create_table "scale_tracks", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -56,6 +67,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_140542) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "ai_recommendations", "users"
   add_foreign_key "training_logs", "users"
   add_foreign_key "training_menus", "users"
 end

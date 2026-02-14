@@ -235,7 +235,7 @@ export default function LogNewPage() {
             <input
               value={menuToAdd}
               onChange={(e) => setMenuToAdd(e.target.value)}
-              placeholder="メニューを追加（例: scale）"
+              placeholder="メニューを追加（例: 裏声リップロール）"
               style={{
                 height: 40,
                 padding: "0 12px",
@@ -337,7 +337,7 @@ export default function LogNewPage() {
           <input
             value={falsettoTopNote}
             onChange={(e) => setFalsettoTopNote(e.target.value)}
-            placeholder="例: A4"
+            placeholder="例: G5, F#5 など"
             disabled={!falsettoEnabled}
             style={{
               marginTop: 8,
@@ -366,7 +366,7 @@ export default function LogNewPage() {
           <input
             value={chestTopNote}
             onChange={(e) => setChestTopNote(e.target.value)}
-            placeholder="例: E4"
+            placeholder="例: G4, F#4 など"
             disabled={!chestEnabled}
             style={{
               marginTop: 8,

@@ -1,3 +1,4 @@
+# config/routes.rb
 Rails.application.routes.draw do
   namespace :api do
     get "scale_tracks", to: "scale_tracks#index"
@@ -6,9 +7,13 @@ Rails.application.routes.draw do
     get "training_logs", to: "training_logs#index"
     post "training_logs", to: "training_logs#create"
 
+    # training menus
     resources :training_menus, only: [ :index, :create, :update ]
 
-    # ai recommendations
+    # insights
+    get "insights", to: "insights#show"
+
+    # ✅ AI recommendations
     get "ai_recommendations", to: "ai_recommendations#show"
     post "ai_recommendations", to: "ai_recommendations#create"
 

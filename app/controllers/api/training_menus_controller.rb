@@ -13,14 +13,12 @@ module Api
         menus = menus.active
       end
 
-      render json: {
-        data: menus.order(:created_at).map { |m| serialize(m) }
-      }
+      render json: { data: menus.order(:created_at).map { |m| serialize(m) } }
     end
 
     # POST /api/training_menus
     def create
-      menu = current_user.training_menus.new(name: params[:name])
+      menu = current_user.training_menus.new(create_params)
 
       if menu.save
         render json: { data: serialize(menu) }, status: :created
@@ -30,7 +28,7 @@ module Api
     end
 
     # PATCH /api/training_menus/:id
-    # name変更 or archived切替
+    # name変更 or archived切替 or color変更
     def update
       if @menu.update(update_params)
         render json: { data: serialize(@menu) }
@@ -45,14 +43,19 @@ module Api
       @menu = current_user.training_menus.find(params[:id])
     end
 
+    def create_params
+      params.permit(:name, :color)
+    end
+
     def update_params
-      params.permit(:name, :archived)
+      params.permit(:name, :archived, :color)
     end
 
     def serialize(menu)
       {
         id: menu.id,
         name: menu.name,
+        color: menu.color,
         archived: menu.archived,
         created_at: menu.created_at.iso8601
       }

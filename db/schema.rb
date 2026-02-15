@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_15_124810) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_15_162902) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -50,6 +50,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_15_124810) do
 
   create_table "training_menus", force: :cascade do |t|
     t.boolean "archived", default: false, null: false
+    t.string "color", default: "#DDEBFF", null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.datetime "updated_at", null: false

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export type DrawerItem = {
   label: string;
@@ -25,6 +25,8 @@ type Props = {
   activePath: string;
 };
 
+const TRANSITION_MS = 220;
+
 export default function HamburgerDrawer({
   open,
   onClose,
@@ -33,8 +35,63 @@ export default function HamburgerDrawer({
   sections,
   activePath,
 }: Props) {
+  // close animationのためだけに残すフラグ
+  const [mounted, setMounted] = useState(open);
+  // 見た目（transform/opacity）用
+  const [visible, setVisible] = useState(false);
+
+  const closeTimerRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  // open が true なら必ず mounted 扱いにする（レンダー由来）
+  const shouldRender = open || mounted;
+
+  // open/close の切り替え
   useEffect(() => {
-    if (!open) return;
+    // 既存タイマー掃除
+    if (closeTimerRef.current != null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    if (rafRef.current != null) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    if (open) {
+      // マウントは「すでにmounted=true」なら不要、falseなら次tickでtrueにする
+      // （effect内同期setStateを避けるため、rAFに乗せる）
+      if (!mounted) {
+        rafRef.current = window.requestAnimationFrame(() => {
+          setMounted(true);
+          // mountedになった次フレームでvisibleをtrue（transition確実化）
+          rafRef.current = window.requestAnimationFrame(() => setVisible(true));
+        });
+      } else {
+        // すでにDOMがあるなら、次フレームでvisibleだけtrue
+        rafRef.current = window.requestAnimationFrame(() => setVisible(true));
+      }
+      return;
+    }
+
+    // closing: まずvisibleを落としてアニメ開始（次フレームで実行）
+    rafRef.current = window.requestAnimationFrame(() => setVisible(false));
+
+    // transition後にunmount
+    closeTimerRef.current = window.setTimeout(() => {
+      setMounted(false);
+    }, TRANSITION_MS);
+
+    return () => {
+      if (closeTimerRef.current != null) window.clearTimeout(closeTimerRef.current);
+      if (rafRef.current != null) window.cancelAnimationFrame(rafRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // body scroll lock + ESC（DOMが出ている間だけ）
+  useEffect(() => {
+    if (!shouldRender) return;
 
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -48,16 +105,18 @@ export default function HamburgerDrawer({
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, onClose]);
+  }, [shouldRender, onClose]);
 
-  if (!open) return null;
+  const isActive = useMemo(() => {
+    return (it: DrawerItem) => {
+      if (!it.to) return false;
+      const mode = it.match ?? "exact";
+      if (mode === "exact") return activePath === it.to;
+      return activePath === it.to || activePath.startsWith(`${it.to}/`);
+    };
+  }, [activePath]);
 
-  const isActive = (it: DrawerItem) => {
-    if (!it.to) return false;
-    const mode = it.match ?? "exact";
-    if (mode === "exact") return activePath === it.to;
-    return activePath === it.to || activePath.startsWith(`${it.to}/`);
-  };
+  if (!shouldRender) return null;
 
   return (
     <div style={styles.root} role="dialog" aria-modal="true">
@@ -65,10 +124,20 @@ export default function HamburgerDrawer({
         type="button"
         aria-label="メニューを閉じる"
         onClick={onClose}
-        style={styles.backdrop}
+        style={{
+          ...styles.backdrop,
+          opacity: visible ? 1 : 0,
+          pointerEvents: visible ? "auto" : "none",
+        }}
       />
 
-      <aside style={styles.sheet}>
+      <aside
+        style={{
+          ...styles.sheet,
+          transform: visible ? "translateX(0)" : "translateX(18px)",
+          opacity: visible ? 1 : 0,
+        }}
+      >
         <div style={styles.sheetHeader}>
           <div>
             <div style={styles.sheetTitle}>{headerTitle}</div>
@@ -105,7 +174,6 @@ export default function HamburgerDrawer({
                         ...(active ? styles.itemActive : null),
                       }}
                     >
-                      {/* 左：ラベル */}
                       <span
                         style={{
                           ...styles.itemLabel,
@@ -115,7 +183,6 @@ export default function HamburgerDrawer({
                         {it.label}
                       </span>
 
-                      {/* 右：アクティブは「●」、それ以外は「›」 */}
                       {active ? (
                         <span style={styles.activeDot} aria-hidden="true">
                           ●
@@ -150,6 +217,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: "none",
     padding: 0,
     cursor: "pointer",
+    transition: `opacity ${TRANSITION_MS}ms ease`,
   },
   sheet: {
     position: "absolute",
@@ -163,6 +231,8 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: "-20px 0 60px rgba(0,0,0,0.18)",
     display: "flex",
     flexDirection: "column",
+    transition: `transform ${TRANSITION_MS}ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity ${TRANSITION_MS}ms ease`,
+    willChange: "transform, opacity",
   },
   sheetHeader: {
     padding: "14px 14px 10px",
@@ -185,10 +255,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     lineHeight: "40px",
   },
-  content: {
-    padding: 14,
-    overflow: "auto",
-  },
+  content: { padding: 14, overflow: "auto" },
   section: { marginBottom: 14 },
   sectionTitle: {
     fontSize: 12,
@@ -219,25 +286,10 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#111",
   },
   itemLabel: { fontSize: 14, fontWeight: 800 },
-  // ✅ active は太字にする
   itemLabelActive: { fontWeight: 900 },
-
-  // ✅ active 行は少し背景を付ける（既存）
-  itemActive: {
-    background: "rgba(0,0,0,0.05)",
-  },
-
-  // ✅ active 右側の●
-  activeDot: {
-    fontSize: 10,
-    opacity: 0.8,
-    lineHeight: "1",
-    marginLeft: 8,
-  },
-
-  // 非activeの矢印
+  itemActive: { background: "rgba(0,0,0,0.05)" },
+  activeDot: { fontSize: 10, opacity: 0.8, lineHeight: "1", marginLeft: 8 },
   chev: { fontSize: 18, opacity: 0.35, marginLeft: 8 },
-
   itemDanger: { color: "#d70015" },
   itemDisabled: { opacity: 0.35, cursor: "not-allowed" },
   bottomHint: {

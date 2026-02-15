@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
 import HamburgerDrawer, { type DrawerSection } from "./HamburgerDrawer";
@@ -7,6 +7,28 @@ type Props = {
   title: string;
 };
 
+function buildMailto() {
+  const subject = encodeURIComponent("[voice-app] お問い合わせ");
+  const body = encodeURIComponent(
+    [
+      "以下をご記入ください（可能な範囲でOK）",
+      "",
+      "■ 種別（不具合 / 要望 / 質問）:",
+      "■ 内容:",
+      "■ 発生手順（不具合の場合）:",
+      "■ 期待する結果:",
+      "■ 実際の結果:",
+      "■ 環境（OS/ブラウザ）:",
+      "",
+      "※ 個人情報は書かないでください。",
+    ].join("\n")
+  );
+
+  // ★必ず差し替え（公開なら捨てアド推奨）
+  const to = "your-contact@example.com";
+  return `mailto:${to}?subject=${subject}&body=${body}`;
+}
+
 export default function AppHeader({ title }: Props) {
   const { me, isLoading, logout } = useAuth();
   const navigate = useNavigate();
@@ -14,8 +36,6 @@ export default function AppHeader({ title }: Props) {
 
   const [open, setOpen] = useState(false);
 
-  // ルート遷移したら閉じる（戻る/リンク移動含む）
-  // ※ effect内の同期 setState 警告を避けるため、次tickで閉じる
   useEffect(() => {
     const id = setTimeout(() => {
       setOpen(false);
@@ -32,7 +52,12 @@ export default function AppHeader({ title }: Props) {
       console.error(e);
       alert("ログアウトに失敗しました");
     }
-  }, [logout, navigate]);
+  }, [logout, navigate]); 
+
+  const onContact = () => {
+    const mailto = buildMailto();
+    window.location.href = mailto;
+  };
 
   const sections: DrawerSection[] = useMemo(
     () => [
@@ -79,11 +104,11 @@ export default function AppHeader({ title }: Props) {
             match: "exact",
             onClick: () => navigate("/help/about"),
           },
+          // ✅ ページ遷移せず、mailto を開く
           {
-            label: "お問い合わせ",
-            to: "/help/contact",
+            label: "お問い合わせ（メール）",
             match: "exact",
-            onClick: () => navigate("/help/contact"),
+            onClick: onContact,
           },
         ],
       },

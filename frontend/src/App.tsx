@@ -17,7 +17,6 @@ import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
-import HelpContactPage from "./pages/HelpContactPage";
 
 export default function App() {
   return (
@@ -48,7 +47,6 @@ export default function App() {
             {/* ✅ Step7：ヘルプは「ログイン不要」にしておく（要件に応じて後でRequireAuth配下に移動OK） */}
             <Route path="/help/guide" element={<HelpGuidePage />} />
             <Route path="/help/about" element={<HelpAboutPage />} />
-            <Route path="/help/contact" element={<HelpContactPage />} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />

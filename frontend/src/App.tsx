@@ -1,13 +1,16 @@
+// frontend/src/App.tsx
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+
 import { AuthProvider } from "./features/auth/AuthProvider";
 import RequireAuth from "./features/auth/RequireAuth";
-
 import AppLayout from "./components/AppLayout";
 
 import LogPage from "./pages/LogPage";
 import LogNewPage from "./pages/LogNewPage";
 import TrainingPage from "./pages/TrainingPage";
 import InsightsPage from "./pages/InsightsPage";
+import InsightsTimePage from "./pages/InsightsTimePage";
+import InsightsMenusPage from "./pages/InsightsMenusPage";
 
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -37,14 +40,17 @@ export default function App() {
               <Route path="/log" element={<LogPage />} />
               <Route path="/log/new" element={<LogNewPage />} />
               <Route path="/training" element={<TrainingPage />} />
+
               <Route path="/insights" element={<InsightsPage />} />
+              <Route path="/insights/time" element={<InsightsTimePage />} />
+              <Route path="/insights/menus" element={<InsightsMenusPage />} />
 
               {/* ✅ Step7：設定/アカウント */}
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/account/profile" element={<ProfilePage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
 
-            {/* ✅ Step7：ヘルプは「ログイン不要」にしておく（要件に応じて後でRequireAuth配下に移動OK） */}
+            {/* ✅ Step7：ヘルプは「ログイン不要」 */}
             <Route path="/help/guide" element={<HelpGuidePage />} />
             <Route path="/help/about" element={<HelpAboutPage />} />
 

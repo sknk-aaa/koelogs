@@ -1,3 +1,4 @@
+// frontend/src/pages/TrainingPage.tsx
 import { useMemo, useState } from "react";
 import type { ScaleTrack, ScaleType, Tempo } from "../api/scaleTracks";
 import { SCALE_TYPES, TEMPOS } from "../features/training/constants";
@@ -33,14 +34,14 @@ export default function TrainingPage() {
     <div style={styles.page}>
       <div style={styles.shell}>
         <header style={styles.header}>
-          <div>
-            <h1 style={styles.title}>Scale Player</h1>
-            <p style={styles.subtitle}>scale_type と tempo を選んで再生</p>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={styles.title}>トレーニング</h1>
+            <p style={styles.subtitle}>スケールとテンポを選んで、すぐ再生。</p>
           </div>
         </header>
 
         <main style={styles.card}>
-          <div style={styles.controls}>
+          <div style={styles.block}>
             <TrackFilters
               scaleType={scaleType}
               tempo={tempo}
@@ -50,7 +51,12 @@ export default function TrainingPage() {
               onChangeScaleType={setScaleType}
               onChangeTempo={setTempo}
             />
+          </div>
 
+          <div style={styles.divider} />
+
+          <div style={styles.block}>
+            {/* AudioPlayerの中で “選択してください/読み込み中/エラー” を見せる */}
             <AudioPlayer
               audioRef={audioRef}
               src={selected?.file_path ?? undefined}
@@ -63,20 +69,11 @@ export default function TrainingPage() {
               defaultVolume={settings.defaultVolume}
               loopEnabled={settings.loopEnabled}
             />
-          </div>
 
-          <div style={styles.statusArea}>
-            {loading && <p style={styles.muted}>読み込み中…</p>}
-            {error && <p style={styles.muted}>Error: {error}</p>}
-            {!loading && !error && !selected && (
-              <p style={styles.muted}>この組み合わせのトラックはありません。</p>
-            )}
+            {/* API側のエラーはページでも最低限出す（再生以前の問題なので） */}
+            {error && <p style={styles.note}>Error: {error}</p>}
           </div>
         </main>
-
-        <footer style={styles.footer}>
-          <span style={styles.footerText}>© Voice App</span>
-        </footer>
       </div>
     </div>
   );

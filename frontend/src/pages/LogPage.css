@@ -1,5 +1,12 @@
+/* frontend/src/pages/LogPage.css */
+
 .logPage {
   /* page.css の .page をベースに、必要なら微調整 */
+  width: 100%;
+  max-width: 920px;  /* ここで“箱の最大幅”を決める。好みで 840〜980 */
+  margin: 0 auto;    /* 左右autoで中央へ */
+  padding: 0 16px;   /* 端がくっつかない */
+  box-sizing: border-box;
 }
 
 .logPage__dateArea {
@@ -75,4 +82,36 @@
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: #fff;
   font-weight: 800;
+}
+
+/* 日付入力と「月のログ一覧」ボタンを横に並べる */
+.logPage__dateRow {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 左（ラベル + date input） */
+.logPage__dateLeft {
+  display: grid;
+  gap: 8px;
+}
+
+/* 右（ボタン） */
+.logPage__dateRight {
+  display: flex;
+  align-items: end;
+}
+
+/* スマホでは縦並びに戻す（崩れ防止） */
+@media (max-width: 520px) {
+  .logPage__dateRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .logPage__dateRight {
+    justify-content: flex-start;
+  }
 }

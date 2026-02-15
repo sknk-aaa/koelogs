@@ -1,10 +1,16 @@
-import type { TrainingLog, TrainingLogResponse } from "../types/trainingLog";
+// frontend/src/api/trainingLogs.ts
+import type {
+  TrainingLog,
+  TrainingLogMonthResponse,
+  TrainingLogResponse,
+} from "../types/trainingLog";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
-export async function fetchTrainingLogByDate(date: string): Promise<TrainingLogResponse> {
+export async function fetchTrainingLogByDate(
+  date: string
+): Promise<TrainingLogResponse> {
   const url = `${API_BASE}/api/training_logs?date=${encodeURIComponent(date)}`;
-
   const res = await fetch(url, {
     method: "GET",
     headers: { Accept: "application/json" },
@@ -16,12 +22,29 @@ export async function fetchTrainingLogByDate(date: string): Promise<TrainingLogR
   if (!res.ok) {
     return { data: null, error: json?.error ?? `Request failed: ${res.status}` };
   }
-
   return json ?? { data: null };
 }
 
+export async function fetchTrainingLogsByMonth(
+  month: string // YYYY-MM
+): Promise<TrainingLogMonthResponse> {
+  const url = `${API_BASE}/api/training_logs?month=${encodeURIComponent(month)}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+  });
+
+  const json = (await res.json().catch(() => null)) as TrainingLogMonthResponse | null;
+
+  if (!res.ok) {
+    return { data: null, error: json?.error ?? `Request failed: ${res.status}` };
+  }
+  return json ?? { data: [] };
+}
+
 export type UpsertTrainingLogInput = {
-  practiced_on: string;            // YYYY-MM-DD
+  practiced_on: string; // YYYY-MM-DD
   duration_min: number | null;
   menus: string[];
   notes: string | null;
@@ -38,7 +61,9 @@ export type UpsertTrainingLogResult =
   | { ok: true; data: TrainingLog }
   | { ok: false; status: number; errors: string[] };
 
-export async function upsertTrainingLog(input: UpsertTrainingLogInput): Promise<UpsertTrainingLogResult> {
+export async function upsertTrainingLog(
+  input: UpsertTrainingLogInput
+): Promise<UpsertTrainingLogResult> {
   const res = await fetch(`${API_BASE}/api/training_logs`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -59,9 +84,16 @@ export async function upsertTrainingLog(input: UpsertTrainingLogInput): Promise<
 
   if (res.status === 422) {
     const errs = json?.errors ?? (json?.error ? [String(json.error)] : []);
-    return { ok: false, status: 422, errors: errs.length ? errs : ["Validation failed"] };
+    return {
+      ok: false,
+      status: 422,
+      errors: errs.length ? errs : ["Validation failed"],
+    };
   }
 
-  const fallback = json?.error ? [String(json.error)] : [`Request failed: ${res.status}`];
+  const fallback = json?.error
+    ? [String(json.error)]
+    : [`Request failed: ${res.status}`];
+
   return { ok: false, status: res.status, errors: fallback };
 }

@@ -6,6 +6,9 @@ import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
 import { useSettings } from "../features/settings/useSettings";
 
+// ✅ 今月一覧モーダル
+import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
+
 import "./LogPage.css";
 
 function todayISO(): string {
@@ -22,8 +25,9 @@ export default function LogPage() {
   const date = useMemo(() => params.get("date") || todayISO(), [params]);
 
   const isToday = date === todayISO();
+  const monthKey = useMemo(() => date.slice(0, 7), [date]); // YYYY-MM（選択日の月）
 
-  const { settings } = useSettings(); // ✅ 追加：設定参照
+  const { settings } = useSettings();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +37,9 @@ export default function LogPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiRec, setAiRec] = useState<AiRecommendation | null>(null);
+
+  // ✅ 今月一覧モーダル state
+  const [monthModalOpen, setMonthModalOpen] = useState(false);
 
   // training_log fetch
   useEffect(() => {
@@ -90,7 +97,6 @@ export default function LogPage() {
     setAiLoading(true);
     setAiError(null);
 
-    // ✅ 設定から参照日数を使う（7 or 14）
     const res = await createAiRecommendation({ range_days: settings.aiRangeDays });
 
     if (res.ok) {
@@ -110,14 +116,31 @@ export default function LogPage() {
     <div className="page logPage">
       <h1 className="h1">ログ</h1>
 
-      {/* 日付選択 */}
-      <div className="logPage__dateArea">
-        <div className="logPage__label">日付</div>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => onChangeDate(e.target.value)}
-          className="logPage__dateInput"
+      {/* 日付選択 + 月一覧ボタン（横並び） */}
+      <div className="logPage__dateArea logPage__dateRow">
+        <div className="logPage__dateLeft">
+          <div className="logPage__label">日付</div>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => onChangeDate(e.target.value)}
+            className="logPage__dateInput"
+          />
+        </div>
+
+        <div className="logPage__dateRight">
+          <button className="btn" onClick={() => setMonthModalOpen(true)}>
+            月のログ一覧を開く
+          </button>
+        </div>
+
+        <MonthlyLogsModal
+          open={monthModalOpen}
+          month={monthKey}
+          onClose={() => setMonthModalOpen(false)}
+          onSelectDate={(d) => {
+            setParams({ date: d });
+          }}
         />
       </div>
 

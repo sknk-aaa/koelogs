@@ -1,3 +1,4 @@
+# app/controllers/application_controller.rb
 class ApplicationController < ActionController::API
   include ActionController::Cookies
 
@@ -9,6 +10,9 @@ class ApplicationController < ActionController::API
   end
 
   def require_login!
-    render json: { error: "unauthorized" }, status: :unauthorized if current_user.nil?
+    if current_user.nil?
+      render json: { error: "unauthorized" }, status: :unauthorized
+      nil
+    end
   end
 end

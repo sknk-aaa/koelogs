@@ -1,3 +1,5 @@
+
+// frontend/src/types/trainingLog.ts
 export type TrainingLog = {
   id: number;
   practiced_on: string; // YYYY-MM-DD
@@ -11,4 +13,8 @@ export type TrainingLog = {
 
 export type TrainingLogResponse =
   | { data: TrainingLog | null; error?: undefined }
+  | { data: null; error: string };
+
+export type TrainingLogMonthResponse =
+  | { data: TrainingLog[]; error?: undefined }
   | { data: null; error: string };

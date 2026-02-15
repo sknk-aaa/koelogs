@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
 import HamburgerDrawer, { type DrawerSection } from "./HamburgerDrawer";
-import { useCallback} from "react";
 
 type Props = {
   title: string;
@@ -16,34 +15,47 @@ export default function AppHeader({ title }: Props) {
   const [open, setOpen] = useState(false);
 
   // ルート遷移したら閉じる（戻る/リンク移動含む）
+  // ※ effect内の同期 setState 警告を避けるため、次tickで閉じる
   useEffect(() => {
-  const id = setTimeout(() => {
-    setOpen(false);
-  }, 0);
+    const id = setTimeout(() => {
+      setOpen(false);
+    }, 0);
 
-  return () => clearTimeout(id);
-}, [location.pathname]);
+    return () => clearTimeout(id);
+  }, [location.pathname]);
 
-const onLogout = useCallback(async () => {
-  try {
-    await logout();
-    navigate("/login", { replace: true });
-  } catch (e) {
-    console.error(e);
-    alert("ログアウトに失敗しました");
-  }
-}, [logout, navigate]);
+  const onLogout = useCallback(async () => {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (e) {
+      console.error(e);
+      alert("ログアウトに失敗しました");
+    }
+  }, [logout, navigate]);
 
   const sections: DrawerSection[] = useMemo(
     () => [
       {
         title: "設定",
-        items: [{ label: "設定", onClick: () => navigate("/settings") }],
+        items: [
+          {
+            label: "設定",
+            to: "/settings",
+            match: "exact",
+            onClick: () => navigate("/settings"),
+          },
+        ],
       },
       {
         title: "アカウント",
         items: [
-          { label: "プロフィール（表示名）", onClick: () => navigate("/account/profile") },
+          {
+            label: "プロフィール（表示名）",
+            to: "/account/profile",
+            match: "exact",
+            onClick: () => navigate("/account/profile"),
+          },
           {
             label: "ログアウト",
             variant: "danger",
@@ -55,9 +67,24 @@ const onLogout = useCallback(async () => {
       {
         title: "ヘルプ",
         items: [
-          { label: "使い方", onClick: () => navigate("/help/guide") },
-          { label: "このアプリについて", onClick: () => navigate("/help/about") },
-          { label: "お問い合わせ", onClick: () => navigate("/help/contact") },
+          {
+            label: "使い方",
+            to: "/help/guide",
+            match: "exact",
+            onClick: () => navigate("/help/guide"),
+          },
+          {
+            label: "このアプリについて",
+            to: "/help/about",
+            match: "exact",
+            onClick: () => navigate("/help/about"),
+          },
+          {
+            label: "お問い合わせ",
+            to: "/help/contact",
+            match: "exact",
+            onClick: () => navigate("/help/contact"),
+          },
         ],
       },
     ],
@@ -75,19 +102,15 @@ const onLogout = useCallback(async () => {
 
         <div style={styles.right}>
           {!isLoading && me && (
-            <div style={styles.email} title={me.email}>
-              {me.email}
+            <div style={styles.email} title={me.display_name ?? me.email}>
+              {me.display_name ?? me.email}
             </div>
           )}
 
-          {/* ✅ ハンバーガー */}
           <button
             type="button"
             aria-label="メニューを開く"
-            onClick={() => {
-              console.log("hamburger clicked");
-              setOpen(true);
-            }}
+            onClick={() => setOpen(true)}
             style={styles.menuBtn}
           >
             <span style={styles.bar} />
@@ -97,13 +120,13 @@ const onLogout = useCallback(async () => {
         </div>
       </header>
 
-      {/* ✅ 重要：header の「外」に出す（クリップ/スタッキング問題を回避） */}
       <HamburgerDrawer
         open={open}
         onClose={() => setOpen(false)}
         headerTitle="メニュー"
         headerSub={isLoading ? "読み込み中…" : me ? "ログイン中" : "未ログイン"}
         sections={sections}
+        activePath={location.pathname}
       />
     </>
   );
@@ -123,12 +146,7 @@ const styles: Record<string, React.CSSProperties> = {
     backdropFilter: "blur(10px)",
     borderBottom: "1px solid rgba(0,0,0,0.06)",
   },
-  left: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    minWidth: 0,
-  },
+  left: { display: "flex", alignItems: "center", gap: 10, minWidth: 0 },
   title: {
     fontSize: 16,
     fontWeight: 900,
@@ -137,11 +155,7 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
-  right: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-  },
+  right: { display: "flex", alignItems: "center", gap: 10 },
   email: {
     color: "#111",
     fontSize: 12,

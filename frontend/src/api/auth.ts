@@ -1,6 +1,10 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
-export type Me = { id: number; email: string };
+export type Me = {
+  id: number;
+  email: string;
+  display_name: string | null;
+};
 
 export async function fetchMe(): Promise<Me | null> {
   const res = await fetch(`${API_BASE}/api/me`, {
@@ -15,7 +19,31 @@ export async function fetchMe(): Promise<Me | null> {
   return (await res.json()) as Me;
 }
 
-export async function signup(email: string, password: string, passwordConfirmation: string): Promise<void> {
+export async function updateMeDisplayName(displayName: string): Promise<Me> {
+  const res = await fetch(`${API_BASE}/api/me`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ me: { display_name: displayName } }),
+  });
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg = json?.error ?? `updateMeDisplayName failed: ${res.status}`;
+    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
+  }
+
+  return json as Me;
+}
+
+export async function signup(
+  email: string,
+  password: string,
+  passwordConfirmation: string
+): Promise<void> {
   const res = await fetch(`${API_BASE}/api/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -28,7 +56,6 @@ export async function signup(email: string, password: string, passwordConfirmati
   });
 
   const json = await res.json().catch(() => null);
-
   if (!res.ok) {
     const msg = json?.error ?? `signup failed: ${res.status}`;
     throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
@@ -44,7 +71,6 @@ export async function login(email: string, password: string): Promise<void> {
   });
 
   const json = await res.json().catch(() => null);
-
   if (!res.ok) {
     const msg = json?.error ?? `login failed: ${res.status}`;
     throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);

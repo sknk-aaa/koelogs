@@ -8,7 +8,6 @@ function titleFromPath(pathname: string) {
   if (pathname.startsWith("/settings")) return "設定";
   if (pathname.startsWith("/account")) return "アカウント";
   if (pathname.startsWith("/help")) return "ヘルプ";
-  // /log, /log/new もまとめてログ扱い
   return "練習ログ";
 }
 
@@ -22,8 +21,6 @@ export default function AppLayout() {
       <main style={styles.main}>
         <Outlet />
       </main>
-
-      {/* フッター固定 */}
       <AppFooterTabs />
     </div>
   );
@@ -33,9 +30,8 @@ const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
     background:
-      "radial-gradient(1200px 800px at 50% -200px, #ffd1d6 0%, #f7f7fb 45%, #f2f2f7 100%)",
+      "radial-gradient(1200px 800px at 50% -200px, var(--bgTop) 0%, var(--bgMid) 45%, var(--bgBottom) 100%)",
   },
-  // フッター固定なので下に余白を作る
   main: {
     paddingBottom: "calc(64px + env(safe-area-inset-bottom) + 12px)",
   },

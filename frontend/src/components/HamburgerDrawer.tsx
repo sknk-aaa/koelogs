@@ -1,9 +1,12 @@
 import { useEffect } from "react";
-import { createPortal } from "react-dom";
 
 export type DrawerItem = {
   label: string;
   onClick: () => void;
+
+  to?: string;
+  match?: "exact" | "prefix";
+
   disabled?: boolean;
   variant?: "default" | "danger";
 };
@@ -19,6 +22,7 @@ type Props = {
   headerTitle: string;
   headerSub?: string;
   sections: DrawerSection[];
+  activePath: string;
 };
 
 export default function HamburgerDrawer({
@@ -27,8 +31,8 @@ export default function HamburgerDrawer({
   headerTitle,
   headerSub,
   sections,
+  activePath,
 }: Props) {
-  // body スクロールロック + ESCで閉じる
   useEffect(() => {
     if (!open) return;
 
@@ -48,7 +52,14 @@ export default function HamburgerDrawer({
 
   if (!open) return null;
 
-  return createPortal(
+  const isActive = (it: DrawerItem) => {
+    if (!it.to) return false;
+    const mode = it.match ?? "exact";
+    if (mode === "exact") return activePath === it.to;
+    return activePath === it.to || activePath.startsWith(`${it.to}/`);
+  };
+
+  return (
     <div style={styles.root} role="dialog" aria-modal="true">
       <button
         type="button"
@@ -75,36 +86,54 @@ export default function HamburgerDrawer({
               <div style={styles.sectionTitle}>{sec.title}</div>
 
               <div style={styles.card}>
-                {sec.items.map((it) => (
-                  <button
-                    key={it.label}
-                    type="button"
-                    disabled={it.disabled}
-                    onClick={() => {
-                      it.onClick();
-                      onClose();
-                    }}
-                    style={{
-                      ...styles.item,
-                      ...(it.variant === "danger" ? styles.itemDanger : null),
-                      ...(it.disabled ? styles.itemDisabled : null),
-                    }}
-                  >
-                    <span style={styles.itemLabel}>{it.label}</span>
-                    <span style={styles.chev}>›</span>
-                  </button>
-                ))}
+                {sec.items.map((it) => {
+                  const active = isActive(it);
+
+                  return (
+                    <button
+                      key={it.label}
+                      type="button"
+                      disabled={it.disabled}
+                      onClick={() => {
+                        it.onClick();
+                        onClose();
+                      }}
+                      style={{
+                        ...styles.item,
+                        ...(it.variant === "danger" ? styles.itemDanger : null),
+                        ...(it.disabled ? styles.itemDisabled : null),
+                        ...(active ? styles.itemActive : null),
+                      }}
+                    >
+                      {/* 左：ラベル */}
+                      <span
+                        style={{
+                          ...styles.itemLabel,
+                          ...(active ? styles.itemLabelActive : null),
+                        }}
+                      >
+                        {it.label}
+                      </span>
+
+                      {/* 右：アクティブは「●」、それ以外は「›」 */}
+                      {active ? (
+                        <span style={styles.activeDot} aria-hidden="true">
+                          ●
+                        </span>
+                      ) : (
+                        <span style={styles.chev}>›</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </section>
           ))}
         </div>
 
-        <div style={styles.bottomHint}>
-          ESC または背景タップで閉じられます
-        </div>
+        <div style={styles.bottomHint}>ESC または背景タップで閉じられます</div>
       </aside>
-    </div>,
-    document.body
+    </div>
   );
 }
 
@@ -112,9 +141,7 @@ const styles: Record<string, React.CSSProperties> = {
   root: {
     position: "fixed",
     inset: 0,
-    zIndex: 200,
-    display: "grid",
-    gridTemplateColumns: "1fr",
+    zIndex: 9999,
   },
   backdrop: {
     position: "absolute",
@@ -136,7 +163,6 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: "-20px 0 60px rgba(0,0,0,0.18)",
     display: "flex",
     flexDirection: "column",
-    animation: "drawerIn 180ms ease-out",
   },
   sheetHeader: {
     padding: "14px 14px 10px",
@@ -193,7 +219,25 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#111",
   },
   itemLabel: { fontSize: 14, fontWeight: 800 },
+  // ✅ active は太字にする
+  itemLabelActive: { fontWeight: 900 },
+
+  // ✅ active 行は少し背景を付ける（既存）
+  itemActive: {
+    background: "rgba(0,0,0,0.05)",
+  },
+
+  // ✅ active 右側の●
+  activeDot: {
+    fontSize: 10,
+    opacity: 0.8,
+    lineHeight: "1",
+    marginLeft: 8,
+  },
+
+  // 非activeの矢印
   chev: { fontSize: 18, opacity: 0.35, marginLeft: 8 },
+
   itemDanger: { color: "#d70015" },
   itemDisabled: { opacity: 0.35, cursor: "not-allowed" },
   bottomHint: {

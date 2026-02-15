@@ -1,0 +1,28 @@
+:root {
+  --accent: #ff3b7a;
+  --accentSoft: rgba(255, 59, 122, 0.14);
+  --accentText: #ffffff;
+  --bgTop: #ffd1d6;
+  --bgMid: #f7f7fb;
+  --bgBottom: #f2f2f7;
+
+  --text: #111111;
+  --muted: rgba(0, 0, 0, 0.65);
+  --border: rgba(0, 0, 0, 0.08);
+  --card: rgba(255, 255, 255, 0.92);
+
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans JP",
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --fontScale: 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; color: var(--text); background: #fff; font-size: calc(16px * var(--fontScale))}
+
+a { color: inherit; text-decoration: none; }
+
+button, input, textarea { font-family: inherit; }

@@ -6,9 +6,11 @@ import { useAudioPlayer } from "../features/training/hooks/useAudioPlayer";
 import TrackFilters from "../features/training/components/TrackFilters";
 import AudioPlayer from "../features/training/components/AudioPlayer";
 import { styles } from "../features/training/styles";
+import { useSettings } from "../features/settings/useSettings";
 
 export default function TrainingPage() {
   const { tracks, loading, error } = useScaleTracks();
+  const { settings } = useSettings();
 
   const [scaleType, setScaleType] = useState<ScaleType>("5tone");
   const [tempo, setTempo] = useState<Tempo>(120);
@@ -18,7 +20,11 @@ export default function TrainingPage() {
   }, [tracks, scaleType, tempo]);
 
   const { audioRef, isPlaying, togglePlay, onPlay, onPause, onEnded } = useAudioPlayer(
-    selected?.id ?? null
+    selected?.id ?? null,
+    {
+      defaultVolume: settings.defaultVolume,
+      loopEnabled: settings.loopEnabled,
+    }
   );
 
   const disabled = loading || !!error || !selected;
@@ -54,6 +60,8 @@ export default function TrainingPage() {
               onPlay={onPlay}
               onPause={onPause}
               onEnded={onEnded}
+              defaultVolume={settings.defaultVolume}
+              loopEnabled={settings.loopEnabled}
             />
           </div>
 

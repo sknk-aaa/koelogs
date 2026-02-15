@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { upsertTrainingLog, type UpsertTrainingLogInput } from "../api/trainingLogs";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import type { TrainingLog } from "../types/trainingLog";
-
 import { fetchTrainingMenus, createTrainingMenu, updateTrainingMenu } from "../api/trainingMenus";
 import type { TrainingMenu } from "../types/trainingMenu";
 import ColoredTag from "../components/ColoredTag";
@@ -44,21 +43,19 @@ export default function LogNewPage() {
   const initialDate = params.get("date") || todayISO();
 
   const [practicedOn, setPracticedOn] = useState(initialDate);
-
   const [durationMin, setDurationMin] = useState("");
   const [notes, setNotes] = useState("");
 
   // メニュー管理：DB由来（追加/論理削除 + 複数選択）
   const [menuCatalog, setMenuCatalog] = useState<TrainingMenu[]>([]);
   const [menuToAdd, setMenuToAdd] = useState("");
-  const [selectedMenus, setSelectedMenus] = useState<Set<string>>(() => new Set());
+  const [selectedMenuIds, setSelectedMenuIds] = useState<Set<number>>(() => new Set());
 
   // 追加時の色
-  const [menuColorToAdd, setMenuColorToAdd] = useState<string>(MENU_COLOR_PALETTE[0].color);
+  const [menuColorToAdd, setMenuColorToAdd] = useState(MENU_COLOR_PALETTE[0].color);
 
   const [falsettoEnabled, setFalsettoEnabled] = useState(false);
   const [falsettoTopNote, setFalsettoTopNote] = useState("");
-
   const [chestEnabled, setChestEnabled] = useState(false);
   const [chestTopNote, setChestTopNote] = useState("");
 
@@ -66,7 +63,7 @@ export default function LogNewPage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [initialLoading, setInitialLoading] = useState(false);
 
-  const selectedMenusArray = useMemo(() => Array.from(selectedMenus), [selectedMenus]);
+  const selectedMenuIdsArray = useMemo(() => Array.from(selectedMenuIds), [selectedMenuIds]);
 
   // 初期ロード：メニュー一覧を取得（archived=falseのみ）
   useEffect(() => {
@@ -89,7 +86,6 @@ export default function LogNewPage() {
     let cancelled = false;
     (async () => {
       setInitialLoading(true);
-
       const res = await fetchTrainingLogByDate(practicedOn);
       if (cancelled) return;
 
@@ -107,7 +103,12 @@ export default function LogNewPage() {
 
       setDurationMin(existing.duration_min == null ? "" : String(existing.duration_min));
       setNotes(existing.notes ?? "");
-      setSelectedMenus(new Set(existing.menus ?? []));
+
+      const ids = (existing.menu_ids && existing.menu_ids.length)
+        ? existing.menu_ids
+        : (existing.menus ?? []).map((m) => m.id);
+
+      setSelectedMenuIds(new Set(ids));
 
       const f = existing.falsetto_top_note;
       setFalsettoEnabled(f != null);
@@ -125,11 +126,11 @@ export default function LogNewPage() {
     };
   }, [practicedOn]);
 
-  const toggleMenu = (name: string) => {
-    setSelectedMenus((prev) => {
+  const toggleMenu = (id: number) => {
+    setSelectedMenuIds((prev) => {
       const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -151,14 +152,12 @@ export default function LogNewPage() {
   const removeMenuFromCatalog = async (menu: TrainingMenu) => {
     try {
       await updateTrainingMenu(menu.id, { archived: true });
-
       // UIからは消す（archived=false一覧なので）
       setMenuCatalog((prev) => prev.filter((m) => m.id !== menu.id));
-
-      // もし選択済みなら外す（ログはname保存なので一貫性保つ）
-      setSelectedMenus((prev) => {
+      // もし選択済みなら外す（ログは menu_id 保存なので問題なし）
+      setSelectedMenuIds((prev) => {
         const next = new Set(prev);
-        next.delete(menu.name);
+        next.delete(menu.id);
         return next;
       });
     } catch (e) {
@@ -186,12 +185,11 @@ export default function LogNewPage() {
     const payload: UpsertTrainingLogInput = {
       practiced_on: practicedOn,
       duration_min: Number.isNaN(parsedDuration as number) ? null : parsedDuration,
-      menus: selectedMenusArray,
+      menu_ids: selectedMenuIdsArray,
       notes: notes.trim() === "" ? null : notes,
 
       falsetto_enabled: falsettoEnabled,
       falsetto_top_note: falsettoEnabled ? falsettoTopNote.trim() : null,
-
       chest_enabled: chestEnabled,
       chest_top_note: chestEnabled ? chestTopNote.trim() : null,
     };
@@ -209,16 +207,16 @@ export default function LogNewPage() {
 
   return (
     <div style={{ padding: "14px 14px 90px", maxWidth: 920, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 18, fontWeight: 900, margin: "6px 0 12px" }}>今日のトレーニングを記録</h1>
-
-      {initialLoading && (
-        <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 10 }}>既存ログを読み込み中…</div>
-      )}
+      <h1 style={{ fontSize: 18, fontWeight: 900, margin: "6px 0 10px" }}>今日のトレーニングを記録</h1>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 14 }}>
+        {initialLoading && (
+          <div style={{ opacity: 0.8, fontSize: 12 }}>既存ログを読み込み中…</div>
+        )}
+
         {/* 日付 */}
         <section style={{ display: "grid", gap: 8 }}>
-          <div style={{ fontWeight: 800 }}>日付</div>
+          <div style={{ fontSize: 13, fontWeight: 800 }}>日付</div>
           <input
             type="date"
             value={practicedOn}
@@ -236,82 +234,65 @@ export default function LogNewPage() {
 
         {/* メニュー */}
         <section style={{ display: "grid", gap: 10 }}>
-          <div style={{ fontWeight: 800 }}>練習メニュー（複数選択）</div>
+          <div style={{ fontSize: 13, fontWeight: 800 }}>練習メニュー（複数選択）</div>
 
           {/* ✅ 追加欄（色選択が「追加の一部」として分かるUI） */}
-          <div style={{ display: "grid", gap: 10 }}>
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
-              <div style={{ flex: 1, minWidth: 220, display: "grid", gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.75 }}>メニュー名</div>
-                <input
-                  value={menuToAdd}
-                  onChange={(e) => setMenuToAdd(e.target.value)}
-                  placeholder="メニューを追加（例: 裏声リップロール）"
-                  style={{
-                    height: 40,
-                    padding: "0 12px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(0,0,0,0.12)",
-                    width: "100%",
-                  }}
-                />
-              </div>
+          <div style={{ display: "grid", gap: 8, padding: 12, border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.85 }}>メニュー名</div>
+            <input
+              value={menuToAdd}
+              onChange={(e) => setMenuToAdd(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault(); // ✅ submit阻止
+                  e.stopPropagation();
+                  void addMenu();     // ✅ 追加（asyncなので void を付けてlint対策）
+                }
+              }}
+              placeholder="メニューを追加（例: 裏声リップロール）"
+              style={{
+                height: 40,
+                padding: "0 12px",
+                borderRadius: 12,
+                border: "1px solid rgba(0,0,0,0.12)",
+                width: "100%",
+              }}
+            />
 
-              <div style={{ minWidth: 180, display: "grid", gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.75 }}>追加する色</div>
+            <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.85 }}>追加する色</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+              {MENU_COLOR_PALETTE.map((p) => {
+                const active = p.color === menuColorToAdd;
+                return (
+                  <button
+                    key={p.color}
+                    type="button"
+                    onClick={() => setMenuColorToAdd(p.color)}
+                    title={`この色で追加: ${p.name}`}
+                    aria-label={`この色で追加: ${p.name}`}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 999,
+                      border: active ? "2px solid rgba(0,0,0,0.65)" : "1px solid rgba(0,0,0,0.15)",
+                      background: p.color,
+                      cursor: "pointer",
+                      position: "relative",
+                      boxShadow: active ? "0 0 0 3px rgba(0,0,0,0.06)" : "none",
+                    }}
+                  >
+                    {active && <span style={{ fontWeight: 900, fontSize: 14 }}>✓</span>}
+                  </button>
+                );
+              })}
+            </div>
 
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-                  {MENU_COLOR_PALETTE.map((p) => {
-                    const active = p.color === menuColorToAdd;
-                    return (
-                      <button
-                        key={p.color}
-                        type="button"
-                        onClick={() => setMenuColorToAdd(p.color)}
-                        title={`この色で追加: ${p.name}`}
-                        aria-label={`この色で追加: ${p.name}`}
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 999,
-                          border: active
-                            ? "2px solid rgba(0,0,0,0.65)"
-                            : "1px solid rgba(0,0,0,0.15)",
-                          background: p.color,
-                          cursor: "pointer",
-                          position: "relative",
-                          boxShadow: active ? "0 0 0 3px rgba(0,0,0,0.06)" : "none",
-                        }}
-                      >
-                        {active && (
-                          <span
-                            style={{
-                              position: "absolute",
-                              inset: 0,
-                              display: "grid",
-                              placeItems: "center",
-                              fontWeight: 900,
-                              fontSize: 14,
-                              color: "rgba(0,0,0,0.75)",
-                            }}
-                          >
-                            ✓
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.85 }}>プレビュー</div>
+              <ColoredTag text="タグ表示" color={menuColorToAdd} />
+            </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 6 }}>
-                    <span style={{ fontSize: 12, opacity: 0.75, fontWeight: 900 }}>プレビュー</span>
-                    <ColoredTag
-                      label={menuToAdd.trim() ? menuToAdd.trim() : "新規メニュー"}
-                      color={menuColorToAdd}
-                    />
-                  </div>
-                </div>
-              </div>
-
+            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
               <button
                 type="button"
                 onClick={addMenu}
@@ -321,95 +302,89 @@ export default function LogNewPage() {
                   padding: "0 14px",
                   borderRadius: 12,
                   border: "1px solid rgba(0,0,0,0.12)",
-                  background: "#fff",
-                  cursor: menuToAdd.trim() ? "pointer" : "not-allowed",
+                  background: "black",
+                  color: "white",
+                  cursor: "pointer",
+                  opacity: !menuToAdd.trim() ? 0.5 : 1,
                   fontWeight: 900,
-                  opacity: menuToAdd.trim() ? 1 : 0.6,
-                  whiteSpace: "nowrap",
                 }}
               >
                 この色で追加
               </button>
-            </div>
 
-            <div style={{ fontSize: 12, opacity: 0.7 }}>
-              ※ ここで選んだ色が、このメニューのタグ色として保存されます（ログ表示にも反映）
+              <div style={{ fontSize: 12, opacity: 0.75 }}>
+                ※ ここで選んだ色が、このメニューのタグ色として保存されます（ログ表示にも反映）
+              </div>
             </div>
           </div>
 
           {/* カタログ一覧 */}
           <div style={{ display: "grid", gap: 10 }}>
             {menuCatalog.map((menu) => {
-              const checked = selectedMenus.has(menu.name);
+              const checked = selectedMenuIds.has(menu.id);
               return (
-                <div
-                  key={menu.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 12px",
-                    borderRadius: 14,
-                    border: "1px solid rgba(0,0,0,0.10)",
-                    background: "#fff",
-                  }}
-                >
+                <div key={menu.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <input
                     type="checkbox"
                     checked={checked}
-                    onChange={() => toggleMenu(menu.name)}
+                    onChange={() => toggleMenu(menu.id)}
                     style={{ width: 18, height: 18 }}
                   />
+                  <ColoredTag text={menu.name} color={menu.color} />
+                  {checked && <span style={{ fontSize: 12, opacity: 0.7, fontWeight: 800 }}>選択中</span>}
 
-                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                    <ColoredTag label={menu.name} color={menu.color} />
-                    {checked && <span style={{ fontSize: 12, opacity: 0.7, fontWeight: 800 }}>選択中</span>}
+                  <div style={{ marginLeft: "auto" }}>
+                    <button
+                      type="button"
+                      onClick={() => removeMenuFromCatalog(menu)}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        cursor: "pointer",
+                        opacity: 0.75,
+                        fontWeight: 800,
+                      }}
+                      title="カタログから削除（archived=true）"
+                    >
+                      削除
+                    </button>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => removeMenuFromCatalog(menu)}
-                    style={{
-                      border: "none",
-                      background: "transparent",
-                      cursor: "pointer",
-                      opacity: 0.75,
-                      fontWeight: 800,
-                    }}
-                    title="カタログから削除（archived=true）"
-                  >
-                    削除
-                  </button>
                 </div>
               );
             })}
-
             {menuCatalog.length === 0 && (
-              <div style={{ fontSize: 12, opacity: 0.7 }}>メニューがありません。上の入力から追加してください。</div>
+              <div style={{ fontSize: 12, opacity: 0.75 }}>
+                メニューがありません。上の入力から追加してください。
+              </div>
             )}
+          </div>
 
-            {/* 選択中のサマリ（色付き） */}
-            <div style={{ marginTop: 2 }}>
-              <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 900, marginBottom: 6 }}>
-                選択中メニュー
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {selectedMenusArray.length ? (
-                  selectedMenusArray.map((name) => {
-                    const m = menuCatalog.find((x) => x.name === name);
-                    return <ColoredTag key={name} label={name} color={m?.color} fallbackColor="#E5E7EB" />;
-                  })
-                ) : (
-                  <ColoredTag label="なし" color="#E5E7EB" muted />
-                )}
-              </div>
+          {/* 選択中のサマリ（色付き） */}
+          <div style={{ display: "grid", gap: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.85 }}>選択中メニュー</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {selectedMenuIdsArray.length ? (
+                selectedMenuIdsArray.map((id) => {
+                  const m = menuCatalog.find((x) => x.id === id);
+                  // ここは “catalogにいない（archived=trueで除外された等）” の可能性があるのでフォールバック表示
+                  return (
+                    <ColoredTag
+                      key={id}
+                      text={m?.name ?? `#${id}`}
+                      color={m?.color ?? "#E5E7EB"}
+                    />
+                  );
+                })
+              ) : (
+                <span style={{ fontSize: 12, opacity: 0.75 }}>なし</span>
+              )}
             </div>
           </div>
         </section>
 
         {/* 練習時間 */}
         <section style={{ display: "grid", gap: 8 }}>
-          <div style={{ fontWeight: 800 }}>練習時間（分）</div>
+          <div style={{ fontSize: 13, fontWeight: 800 }}>練習時間（分）</div>
           <input
             value={durationMin}
             onChange={(e) => setDurationMin(e.target.value)}
@@ -427,7 +402,7 @@ export default function LogNewPage() {
 
         {/* 裏声最高音 */}
         <section style={{ display: "grid", gap: 8 }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 800 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 13 }}>
             <input
               type="checkbox"
               checked={falsettoEnabled}
@@ -454,8 +429,12 @@ export default function LogNewPage() {
 
         {/* 地声最高音 */}
         <section style={{ display: "grid", gap: 8 }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 800 }}>
-            <input type="checkbox" checked={chestEnabled} onChange={(e) => setChestEnabled(e.target.checked)} />
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 13 }}>
+            <input
+              type="checkbox"
+              checked={chestEnabled}
+              onChange={(e) => setChestEnabled(e.target.checked)}
+            />
             地声最高音を記録する
           </label>
           <input
@@ -477,7 +456,7 @@ export default function LogNewPage() {
 
         {/* 自由記述 */}
         <section style={{ display: "grid", gap: 8 }}>
-          <div style={{ fontWeight: 800 }}>自由記述</div>
+          <div style={{ fontSize: 13, fontWeight: 800 }}>自由記述</div>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -531,6 +510,7 @@ export default function LogNewPage() {
           >
             {submitting ? "保存中…" : "保存"}
           </button>
+
           <button
             type="button"
             onClick={() => navigate(`/log?date=${encodeURIComponent(practicedOn)}`)}

@@ -27,7 +27,7 @@ module Ai
       @client.generate_text!(
         user_text: payload,
         system_text: system,
-        max_output_tokens: 10000,
+        max_output_tokens: 10_000,
         temperature: 0.5
       )
     end
@@ -38,22 +38,30 @@ module Ai
       from = (@date - @range_days).iso8601
       to = (@date - 1).iso8601
 
-      # モデルに渡す情報は「構造化して短く」が安定する
       lines = []
       lines << "対象日: #{@date.iso8601}"
       lines << "参照期間: #{from}〜#{to}（今日を除く直近#{@range_days}日）"
       lines << "training_logs:"
+
       if logs.empty?
         lines << "- (なし)"
       else
         logs.each do |log|
-          menus = Array(log.menus).map(&:to_s)
+          # ✅ menu_id設計：training_menus 経由で取る
+          # ✅ 移行途中の保険：associationが無い/未ロードでも落とさない
+          menu_names =
+            if log.respond_to?(:training_menus)
+              log.training_menus.map { |m| m.name.to_s }
+            else
+              []
+            end
+
           lines << "- date: #{log.practiced_on.iso8601}"
           lines << "  duration_min: #{log.duration_min || 0}"
-          lines << "  menus: #{menus.join(' | ')}"
+          lines << "  menus: #{menu_names.any? ? menu_names.join(' | ') : '(なし)'}"
           lines << "  falsetto_top_note: #{log.falsetto_top_note || '-'}"
           lines << "  chest_top_note: #{log.chest_top_note || '-'}"
-          # notes は注入リスクがあるので“短く切る”
+
           if log.notes.present?
             short = log.notes.to_s.gsub(/\s+/, " ").slice(0, 140)
             lines << "  notes: #{short}"

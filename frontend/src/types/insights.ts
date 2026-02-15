@@ -1,17 +1,19 @@
 // frontend/src/types/insights.ts
 export type InsightsRange = {
   from: string; // YYYY-MM-DD
-  to: string; // YYYY-MM-DD
+  to: string;   // YYYY-MM-DD
   days: number;
 };
 
 export type DailyDurationPoint = {
-  date: string; // YYYY-MM-DD
+  date: string;       // YYYY-MM-DD
   duration_min: number; // 0.. (missing => 0)
 };
 
 export type MenuRankingItem = {
-  menu: string;
+  menu_id: number;
+  name: string;
+  color: string;
   count: number;
 };
 

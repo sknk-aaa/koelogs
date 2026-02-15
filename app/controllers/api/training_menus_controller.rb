@@ -17,9 +17,43 @@ module Api
     end
 
     # POST /api/training_menus
+    #
+    # 仕様：
+    # - 同名の archived=true が存在する場合 → それを復活（archived=false）して返す（colorも更新）
+    # - 同名の archived=false が存在する場合 → 重複として 422
     def create
-      menu = current_user.training_menus.new(create_params)
+      name = create_params[:name].to_s.strip
+      color = create_params[:color]
 
+      # name が空なら通常の validation に任せる（分岐を簡単に）
+      existing =
+        if name.present?
+          current_user.training_menus.where("lower(name) = lower(?)", name).first
+        end
+
+      if existing
+        if existing.archived
+          # ✅ 復活：色も今回指定があれば更新（未指定なら既存維持）
+          existing.assign_attributes(
+            name: name,
+            archived: false,
+            color: color.presence || existing.color
+          )
+
+          if existing.save
+            render json: { data: serialize(existing) }, status: :ok
+          else
+            render json: { errors: existing.errors.full_messages }, status: :unprocessable_entity
+          end
+          return
+        else
+          # 既に active で存在 → 重複
+          render json: { errors: [ "Name has already been taken" ] }, status: :unprocessable_entity
+          return
+        end
+      end
+
+      menu = current_user.training_menus.new(create_params)
       if menu.save
         render json: { data: serialize(menu) }, status: :created
       else

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_15_162902) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_15_173607) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -33,17 +33,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_15_162902) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "training_log_menus", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "training_log_id", null: false
+    t.bigint "training_menu_id", null: false
+    t.bigint "user_id", null: false
+    t.index ["training_log_id", "training_menu_id"], name: "idx_training_log_menus_unique", unique: true
+    t.index ["user_id", "training_log_id"], name: "index_training_log_menus_on_user_id_and_training_log_id"
+    t.index ["user_id", "training_menu_id"], name: "index_training_log_menus_on_user_id_and_training_menu_id"
+    t.index ["user_id"], name: "index_training_log_menus_on_user_id"
+  end
+
   create_table "training_logs", force: :cascade do |t|
     t.string "chest_top_note"
     t.datetime "created_at", null: false
     t.integer "duration_min"
     t.string "falsetto_top_note"
-    t.jsonb "menus", default: [], null: false
     t.text "notes"
     t.date "practiced_on"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
-    t.index ["menus"], name: "index_training_logs_on_menus", using: :gin
+    t.index ["id", "user_id"], name: "idx_training_logs_id_user", unique: true
     t.index ["user_id", "practiced_on"], name: "index_training_logs_on_user_id_and_practiced_on", unique: true
     t.index ["user_id"], name: "index_training_logs_on_user_id"
   end
@@ -55,6 +65,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_15_162902) do
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["id", "user_id"], name: "idx_training_menus_id_user", unique: true
     t.index ["user_id", "archived"], name: "index_training_menus_on_user_id_and_archived"
     t.index ["user_id", "name"], name: "index_training_menus_on_user_id_and_name", unique: true
     t.index ["user_id"], name: "index_training_menus_on_user_id"
@@ -71,6 +82,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_15_162902) do
   end
 
   add_foreign_key "ai_recommendations", "users"
+  add_foreign_key "training_log_menus", "training_logs", column: ["training_log_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_logs_same_user", on_delete: :cascade
+  add_foreign_key "training_log_menus", "training_menus", column: ["training_menu_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_menus_same_user", on_delete: :restrict
+  add_foreign_key "training_log_menus", "users"
   add_foreign_key "training_logs", "users"
   add_foreign_key "training_menus", "users"
 end

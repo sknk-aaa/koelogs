@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Api
   class AiRecommendationsController < ApplicationController
     before_action :require_login!
@@ -12,29 +14,32 @@ module Api
     end
 
     # POST /api/ai_recommendations
+    # body: { date: "YYYY-MM-DD", range_days: 7 }
     def create
-      today = Date.current
+      target_date = params[:date].present? ? parse_date!(params[:date]) : Date.current
+
       range_days = (params[:range_days].presence || 7).to_i
       range_days = 7 if range_days <= 0
 
-      existing = current_user.ai_recommendations.find_by(generated_for_date: today)
+      existing = current_user.ai_recommendations.find_by(generated_for_date: target_date)
       return render json: { data: serialize(existing) }, status: :ok if existing
 
-      from = today - range_days
-      to = today - 1
+      from = target_date - range_days
+      to = target_date - 1
 
       logs = current_user.training_logs
                         .where(practiced_on: from..to)
+                        .includes(:training_menus) # ✅ N+1防止（generatorが training_menus を参照）
                         .order(:practiced_on)
 
       text = Ai::RecommendationGenerator.new(
         user: current_user,
-        date: today,
+        date: target_date,
         range_days: range_days
       ).generate!(logs: logs)
 
       rec = current_user.ai_recommendations.new(
-        generated_for_date: today,
+        generated_for_date: target_date,
         range_days: range_days,
         recommendation_text: text
       )
@@ -44,6 +49,8 @@ module Api
       else
         render json: { errors: rec.errors.full_messages }, status: :unprocessable_entity
       end
+    rescue ArgumentError => e
+      render json: { error: e.message }, status: :bad_request
     rescue Gemini::Error => e
       Rails.logger.error("[Gemini] #{e.message} status=#{e.status} body=#{e.body}")
       render json: { error: "AI生成に失敗しました（外部APIエラー）" }, status: :internal_server_error

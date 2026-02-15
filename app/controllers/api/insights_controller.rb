@@ -13,12 +13,12 @@ module Api
 
       base_scope = current_user.training_logs.where(practiced_on: from..to)
 
-      # count は select をかける前の scope で数える（ここが重要）
+      # count は select をかける前の scope で数える（重要）
       practice_days_count = base_scope.count
 
       logs = base_scope
-               .select(:practiced_on, :duration_min, :menus, :falsetto_top_note, :chest_top_note)
-               .order(:practiced_on)
+             .select(:id, :practiced_on, :duration_min, :falsetto_top_note, :chest_top_note)
+             .order(:practiced_on)
 
       # --- daily durations (missing days => 0) ---
       duration_by_date = {}
@@ -31,23 +31,27 @@ module Api
         { date: d.iso8601, duration_min: duration_by_date[d] || 0 }
       end
 
-      # --- menu ranking ---
-      menu_counts = Hash.new(0)
-      logs.each do |l|
-        vals = l.menus
-        vals = [] if vals.nil?
-        vals = vals.is_a?(String) ? parse_maybe_json_array(vals) : Array(vals)
+      # --- menu ranking (menu_id based) ---
+      # N+1 を避けるため、join + group + menu情報を一発で取る
+      ranking_rows =
+        TrainingLogMenu
+          .joins(:training_log)
+          .joins(:training_menu)
+          .where(training_log_menus: { user_id: current_user.id })
+          .where(training_logs: { practiced_on: from..to })
+          .group("training_log_menus.training_menu_id", "training_menus.name", "training_menus.color")
+          .select(
+            "training_log_menus.training_menu_id AS menu_id",
+            "training_menus.name AS name",
+            "training_menus.color AS color",
+            "COUNT(*) AS count"
+          )
+          .order(Arel.sql("COUNT(*) DESC"))
 
-        vals.each do |m|
-          s = m.to_s.strip
-          next if s.empty?
-          menu_counts[s] += 1
-        end
+
+      menu_ranking = ranking_rows.map do |r|
+        { menu_id: r.menu_id.to_i, name: r.name.to_s, color: r.color.to_s, count: r.count.to_i }
       end
-
-      menu_ranking = menu_counts
-                     .sort_by { |(_k, v)| -v }
-                     .map { |k, v| { menu: k, count: v } }
 
       # --- top notes (ALL TIME) ---
       top_fal = best_note(current_user.training_logs.where.not(falsetto_top_note: nil).pluck(:falsetto_top_note))
@@ -59,27 +63,12 @@ module Api
           daily_durations: daily_durations,
           practice_days_count: practice_days_count,
           menu_ranking: menu_ranking,
-          top_notes: {
-            falsetto: top_fal,
-            chest: top_ch
-          }
+          top_notes: { falsetto: top_fal, chest: top_ch }
         }
       }, status: :ok
     end
 
     private
-
-    def parse_maybe_json_array(str)
-      s = str.to_s.strip
-      return [] if s.empty?
-
-      begin
-        v = JSON.parse(s)
-        v.is_a?(Array) ? v : []
-      rescue
-        []
-      end
-    end
 
     def best_note(notes)
       best = nil
@@ -109,7 +98,8 @@ module Api
       octave = m[3].to_i
 
       semitone_base = {
-        "C" => 0, "D" => 2, "E" => 4, "F" => 5, "G" => 7, "A" => 9, "B" => 11
+        "C" => 0, "D" => 2, "E" => 4, "F" => 5,
+        "G" => 7, "A" => 9, "B" => 11
       }[letter]
       return nil if semitone_base.nil?
 

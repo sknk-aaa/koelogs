@@ -10,10 +10,6 @@ import { useSettings } from "../features/settings/useSettings";
 import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
 
 import "./LogPage.css";
-
-// ✅ 追加：メニュー色を引くため
-import { fetchTrainingMenus } from "../api/trainingMenus";
-import type { TrainingMenu } from "../types/trainingMenu";
 import ColoredTag from "../components/ColoredTag";
 
 function todayISO(): string {
@@ -24,12 +20,6 @@ function todayISO(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function buildMenuColorMap(menus: TrainingMenu[]): Map<string, string> {
-  const map = new Map<string, string>();
-  for (const m of menus) map.set(m.name, m.color);
-  return map;
-}
-
 export default function LogPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -37,7 +27,6 @@ export default function LogPage() {
 
   const isToday = date === todayISO();
   const monthKey = useMemo(() => date.slice(0, 7), [date]); // YYYY-MM（選択日の月）
-
   const { settings } = useSettings();
 
   const [loading, setLoading] = useState(false);
@@ -52,33 +41,13 @@ export default function LogPage() {
   // ✅ 今月一覧モーダル state
   const [monthModalOpen, setMonthModalOpen] = useState(false);
 
-  // ✅ 追加：name -> color
-  const [menuColorMap, setMenuColorMap] = useState<Map<string, string>>(() => new Map());
-
-  // ✅ 追加：training_menus fetch（archived含める：過去ログの一致率UP）
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const menus = await fetchTrainingMenus(true);
-        if (cancelled) return;
-        setMenuColorMap(buildMenuColorMap(menus));
-      } catch (e) {
-        // 失敗してもログ表示自体は可能（フォールバック色で表示）
-        console.error(e);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   // training_log fetch
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       setError(null);
+
       const res = await fetchTrainingLogByDate(date);
       if (cancelled) return;
 
@@ -90,28 +59,31 @@ export default function LogPage() {
       }
       setLoading(false);
     })();
+
     return () => {
       cancelled = true;
     };
   }, [date]);
 
-  // ai recommendation fetch (read-only)
+  // ✅ ai recommendation fetch (read-only)
+  // - フェッチ開始時に aiRec を null にしない（チラつき/ボタン復活防止）
+  // - data:null は「その日付の保存が無い」なので aiRec を null にする（ボタン制御に使う）
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setAiError(null);
-      setAiRec(null);
 
       const res = await fetchAiRecommendationByDate(date);
       if (cancelled) return;
 
       if (res.error) {
         setAiError(res.error);
-        setAiRec(null);
-      } else {
-        setAiRec(res.data ?? null);
+        return;
       }
+
+      setAiRec(res.data ?? null);
     })();
+
     return () => {
       cancelled = true;
     };
@@ -126,25 +98,30 @@ export default function LogPage() {
   };
 
   const onAskAi = async () => {
-    setAiLoading(true);
-    setAiError(null);
+  setAiLoading(true);
+  setAiError(null);
 
-    const res = await createAiRecommendation({ range_days: settings.aiRangeDays });
+  const res = await createAiRecommendation({ range_days: settings.aiRangeDays });
 
-    if (res.ok) {
-      setAiRec(res.data);
-      setAiLoading(false);
-      return;
-    }
-
+  if (!res.ok) {
     setAiError(res.errors.join("\n"));
     setAiLoading(false);
-  };
+    return;
+  }
 
-  const showAiButton = isToday && !aiRec && !aiLoading;
+  // POSTの返却をそのまま採用（保存済み）
+  setAiRec(res.data);
+  setAiLoading(false);
+};
+
   const showAiArea = !!aiRec || aiLoading || !!aiError;
 
-  const menuNames = log?.menus ?? [];
+  // ✅ ボタンは「今日」かつ「未生成」かつ「生成中でない」かつ「エラー表示中でない」時だけ
+  // これで「生成中→消えてボタン復活」は潰せる
+  const showAiButton = isToday && !aiLoading && !aiRec && !aiError;
+
+  // ✅ menu_id設計：ログレスポンスの menus をそのまま表示（name→colorMapは不要）
+  const menuItems = log?.menus ?? [];
 
   return (
     <div className="page logPage">
@@ -184,9 +161,7 @@ export default function LogPage() {
 
         {loading && <div>読み込み中…</div>}
 
-        {!loading && error && (
-          <div className="logPage__error">取得に失敗しました: {error}</div>
-        )}
+        {!loading && error && <div className="logPage__error">取得に失敗しました: {error}</div>}
 
         {!loading && !error && !log && (
           <div>この日のログはまだありません。下のボタンから記録してください。</div>
@@ -196,22 +171,17 @@ export default function LogPage() {
           <div className="logPage__summaryGrid">
             <div>練習時間: {log.duration_min ?? 0} 分</div>
 
-            {/* ✅ メニュー: 色付きタグで表示 */}
             <div>
               メニュー:{" "}
-              {menuNames.length ? (
+              {menuItems.length ? (
                 <span style={{ display: "inline-flex", flexWrap: "wrap", gap: 8, marginLeft: 6 }}>
-                  {menuNames.map((name) => (
+                  {menuItems.map((m) => (
                     <ColoredTag
-                      key={name}
-                      label={name}
-                      color={menuColorMap.get(name)}
-                      fallbackColor="#E5E7EB"
-                      title={
-                        menuColorMap.has(name)
-                          ? undefined
-                          : "メニューが見つからないためフォールバック色で表示"
-                      }
+                      key={m.id}
+                      text={m.name}
+                      color={m.color ?? "#E5E7EB"}
+                      title={m.archived ? "このメニューは現在アーカイブされています" : undefined}
+                      className={m.archived ? "is-archived" : undefined}
                     />
                   ))}
                 </span>
@@ -232,23 +202,18 @@ export default function LogPage() {
         )}
       </div>
 
-      {/* AIおすすめ表示 */}
+      {/* AIおすすめ表示（過去日付でも保存されていれば表示される） */}
       {showAiArea && (
         <div className="card logPage__card">
           <div className="logPage__cardTitle">
-            AIおすすめ{" "}
-            <span className="logPage__subtle">（参照 {settings.aiRangeDays} 日）</span>
+            AIおすすめ <span className="logPage__subtle">（参照 {settings.aiRangeDays} 日）</span>
           </div>
 
           {aiLoading && <div>生成中…</div>}
 
-          {!aiLoading && aiError && (
-            <div className="logPage__error">取得/生成に失敗しました: {aiError}</div>
-          )}
+          {!aiLoading && aiError && <div className="logPage__error">取得/生成に失敗しました: {aiError}</div>}
 
-          {!aiLoading && aiRec && (
-            <div className="logPage__aiText">{aiRec.recommendation_text}</div>
-          )}
+          {!aiLoading && aiRec && <div className="logPage__aiText">{aiRec.recommendation_text}</div>}
         </div>
       )}
 

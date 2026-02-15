@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { fetchInsights } from "../api/insights";
-import type { InsightsData } from "../types/insights";
+import type { InsightsData, MenuRankingItem } from "../types/insights";
+import ColoredTag from "../components/ColoredTag";
 
 type LoadState =
   | { kind: "loading" }
@@ -19,6 +20,10 @@ function formatRange(from: string, to: string) {
 
 function normalize(s: string) {
   return s.trim().toLowerCase();
+}
+
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
 }
 
 export default function InsightsMenusPage() {
@@ -53,22 +58,22 @@ export default function InsightsMenusPage() {
   const derived = useMemo(() => {
     if (state.kind !== "ready") return null;
 
-    const items = state.data.menu_ranking ?? [];
+    const items: MenuRankingItem[] = state.data.menu_ranking ?? [];
     const totalCount = items.reduce((sum, it) => sum + (it.count || 0), 0);
 
     const nq = normalize(q);
     const filtered = nq
-      ? items.filter((it) => normalize(it.menu).includes(nq))
+      ? items.filter((it) => normalize(it.name).includes(nq))
       : items.slice();
 
     const sorted = filtered.sort((a, b) => {
       if (sortMode === "name_asc") {
-        return a.menu.localeCompare(b.menu, "ja");
+        return a.name.localeCompare(b.name, "ja");
       }
       // count_desc
       const diff = (b.count || 0) - (a.count || 0);
       if (diff !== 0) return diff;
-      return a.menu.localeCompare(b.menu, "ja");
+      return a.name.localeCompare(b.name, "ja");
     });
 
     const maxC = Math.max(1, ...sorted.map((x) => x.count || 0));
@@ -78,7 +83,8 @@ export default function InsightsMenusPage() {
 
   const content = (() => {
     if (state.kind === "loading") return <div style={styles.sub}>読み込み中…</div>;
-    if (state.kind === "error") return <div style={styles.errorBox}>取得に失敗しました: {state.message}</div>;
+    if (state.kind === "error")
+      return <div style={styles.errorBox}>取得に失敗しました: {state.message}</div>;
     if (!derived) return null;
 
     const { totalCount, list, maxC, range } = derived;
@@ -105,16 +111,22 @@ export default function InsightsMenusPage() {
               {list.map((it, idx) => {
                 const pctText =
                   totalCount > 0 ? (((it.count || 0) / totalCount) * 100).toFixed(1) : "0.0";
-                const pctBar = Math.max(0, Math.min(100, ((it.count || 0) / maxC) * 100));
+                const pctBar = clamp(((it.count || 0) / maxC) * 100, 0, 100);
 
                 return (
-                  <div key={it.menu} style={styles.rankRow}>
-                    <div style={styles.rankLeft}>
-                      <div style={styles.rankNo}>{idx + 1}</div>
-                      <div style={{ display: "grid", gap: 2 }}>
-                        <div style={styles.rankName}>{it.menu}</div>
-                        <div style={styles.rankMeta}>
-                          {it.count} 回（{pctText}%）
+                  <div key={it.menu_id} style={styles.rankRow}>
+                    <div style={styles.rankTop}>
+                      <div style={styles.rankLeft}>
+                        <div style={styles.rankNo}>{idx + 1}</div>
+
+                        {/* ✅ 色付きタグ（menu_id設計） */}
+                        <div style={{ display: "grid", gap: 4 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                            <ColoredTag text={it.name} color={it.color} />
+                          </div>
+                          <div style={styles.rankMeta}>
+                            {it.count} 回（{pctText}%）
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -281,9 +293,10 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 16,
     padding: 12,
     display: "grid",
-    gap: 8,
+    gap: 10,
     background: "rgba(0,0,0,0.01)",
   },
+  rankTop: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 },
   rankLeft: { display: "flex", alignItems: "center", gap: 10 },
   rankNo: {
     width: 30,
@@ -294,8 +307,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 900,
     border: "1px solid rgba(0,0,0,0.10)",
     background: "#fff",
+    flexShrink: 0,
   },
-  rankName: { fontSize: 14, fontWeight: 900 },
   rankMeta: { fontSize: 12, opacity: 0.75, fontWeight: 800 },
 
   rankBarTrack: {

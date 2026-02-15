@@ -1,11 +1,10 @@
 // frontend/src/pages/InsightsPage.tsx
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-
 import { fetchInsights } from "../api/insights";
 import type { DailyDurationPoint, InsightsData, MenuRankingItem } from "../types/insights";
-
 import LineChart from "../features/insights/components/LineChart";
+import ColoredTag from "../components/ColoredTag";
 
 type LoadState =
   | { kind: "loading" }
@@ -27,8 +26,7 @@ function maxDaily(points: DailyDurationPoint[]) {
 }
 
 function MenuRankingPreview({ items }: { items: MenuRankingItem[] }) {
-  const top = items.slice(0, 10);
-
+  const top = items.slice(0, 8);
   const totalCount = items.reduce((sum, x) => sum + (x.count || 0), 0);
   const maxC = top.reduce((m, x) => Math.max(m, x.count), 1);
 
@@ -37,18 +35,18 @@ function MenuRankingPreview({ items }: { items: MenuRankingItem[] }) {
   }
 
   return (
-    <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
+    <div style={{ display: "grid", gap: 10 }}>
       {top.map((it, idx) => {
         const pctBar = clamp((it.count / maxC) * 100, 0, 100);
         const pctText = totalCount > 0 ? ((it.count / totalCount) * 100).toFixed(1) : "0.0";
-
         return (
-          <div key={it.menu} style={{ display: "grid", gap: 6, minWidth: 0 }}>
-            <div style={styles.row}>
-              <div style={styles.k}>
-                {idx + 1}. {it.menu}
+          <div key={it.menu_id} style={{ display: "grid", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 900 }}>{idx + 1}.</div>
+                <ColoredTag text={it.name} color={it.color} />
               </div>
-              <div style={styles.k}>
+              <div style={{ fontSize: 12, fontWeight: 900 }}>
                 {it.count} 回（{pctText}%）
               </div>
             </div>
@@ -60,7 +58,7 @@ function MenuRankingPreview({ items }: { items: MenuRankingItem[] }) {
         );
       })}
 
-      <div style={styles.mini}>合計 {totalCount} 回（直近期間に記録されたメニュー総数）</div>
+      <div style={styles.muted}>合計 {totalCount} 回</div>
     </div>
   );
 }
@@ -75,7 +73,7 @@ function ClickableCard({
   children: React.ReactNode;
 }) {
   return (
-    <Link to={to} style={styles.clickCard} aria-label={`${title}の詳細を見る`}>
+    <Link to={to} style={styles.clickCard}>
       <div style={styles.cardHeader}>
         <div style={styles.cardTitle}>{title}</div>
         <div style={styles.cardHint}>
@@ -83,7 +81,7 @@ function ClickableCard({
           <ChevronRight />
         </div>
       </div>
-      <div style={{ minWidth: 0 }}>{children}</div>
+      {children}
     </Link>
   );
 }
@@ -91,22 +89,24 @@ function ClickableCard({
 function StaticCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={styles.card}>
-      <div style={styles.cardTitle}>{title}</div>
-      <div style={{ minWidth: 0 }}>{children}</div>
+      <div style={styles.cardHeader}>
+        <div style={styles.cardTitle}>{title}</div>
+      </div>
+      {children}
     </div>
   );
 }
 
 function ChevronRight() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path
-        d="M9 18l6-6-6-6"
-        fill="none"
+        d="M7.5 4.5L12.8 10L7.5 15.5"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        opacity="0.8"
       />
     </svg>
   );
@@ -146,7 +146,7 @@ export default function InsightsPage() {
     return (
       <div style={styles.page}>
         <h1 style={styles.h1}>分析</h1>
-        <div style={styles.sub}>読み込み中…</div>
+        <div style={styles.muted}>読み込み中…</div>
       </div>
     );
   }
@@ -164,14 +164,14 @@ export default function InsightsPage() {
     return (
       <div style={styles.page}>
         <h1 style={styles.h1}>分析</h1>
-        <div style={styles.errorBox}>データがありません</div>
+        <div style={styles.muted}>データがありません</div>
       </div>
     );
   }
 
-  const freq = `${data.practice_days_count} / ${data.range.days} 日`;
   const fal = data.top_notes.falsetto.note ?? "—";
   const che = data.top_notes.chest.note ?? "—";
+  const freq = `${data.practice_days_count} / ${data.range.days} 日`;
 
   return (
     <div style={styles.page}>
@@ -179,24 +179,25 @@ export default function InsightsPage() {
       <div style={styles.sub}>期間: {formatRange(data.range.from, data.range.to)}</div>
 
       <div style={styles.grid}>
+        {/* ✅ App.tsx のルートに合わせる */}
         <ClickableCard title="練習時間の推移" to="/insights/time">
-          <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
+          <div style={styles.row}>
+            <div style={styles.k}>最大</div>
+            <div style={styles.v}>{maxY} 分</div>
+          </div>
+          <div style={styles.mini}>タップで詳細（日別内訳）</div>
+          <div style={{ marginTop: 10 }}>
             <LineChart points={data.daily_durations} />
-            <div style={styles.mini}>最大: {maxY} 分（タップで詳細）</div>
           </div>
         </ClickableCard>
 
-        <ClickableCard title="メニュー頻度ランキング" to="/insights/menus">
+        {/* ✅ App.tsx のルートに合わせる */}
+        <ClickableCard title="メニュー頻度" to="/insights/menus">
           <MenuRankingPreview items={data.menu_ranking} />
         </ClickableCard>
 
-        <StaticCard title="練習日数">
-          <div style={styles.big}>{freq}</div>
-          <div style={styles.mini}>「練習した日」＝その期間に training_log が存在する日</div>
-        </StaticCard>
-
-        <StaticCard title="最高到達音">
-          <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
+        <StaticCard title="最高到達音（全期間）">
+          <div style={{ display: "grid", gap: 10 }}>
             <div style={styles.row}>
               <div style={styles.k}>裏声</div>
               <div style={styles.v}>{fal}</div>
@@ -205,9 +206,20 @@ export default function InsightsPage() {
               <div style={styles.k}>地声</div>
               <div style={styles.v}>{che}</div>
             </div>
+            <div style={styles.muted}>
+              ※ ノート形式が崩れている（例: A4 以外）と集計対象外になります
+            </div>
           </div>
+        </StaticCard>
 
-          <div style={styles.mini}>※ ノート形式が崩れている（例: A4 以外）と集計対象外になります</div>
+        <StaticCard title="練習日数（直近期間）">
+          <div style={styles.row}>
+            <div style={styles.k}>練習した日</div>
+            <div style={styles.v}>{freq}</div>
+          </div>
+          <div style={styles.muted}>
+            「練習した日」＝その期間に training_log が存在する日
+          </div>
         </StaticCard>
       </div>
     </div>
@@ -215,9 +227,8 @@ export default function InsightsPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  // ✅ ページ全体の横はみ出しを強制的に止める（これが効く）
   page: {
-    padding: "14px 14px 90px",
+    padding: "16px 14px 90px",
     maxWidth: 920,
     margin: "0 auto",
     color: "#111",
@@ -226,7 +237,6 @@ const styles: Record<string, React.CSSProperties> = {
   h1: { fontSize: 18, fontWeight: 900, margin: "6px 0 6px" },
   sub: { fontSize: 12, opacity: 0.75, marginBottom: 14 },
 
-  // ✅ 子が広がっても親が追従しないように
   grid: { display: "grid", gap: 12, minWidth: 0 },
 
   card: {
@@ -237,7 +247,6 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
     minWidth: 0,
   },
-
   clickCard: {
     display: "block",
     textDecoration: "none",
@@ -248,11 +257,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 14,
     boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
     cursor: "pointer",
-    transform: "translateY(0)",
-    transition: "transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease",
     minWidth: 0,
   },
-
   cardHeader: {
     display: "flex",
     alignItems: "center",
@@ -273,7 +279,6 @@ const styles: Record<string, React.CSSProperties> = {
   },
   hintText: { textDecoration: "underline", textUnderlineOffset: 3 },
 
-  big: { fontSize: 28, fontWeight: 900, letterSpacing: 0.2 },
   mini: { fontSize: 12, opacity: 0.7, marginTop: 8, lineHeight: 1.4 },
   muted: { fontSize: 12, opacity: 0.7, lineHeight: 1.5 },
 

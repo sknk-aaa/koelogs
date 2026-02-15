@@ -1,0 +1,10 @@
+@keyframes drawerIn {
+  from {
+    transform: translateX(12px);
+    opacity: 0.7;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

@@ -11,12 +11,23 @@ import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
 
 import "./LogPage.css";
 
+// ✅ 追加：メニュー色を引くため
+import { fetchTrainingMenus } from "../api/trainingMenus";
+import type { TrainingMenu } from "../types/trainingMenu";
+import ColoredTag from "../components/ColoredTag";
+
 function todayISO(): string {
   const d = new Date();
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function buildMenuColorMap(menus: TrainingMenu[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const m of menus) map.set(m.name, m.color);
+  return map;
 }
 
 export default function LogPage() {
@@ -40,6 +51,27 @@ export default function LogPage() {
 
   // ✅ 今月一覧モーダル state
   const [monthModalOpen, setMonthModalOpen] = useState(false);
+
+  // ✅ 追加：name -> color
+  const [menuColorMap, setMenuColorMap] = useState<Map<string, string>>(() => new Map());
+
+  // ✅ 追加：training_menus fetch（archived含める：過去ログの一致率UP）
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const menus = await fetchTrainingMenus(true);
+        if (cancelled) return;
+        setMenuColorMap(buildMenuColorMap(menus));
+      } catch (e) {
+        // 失敗してもログ表示自体は可能（フォールバック色で表示）
+        console.error(e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // training_log fetch
   useEffect(() => {
@@ -112,6 +144,8 @@ export default function LogPage() {
   const showAiButton = isToday && !aiRec && !aiLoading;
   const showAiArea = !!aiRec || aiLoading || !!aiError;
 
+  const menuNames = log?.menus ?? [];
+
   return (
     <div className="page logPage">
       <h1 className="h1">ログ</h1>
@@ -161,7 +195,31 @@ export default function LogPage() {
         {!loading && !error && log && (
           <div className="logPage__summaryGrid">
             <div>練習時間: {log.duration_min ?? 0} 分</div>
-            <div>メニュー: {log.menus?.length ? log.menus.join(", ") : "なし"}</div>
+
+            {/* ✅ メニュー: 色付きタグで表示 */}
+            <div>
+              メニュー:{" "}
+              {menuNames.length ? (
+                <span style={{ display: "inline-flex", flexWrap: "wrap", gap: 8, marginLeft: 6 }}>
+                  {menuNames.map((name) => (
+                    <ColoredTag
+                      key={name}
+                      label={name}
+                      color={menuColorMap.get(name)}
+                      fallbackColor="#E5E7EB"
+                      title={
+                        menuColorMap.has(name)
+                          ? undefined
+                          : "メニューが見つからないためフォールバック色で表示"
+                      }
+                    />
+                  ))}
+                </span>
+              ) : (
+                "なし"
+              )}
+            </div>
+
             <div>裏声最高音: {log.falsetto_top_note ?? "—"}</div>
             <div>地声最高音: {log.chest_top_note ?? "—"}</div>
 
@@ -179,9 +237,7 @@ export default function LogPage() {
         <div className="card logPage__card">
           <div className="logPage__cardTitle">
             AIおすすめ{" "}
-            <span className="logPage__subtle">
-              （参照 {settings.aiRangeDays} 日）
-            </span>
+            <span className="logPage__subtle">（参照 {settings.aiRangeDays} 日）</span>
           </div>
 
           {aiLoading && <div>生成中…</div>}

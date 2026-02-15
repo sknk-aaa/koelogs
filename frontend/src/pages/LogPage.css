@@ -1,0 +1,78 @@
+.logPage {
+  /* page.css の .page をベースに、必要なら微調整 */
+}
+
+.logPage__dateArea {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.logPage__label {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.logPage__dateInput {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  width: 100%;
+  max-width: 260px;
+  background: #fff;
+}
+
+.logPage__card {
+  margin-bottom: 16px;
+}
+
+.logPage__cardTitle {
+  font-weight: 900;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.logPage__subtle {
+  font-size: 12px;
+  opacity: 0.6;
+  font-weight: 800;
+}
+
+.logPage__summaryGrid {
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__notes {
+  margin-top: 8px;
+  opacity: 0.85;
+}
+
+.logPage__aiText {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.logPage__error {
+  color: #b00020;
+  white-space: pre-wrap;
+}
+
+.logPage__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 共通ボタン（最低限）。後でcomponents化してもいい */
+.btn {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  font-weight: 800;
+}

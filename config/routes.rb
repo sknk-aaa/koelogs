@@ -21,6 +21,9 @@ Rails.application.routes.draw do
     post "auth/signup", to: "auth#signup"
     post "auth/login", to: "auth#login"
     post "auth/logout", to: "auth#logout"
+
+    # me
     get "me", to: "me#show"
+    patch "me", to: "me#update"
   end
 end

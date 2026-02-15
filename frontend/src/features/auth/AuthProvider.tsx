@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchMe, login as apiLogin, logout as apiLogout, signup as apiSignup, type Me } from "../../api/auth";
+import {
+  fetchMe,
+  login as apiLogin,
+  logout as apiLogout,
+  signup as apiSignup,
+  type Me,
+} from "../../api/auth";
 import { AuthContext, type AuthState } from "./AuthContext";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -44,9 +50,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [me, isLoading]
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -5,7 +5,9 @@ import AppFooterTabs from "./AppFooterTabs";
 function titleFromPath(pathname: string) {
   if (pathname.startsWith("/training")) return "トレーニング";
   if (pathname.startsWith("/insights")) return "分析";
-  // /log, /log/new もまとめてログ扱い
+  if (pathname.startsWith("/settings")) return "設定";
+  if (pathname.startsWith("/account")) return "アカウント";
+  if (pathname.startsWith("/help")) return "ヘルプ";
   return "練習ログ";
 }
 
@@ -16,12 +18,9 @@ export default function AppLayout() {
   return (
     <div style={styles.page}>
       <AppHeader title={title} />
-
-      {/* フッター固定なので下に余白を作る */}
       <main style={styles.main}>
         <Outlet />
       </main>
-
       <AppFooterTabs />
     </div>
   );
@@ -30,7 +29,8 @@ export default function AppLayout() {
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(1200px 800px at 50% -200px, #ffd1d6 0%, #f7f7fb 45%, #f2f2f7 100%)",
+    background:
+      "radial-gradient(1200px 800px at 50% -200px, var(--bgTop) 0%, var(--bgMid) 45%, var(--bgBottom) 100%)",
   },
   main: {
     paddingBottom: "calc(64px + env(safe-area-inset-bottom) + 12px)",

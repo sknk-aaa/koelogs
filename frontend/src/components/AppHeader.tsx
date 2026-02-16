@@ -29,12 +29,28 @@ function buildMailto() {
   return `mailto:${to}?subject=${subject}&body=${body}`;
 }
 
+function useIsMobile(breakpointPx = 520) {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth <= breakpointPx;
+  });
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= breakpointPx);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpointPx]);
+
+  return isMobile;
+}
+
 export default function AppHeader({ title }: Props) {
   const { me, isLoading, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile(520);
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -52,7 +68,7 @@ export default function AppHeader({ title }: Props) {
       console.error(e);
       alert("ログアウトに失敗しました");
     }
-  }, [logout, navigate]); 
+  }, [logout, navigate]);
 
   const onContact = () => {
     const mailto = buildMailto();
@@ -77,9 +93,9 @@ export default function AppHeader({ title }: Props) {
         items: [
           {
             label: "プロフィール（表示名）",
-            to: "/account/profile",
+            to: "/profile",
             match: "exact",
-            onClick: () => navigate("/account/profile"),
+            onClick: () => navigate("/profile"),
           },
           {
             label: "ログアウト",
@@ -104,7 +120,6 @@ export default function AppHeader({ title }: Props) {
             match: "exact",
             onClick: () => navigate("/help/about"),
           },
-          // ✅ ページ遷移せず、mailto を開く
           {
             label: "お問い合わせ（メール）",
             match: "exact",
@@ -116,32 +131,52 @@ export default function AppHeader({ title }: Props) {
     [navigate, onLogout, me]
   );
 
+  const onClickBrand = () => {
+    navigate("/log");
+  };
+
   return (
     <>
       <header style={styles.header}>
-        <div style={styles.left}>
-          <div style={styles.title} title={title}>
+        {/* absolute中央を確実にするための relative ラッパー */}
+        <div style={styles.inner}>
+          {/* 左：アプリ名（クリックで /log） */}
+          <div style={styles.left}>
+            <button
+              type="button"
+              onClick={onClickBrand}
+              style={styles.brandBtn}
+              aria-label="ログページへ"
+              title="ログへ"
+            >
+              voice-app
+            </button>
+          </div>
+
+          {/* 中央：ページタイトル（左右に影響されず常に中央） */}
+          <div style={styles.center} aria-label="ページタイトル" title={title}>
             {title}
           </div>
-        </div>
 
-        <div style={styles.right}>
-          {!isLoading && me && (
-            <div style={styles.email} title={me.display_name ?? me.email}>
-              {me.display_name ?? me.email}
-            </div>
-          )}
+          {/* 右：ユーザー名 + ハンバーガー */}
+          <div style={styles.right}>
+            {!isLoading && me && !isMobile && (
+              <div style={styles.email} title={me.display_name ?? me.email}>
+                {me.display_name ?? me.email}
+              </div>
+            )}
 
-          <button
-            type="button"
-            aria-label="メニューを開く"
-            onClick={() => setOpen(true)}
-            style={styles.menuBtn}
-          >
-            <span style={styles.bar} />
-            <span style={styles.bar} />
-            <span style={styles.bar} />
-          </button>
+            <button
+              type="button"
+              aria-label="メニューを開く"
+              onClick={() => setOpen(true)}
+              style={styles.menuBtn}
+            >
+              <span style={styles.bar} />
+              <span style={styles.bar} />
+              <span style={styles.bar} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -160,10 +195,6 @@ export default function AppHeader({ title }: Props) {
 const styles: Record<string, React.CSSProperties> = {
   header: {
     height: 56,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 14px",
     position: "sticky",
     top: 0,
     zIndex: 80,
@@ -171,16 +202,54 @@ const styles: Record<string, React.CSSProperties> = {
     backdropFilter: "blur(10px)",
     borderBottom: "1px solid rgba(0,0,0,0.06)",
   },
-  left: { display: "flex", alignItems: "center", gap: 10, minWidth: 0 },
-  title: {
+
+  // ★ sticky の中で absolute 中央を安定させるためのラッパー
+  inner: {
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 14px",
+    position: "relative",
+  },
+
+  left: { display: "flex", alignItems: "center", gap: 10, minWidth: 88 },
+
+  right: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    minWidth: 88,
+    justifyContent: "flex-end",
+  },
+
+  // ★中央タイトル：画面のど真ん中に固定
+  center: {
+    position: "absolute",
+    left: "50%",
+    transform: "translateX(-50%)",
     fontSize: 16,
     fontWeight: 900,
     letterSpacing: 0.2,
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
+    maxWidth: "60vw",
+    pointerEvents: "none",
   },
-  right: { display: "flex", alignItems: "center", gap: 10 },
+
+  // アプリ名ボタン（リンク風）
+  brandBtn: {
+    fontSize: 14,
+    fontWeight: 900,
+    letterSpacing: 0.2,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    padding: "8px 10px",
+    borderRadius: 12,
+  },
+
   email: {
     color: "#111",
     fontSize: 12,
@@ -190,6 +259,7 @@ const styles: Record<string, React.CSSProperties> = {
     textOverflow: "ellipsis",
     maxWidth: 220,
   },
+
   menuBtn: {
     width: 40,
     height: 40,
@@ -201,6 +271,7 @@ const styles: Record<string, React.CSSProperties> = {
     placeItems: "center",
     padding: 0,
   },
+
   bar: {
     display: "block",
     width: 18,

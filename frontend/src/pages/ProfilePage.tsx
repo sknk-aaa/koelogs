@@ -51,7 +51,6 @@ export default function ProfilePage() {
           <input
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="例）Kaneko"
             style={styles.input}
             maxLength={60} // 入力側は余裕。サーバで30制限。
           />
@@ -74,7 +73,7 @@ export default function ProfilePage() {
         </button>
 
         <div style={styles.note}>
-          空欄で保存すると「未設定」になります（サーバ側で空白は未設定扱い）。
+          空欄で保存すると「未設定」になります。
         </div>
       </div>
     </div>

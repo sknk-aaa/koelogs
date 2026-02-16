@@ -1,14 +1,11 @@
 /* frontend/src/pages/LogPage.css */
 
+/* ✅ max-width/padding/margin は .page に任せる（page.cssが規格） */
 .logPage {
-  /* page.css の .page をベースに、必要なら微調整 */
   width: 100%;
-  max-width: 920px;  /* ここで“箱の最大幅”を決める。好みで 840〜980 */
-  margin: 0 auto;    /* 左右autoで中央へ */
-  padding: 0 16px;   /* 端がくっつかない */
-  box-sizing: border-box;
 }
 
+/* 日付エリア */
 .logPage__dateArea {
   display: grid;
   gap: 8px;
@@ -21,7 +18,7 @@
 }
 
 .logPage__dateInput {
-  height: 40px;
+  height: 44px; /* ✅ タップしやすい */
   padding: 0 12px;
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.12);
@@ -50,22 +47,28 @@
 
 .logPage__summaryGrid {
   display: grid;
-  gap: 6px;
+  gap: 8px; /* 少し広げて読みやすく */
 }
 
 .logPage__notes {
-  margin-top: 8px;
+  margin-top: 10px;
   opacity: 0.85;
+  line-height: 1.6;
 }
 
 .logPage__aiText {
   white-space: pre-wrap;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
+/* ✅ エラー：赤文字だけより、ボックスで“落ち着いて”見せる */
 .logPage__error {
   color: #b00020;
   white-space: pre-wrap;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(176, 0, 32, 0.20);
+  background: rgba(176, 0, 32, 0.06);
 }
 
 .logPage__actions {
@@ -74,7 +77,7 @@
   flex-wrap: wrap;
 }
 
-/* 共通ボタン（最低限）。後でcomponents化してもいい */
+/* 共通ボタン（最低限） */
 .btn {
   height: 44px;
   padding: 0 16px;
@@ -82,6 +85,12 @@
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: #fff;
   font-weight: 800;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* 日付入力と「月のログ一覧」ボタンを横に並べる */
@@ -92,19 +101,62 @@
   gap: 12px;
 }
 
-/* 左（ラベル + date input） */
 .logPage__dateLeft {
   display: grid;
   gap: 8px;
 }
 
-/* 右（ボタン） */
 .logPage__dateRight {
   display: flex;
   align-items: end;
 }
+.logPage__moreBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
 
-/* スマホでは縦並びに戻す（崩れ防止） */
+.logPage__moreBtn--link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255, 255, 255, 0.70);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  font-weight: 900;
+  font-size: 12px;
+  opacity: 0.9;
+  transition: transform 80ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.logPage__moreBtn--link:hover {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.10);
+}
+
+.logPage__moreBtn--link:active {
+  transform: translateY(1px);
+}
+
+.logPage__moreIcon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  font-size: 10px;
+  line-height: 1;
+}
+
+
+/* ✅ スマホでは縦並び + ボタン100% */
 @media (max-width: 520px) {
   .logPage__dateRow {
     flex-direction: column;
@@ -113,5 +165,13 @@
 
   .logPage__dateRight {
     justify-content: flex-start;
+  }
+
+  .logPage__dateRight .btn {
+    width: 100%;
+  }
+
+  .logPage__actions .btn {
+    width: 100%;
   }
 }

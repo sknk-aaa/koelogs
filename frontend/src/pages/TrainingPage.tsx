@@ -35,8 +35,7 @@ export default function TrainingPage() {
       <div style={styles.shell}>
         <header style={styles.header}>
           <div style={{ minWidth: 0 }}>
-            <h1 style={styles.title}>トレーニング</h1>
-            <p style={styles.subtitle}>スケールとテンポを選んで、すぐ再生。</p>
+            <p style={styles.subtitle}>スケールとテンポを選んで再生。</p>
           </div>
         </header>
 

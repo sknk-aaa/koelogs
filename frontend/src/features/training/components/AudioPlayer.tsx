@@ -46,7 +46,7 @@ export default function AudioPlayer({
   const [duration, setDuration] = useState<number>(0);
   const [current, setCurrent] = useState<number>(0);
 
-  // ✅ 外部システム（audio）へ反映：これは effect の正しい使い方
+  // audioへ反映（正しいeffect）
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
@@ -71,13 +71,12 @@ export default function AudioPlayer({
     if (!el) return;
     const next = clamp(v, 0, 1) * (el.duration || 0);
     el.currentTime = next;
-    // ※ onTimeUpdate でも更新されるが、体感レスポンス向上のためここでも更新してOK
     setCurrent(next);
   };
 
   return (
     <div style={styles.wrap}>
-      {/* ✅ keyでsrc変更時にaudioを再マウント → current/durationも自然にリセット */}
+      {/* src変更で自然にリセット */}
       <audio
         key={src ?? "none"}
         ref={audioRef}
@@ -105,31 +104,42 @@ export default function AudioPlayer({
           type="button"
           disabled={!canPlay}
           onClick={onTogglePlay}
-          style={{ ...styles.playBtn, ...(!canPlay ? styles.playBtnDisabled : null) }}
+          style={{
+            ...styles.playBtn,
+            ...(isPlaying ? styles.playBtnPlaying : null),
+            ...(!canPlay ? styles.playBtnDisabled : null),
+          }}
           aria-label={isPlaying ? "pause" : "play"}
         >
-          {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            {isPlaying ? <PauseIcon /> : <PlayIcon />}
         </button>
 
         <div style={styles.heroMeta}>
-          <div style={styles.heroTitle}>{canPlay ? "Ready" : "選択してください"}</div>
-          <div style={styles.heroSub}>
-            {fmt(current)} / {fmt(duration)}
+          <div style={styles.heroTitle}>{canPlay ? "Ready to sing" : "選択してください"}</div>
+
+          <div style={styles.heroSubRow}>
+            <div style={styles.timePill}>
+              <span style={styles.timeMono}>{fmt(current)}</span>
+              <span style={styles.timeSlash}>/</span>
+              <span style={styles.timeMono}>{fmt(duration)}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div style={styles.seekRow}>
-        <input
-          type="range"
-          min={0}
-          max={1000}
-          value={Math.round(progress * 1000)}
-          onChange={(e) => handleSeek(Number(e.target.value) / 1000)}
-          disabled={!canPlay}
-          style={styles.range}
-          aria-label="seek"
-        />
+      <div style={styles.seekBox}>
+        <div style={styles.seekRow}>
+          <input
+            type="range"
+            min={0}
+            max={1000}
+            value={Math.round(progress * 1000)}
+            onChange={(e) => handleSeek(Number(e.target.value) / 1000)}
+            disabled={!canPlay}
+            style={styles.range}
+            aria-label="seek"
+          />
+        </div>
       </div>
 
       <div style={styles.bottom}>
@@ -159,7 +169,7 @@ export default function AudioPlayer({
           }}
           aria-pressed={loop}
         >
-          Loop {loop ? "ON" : "OFF"}
+          Loop
         </button>
       </div>
 
@@ -184,33 +194,90 @@ function PauseIcon() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  wrap: { display: "grid", gap: 12, minWidth: 0 },
+  wrap: {
+    display: "grid",
+    gap: 12,
+    minWidth: 0,
+  },
 
   hero: {
     display: "grid",
-    gridTemplateColumns: "56px 1fr",
-    gap: 12,
+    gridTemplateColumns: "64px 1fr",
+    gap: 14,
     alignItems: "center",
     minWidth: 0,
   },
 
   playBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "rgba(0,0,0,0.08)",
-    cursor: "pointer",
-    display: "grid",
-    placeItems: "center",
-    fontWeight: 900,
+  width: 64,
+  height: 64,
+  borderRadius: 20,
+  border: "1px solid rgba(0,0,0,0.10)",
+  background: "linear-gradient(180deg, #2b2b2b, #1e1e1e)",
+  color: "#fff",
+  boxShadow: "0 12px 28px rgba(0,0,0,0.15)",
+  cursor: "pointer",
+
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 0,       
+  lineHeight: 0,     
+},
+  playBtnPlaying: {
+    filter: "brightness(1.02)",
+    transform: "translateY(-1px)",
+    boxShadow: "0 14px 28px rgba(0,0,0,0.14)",
   },
-  playBtnDisabled: { opacity: 0.5, cursor: "not-allowed" },
+  playBtnDisabled: {
+    opacity: 0.55,
+    cursor: "not-allowed",
+    transform: "none",
+    boxShadow: "none",
+  },
 
-  heroMeta: { minWidth: 0, display: "grid", gap: 2 },
-  heroTitle: { fontSize: 14, fontWeight: 900, letterSpacing: 0.2 },
-  heroSub: { fontSize: 12, opacity: 0.7, fontWeight: 800 },
+  heroMeta: { minWidth: 0, display: "grid", gap: 6 },
+  heroTitle: {
+    fontSize: 14,
+    fontWeight: 900,
+    letterSpacing: 0.2,
+    color: "rgba(0,0,0,0.88)",
+  },
 
+  heroSubRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+
+  timePill: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 999,
+    padding: "6px 10px",
+    border: "1px solid rgba(0,0,0,0.08)",
+    background: "rgba(255,255,255,0.70)",
+    boxShadow: "0 6px 16px rgba(0,0,0,0.06)",
+  },
+  timeMono: {
+    fontSize: 12,
+    fontWeight: 900,
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    opacity: 0.82,
+  },
+  timeSlash: { opacity: 0.45, fontSize: 12, fontWeight: 900 },
+
+  seekBox: {
+    borderRadius: 16,
+    border: "1px solid rgba(0,0,0,0.08)",
+    background: "rgba(255,255,255,0.75)",
+    boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
+    padding: "10px 12px",
+  },
   seekRow: { minWidth: 0 },
 
   bottom: {
@@ -223,10 +290,15 @@ const styles: Record<string, React.CSSProperties> = {
 
   ctrl: {
     display: "grid",
-    gridTemplateColumns: "44px 1fr 48px",
+    gridTemplateColumns: "44px 1fr 52px",
     gap: 10,
     alignItems: "center",
     minWidth: 0,
+    borderRadius: 16,
+    border: "1px solid rgba(0,0,0,0.08)",
+    background: "rgba(255,255,255,0.75)",
+    padding: "10px 12px",
+    boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
   },
 
   ctrlLabel: { fontSize: 12, fontWeight: 900, opacity: 0.75 },
@@ -235,18 +307,25 @@ const styles: Record<string, React.CSSProperties> = {
   range: { width: "100%", height: 24 },
 
   loopBtn: {
-    borderRadius: 999,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#fff",
-    padding: "10px 12px",
+    borderRadius: 16,
+    border: "1px solid rgba(0,0,0,0.10)",
+    background: "rgba(255,255,255,0.80)",
+    padding: "10px 14px",
     fontSize: 12,
     fontWeight: 900,
     cursor: "pointer",
-    minHeight: 40,
+    minHeight: 44,
     whiteSpace: "nowrap",
+    boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
+    transition: "transform 120ms ease, box-shadow 120ms ease",
   },
-  loopBtnOn: { background: "rgba(0,0,0,0.08)" },
-  loopBtnDisabled: { opacity: 0.55, cursor: "not-allowed" },
+  loopBtnOn: {
+    background: "rgba(0,0,0,0.90)",
+    color: "#fff",
+    boxShadow: "0 14px 28px rgba(0,0,0,0.12)",
+    transform: "translateY(-1px)",
+  },
+  loopBtnDisabled: { opacity: 0.55, cursor: "not-allowed", boxShadow: "none", transform: "none" },
 
-  hint: { fontSize: 12, opacity: 0.65, lineHeight: 1.5, paddingTop: 2 },
+  hint: { fontSize: 12, opacity: 0.7, lineHeight: 1.6, paddingTop: 2 },
 };

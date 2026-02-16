@@ -1,0 +1,30 @@
+/* frontend/src/pages/TrainingPage.css */
+
+/* デスクトップ：左右 */
+.TrainingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 4px 2px 0;
+  min-width: 0;
+}
+
+.TrainingHeaderRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+/* スマホ：縦積み、Readyは右寄せ固定 */
+@media (max-width: 520px) {
+  .TrainingHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .TrainingHeaderRight {
+    align-self: flex-end; /* ✅ これで必ず右端に寄る */
+  }
+}

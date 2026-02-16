@@ -9,6 +9,8 @@ import AudioPlayer from "../features/training/components/AudioPlayer";
 import { styles } from "../features/training/styles";
 import { useSettings } from "../features/settings/useSettings";
 
+import "./TrainingPage.css";
+
 export default function TrainingPage() {
   const { tracks, loading, error } = useScaleTracks();
   const { settings } = useSettings();
@@ -31,49 +33,90 @@ export default function TrainingPage() {
   const disabled = loading || !!error || !selected;
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="TrainingPage">
+      <div style={styles.bgGlow} aria-hidden="true" />
       <div style={styles.shell}>
-        <header style={styles.header}>
+        {/* ✅ ここ：style={styles.header} を完全に削除してCSSに任せる */}
+        <header className="TrainingHeader">
           <div style={{ minWidth: 0 }}>
-            <p style={styles.subtitle}>スケールとテンポを選んで再生。</p>
+            <div style={styles.kicker}>Training</div>
+            <h1 style={styles.title}>発声トレーニング</h1>
+          </div>
+
+          {/* ✅ ここ：style={styles.headerRight} も完全に削除 */}
+          <div className="TrainingHeaderRight">
           </div>
         </header>
 
         <main style={styles.card}>
-          <div style={styles.block}>
-            <TrackFilters
-              scaleType={scaleType}
-              tempo={tempo}
-              scaleTypes={SCALE_TYPES}
-              tempos={TEMPOS}
-              disabled={loading}
-              onChangeScaleType={setScaleType}
-              onChangeTempo={setTempo}
-            />
-          </div>
+          <section style={styles.section}>
+            <div style={styles.sectionHead}>
+              <div style={styles.sectionTitle}>選択</div>
+              <div style={styles.sectionMeta}>
+                <span style={styles.badge}>{scaleTypeLabel(scaleType)}</span>
+                <span style={styles.badge}>{tempo} bpm</span>
+              </div>
+            </div>
+
+            <div style={styles.filtersBox}>
+              <TrackFilters
+                scaleType={scaleType}
+                tempo={tempo}
+                scaleTypes={SCALE_TYPES}
+                tempos={TEMPOS}
+                disabled={loading}
+                onChangeScaleType={setScaleType}
+                onChangeTempo={setTempo}
+              />
+            </div>
+
+            {loading && (
+              <div style={styles.skeletonRow} aria-hidden="true">
+                <div style={styles.skeleton} />
+                <div style={{ ...styles.skeleton, width: "72%" }} />
+              </div>
+            )}
+
+            {error && (
+              <div style={styles.errorBox} role="alert">
+                <div style={styles.errorTitle}>読み込みに失敗しました</div>
+                <div style={styles.errorText}>Error: {error}</div>
+              </div>
+            )}
+          </section>
 
           <div style={styles.divider} />
 
-          <div style={styles.block}>
-            {/* AudioPlayerの中で “選択してください/読み込み中/エラー” を見せる */}
-            <AudioPlayer
-              audioRef={audioRef}
-              src={selected?.file_path ?? undefined}
-              disabled={disabled}
-              isPlaying={isPlaying}
-              onTogglePlay={togglePlay}
-              onPlay={onPlay}
-              onPause={onPause}
-              onEnded={onEnded}
-              defaultVolume={settings.defaultVolume}
-              loopEnabled={settings.loopEnabled}
-            />
+          <section style={styles.section}>
+            <div style={styles.sectionHead}>
+              <div style={styles.sectionTitle}>プレイヤー</div>
+              <div style={styles.sectionMeta}>
+                <span style={styles.miniNote}>
+                  {selected ? "Ready" : "スケール/テンポを選んでください"}
+                </span>
+              </div>
+            </div>
 
-            {/* API側のエラーはページでも最低限出す（再生以前の問題なので） */}
-            {error && <p style={styles.note}>Error: {error}</p>}
-          </div>
+            <div style={styles.playerShell}>
+              <AudioPlayer
+                audioRef={audioRef}
+                src={selected?.file_path ?? undefined}
+                disabled={disabled}
+                isPlaying={isPlaying}
+                onTogglePlay={togglePlay}
+                onPlay={onPlay}
+                onPause={onPause}
+                onEnded={onEnded}
+                defaultVolume={settings.defaultVolume}
+                loopEnabled={settings.loopEnabled}
+              />
+            </div>
+          </section>
         </main>
       </div>
     </div>
   );
+}
+function scaleTypeLabel(scaleType: ScaleType) {
+  return scaleType === "5tone" ? "5 tone" : "octave";
 }

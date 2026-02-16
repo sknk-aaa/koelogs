@@ -222,7 +222,7 @@ export default function InsightsPage() {
               </div>
             </div>
             <div style={styles.muted}>
-              ※ ノート形式が崩れている（例: A4 以外）と集計対象外になります
+              ※ ノート形式が崩れている（例: A4,C#4 以外）と集計対象外になります
             </div>
           </div>
         </StaticCard>
@@ -231,9 +231,6 @@ export default function InsightsPage() {
           <div style={styles.row}>
             <div style={styles.k}>練習した日</div>
             <div style={styles.v}>{freq}</div>
-          </div>
-          <div style={styles.muted}>
-            「練習した日」＝その期間に training_log が存在する日
           </div>
         </StaticCard>
       </div>

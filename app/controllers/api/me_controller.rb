@@ -3,28 +3,28 @@ module Api
     before_action :require_login!
 
     def show
-      render json: me_json
+      render json: serialize_me(current_user)
     end
 
-    # PATCH /api/me
     def update
-      current_user.update!(me_params)
-      render json: me_json
-    rescue ActiveRecord::RecordInvalid => e
-      render json: { error: e.record.errors.full_messages }, status: :unprocessable_entity
+      # 既存の display_name 更新仕様を壊さず、goal_text も受け取れるようにする
+      permitted = params.fetch(:me, {}).permit(:display_name, :goal_text)
+
+      if current_user.update(permitted)
+        render json: serialize_me(current_user)
+      else
+        render json: { error: current_user.errors.full_messages }, status: :unprocessable_entity
+      end
     end
 
     private
 
-    def me_params
-      params.require(:me).permit(:display_name)
-    end
-
-    def me_json
+    def serialize_me(user)
       {
-        id: current_user.id,
-        email: current_user.email,
-        display_name: current_user.display_name
+        id: user.id,
+        email: user.email,
+        display_name: user.display_name,
+        goal_text: user.goal_text
       }
     end
   end

@@ -14,6 +14,10 @@ class User < ApplicationRecord
             length: { maximum: 30 },
             allow_nil: true
 
+  # 目標は任意。空白は nil として扱う
+  before_validation :normalize_goal_text
+  validates :goal_text, length: { maximum: 50 }, allow_nil: true
+
   private
 
   def normalize_display_name
@@ -21,5 +25,12 @@ class User < ApplicationRecord
 
     v = display_name.strip
     self.display_name = v.empty? ? nil : v
+  end
+
+  def normalize_goal_text
+    return if goal_text.nil?
+
+    v = goal_text.strip
+    self.goal_text = v.empty? ? nil : v
   end
 end

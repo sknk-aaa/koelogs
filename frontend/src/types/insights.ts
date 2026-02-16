@@ -6,7 +6,7 @@ export type InsightsRange = {
 };
 
 export type DailyDurationPoint = {
-  date: string;       // YYYY-MM-DD
+  date: string;         // YYYY-MM-DD
   duration_min: number; // 0.. (missing => 0)
 };
 
@@ -20,6 +20,7 @@ export type MenuRankingItem = {
 export type TopNote = {
   note: string | null; // e.g. "A4"
   midi: number | null; // e.g. 69
+  date: string | null; // YYYY-MM-DD（その最高音を記録した日付。なければ null）
 };
 
 export type InsightsData = {

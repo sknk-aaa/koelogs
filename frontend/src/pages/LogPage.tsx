@@ -14,6 +14,8 @@ import LogHeader from "../features/log/components/LogHeader";
 import SummaryCard from "../features/log/components/SummaryCard";
 import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
 
+import { fetchMe, updateMeGoalText, type Me } from "../api/auth";
+
 function todayISO(): string {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -23,6 +25,7 @@ function todayISO(): string {
 }
 
 const AI_PREVIEW_CHARS = 100;
+const GOAL_MAX = 50;
 
 function shouldCollapseText(text: string, previewChars: number) {
   return text.trim().length > previewChars;
@@ -47,6 +50,68 @@ export default function LogPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<TrainingLog | null>(null);
+
+  // ===== Me / Goal =====
+  const [me, setMe] = useState<Me | null>(null);
+  const [goalEditing, setGoalEditing] = useState(false);
+  const [goalDraft, setGoalDraft] = useState("");
+  const [goalError, setGoalError] = useState<string | null>(null);
+  const [goalSaving, setGoalSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const m = await fetchMe();
+        if (cancelled) return;
+        setMe(m);
+        setGoalDraft(m?.goal_text ?? "");
+      } catch {
+        if (cancelled) return;
+        setMe(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const openGoalEdit = () => {
+    setGoalError(null);
+    setGoalDraft(me?.goal_text ?? "");
+    setGoalEditing(true);
+  };
+
+  const cancelGoalEdit = () => {
+    setGoalError(null);
+    setGoalDraft(me?.goal_text ?? "");
+    setGoalEditing(false);
+  };
+
+  const saveGoal = async () => {
+    if (!me) return; // 未ログインなら起こらないはずだが保険
+    if (goalSaving) return;
+
+    const v = goalDraft.trim();
+    if (v.length > GOAL_MAX) {
+      setGoalError(`50文字以内で入力してください（現在 ${v.length} 文字）`);
+      return;
+    }
+
+    setGoalSaving(true);
+    setGoalError(null);
+
+    try {
+      const updated = await updateMeGoalText(v); // 空文字はRails側で nil になる
+      setMe(updated);
+      setGoalEditing(false);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "保存できませんでした";
+      setGoalError(msg);
+    } finally {
+      setGoalSaving(false);
+    }
+  };
 
   // AI recommendation state
   const [aiLoading, setAiLoading] = useState(false);
@@ -159,13 +224,76 @@ export default function LogPage() {
     ? "まだ今日のログはありません。まずは記録して、必要ならAIおすすめも生成しましょう。"
     : "この日のログはまだありません。必要ならこの日付で記録できます。";
 
+  const goalText = me?.goal_text ?? null;
+
   return (
     <div className="page logPage">
-      <LogHeader
-        date={date}
-        onChangeDate={onChangeDate}
-        onOpenMonthly={() => setMonthModalOpen(true)}
-      />
+      <LogHeader date={date} onChangeDate={onChangeDate} onOpenMonthly={() => setMonthModalOpen(true)} />
+
+      {/* ✅ 目標：LogHeader直下／日付移動しても固定 */}
+      <div className="goalBar">
+        {!goalEditing ? (
+          goalText ? (
+            <div className="goalBar__view">
+              <div className="goalBar__row">
+                <div className="goalBar__label">🎯 今月の目標</div>
+                <button className="goalBar__btn" type="button" onClick={openGoalEdit}>
+                  編集
+                </button>
+              </div>
+              <div className="goalBar__text">「{goalText}」</div>
+            </div>
+          ) : (
+            <div className="goalBar__view">
+              <div className="goalBar__row">
+                <div className="goalBar__label">🎯 目標を設定する（最大50文字）</div>
+                <button className="goalBar__btn" type="button" onClick={openGoalEdit}>
+                  設定する
+                </button>
+              </div>
+            </div>
+          )
+        ) : (
+          <div className="goalBar__edit">
+            <div className="goalBar__row">
+              <div className="goalBar__label">🎯 目標を編集（最大50文字）</div>
+              <div className="goalBar__count">
+                {goalDraft.trim().length}/{GOAL_MAX}
+              </div>
+            </div>
+
+            <input
+              className="goalBar__input"
+              value={goalDraft}
+              type="text"
+              placeholder="例：ミックスボイスを安定させる"
+              onChange={(e) => {
+                const next = e.target.value;
+                setGoalDraft(next);
+                const len = next.trim().length;
+                if (len > GOAL_MAX) setGoalError(`50文字以内で入力してください（現在 ${len} 文字）`);
+                else setGoalError(null);
+              }}
+            />
+
+            {goalError && <div className="goalBar__error">{goalError}</div>}
+
+            <div className="goalBar__actions">
+              <button
+                className="goalBar__btn goalBar__btn--primary"
+                type="button"
+                onClick={saveGoal}
+                disabled={goalSaving}
+              >
+                保存
+              </button>
+              <button className="goalBar__btn" type="button" onClick={cancelGoalEdit} disabled={goalSaving}>
+                キャンセル
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       <MonthlyLogsModal
         open={monthModalOpen}

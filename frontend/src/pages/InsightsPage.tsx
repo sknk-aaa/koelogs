@@ -112,6 +112,12 @@ function ChevronRight() {
   );
 }
 
+function formatDateSlash(iso: string | null): string | null {
+  if (!iso) return null;
+  // ISO "YYYY-MM-DD" → "YYYY/MM/DD"
+  return iso.replace(/-/g, "/");
+}
+
 export default function InsightsPage() {
   const days = 30;
   const [state, setState] = useState<LoadState>({ kind: "loading" });
@@ -169,8 +175,14 @@ export default function InsightsPage() {
     );
   }
 
-  const fal = data.top_notes.falsetto.note ?? "—";
-  const che = data.top_notes.chest.note ?? "—";
+  const falNote = data.top_notes.falsetto.note ?? "—";
+  const cheNote = data.top_notes.chest.note ?? "—";
+  const falDate = data.top_notes.falsetto.date;
+  const cheDate = data.top_notes.chest.date;
+
+  const falFormatted = formatDateSlash(falDate);
+  const cheFormatted = formatDateSlash(cheDate);
+
   const freq = `${data.practice_days_count} / ${data.range.days} 日`;
 
   return (
@@ -178,7 +190,6 @@ export default function InsightsPage() {
       <div style={styles.sub}>期間: {formatRange(data.range.from, data.range.to)}</div>
 
       <div style={styles.grid}>
-        {/* ✅ App.tsx のルートに合わせる */}
         <ClickableCard title="練習時間の推移" to="/insights/time">
           <div style={styles.row}>
             <div style={styles.k}>最大</div>
@@ -190,7 +201,6 @@ export default function InsightsPage() {
           </div>
         </ClickableCard>
 
-        {/* ✅ App.tsx のルートに合わせる */}
         <ClickableCard title="メニュー頻度" to="/insights/menus">
           <MenuRankingPreview items={data.menu_ranking} />
         </ClickableCard>
@@ -199,11 +209,17 @@ export default function InsightsPage() {
           <div style={{ display: "grid", gap: 10 }}>
             <div style={styles.row}>
               <div style={styles.k}>裏声</div>
-              <div style={styles.v}>{fal}</div>
+              <div style={styles.v}>
+                {falNote}
+                {falFormatted && <span style={styles.vSub}>（{falFormatted}）</span>}
+              </div>
             </div>
             <div style={styles.row}>
               <div style={styles.k}>地声</div>
-              <div style={styles.v}>{che}</div>
+              <div style={styles.v}>
+                {cheNote}
+                {cheFormatted && <span style={styles.vSub}>（{cheFormatted}）</span>}
+              </div>
             </div>
             <div style={styles.muted}>
               ※ ノート形式が崩れている（例: A4 以外）と集計対象外になります
@@ -226,6 +242,12 @@ export default function InsightsPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  vSub: {
+    fontSize: 12,
+    fontWeight: 800,
+    opacity: 0.55,
+    marginLeft: 6,
+  },
   page: {
     padding: "16px 14px 90px",
     maxWidth: 920,

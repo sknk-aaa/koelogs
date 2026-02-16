@@ -4,6 +4,7 @@ export type Me = {
   id: number;
   email: string;
   display_name: string | null;
+  goal_text: string | null;
 };
 
 export async function fetchMe(): Promise<Me | null> {
@@ -33,6 +34,26 @@ export async function updateMeDisplayName(displayName: string): Promise<Me> {
   const json = await res.json().catch(() => null);
   if (!res.ok) {
     const msg = json?.error ?? `updateMeDisplayName failed: ${res.status}`;
+    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
+  }
+
+  return json as Me;
+}
+
+export async function updateMeGoalText(goalText: string): Promise<Me> {
+  const res = await fetch(`${API_BASE}/api/me`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ me: { goal_text: goalText } }),
+  });
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg = json?.error ?? `updateMeGoalText failed: ${res.status}`;
     throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
   }
 

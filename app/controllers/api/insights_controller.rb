@@ -32,7 +32,6 @@ module Api
       end
 
       # --- menu ranking (menu_id based) ---
-      # N+1 を避けるため、join + group + menu情報を一発で取る
       ranking_rows =
         TrainingLogMenu
           .joins(:training_log)
@@ -48,14 +47,17 @@ module Api
           )
           .order(Arel.sql("COUNT(*) DESC"))
 
-
       menu_ranking = ranking_rows.map do |r|
         { menu_id: r.menu_id.to_i, name: r.name.to_s, color: r.color.to_s, count: r.count.to_i }
       end
 
-      # --- top notes (ALL TIME) ---
-      top_fal = best_note(current_user.training_logs.where.not(falsetto_top_note: nil).pluck(:falsetto_top_note))
-      top_ch = best_note(current_user.training_logs.where.not(chest_top_note: nil).pluck(:chest_top_note))
+      # --- top notes (ALL TIME) + achieved date ---
+      all_time_logs = current_user.training_logs
+                                  .select(:practiced_on, :falsetto_top_note, :chest_top_note)
+                                  .order(:practiced_on)
+
+      top_fal = best_note_with_date(all_time_logs, :falsetto_top_note)
+      top_ch  = best_note_with_date(all_time_logs, :chest_top_note)
 
       render json: {
         data: {
@@ -70,20 +72,35 @@ module Api
 
     private
 
-    def best_note(notes)
-      best = nil
+    # 最大音 + 達成日（同点の場合は最新日を採用）
+    # 戻り: { note: "A4", midi: 69, date: "2026-02-10" } or { note: nil, midi: nil, date: nil }
+    def best_note_with_date(logs, note_attr)
+      best_note = nil
       best_midi = nil
+      best_date = nil
 
-      notes.compact.each do |n|
+      logs.each do |log|
+        n = log.public_send(note_attr)
+        next if n.nil?
+
         midi = note_to_midi(n)
         next if midi.nil?
-        if best_midi.nil? || midi > best_midi
+
+        d = log.practiced_on
+        next if d.nil?
+
+        if best_midi.nil? || midi > best_midi || (midi == best_midi && d > best_date)
           best_midi = midi
-          best = n.to_s.strip
+          best_note = n.to_s.strip
+          best_date = d
         end
       end
 
-      { note: best, midi: best_midi }
+      {
+        note: best_note,
+        midi: best_midi,
+        date: best_date&.iso8601
+      }
     end
 
     def note_to_midi(note)

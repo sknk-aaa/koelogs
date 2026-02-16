@@ -175,7 +175,6 @@ export default function InsightsPage() {
 
   return (
     <div style={styles.page}>
-      <h1 style={styles.h1}>分析</h1>
       <div style={styles.sub}>期間: {formatRange(data.range.from, data.range.to)}</div>
 
       <div style={styles.grid}>

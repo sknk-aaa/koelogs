@@ -111,7 +111,7 @@ export async function fetchAiRecommendationByDate(
 }
 
 export async function createAiRecommendation(
-  payload?: { range_days?: number }
+  payload?: { range_days?: number; date?: string }
 ): Promise<
   | { ok: true; data: AiRecommendation; status: 200 | 201 }
   | { ok: false; status: number; errors: string[] }

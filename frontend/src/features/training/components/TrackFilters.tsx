@@ -1,4 +1,5 @@
 // frontend/src/features/training/components/TrackFilters.tsx
+import { useMemo, useState } from "react";
 import type { ScaleType, Tempo } from "../../../api/scaleTracks";
 
 type Props = {
@@ -24,6 +25,23 @@ export default function TrackFilters({
   onChangeScaleType,
   onChangeTempo,
 }: Props) {
+  const [selectFocused, setSelectFocused] = useState(false);
+
+  const selectStyle = useMemo(() => {
+    return {
+      ...styles.select,
+      ...(selectFocused ? styles.selectFocused : null),
+      ...(disabled ? styles.selectDisabled : null),
+    } as React.CSSProperties;
+  }, [selectFocused, disabled]);
+
+  const chevronStyle = useMemo(() => {
+    return {
+      ...styles.selectChevron,
+      ...(disabled ? styles.selectChevronDisabled : null),
+    } as React.CSSProperties;
+  }, [disabled]);
+
   return (
     <div style={styles.wrap}>
       {/* スケール：プルダウン */}
@@ -34,23 +52,35 @@ export default function TrackFilters({
         </div>
 
         <div style={styles.selectWrap}>
-          <select
-            value={scaleType}
-            disabled={disabled}
-            onChange={(e) => onChangeScaleType(e.target.value as ScaleType)}
-            style={styles.select}
-            aria-label="scale type"
+          <div
+            style={{
+              ...styles.selectSurface,
+              ...(selectFocused ? styles.selectSurfaceFocused : null),
+              ...(disabled ? styles.selectSurfaceDisabled : null),
+            }}
           >
-            {scaleTypes.map((t) => (
-              <option key={t} value={t}>
-                {labelScale(t)}
-              </option>
-            ))}
-          </select>
+            <select
+              value={scaleType}
+              disabled={disabled}
+              onChange={(e) => onChangeScaleType(e.target.value as ScaleType)}
+              onFocus={() => setSelectFocused(true)}
+              onBlur={() => setSelectFocused(false)}
+              style={selectStyle}
+              aria-label="scale type"
+            >
+              {scaleTypes.map((t) => (
+                <option key={t} value={t}>
+                  {labelScale(t)}
+                </option>
+              ))}
+            </select>
 
-          <div style={styles.selectChevron} aria-hidden="true">
-            <ChevronDown />
+            <div style={chevronStyle} aria-hidden="true">
+              <ChevronDown />
+            </div>
           </div>
+
+          <div style={styles.selectHint}>タップしてスケールを選択</div>
         </div>
       </div>
 
@@ -91,12 +121,12 @@ export default function TrackFilters({
 
 function ChevronDown() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24">
+    <svg width="20" height="20" viewBox="0 0 24 24">
       <path
         d="M6 9l6 6 6-6"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -134,9 +164,9 @@ const styles: Record<string, React.CSSProperties> = {
   valuePill: {
     fontSize: 12,
     fontWeight: 900,
-    opacity: 0.75,
+    opacity: 0.78,
     border: "1px solid rgba(0,0,0,0.10)",
-    background: "rgba(0,0,0,0.02)",
+    background: "rgba(0,0,0,0.03)",
     borderRadius: 999,
     padding: "6px 10px",
     whiteSpace: "nowrap",
@@ -144,23 +174,60 @@ const styles: Record<string, React.CSSProperties> = {
 
   // ===== Select =====
   selectWrap: {
-    position: "relative",
+    display: "grid",
+    gap: 6,
     minWidth: 0,
   },
 
+  // 外側の“カード”部分（ここでおしゃれ感を作る）
+  selectSurface: {
+    position: "relative",
+    minWidth: 0,
+    borderRadius: 16,
+    border: "1px solid rgba(0,0,0,0.10)",
+    background: "rgba(255,255,255,0.88)",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
+    overflow: "hidden",
+    transition: "transform 80ms ease, box-shadow 120ms ease, border-color 120ms ease",
+  },
+
+  selectSurfaceFocused: {
+    border: "1px solid rgba(0,0,0,0.22)",
+    boxShadow: "0 10px 24px rgba(0,0,0,0.10)",
+    transform: "translateY(-1px)",
+  },
+
+  selectSurfaceDisabled: {
+    opacity: 0.6,
+    boxShadow: "none",
+    transform: "none",
+  },
+
+  // select本体（透明にして“カード”の見た目を活かす）
   select: {
     width: "100%",
     appearance: "none",
     WebkitAppearance: "none",
     MozAppearance: "none",
-    border: "1px solid rgba(0,0,0,0.10)",
-    background: "#fff",
-    borderRadius: 14,
-    padding: "12px 44px 12px 12px",
-    fontSize: 14,
+    border: "none",
+    background: "transparent",
+    borderRadius: 0,
+    padding: "14px 48px 14px 14px",
+    fontSize: 15,
     fontWeight: 900,
-    minHeight: 44, // ✅ タップしやすい
+    minHeight: 48, // タップしやすい
     outline: "none",
+    color: "rgba(0,0,0,0.92)",
+    cursor: "pointer",
+  },
+
+  // focus時は“文字”もほんの少し締める（好み）
+  selectFocused: {
+    color: "rgba(0,0,0,1)",
+  },
+
+  selectDisabled: {
+    cursor: "not-allowed",
   },
 
   selectChevron: {
@@ -170,6 +237,17 @@ const styles: Record<string, React.CSSProperties> = {
     transform: "translateY(-50%)",
     pointerEvents: "none",
     opacity: 0.7,
+  },
+
+  selectChevronDisabled: {
+    opacity: 0.45,
+  },
+
+  selectHint: {
+    fontSize: 12,
+    opacity: 0.6,
+    lineHeight: 1.4,
+    paddingLeft: 2,
   },
 
   // ===== Tempo buttons =====
@@ -188,7 +266,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 900,
     cursor: "pointer",
-    minHeight: 44, // ✅ タップしやすい
+    minHeight: 44,
     transition: "transform 80ms ease, background 120ms ease, border-color 120ms ease",
   },
 

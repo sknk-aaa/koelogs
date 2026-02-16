@@ -52,3 +52,22 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* タップしやすさ（全体に効く） */
+input, textarea, button {
+  font-size: 16px; /* iOSの勝手ズーム抑制にも効く */
+}
+
+/* カードの中の文章を読みやすく */
+.card {
+  line-height: 1.6;
+}
+
+/* “押せる感”の基本（必要なら各所で上書き） */
+.btn {
+  transition: transform 80ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+
+

@@ -1,39 +1,62 @@
 /* frontend/src/pages/LogPage.css */
 
-/* ✅ max-width/padding/margin は .page に任せる（page.cssが規格） */
 .logPage {
   width: 100%;
 }
 
-/* 日付エリア */
-.logPage__dateArea {
+/* ===== Header: PC 3-column / Mobile stack ===== */
+.logPage__header {
   display: grid;
-  gap: 8px;
-  margin-bottom: 16px;
+  grid-template-columns: 1fr auto 1fr; /* left / center / right */
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
-.logPage__label {
-  font-size: 13px;
-  opacity: 0.75;
+.logPage__headerLeft {
+  justify-self: start;
 }
 
-.logPage__dateInput {
-  height: 44px; /* ✅ タップしやすい */
-  padding: 0 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  width: 100%;
-  max-width: 260px;
-  background: #fff;
+.logPage__headerCenter {
+  justify-self: center; /* ✅ PCでは週カレンダー中央 */
+}
+
+.logPage__headerRight {
+  justify-self: end; /* ✅ 右に月ボタン */
+  display: flex;
+  align-items: end;
+}
+
+.logPage__title {
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+}
+
+.logPage__monthBtn {
+  white-space: nowrap;
+}
+
+/* ===== Layout ===== */
+.logPage__stack {
+  display: grid;
+  gap: 14px;
 }
 
 .logPage__card {
-  margin-bottom: 16px;
+  margin-bottom: 0;
+}
+
+.logPage__cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .logPage__cardTitle {
-  font-weight: 900;
-  margin-bottom: 10px;
+  font-weight: 950;
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -45,23 +68,169 @@
   font-weight: 800;
 }
 
-.logPage__summaryGrid {
-  display: grid;
-  gap: 8px; /* 少し広げて読みやすく */
+/* ===== Badges ===== */
+.logPage__cardBadge {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.70);
 }
 
-.logPage__notes {
+.logPage__cardBadge--ok {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.logPage__cardBadge--info {
+  border-color: rgba(59, 130, 246, 0.35);
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.logPage__cardBadge--ng {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.10);
+}
+
+.logPage__cardBadge--empty {
+  border-color: rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.04);
+}
+
+/* ===== Summary (KPI) ===== */
+.logPage__kpiRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.logPage__kpi {
+  border-radius: 16px;
+  padding: 12px 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.02);
+}
+
+.logPage__kpiLabel {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.logPage__kpiValue {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.logPage__kpiNumber {
+  font-size: 34px;
+  font-weight: 950;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.logPage__kpiUnit {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.7;
+}
+
+.logPage__kpiSmallGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.logPage__mini {
+  border-radius: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #fff;
+}
+
+.logPage__miniLabel {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.logPage__miniValue {
+  font-size: 16px;
+  font-weight: 950;
+}
+
+/* ===== Sections ===== */
+.logPage__section {
   margin-top: 10px;
-  opacity: 0.85;
+}
+
+.logPage__sectionTitle {
+  font-size: 12px;
+  font-weight: 950;
+  opacity: 0.75;
+  margin-bottom: 8px;
+}
+
+.logPage__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.logPage__notesBox {
+  white-space: pre-wrap;
+  line-height: 1.7;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.02);
+}
+
+/* ===== Empty state ===== */
+.logPage__empty {
+  display: grid;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.logPage__emptyTitle {
+  font-weight: 950;
+}
+
+.logPage__muted {
+  opacity: 0.7;
   line-height: 1.6;
+}
+
+/* ===== AI card accent ===== */
+.logPage__aiCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.logPage__aiCard--saved {
+  border: 1px solid rgba(16, 185, 129, 0.22);
+}
+
+.logPage__aiCard--error {
+  border: 1px solid rgba(239, 68, 68, 0.22);
 }
 
 .logPage__aiText {
   white-space: pre-wrap;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
-/* ✅ エラー：赤文字だけより、ボックスで“落ち着いて”見せる */
+.logPage__aiMoreRow {
+  margin-top: 10px;
+}
+
+/* ===== Error ===== */
 .logPage__error {
   color: #b00020;
   white-space: pre-wrap;
@@ -71,45 +240,55 @@
   background: rgba(176, 0, 32, 0.06);
 }
 
+/* ===== Actions ===== */
 .logPage__actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
 }
 
-/* 共通ボタン（最低限） */
+/* ===== Buttons (strong again) ===== */
 .btn {
   height: 44px;
   padding: 0 16px;
   border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #fff;
-  font-weight: 800;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255,255,255,0.90);
+  font-weight: 900;
   cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  transition: transform 80ms ease, box-shadow 120ms ease, filter 120ms ease, background 120ms ease;
+}
+
+.btn:hover {
+  background: #fff;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.10);
+}
+
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* 日付入力と「月のログ一覧」ボタンを横に並べる */
-.logPage__dateRow {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 12px;
+.btn--primary {
+  background: rgba(0,0,0,0.92);
+  color: #fff;
+  border-color: rgba(0,0,0,0.92);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
 }
 
-.logPage__dateLeft {
-  display: grid;
-  gap: 8px;
+.btn--primary:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.22);
 }
 
-.logPage__dateRight {
-  display: flex;
-  align-items: end;
-}
+/* “続きを読む” */
 .logPage__moreBtn {
   border: none;
   background: transparent;
@@ -128,9 +307,9 @@
   background: rgba(255, 255, 255, 0.70);
   backdrop-filter: blur(8px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  font-weight: 900;
+  font-weight: 950;
   font-size: 12px;
-  opacity: 0.9;
+  opacity: 0.92;
   transition: transform 80ms ease, box-shadow 120ms ease, background 120ms ease;
 }
 
@@ -155,23 +334,391 @@
   line-height: 1;
 }
 
+/* ===== Week Calendar (refined + compact mobile) ===== */
+.weekCal {
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.02);
+  padding: 10px 10px 12px;
+  min-width: 248px;
+}
 
-/* ✅ スマホでは縦並び + ボタン100% */
+.weekCal__hiddenDate {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+.weekCal__top {
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.weekCal__navBtn {
+  height: 34px;
+  width: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.70);
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.weekCal__navBtn:hover {
+  background: rgba(255,255,255,0.92);
+}
+
+.weekCal__titleBtn {
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.60);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+}
+
+.weekCal__titleBtn:hover {
+  background: rgba(255,255,255,0.85);
+}
+
+.weekCal__titleHint {
+  font-size: 10px;
+  opacity: 0.7;
+  transform: translateY(1px);
+}
+
+.weekCal__dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.weekCal__dowItem {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+  opacity: 0.6;
+}
+
+.weekCal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.weekCal__day {
+  position: relative;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 950;
+}
+
+.weekCal__day:hover {
+  background: rgba(255,255,255,0.70);
+  border-color: rgba(0,0,0,0.06);
+}
+
+.weekCal__dayNum {
+  font-size: 14px;
+}
+
+.weekCal__day.is-selected {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.weekCal__day.is-otherMonth {
+  opacity: 0.45;
+}
+
+/* ✅ 今日の丸を “もうちょい下” に（bottom を小さく） */
+.weekCal__todayDot {
+  position: absolute;
+  bottom: 4px; /* ← 7px→4px */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.55);
+}
+
+.weekCal__day.is-selected .weekCal__todayDot {
+  background: rgba(0,0,0,0.65);
+}
+
+/* サマリー見出し右側（バッジ + 記録ボタン） */
+.logPage__cardHeadRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* カード内の記録ボタンは少し小さめにして収まり良く */
+.logPage__recordBtn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+}
+
+
+/* ===== Lux AI Card (robot removed) ===== */
+.logAi {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* 背景グラデ */
+.logAi::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(800px 260px at 20% 0%, rgba(16,185,129,0.18), transparent 55%),
+    radial-gradient(700px 240px at 95% 20%, rgba(59,130,246,0.14), transparent 55%),
+    linear-gradient(to bottom, rgba(255,255,255,0.75), rgba(255,255,255,0.45));
+  pointer-events: none;
+}
+
+.logAi > * {
+  position: relative;
+}
+
+/* header */
+.logAi__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(12px);
+}
+
+.logAi__title {
+  font-weight: 950;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+}
+
+.logAi__meta {
+  font-size: 12px;
+  opacity: 0.65;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.logAi__headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* status pill */
+.logAi__pill {
+  font-size: 11px;
+  font-weight: 950;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.70);
+}
+
+.logAi__pill--ok {
+  border-color: rgba(16,185,129,0.30);
+  background: rgba(16,185,129,0.12);
+}
+
+.logAi__pill--info {
+  border-color: rgba(59,130,246,0.30);
+  background: rgba(59,130,246,0.12);
+}
+
+.logAi__pill--ng {
+  border-color: rgba(239,68,68,0.30);
+  background: rgba(239,68,68,0.10);
+}
+
+/* content */
+.logAi__content {
+  padding: 16px;
+}
+
+.logAi__text {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+.logAi__text--muted {
+  opacity: 0.7;
+}
+
+.logAi__actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.logAi__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.80);
+  font: inherit;
+  cursor: pointer;
+  font-weight: 950;
+  font-size: 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.10);
+  transition: transform 80ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.logAi__toggle:hover {
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.14);
+}
+
+.logAi__toggle:active {
+  transform: translateY(1px);
+}
+
+.logAi__toggleIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  font-size: 10px;
+}
+
+.logPage__kpi {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(10px);
+}
+
+.logPage__kpi--main .logPage__kpiNumber {
+  font-size: 32px;
+}
+
+.logPage__kpiBigValue {
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: -0.2px;
+}
+
+/* =========================
+   KPI layout (Mobile)
+   - 1段目: 練習時間（全幅）
+   - 2段目: 裏声/地声（横並び）
+   ========================= */
 @media (max-width: 520px) {
-  .logPage__dateRow {
-    flex-direction: column;
+  /* ここが一番重要：2列→1列に上書き */
+  .logPage__kpiRow {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  /* 裏声/地声（小カード2つ）を横並びにする */
+  .logPage__kpiSmallGrid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px;
+  }
+
+  /* 見た目の密度調整（任意） */
+  .logPage__kpi,
+  .logPage__mini {
+    border-radius: 16px;
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 520px) {
+  /* ✅ スマホは縦並び（今のまま） */
+  .logPage__header {
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 
-  .logPage__dateRight {
-    justify-content: flex-start;
+  .logPage__headerCenter,
+  .logPage__headerRight {
+    justify-self: stretch;
   }
 
-  .logPage__dateRight .btn {
+  .logPage__headerRight .btn {
     width: 100%;
   }
 
-  .logPage__actions .btn {
+  .weekCal {
     width: 100%;
+    min-width: 0;
+    padding: 8px 8px 10px;
+    border-radius: 14px;
+  }
+
+  .weekCal__top {
+    grid-template-columns: 34px 1fr 34px;
+    margin-bottom: 6px;
+  }
+
+  .weekCal__navBtn {
+    height: 30px;
+    width: 34px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .weekCal__titleBtn {
+    height: 30px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .weekCal__dowItem {
+    font-size: 10px;
+  }
+
+  .weekCal__day {
+    height: 32px;
+  }
+
+  .weekCal__dayNum {
+    font-size: 13px;
+  }
+
+  /* ✅ スマホはさらに少し下へ */
+  .weekCal__todayDot {
+    bottom: 3px;
+    width: 5px;
+    height: 5px;
   }
 }

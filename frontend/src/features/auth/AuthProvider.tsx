@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   fetchMe,
   login as apiLogin,
@@ -12,7 +12,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await fetchMe();
@@ -20,34 +20,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     await apiLogin(email, password);
     await refresh();
-  };
+  }, [refresh]);
 
-  const signup = async (
+  const signup = useCallback(async (
     email: string,
     password: string,
     passwordConfirmation: string
   ) => {
     await apiSignup(email, password, passwordConfirmation);
     await refresh();
-  };
+  }, [refresh]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await apiLogout();
     setMe(null);
-  };
+  }, []);
 
   const value: AuthState = useMemo(
     () => ({ me, isLoading, refresh, login, signup, logout }),
-    [me, isLoading]
+    [me, isLoading, refresh, login, signup, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

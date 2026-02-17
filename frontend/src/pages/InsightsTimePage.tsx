@@ -67,10 +67,10 @@ export default function InsightsTimePage() {
   }, [data, total]);
 
   return (
-    <div style={styles.page}>
+    <div className="page" style={styles.page}>
       <div style={styles.topBar}>
         <div style={{ display: "grid", gap: 4, minWidth: 0 }}>
-          <h1 style={styles.h1}>練習時間（詳細）</h1>
+          <h1 className="h1" style={styles.h1}>練習時間（詳細）</h1>
           <div style={styles.sub}>期間を切り替えて推移と集計を確認できます</div>
         </div>
 
@@ -144,10 +144,6 @@ function Stat({ label, value }: { label: string; value: string }) {
 const styles: Record<string, React.CSSProperties> = {
   // ✅ ここが今回の主修正：詳細ページも横はみ出し禁止
   page: {
-    padding: "14px 14px 90px",
-    maxWidth: 920,
-    margin: "0 auto",
-    color: "#111",
     overflowX: "hidden",
   },
   topBar: {
@@ -197,8 +193,8 @@ const styles: Record<string, React.CSSProperties> = {
   segBtnActive: { background: "rgba(0,0,0,0.10)", opacity: 1 },
 
   card: {
-    background: "#fff",
-    border: "1px solid rgba(0,0,0,0.06)",
+    background: "var(--card)",
+    border: "1px solid var(--border)",
     borderRadius: 16,
     padding: 14,
     boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
@@ -225,7 +221,7 @@ const styles: Record<string, React.CSSProperties> = {
   errorBox: {
     padding: 12,
     borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "rgba(255,0,0,0.04)",
+    border: "1px solid rgba(176, 0, 32, 0.22)",
+    background: "rgba(176, 0, 32, 0.06)",
   },
 };

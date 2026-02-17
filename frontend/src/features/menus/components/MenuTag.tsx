@@ -1,5 +1,4 @@
 // frontend/src/features/menus/components/MenuTag.tsx
-import React from "react";
 
 function isValidHexColor(c: string): boolean {
   return /^#[0-9A-Fa-f]{6}$/.test(c);

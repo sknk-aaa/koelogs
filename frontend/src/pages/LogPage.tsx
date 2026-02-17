@@ -331,7 +331,7 @@ export default function LogPage() {
 
       <div className="logPage__actions">
         {showAiButton && (
-          <button onClick={onAskAi} className="btn">
+          <button onClick={onAskAi} className="logPage__btn">
             AIに今日のおすすめを聞く
           </button>
         )}

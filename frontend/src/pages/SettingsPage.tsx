@@ -102,7 +102,7 @@ export default function SettingsPage() {
           </label>
 
           <div className="settingsPage__hint">
-            ON にすると、音源が 끝まで再生されたあと自動で繰り返します。
+            ON にすると、音源が最後まで再生されたあと自動で繰り返します。
           </div>
         </div>
       </div>

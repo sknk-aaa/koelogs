@@ -11,9 +11,9 @@ export default function ProfilePage() {
 
   if (!me) {
     return (
-      <div style={styles.page}>
-        <h1 style={styles.h1}>プロフィール（表示名）</h1>
-        <p style={styles.p}>ログインしてください。</p>
+      <div className="page" style={styles.page}>
+        <h1 className="h1">プロフィール（表示名）</h1>
+        <p className="p">ログインしてください。</p>
       </div>
     );
   }
@@ -35,10 +35,10 @@ export default function ProfilePage() {
   const canSave = displayName.trim().length <= 30;
 
   return (
-    <div style={styles.page}>
-      <h1 style={styles.h1}>プロフィール（表示名）</h1>
+    <div className="page" style={styles.page}>
+      <h1 className="h1">プロフィール（表示名）</h1>
 
-      <div style={styles.card}>
+      <div className="card" style={styles.card}>
         <div style={styles.row}>
           <div style={styles.k}>メール</div>
           <div style={styles.v}>{me.email}</div>
@@ -81,21 +81,8 @@ export default function ProfilePage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: {
-    padding: "14px 14px 90px",
-    maxWidth: 920,
-    margin: "0 auto",
-    color: "#111",
-  },
-  h1: { fontSize: 18, fontWeight: 900, margin: "6px 0 10px" },
-  p: { fontSize: 13, opacity: 0.8, lineHeight: 1.6, marginBottom: 12 },
-  card: {
-    background: "#fff",
-    border: "1px solid rgba(0,0,0,0.06)",
-    borderRadius: 16,
-    padding: 14,
-    boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
-  },
+  page: {},
+  card: {},
   row: {
     display: "flex",
     alignItems: "center",

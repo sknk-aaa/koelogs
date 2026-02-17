@@ -3,10 +3,10 @@ import type React from "react";
 
 export const styles: Record<string, React.CSSProperties> = {
   page: {
-    padding: "18px 14px 96px",
-    maxWidth: 980,
+    padding: "14px 14px 90px",
+    maxWidth: 920,
     margin: "0 auto",
-    color: "rgba(0,0,0,0.92)",
+    color: "var(--text)",
     position: "relative",
 
     // ✅ 横に広がる装飾があっても画面幅を壊さない
@@ -19,12 +19,11 @@ export const styles: Record<string, React.CSSProperties> = {
     left: "50%",
     transform: "translateX(-50%)",
     width: "100vw",
-    height: 360,
+    height: 300,
     background:
-      "radial-gradient(closest-side at 18% 20%, rgba(0,120,255,0.22), rgba(0,0,0,0.00) 60%)," +
-      "radial-gradient(closest-side at 78% 10%, rgba(110,90,255,0.18), rgba(0,0,0,0.00) 58%)," +
-      "radial-gradient(closest-side at 50% 95%, rgba(0,200,160,0.10), rgba(0,0,0,0.00) 55%)",
-    filter: "blur(10px)",
+      "radial-gradient(closest-side at 20% 20%, var(--accentSoft), rgba(0,0,0,0.00) 62%)," +
+      "radial-gradient(closest-side at 80% 10%, rgba(0,0,0,0.06), rgba(0,0,0,0.00) 60%)",
+    filter: "blur(8px)",
     pointerEvents: "none",
     zIndex: -1,
   },
@@ -62,7 +61,7 @@ export const styles: Record<string, React.CSSProperties> = {
   },
 
   title: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 950,
     margin: "0 0 6px",
     letterSpacing: 0.2,
@@ -125,16 +124,14 @@ export const styles: Record<string, React.CSSProperties> = {
   },
 
   card: {
-    background:
-      "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,248,255,0.78))",
-    border: "1px solid rgba(0,0,0,0.08)",
-    borderRadius: 22,
-    padding: 16,
-    boxShadow: "0 18px 40px rgba(0,0,0,0.10)",
+    background: "var(--card)",
+    border: "1px solid var(--border)",
+    borderRadius: 16,
+    padding: 14,
+    boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
     minWidth: 0,
     display: "grid",
-    gap: 16,
-    backdropFilter: "blur(8px)",
+    gap: 14,
   },
 
   section: { display: "grid", gap: 12, minWidth: 0 },
@@ -167,9 +164,9 @@ export const styles: Record<string, React.CSSProperties> = {
     fontWeight: 900,
     padding: "6px 10px",
     borderRadius: 999,
-    border: "1px solid rgba(0,120,255,0.14)",
-    background: "rgba(0,120,255,0.06)",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.04)",
+    border: "1px solid var(--border)",
+    background: "var(--accentSoft)",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.04)",
     opacity: 0.95,
     whiteSpace: "nowrap",
   },
@@ -181,20 +178,18 @@ export const styles: Record<string, React.CSSProperties> = {
   },
 
   filtersBox: {
-    borderRadius: 18,
-    border: "1px solid rgba(0,0,0,0.08)",
-    background:
-      "linear-gradient(180deg, rgba(255,255,255,0.85), rgba(245,248,255,0.72))",
-    boxShadow: "0 14px 28px rgba(0,0,0,0.06)",
+    borderRadius: 16,
+    border: "1px solid var(--border)",
+    background: "rgba(255,255,255,0.78)",
+    boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
     padding: 12,
   },
 
   playerShell: {
-    borderRadius: 20,
-    border: "1px solid rgba(0,0,0,0.08)",
-    background:
-      "linear-gradient(180deg, rgba(255,255,255,0.86), rgba(245,248,255,0.72))",
-    boxShadow: "0 14px 28px rgba(0,0,0,0.06)",
+    borderRadius: 16,
+    border: "1px solid var(--border)",
+    background: "rgba(255,255,255,0.78)",
+    boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
     padding: 14,
   },
 

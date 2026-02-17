@@ -145,10 +145,10 @@ export default function InsightsMenusPage() {
   })();
 
   return (
-    <div style={styles.page}>
+    <div className="page" style={styles.page}>
       <div style={styles.topBar}>
         <div style={{ display: "grid", gap: 4 }}>
-          <h1 style={styles.h1}>メニュー頻度（詳細）</h1>
+          <h1 className="h1" style={styles.h1}>メニュー頻度（詳細）</h1>
           <div style={styles.sub}>検索・ソートで全件を確認できます</div>
         </div>
 
@@ -197,7 +197,7 @@ export default function InsightsMenusPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: { padding: "14px 14px 90px", maxWidth: 920, margin: "0 auto", color: "#111" },
+  page: {},
   topBar: {
     display: "flex",
     alignItems: "flex-start",
@@ -251,26 +251,26 @@ const styles: Record<string, React.CSSProperties> = {
 
   search: {
     width: "100%",
-    border: "1px solid rgba(0,0,0,0.10)",
+    border: "1px solid var(--border)",
     borderRadius: 14,
     padding: "10px 12px",
     fontSize: 13,
     outline: "none",
-    background: "#fff",
+    background: "var(--card)",
   },
   select: {
-    border: "1px solid rgba(0,0,0,0.10)",
+    border: "1px solid var(--border)",
     borderRadius: 14,
     padding: "10px 12px",
     fontSize: 13,
-    background: "#fff",
+    background: "var(--card)",
     fontWeight: 900,
     cursor: "pointer",
   },
 
   card: {
-    background: "#fff",
-    border: "1px solid rgba(0,0,0,0.06)",
+    background: "var(--card)",
+    border: "1px solid var(--border)",
     borderRadius: 16,
     padding: 14,
     boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
@@ -289,7 +289,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   rankRow: {
-    border: "1px solid rgba(0,0,0,0.06)",
+    border: "1px solid var(--border)",
     borderRadius: 16,
     padding: 12,
     display: "grid",
@@ -306,7 +306,7 @@ const styles: Record<string, React.CSSProperties> = {
     placeItems: "center",
     fontWeight: 900,
     border: "1px solid rgba(0,0,0,0.10)",
-    background: "#fff",
+    background: "var(--card)",
     flexShrink: 0,
   },
   rankMeta: { fontSize: 12, opacity: 0.75, fontWeight: 800 },
@@ -323,7 +323,7 @@ const styles: Record<string, React.CSSProperties> = {
   errorBox: {
     padding: 12,
     borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "rgba(255,0,0,0.04)",
+    border: "1px solid rgba(176, 0, 32, 0.22)",
+    background: "rgba(176, 0, 32, 0.06)",
   },
 };

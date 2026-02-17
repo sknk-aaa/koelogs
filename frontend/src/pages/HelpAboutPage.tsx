@@ -1,9 +1,9 @@
 export default function HelpAboutPage() {
   return (
-    <div style={styles.page}>
-      <h1 style={styles.h1}>このアプリについて</h1>
+    <div className="page" style={styles.page}>
+      <h1 className="h1">このアプリについて</h1>
 
-      <div style={styles.card}>
+      <div className="card" style={styles.card}>
         <p style={styles.p}>
           voice-app は「日々のボイトレ」を続けやすくするための、記録・再生・分析アプリです。
         </p>
@@ -18,15 +18,8 @@ export default function HelpAboutPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: { padding: "14px 14px 90px", maxWidth: 920, margin: "0 auto", color: "#111" },
-  h1: { fontSize: 18, fontWeight: 900, margin: "6px 0 10px" },
-  card: {
-    background: "#fff",
-    border: "1px solid rgba(0,0,0,0.06)",
-    borderRadius: 16,
-    padding: 14,
-    boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
-  },
+  page: {},
+  card: {},
   p: { fontSize: 13, opacity: 0.85, lineHeight: 1.7, margin: "0 0 10px" },
   ul: { margin: 0, paddingLeft: 18, lineHeight: 1.8, fontSize: 13 },
 };

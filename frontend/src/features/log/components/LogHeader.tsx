@@ -18,7 +18,7 @@ export default function LogHeader({ date, onChangeDate, onOpenMonthly }: Props) 
       </div>
 
       <div className="logPage__headerRight">
-        <button className="btn logPage__monthBtn" onClick={onOpenMonthly}>
+        <button className="logPage__btn logPage__monthBtn" onClick={onOpenMonthly}>
           月のログ一覧
         </button>
       </div>

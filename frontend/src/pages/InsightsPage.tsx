@@ -150,8 +150,8 @@ export default function InsightsPage() {
 
   if (state.kind === "loading") {
     return (
-      <div style={styles.page}>
-        <h1 style={styles.h1}>分析</h1>
+      <div className="page" style={styles.page}>
+        <h1 className="h1">分析</h1>
         <div style={styles.muted}>読み込み中…</div>
       </div>
     );
@@ -159,8 +159,8 @@ export default function InsightsPage() {
 
   if (state.kind === "error") {
     return (
-      <div style={styles.page}>
-        <h1 style={styles.h1}>分析</h1>
+      <div className="page" style={styles.page}>
+        <h1 className="h1">分析</h1>
         <div style={styles.errorBox}>取得に失敗しました: {state.message}</div>
       </div>
     );
@@ -168,8 +168,8 @@ export default function InsightsPage() {
 
   if (!data) {
     return (
-      <div style={styles.page}>
-        <h1 style={styles.h1}>分析</h1>
+      <div className="page" style={styles.page}>
+        <h1 className="h1">分析</h1>
         <div style={styles.muted}>データがありません</div>
       </div>
     );
@@ -186,7 +186,8 @@ export default function InsightsPage() {
   const freq = `${data.practice_days_count} / ${data.range.days} 日`;
 
   return (
-    <div style={styles.page}>
+    <div className="page" style={styles.page}>
+      <h1 className="h1">分析</h1>
       <div style={styles.sub}>期間: {formatRange(data.range.from, data.range.to)}</div>
 
       <div style={styles.grid}>
@@ -245,21 +246,14 @@ const styles: Record<string, React.CSSProperties> = {
     opacity: 0.55,
     marginLeft: 6,
   },
-  page: {
-    padding: "16px 14px 90px",
-    maxWidth: 920,
-    margin: "0 auto",
-    color: "#111",
-    overflowX: "hidden",
-  },
-  h1: { fontSize: 18, fontWeight: 900, margin: "6px 0 6px" },
+  page: { overflowX: "hidden" },
   sub: { fontSize: 12, opacity: 0.75, marginBottom: 14 },
 
   grid: { display: "grid", gap: 12, minWidth: 0 },
 
   card: {
-    background: "#fff",
-    border: "1px solid rgba(0,0,0,0.06)",
+    background: "var(--card)",
+    border: "1px solid var(--border)",
     borderRadius: 16,
     padding: 14,
     boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
@@ -269,8 +263,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: "block",
     textDecoration: "none",
     color: "inherit",
-    background: "#fff",
-    border: "1px solid rgba(0,0,0,0.10)",
+    background: "var(--card)",
+    border: "1px solid var(--border)",
     borderRadius: 16,
     padding: 14,
     boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
@@ -303,8 +297,8 @@ const styles: Record<string, React.CSSProperties> = {
   errorBox: {
     padding: 12,
     borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "rgba(255,0,0,0.04)",
+    border: "1px solid rgba(176, 0, 32, 0.22)",
+    background: "rgba(176, 0, 32, 0.06)",
   },
 
   barTrack: {

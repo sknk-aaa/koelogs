@@ -207,8 +207,8 @@ export default function LogNewPage() {
   };
 
   return (
-    <div style={styles.page}>
-      <h1 style={styles.h1}>今日のトレーニングを記録</h1>
+    <div className="page" style={styles.page}>
+      <h1 className="h1">今日のトレーニングを記録</h1>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 14 }}>
         {initialLoading && <div style={styles.muted}>既存ログを読み込み中…</div>}
@@ -468,8 +468,7 @@ export default function LogNewPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: { padding: "14px 14px 110px", maxWidth: 920, margin: "0 auto" }, // ✅ sticky分少し増やす
-  h1: { fontSize: 18, fontWeight: 900, margin: "6px 0 10px" },
+  page: { paddingBottom: "110px" }, // sticky分を上積み
   label: { fontSize: 13, fontWeight: 800 },
   subLabel: { fontSize: 12, fontWeight: 800, opacity: 0.85 },
   muted: { opacity: 0.8, fontSize: 12, lineHeight: 1.5 },
@@ -481,7 +480,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: "1px solid rgba(0,0,0,0.12)",
     width: "100%",
     maxWidth: 260,
-    background: "#fff",
+    background: "var(--card)",
   },
   inputFull: {
     height: 44,
@@ -489,7 +488,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 12,
     border: "1px solid rgba(0,0,0,0.12)",
     width: "100%",
-    background: "#fff",
+    background: "var(--card)",
   },
 
   textarea: {
@@ -507,7 +506,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 12,
     border: "1px solid rgba(0,0,0,0.08)",
     borderRadius: 14,
-    background: "rgba(255,255,255,0.92)",
+    background: "var(--card)",
   },
 
   checkRow: { display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 13 },
@@ -524,8 +523,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "0 16px",
     borderRadius: 12,
     border: "1px solid rgba(0,0,0,0.12)",
-    background: "black",
-    color: "white",
+    background: "var(--text)",
+    color: "var(--accentText)",
     cursor: "pointer",
     opacity: 1,
     fontWeight: 900,
@@ -536,7 +535,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "0 16px",
     borderRadius: 12,
     border: "1px solid rgba(0,0,0,0.12)",
-    background: "white",
+    background: "var(--card)",
     cursor: "pointer",
     fontWeight: 900,
   },

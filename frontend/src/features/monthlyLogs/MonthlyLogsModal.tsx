@@ -133,7 +133,9 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
   }, [open, onClose]);
 
   // ✅ Hooksは早期return前に全部呼ぶ
-  const logsAll = state.kind === "ready" ? state.logs : [];
+  const logsAll = useMemo(() => {
+    return state.kind === "ready" ? state.logs : [];
+  }, [state]);
 
   const filtered = useMemo(() => {
     return logsAll.filter((log) => matchesLog(log, q));

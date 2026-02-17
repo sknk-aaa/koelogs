@@ -40,7 +40,7 @@ export default function SummaryCard({
           )}
 
           {/* ✅ サマリーの近くに配置（常に見える） */}
-          <button className="btn logPage__recordBtn" onClick={onClickRecord}>
+          <button className="logPage__btn logPage__recordBtn" onClick={onClickRecord}>
             {recordLabel}
           </button>
         </div>

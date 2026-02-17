@@ -7,6 +7,8 @@ import { fetchTrainingMenus, createTrainingMenu, updateTrainingMenu } from "../a
 import type { TrainingMenu } from "../types/trainingMenu";
 import ColoredTag from "../components/ColoredTag";
 
+import "./LogNewPage.css";
+
 function errorMessage(e: unknown, fallback: string) {
   if (e instanceof Error) return e.message;
   if (typeof e === "string") return e;
@@ -207,25 +209,46 @@ export default function LogNewPage() {
   };
 
   return (
-    <div style={styles.page}>
-      <h1 style={styles.h1}>今日のトレーニングを記録</h1>
+    <div className="page logNew">
+      <form id="log-new-form" onSubmit={onSubmit} className="logNew__form">
+        {initialLoading && <div className="logNew__loading">既存ログを読み込み中…</div>}
 
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: 14 }}>
-        {initialLoading && <div style={styles.muted}>既存ログを読み込み中…</div>}
+        <section className="card logNew__section">
+          <div className="logNew__sectionTitle">基本情報</div>
 
-        {/* 日付 */}
-        <section style={{ display: "grid", gap: 8 }}>
-          <div style={styles.label}>日付</div>
-          <input type="date" value={practicedOn} onChange={(e) => setPracticedOn(e.target.value)} style={styles.input} />
+          <div className="logNew__field">
+            <label className="logNew__label" htmlFor="practicedOn">日付</label>
+            <input
+              id="practicedOn"
+              type="date"
+              value={practicedOn}
+              onChange={(e) => setPracticedOn(e.target.value)}
+              className="logNew__input"
+            />
+          </div>
+
+          <div className="logNew__field">
+            <label className="logNew__label" htmlFor="durationMin">練習時間（分）</label>
+            <input
+              id="durationMin"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              value={durationMin}
+              onChange={(e) => setDurationMin(e.target.value)}
+              onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+              placeholder="例: 30"
+              className="logNew__input"
+            />
+          </div>
         </section>
 
-        {/* メニュー */}
-        <section style={{ display: "grid", gap: 10 }}>
-          <div style={styles.label}>練習メニュー（複数選択）</div>
+        <section className="card logNew__section">
+          <div className="logNew__sectionTitle">練習メニュー（複数選択）</div>
 
-          {/* 追加欄 */}
-          <div style={styles.panel}>
-            <div style={styles.subLabel}>メニュー名</div>
+          <div className="logNew__panel">
+            <div className="logNew__subLabel">メニュー名</div>
             <input
               value={menuToAdd}
               onChange={(e) => setMenuToAdd(e.target.value)}
@@ -237,11 +260,11 @@ export default function LogNewPage() {
                 }
               }}
               placeholder="メニューを追加（例: 裏声リップロール）"
-              style={styles.inputFull}
+              className="logNew__input"
             />
 
-            <div style={styles.subLabel}>追加する色</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+            <div className="logNew__subLabel">追加する色</div>
+            <div className="logNew__palette">
               {MENU_COLOR_PALETTE.map((p) => {
                 const active = p.color === menuColorToAdd;
                 return (
@@ -251,213 +274,157 @@ export default function LogNewPage() {
                     onClick={() => setMenuColorToAdd(p.color)}
                     title={`この色で追加: ${p.name}`}
                     aria-label={`この色で追加: ${p.name}`}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 999,
-                      border: active ? "2px solid rgba(0,0,0,0.65)" : "1px solid rgba(0,0,0,0.15)",
-                      background: p.color,
-                      cursor: "pointer",
-                      position: "relative",
-                      boxShadow: active ? "0 0 0 3px rgba(0,0,0,0.06)" : "none",
-                    }}
+                    className={`logNew__swatch ${active ? "is-active" : ""}`}
+                    style={{ background: p.color }}
                   >
-                    {active && <span style={{ fontWeight: 900, fontSize: 14 }}>✓</span>}
+                    {active && <span className="logNew__swatchCheck">✓</span>}
                   </button>
                 );
               })}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <div style={styles.subLabel}>プレビュー</div>
+            <div className="logNew__previewRow">
+              <div className="logNew__subLabel">プレビュー</div>
               <ColoredTag text="タグ表示" color={menuColorToAdd} />
             </div>
 
-            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-              <button type="button" onClick={addMenu} disabled={!menuToAdd.trim()} style={styles.primaryBtn}>
+            <div className="logNew__panelActions">
+              <button type="button" onClick={addMenu} disabled={!menuToAdd.trim()} className="logNew__btn logNew__btn--ghost">
                 この色で追加
               </button>
-              <div style={styles.muted}>※ ここで選んだ色が、このメニューのタグ色として保存されます（ログ表示にも反映）</div>
+              <div className="logNew__muted">※ 選んだ色はメニュータグとして保存されます</div>
             </div>
           </div>
 
-          {/* ✅ カタログ一覧：行全体タップでtoggle */}
-          <div style={{ display: "grid", gap: 10 }}>
+          <div className="logNew__menuList">
             {menuCatalog.map((menu) => {
               const checked = selectedMenuIds.has(menu.id);
 
               return (
-                <button
+                <div
                   key={menu.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => toggleMenu(menu.id)}
-                  aria-pressed={checked}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    width: "100%",
-                    textAlign: "left",
-
-                    padding: "10px 12px",
-                    borderRadius: 14,
-                    border: "1px solid rgba(0,0,0,0.10)",
-                    background: "rgba(255,255,255,0.92)",
-                    cursor: "pointer",
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleMenu(menu.id);
+                    }
                   }}
+                  aria-pressed={checked}
+                  className={`logNew__menuRow ${checked ? "is-checked" : ""}`}
                 >
-                  {/* ✅ チェックマーク専用表示（見た目だけ。クリックは行に任せる） */}
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 999,
-                      display: "grid",
-                      placeItems: "center",
-                      background: checked ? "var(--accentSoft)" : "rgba(0,0,0,0.02)",
-                      border: checked ? "1px solid rgba(255,59,122,0.40)" : "1px solid rgba(0,0,0,0.14)",
-                      color: checked ? "var(--accent)" : "rgba(0,0,0,0.20)",
-
-                      fontWeight: 900,
-                      fontSize: 13,
-                      lineHeight: 1,
-                    }}
-                  >
-                    ✓
-                  </span>
+                  <span className="logNew__check" aria-hidden="true">✓</span>
 
                   <ColoredTag text={menu.name} color={menu.color} />
 
-                  {checked && <span style={{ fontSize: 12, opacity: 0.7, fontWeight: 800 }}>選択中</span>}
+                  {checked && <span className="logNew__selectedText">選択中</span>}
 
-                  <div style={{ marginLeft: "auto" }}>
-                    {/* 削除ボタンは行トグルを止める */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void removeMenuFromCatalog(menu);
-                      }}
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        cursor: "pointer",
-                        opacity: 0.75,
-                        fontWeight: 800,
-                        padding: "6px 8px",
-                        borderRadius: 10,
-                      }}
-                      title="カタログから削除（archived=true）"
-                    >
-                      削除
-                    </button>
-                  </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void removeMenuFromCatalog(menu);
+                    }}
+                    className="logNew__removeBtn"
+                    title="カタログから削除（archived=true）"
+                  >
+                    削除
+                  </button>
+                </div>
               );
             })}
 
             {menuCatalog.length === 0 && (
-              <div style={styles.muted}>メニューがありません。上の入力から追加してください。</div>
+              <div className="logNew__muted">メニューがありません。上の入力から追加してください。</div>
             )}
           </div>
 
-          {/* 選択中のサマリ */}
-          <div style={{ display: "grid", gap: 8 }}>
-            <div style={styles.subLabel}>選択中メニュー</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <div className="logNew__field">
+            <div className="logNew__subLabel">選択中メニュー</div>
+            <div className="logNew__selectedTags">
               {selectedMenuIdsArray.length ? (
                 selectedMenuIdsArray.map((id) => {
                   const m = menuCatalog.find((x) => x.id === id);
                   return <ColoredTag key={id} text={m?.name ?? `#${id}`} color={m?.color ?? "#E5E7EB"} />;
                 })
               ) : (
-                <span style={styles.muted}>なし</span>
+                <span className="logNew__muted">なし</span>
               )}
             </div>
           </div>
         </section>
 
-        {/* 練習時間 */}
-        <input
-          type="number"
-          inputMode="numeric"
-          min={0}
-          step={1}
-          value={durationMin}
-          onChange={(e) => setDurationMin(e.target.value)}
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-          placeholder="例: 30"
-          style={styles.input}
-        />
+        <section className="card logNew__section">
+          <div className="logNew__sectionTitle">音域メモ</div>
 
-        {/* 裏声最高音 */}
-        <section style={{ display: "grid", gap: 8 }}>
-          <label style={styles.checkRow}>
-            <input type="checkbox" checked={falsettoEnabled} onChange={(e) => setFalsettoEnabled(e.target.checked)} />
-            裏声最高音を記録する
-          </label>
-          <input
-            value={falsettoTopNote}
-            onChange={(e) => setFalsettoTopNote(e.target.value)}
-            placeholder="例: G5, F#5 など"
-            disabled={!falsettoEnabled}
-            style={{ ...styles.input, opacity: falsettoEnabled ? 1 : 0.6 }}
+          <div className="logNew__field">
+            <label className="logNew__checkRow">
+              <input type="checkbox" checked={falsettoEnabled} onChange={(e) => setFalsettoEnabled(e.target.checked)} />
+              裏声最高音を記録する
+            </label>
+            <input
+              value={falsettoTopNote}
+              onChange={(e) => setFalsettoTopNote(e.target.value)}
+              placeholder="例: G5, F#5 など"
+              disabled={!falsettoEnabled}
+              className="logNew__input"
+            />
+          </div>
+
+          <div className="logNew__field">
+            <label className="logNew__checkRow">
+              <input type="checkbox" checked={chestEnabled} onChange={(e) => setChestEnabled(e.target.checked)} />
+              地声最高音を記録する
+            </label>
+            <input
+              value={chestTopNote}
+              onChange={(e) => setChestTopNote(e.target.value)}
+              placeholder="例: G4, F#4 など"
+              disabled={!chestEnabled}
+              className="logNew__input"
+            />
+          </div>
+        </section>
+
+        <section className="card logNew__section">
+          <div className="logNew__sectionTitle">自由記述</div>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={6}
+            placeholder="メモ（任意）"
+            className="logNew__textarea"
           />
         </section>
 
-        {/* 地声最高音 */}
-        <section style={{ display: "grid", gap: 8 }}>
-          <label style={styles.checkRow}>
-            <input type="checkbox" checked={chestEnabled} onChange={(e) => setChestEnabled(e.target.checked)} />
-            地声最高音を記録する
-          </label>
-          <input
-            value={chestTopNote}
-            onChange={(e) => setChestTopNote(e.target.value)}
-            placeholder="例: G4, F#4 など"
-            disabled={!chestEnabled}
-            style={{ ...styles.input, opacity: chestEnabled ? 1 : 0.6 }}
-          />
-        </section>
-
-        {/* 自由記述 */}
-        <section style={{ display: "grid", gap: 8 }}>
-          <div style={styles.label}>自由記述</div>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={6} placeholder="メモ（任意）" style={styles.textarea} />
-        </section>
-
-        {/* エラー */}
         {errors.length > 0 && (
-          <section style={styles.errorBox}>
-            <div style={{ fontWeight: 900, marginBottom: 6 }}>保存できませんでした</div>
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
+          <section className="logNew__errorBox">
+            <div className="logNew__errorTitle">保存できませんでした</div>
+            <ul className="logNew__errorList">
               {errors.map((m, i) => (
                 <li key={i}>{m}</li>
               ))}
             </ul>
           </section>
         )}
-
-        {/* ✅ ここに保存ボタンは置かない（下部固定に移動） */}
       </form>
 
-      {/* ✅ 下部固定アクションバー */}
-      <div style={styles.stickyBar}>
-        <div style={styles.stickyInner}>
-          <button type="button" onClick={onCancel} disabled={submitting} style={styles.secondaryBtn}>
+      <div className="logNew__stickyBar">
+        <div className="logNew__stickyInner">
+          <button type="button" onClick={onCancel} disabled={submitting} className="logNew__btn logNew__btn--ghost">
             キャンセル
           </button>
 
-          {/* form外なので submit を手動で発火 */}
           <button
             type="button"
             onClick={() => {
-              const form = document.querySelector("form");
-              if (form) form.requestSubmit();
+              const form = document.getElementById("log-new-form") as HTMLFormElement | null;
+              form?.requestSubmit();
             }}
             disabled={submitting}
-            style={styles.primaryBtn}
+            className="logNew__btn logNew__btn--primary"
           >
             {submitting ? "保存中…" : "保存"}
           </button>
@@ -466,113 +433,3 @@ export default function LogNewPage() {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: { padding: "14px 14px 110px", maxWidth: 920, margin: "0 auto" }, // ✅ sticky分少し増やす
-  h1: { fontSize: 18, fontWeight: 900, margin: "6px 0 10px" },
-  label: { fontSize: 13, fontWeight: 800 },
-  subLabel: { fontSize: 12, fontWeight: 800, opacity: 0.85 },
-  muted: { opacity: 0.8, fontSize: 12, lineHeight: 1.5 },
-
-  input: {
-    height: 44,
-    padding: "0 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    width: "100%",
-    maxWidth: 260,
-    background: "#fff",
-  },
-  inputFull: {
-    height: 44,
-    padding: "0 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    width: "100%",
-    background: "#fff",
-  },
-
-  textarea: {
-    width: "100%",
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    resize: "vertical",
-    background: "#fff",
-  },
-
-  panel: {
-    display: "grid",
-    gap: 8,
-    padding: 12,
-    border: "1px solid rgba(0,0,0,0.08)",
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.92)",
-  },
-
-  checkRow: { display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 13 },
-
-  errorBox: {
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(255,0,0,0.25)",
-    background: "rgba(255,0,0,0.06)",
-  },
-
-  primaryBtn: {
-    height: 44,
-    padding: "0 16px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "black",
-    color: "white",
-    cursor: "pointer",
-    opacity: 1,
-    fontWeight: 900,
-  },
-
-  secondaryBtn: {
-    height: 44,
-    padding: "0 16px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "white",
-    cursor: "pointer",
-    fontWeight: 900,
-  },
-
-  textBtn: {
-    border: "none",
-    background: "transparent",
-    cursor: "pointer",
-    opacity: 0.75,
-    fontWeight: 800,
-  },
-
-  stickyBar: {
-  position: "fixed",
-  left: 0,
-  right: 0,
-  bottom: 0,
-
-  // ✅ iPhone safe-area 対応
-  paddingTop: 10,
-  paddingLeft: 14,
-  paddingRight: 14,
-  paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
-
-  background: "rgba(255,255,255,0.78)",
-  backdropFilter: "blur(10px)",
-  borderTop: "1px solid rgba(0,0,0,0.06)",
-  zIndex: 90,
-},
-
-
-  stickyInner: {
-    maxWidth: 920,
-    margin: "0 auto",
-    display: "flex",
-    gap: 10,
-    justifyContent: "flex-end",
-  },
-};

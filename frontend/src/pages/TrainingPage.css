@@ -1,30 +1,171 @@
 /* frontend/src/pages/TrainingPage.css */
 
-/* デスクトップ：左右 */
-.TrainingHeader {
+.trainingPage {
+  position: relative;
+  isolation: isolate;
+}
+
+.trainingPage__bg {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 320px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 64%),
+    radial-gradient(420px 160px at 90% 0%, rgba(255, 255, 255, 0.62), transparent 68%);
+  filter: blur(8px);
+}
+
+.trainingPage__hero {
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(130deg, color-mix(in srgb, var(--accent) 44%, transparent), rgba(0, 0, 0, 0.08)) border-box;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.trainingPage__kicker {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.trainingPage__title {
+  margin: 4px 0 0;
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+}
+
+.trainingPage__sub {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.74;
+}
+
+.trainingPage__chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trainingPage__chip {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 14%, white);
+}
+
+.trainingPage__grid {
+  display: grid;
+  gap: 16px;
+}
+
+.trainingPage__panel {
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(130deg, rgba(255, 255, 255, 0.95), rgba(0, 0, 0, 0.08)) border-box;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 14px;
+}
+
+.trainingPage__panelHead {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  gap: 12px;
-  padding: 4px 2px 0;
-  min-width: 0;
+  align-items: baseline;
+  gap: 10px;
 }
 
-.TrainingHeaderRight {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-width: 0;
+.trainingPage__panelTitle {
+  font-size: 15px;
+  font-weight: 950;
+  position: relative;
+  padding-left: 10px;
 }
 
-/* スマホ：縦積み、Readyは右寄せ固定 */
-@media (max-width: 520px) {
-  .TrainingHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.trainingPage__panelTitle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 66%, #ffffff);
+}
 
-  .TrainingHeaderRight {
-    align-self: flex-end; /* ✅ これで必ず右端に寄る */
+.trainingPage__panelMeta {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.68;
+}
+
+.trainingPage__filtersWrap,
+.trainingPage__playerWrap {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  padding: 12px;
+}
+
+.trainingPage__loading {
+  display: grid;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.trainingPage__skeleton {
+  height: 12px;
+  width: 55%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.13), rgba(0, 0, 0, 0.06));
+}
+
+.trainingPage__skeleton--long {
+  width: 72%;
+}
+
+.trainingPage__error {
+  border-radius: 12px;
+  border: 1px solid rgba(176, 0, 32, 0.22);
+  background: rgba(176, 0, 32, 0.06);
+  padding: 10px 12px;
+}
+
+.trainingPage__errorTitle {
+  font-size: 12px;
+  font-weight: 950;
+  margin-bottom: 4px;
+  color: #b00020;
+}
+
+.trainingPage__errorText {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.84;
+  line-height: 1.6;
+}
+
+@media (min-width: 980px) {
+  .trainingPage__grid {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    align-items: start;
   }
 }

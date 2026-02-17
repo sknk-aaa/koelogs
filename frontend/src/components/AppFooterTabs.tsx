@@ -77,9 +77,11 @@ const TAB_BAR_H = 58; // ベース高さ（画像っぽい。56〜60で調整可
 const styles: Record<string, React.CSSProperties> = {
   nav: {
     position: "fixed",
-    width: "100%",
+    left: 0,
+    right: 0,
     bottom: 0,
     zIndex: 60,
+    boxSizing: "border-box",
 
     // ✅ 高さは“safe-area込みの合計”にする（固定にしない）
     height: `calc(${TAB_BAR_H}px + env(safe-area-inset-bottom))`,

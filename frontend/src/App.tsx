@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
 import RequireAuth from "./features/auth/RequireAuth";
+import { useAuth } from "./features/auth/useAuth";
 import AppLayout from "./components/AppLayout";
 
 import LogPage from "./pages/LogPage";
@@ -14,6 +15,7 @@ import InsightsMenusPage from "./pages/InsightsMenusPage";
 
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import LandingPage from "./pages/LandingPage";
 
 // ✅ Step7 追加ページ
 import SettingsPage from "./pages/SettingsPage";
@@ -26,8 +28,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* ルートは /log へ */}
-          <Route path="/" element={<Navigate to="/log" replace />} />
+          <Route path="/" element={<RootEntry />} />
 
           {/* 公開ページ（レイアウト外） */}
           <Route path="/login" element={<LoginPage />} />
@@ -61,6 +62,24 @@ export default function App() {
       </AuthProvider>
     </BrowserRouter>
   );
+}
+
+function RootEntry() {
+  const { me, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div style={styles.wrap}>
+        <p style={styles.p}>読み込み中...</p>
+      </div>
+    );
+  }
+
+  if (me) {
+    return <Navigate to="/log" replace />;
+  }
+
+  return <LandingPage />;
 }
 
 function NotFound() {

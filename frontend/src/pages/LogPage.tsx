@@ -236,7 +236,7 @@ export default function LogPage() {
           goalText ? (
             <div className="goalBar__view">
               <div className="goalBar__row">
-                <div className="goalBar__label">🎯 今月の目標</div>
+                <div className="goalBar__label">今月の目標</div>
                 <button className="goalBar__btn" type="button" onClick={openGoalEdit}>
                   編集
                 </button>
@@ -246,7 +246,7 @@ export default function LogPage() {
           ) : (
             <div className="goalBar__view">
               <div className="goalBar__row">
-                <div className="goalBar__label">🎯 目標を設定する（最大50文字）</div>
+                <div className="goalBar__label">目標を設定する（最大50文字）</div>
                 <button className="goalBar__btn" type="button" onClick={openGoalEdit}>
                   設定する
                 </button>
@@ -256,7 +256,7 @@ export default function LogPage() {
         ) : (
           <div className="goalBar__edit">
             <div className="goalBar__row">
-              <div className="goalBar__label">🎯 目標を編集（最大50文字）</div>
+              <div className="goalBar__label">目標を編集（最大50文字）</div>
               <div className="goalBar__count">
                 {goalDraft.trim().length}/{GOAL_MAX}
               </div>
@@ -331,7 +331,7 @@ export default function LogPage() {
 
       <div className="logPage__actions">
         {showAiButton && (
-          <button onClick={onAskAi} className="btn">
+          <button onClick={onAskAi} className="logPage__btn">
             AIに今日のおすすめを聞く
           </button>
         )}

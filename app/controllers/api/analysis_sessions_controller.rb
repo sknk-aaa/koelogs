@@ -5,6 +5,7 @@ module Api
   class AnalysisSessionsController < ApplicationController
     before_action :require_login!
     before_action :set_session, only: [ :destroy, :upload_audio ]
+    AUDIO_UPLOAD_RELATIVE_DIR = File.join("uploads", "analysis_sessions").freeze
     SORTABLE_FIELDS = {
       "created_at" => "created_at",
       "pitch_stability_score" => "pitch_stability_score",
@@ -95,17 +96,13 @@ module Api
       end
 
       ext = detect_extension(file)
-      dir = Rails.root.join("public", "uploads", "analysis_sessions", @session.id.to_s)
+      dir = Rails.root.join("public", AUDIO_UPLOAD_RELATIVE_DIR)
       FileUtils.mkdir_p(dir)
       filename = "#{SecureRandom.hex(16)}#{ext}"
       abs_path = dir.join(filename)
       File.binwrite(abs_path, file.read)
 
       relative_path = Pathname.new(abs_path).relative_path_from(Rails.root.join("public")).to_s
-      if @session.audio_path.present? && !@session.audio_path.start_with?("http://", "https://")
-        old_abs_path = Rails.root.join("public", @session.audio_path.sub(%r{\A/}, ""))
-        File.delete(old_abs_path) if File.exist?(old_abs_path)
-      end
       @session.update!(
         audio_path: relative_path,
         audio_content_type: file.content_type.to_s.presence,

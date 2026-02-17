@@ -54,21 +54,6 @@
   opacity: 0.74;
 }
 
-.trainingPage__chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.trainingPage__chip {
-  font-size: 11px;
-  font-weight: 900;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--accent) 14%, white);
-}
-
 .trainingPage__grid {
   display: grid;
   gap: 16px;
@@ -184,6 +169,462 @@
   font-weight: 800;
   opacity: 0.84;
   line-height: 1.6;
+}
+
+.trainingPage__analysisPanel {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.trainingPage__analysisGuest {
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  background: rgba(255, 255, 255, 0.66);
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.78;
+}
+
+.trainingPage__analysisForm {
+  display: grid;
+  gap: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.74);
+  padding: 12px;
+}
+
+.trainingPage__analysisRuleBox {
+  display: grid;
+  gap: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.trainingPage__analysisDetail {
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__analysisDetailTitle {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.82;
+}
+
+.trainingPage__analysisRuleHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.trainingPage__analysisRuleTitle {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.trainingPage__analysisMetricGrid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.trainingPage__analysisRuleRow {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.trainingPage__analysisRecorder {
+  display: grid;
+  gap: 8px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.74);
+  padding: 12px;
+}
+
+.trainingPage__analysisRecorderTitle {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.trainingPage__analysisModeBox {
+  display: grid;
+  gap: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.66);
+  padding: 8px 10px;
+}
+
+.trainingPage__analysisModeText {
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: 0.82;
+}
+
+.trainingPage__analysisModeToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.trainingPage__analysisSelected {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.78;
+}
+
+.trainingPage__analysisRecorderRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.trainingPage__saveBtn.is-recording {
+  border-color: color-mix(in srgb, #ff4b4b 52%, var(--border));
+  background: linear-gradient(180deg, #ff7a7a, #e23737);
+  color: #fff;
+}
+
+.trainingPage__analysisNowNote {
+  font-size: 13px;
+  font-weight: 800;
+  opacity: 0.8;
+}
+
+.trainingPage__fileBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.trainingPage__fileBtn.is-busy {
+  opacity: 0.7;
+}
+
+.trainingPage__fileBtn input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.trainingPage__analysisSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trainingPage__analysisSummary span {
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 5px 8px;
+}
+
+.trainingPage__analysisDiff {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trainingPage__analysisDiff span {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.84;
+}
+
+.trainingPage__field {
+  display: grid;
+  gap: 6px;
+}
+
+.trainingPage__label {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.8;
+}
+
+.trainingPage__input,
+.trainingPage__textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: var(--card);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.trainingPage__input {
+  height: 40px;
+  padding: 0 10px;
+}
+
+.trainingPage__textarea {
+  min-height: 84px;
+  padding: 8px 10px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.trainingPage__analysisActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.trainingPage__analysisActions--between {
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trainingPage__saveBtn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 86%, white);
+  color: var(--accentText);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.trainingPage__saveBtn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.trainingPage__analysisError {
+  border-radius: 10px;
+  border: 1px solid rgba(176, 0, 32, 0.22);
+  background: rgba(176, 0, 32, 0.06);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trainingPage__analysisList {
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__analysisItem {
+  display: grid;
+  gap: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+}
+
+.trainingPage__analysisItem.is-active {
+  border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+}
+
+.trainingPage__analysisName {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.trainingPage__analysisFocus {
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: 0.78;
+}
+
+.trainingPage__analysisFixed {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.84;
+}
+
+.trainingPage__analysisDelete {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.82;
+  cursor: pointer;
+}
+
+.trainingPage__analysisEmpty {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.trainingPage__analysisHistory {
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__analysisHistoryTitle {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.trainingPage__analysisHistoryList {
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__analysisHistoryItem {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 8px 10px;
+}
+
+.trainingPage__analysisHistoryDate {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.76;
+}
+
+.trainingPage__analysisHistoryMetrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.trainingPage__analysisHistoryDiff {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  opacity: 0.84;
+}
+
+.trainingPage__analysisAudio {
+  width: 100%;
+  max-width: 360px;
+  height: 32px;
+}
+
+.trainingPage__analysisHistoryActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.trainingPage__analysisAiFeedback {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.55;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  padding-left: 8px;
+  opacity: 0.9;
+}
+
+.trainingPage__analysisMiniBtn {
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  border-radius: 8px;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.trainingPage__analysisMiniBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  background: color-mix(in srgb, var(--accent) 22%, var(--card));
+}
+
+.trainingPage__analysisMiniBtn--ghost {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.trainingPage__analysisEdit {
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.42);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.trainingPage__modalCard {
+  width: min(620px, 96vw);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.trainingPage__modalHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.trainingPage__modalTitle {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.trainingPage__modalBody {
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__metricInfoItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 8px 10px;
+}
+
+.trainingPage__metricInfoLabel {
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 2px;
+}
+
+.trainingPage__metricInfoText {
+  font-size: 12px;
+  opacity: 0.84;
+  line-height: 1.5;
 }
 
 @media (min-width: 980px) {

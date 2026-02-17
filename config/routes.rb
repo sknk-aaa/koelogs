@@ -9,6 +9,12 @@ Rails.application.routes.draw do
 
     # training menus
     resources :training_menus, only: [ :index, :create, :update ]
+    resources :analysis_menus, only: [ :index, :create, :update ]
+    resources :analysis_sessions, only: [ :index, :create, :destroy ] do
+      member do
+        post :upload_audio
+      end
+    end
 
     # insights
     get "insights", to: "insights#show"

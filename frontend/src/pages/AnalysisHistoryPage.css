@@ -1,0 +1,246 @@
+.analysisHistory {
+  display: grid;
+  gap: 14px;
+}
+
+.analysisHistory__hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.analysisHistory__kicker {
+  font-size: 11px;
+  font-weight: 900;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.analysisHistory__title {
+  margin: 4px 0 2px;
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.analysisHistory__meta {
+  font-size: 12px;
+  opacity: 0.78;
+}
+
+.analysisHistory__back {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.analysisHistory__filters {
+  display: grid;
+  gap: 8px;
+}
+
+.analysisHistory__filterLabel {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.analysisHistory__filterRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.analysisHistory__pageSizeRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.analysisHistory__select {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--text);
+  min-width: 0;
+}
+
+.analysisHistory__chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.analysisHistory__chip.is-active {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, white);
+}
+
+.analysisHistory__charts {
+  display: grid;
+  gap: 10px;
+}
+
+.analysisHistory__chart {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.analysisHistory__chartTitle {
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.analysisHistory__chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.analysisHistory__axis {
+  stroke: color-mix(in srgb, var(--accent) 22%, var(--border));
+  stroke-width: 1;
+}
+
+.analysisHistory__grid {
+  stroke: color-mix(in srgb, var(--accent) 16%, var(--border));
+  stroke-width: 1;
+}
+
+.analysisHistory__axisText {
+  fill: color-mix(in srgb, var(--text) 70%, #fff);
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: end;
+}
+
+.analysisHistory__axisText--x {
+  text-anchor: middle;
+}
+
+.analysisHistory__line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.analysisHistory__tableWrap {
+  overflow-x: auto;
+}
+
+.analysisHistory__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 960px;
+}
+
+.analysisHistory__table th,
+.analysisHistory__table td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 6px;
+  font-size: 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.analysisHistory__table tbody tr {
+  cursor: pointer;
+}
+
+.analysisHistory__table tbody tr.is-selected {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.analysisHistory__delete {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.analysisHistory__pagination {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.analysisHistory__pagerBtn {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.analysisHistory__pagerBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.analysisHistory__pagerMeta {
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 56px;
+  text-align: center;
+}
+
+.analysisHistory__audio {
+  width: 180px;
+  height: 30px;
+}
+
+.analysisHistory__audio--detail {
+  width: min(420px, 100%);
+}
+
+.analysisHistory__detail {
+  display: grid;
+  gap: 10px;
+}
+
+.analysisHistory__detailTitle {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.analysisHistory__detailGrid {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.analysisHistory__feedback {
+  font-size: 12px;
+  line-height: 1.55;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 44%, var(--border));
+  padding-left: 8px;
+}
+
+.analysisHistory__muted {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.analysisHistory__error {
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid rgba(176, 0, 32, 0.22);
+  background: rgba(176, 0, 32, 0.06);
+  border-radius: 10px;
+  padding: 8px 10px;
+}

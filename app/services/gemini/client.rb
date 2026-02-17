@@ -67,7 +67,13 @@ module Gemini
       end
 
       json = JSON.parse(body)
-      text = json.dig("candidates", 0, "content", "parts", 0, "text")
+      parts = json.dig("candidates", 0, "content", "parts")
+      text =
+        if parts.is_a?(Array)
+          parts.filter_map { |p| p.is_a?(Hash) ? p["text"].to_s : nil }.join
+        else
+          json.dig("candidates", 0, "content", "parts", 0, "text")
+        end
 
       if text.nil? || text.strip.empty?
         raise Error.new("Gemini API returned empty text", status: status, body: body)

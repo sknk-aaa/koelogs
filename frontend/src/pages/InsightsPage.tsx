@@ -3,8 +3,11 @@ import { Link } from "react-router-dom";
 
 import { fetchInsights } from "../api/insights";
 import type { DailyDurationPoint, InsightsData, MenuRankingItem } from "../types/insights";
-import LineChart from "../features/insights/components/LineChart";
+import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
+import NotePitchChart from "../features/insights/components/NotePitchChart";
 import ColoredTag from "../components/ColoredTag";
+import { useAuth } from "../features/auth/useAuth";
+import { makeMockInsights } from "../features/insights/mockInsights";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -111,16 +114,19 @@ function ChevronRight() {
   );
 }
 
-function formatDateSlash(iso: string | null): string | null {
-  if (!iso) return null;
-  return iso.replace(/-/g, "/");
-}
-
 export default function InsightsPage() {
-  const days = 30;
+  const days = 90;
+  const { me, isLoading: authLoading } = useAuth();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const guestMode = !authLoading && !me;
+  const guestData = useMemo(
+    () => (guestMode ? makeMockInsights(days) : null),
+    [guestMode, days]
+  );
 
   useEffect(() => {
+    if (authLoading || guestMode) return;
+
     let cancelled = false;
     (async () => {
       setState({ kind: "loading" });
@@ -141,12 +147,12 @@ export default function InsightsPage() {
     return () => {
       cancelled = true;
     };
-  }, [days]);
+  }, [authLoading, days, guestMode]);
 
-  const data = state.kind === "ready" ? state.data : null;
+  const data = guestData ?? (state.kind === "ready" ? state.data : null);
   const maxY = useMemo(() => (data ? maxDaily(data.daily_durations) : 0), [data]);
 
-  if (state.kind === "loading") {
+  if (!guestData && state.kind === "loading") {
     return (
       <div className="page insightsPage">
         <div className="insightsPage__bg" aria-hidden="true" />
@@ -159,7 +165,7 @@ export default function InsightsPage() {
     );
   }
 
-  if (state.kind === "error") {
+  if (!guestData && state.kind === "error") {
     return (
       <div className="page insightsPage">
         <div className="insightsPage__bg" aria-hidden="true" />
@@ -185,14 +191,6 @@ export default function InsightsPage() {
     );
   }
 
-  const falNote = data.top_notes.falsetto.note ?? "—";
-  const cheNote = data.top_notes.chest.note ?? "—";
-  const falDate = data.top_notes.falsetto.date;
-  const cheDate = data.top_notes.chest.date;
-
-  const falFormatted = formatDateSlash(falDate);
-  const cheFormatted = formatDateSlash(cheDate);
-
   const freq = `${data.practice_days_count} / ${data.range.days} 日`;
 
   return (
@@ -213,15 +211,24 @@ export default function InsightsPage() {
         </div>
       </section>
 
+      {guestMode && (
+        <section className="card insightsGuest">
+          <div className="insightsGuest__title">ゲスト表示中</div>
+          <div className="insightsGuest__text">
+            分析画面の構成は確認できます。個人の練習履歴に基づく詳細データはログイン後に表示されます。
+          </div>
+        </section>
+      )}
+
       <div className="insightsGrid">
         <ClickableCard title="練習時間の推移" to="/insights/time">
           <div className="insightsKeyValue">
             <div className="insightsKeyValue__k">最大</div>
             <div className="insightsKeyValue__v">{maxY} 分</div>
           </div>
-          <div className="insightsMuted">タップで詳細（日別内訳）</div>
+          <div className="insightsMuted">タップで詳細（日付ラベル付き）</div>
           <div style={{ marginTop: 10 }}>
-            <LineChart points={data.daily_durations} />
+            <DurationHeatmapCalendar points={data.daily_durations} />
           </div>
         </ClickableCard>
 
@@ -229,30 +236,28 @@ export default function InsightsPage() {
           <MenuRankingPreview items={data.menu_ranking} />
         </ClickableCard>
 
-        <StaticCard title="最高到達音（全期間）">
-          <div className="insightsStack">
-            <div className="insightsKeyValue">
-              <div className="insightsKeyValue__k">裏声</div>
-              <div className="insightsKeyValue__v">
-                {falNote}
-                {falFormatted && <span className="insightsKeyValue__sub">（{falFormatted}）</span>}
-              </div>
-            </div>
-            <div className="insightsKeyValue">
-              <div className="insightsKeyValue__k">地声</div>
-              <div className="insightsKeyValue__v">
-                {cheNote}
-                {cheFormatted && <span className="insightsKeyValue__sub">（{cheFormatted}）</span>}
-              </div>
-            </div>
-            <div className="insightsMuted">※ ノート形式が崩れている値は集計対象外です</div>
-          </div>
-        </StaticCard>
+        <ClickableCard title="最高音の推移（裏声 / 地声）" to="/insights/notes">
+          <NotePitchChart
+            falsetto={data.note_series.falsetto}
+            chest={data.note_series.chest}
+          />
+          <div className="insightsMuted">欠損日は点を表示しません（記録なし / 入力なし）</div>
+        </ClickableCard>
 
         <StaticCard title="練習日数（直近期間）">
-          <div className="insightsKeyValue">
-            <div className="insightsKeyValue__k">練習した日</div>
-            <div className="insightsKeyValue__v">{freq}</div>
+          <div className="insightsStack">
+            <div className="insightsKeyValue">
+              <div className="insightsKeyValue__k">練習した日</div>
+              <div className="insightsKeyValue__v">{freq}</div>
+            </div>
+            <div className="insightsKeyValue">
+              <div className="insightsKeyValue__k">現在連続日数</div>
+              <div className="insightsKeyValue__v">{data.streaks.current_days} 日</div>
+            </div>
+            <div className="insightsKeyValue">
+              <div className="insightsKeyValue__k">最長継続日数</div>
+              <div className="insightsKeyValue__v">{data.streaks.longest_days} 日</div>
+            </div>
           </div>
         </StaticCard>
       </div>

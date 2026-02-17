@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 
 import { fetchInsights } from "../api/insights";
 import type { InsightsData } from "../types/insights";
-import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
+import NotePitchChart from "../features/insights/components/NotePitchChart";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -13,31 +13,20 @@ type LoadState =
   | { kind: "error"; message: string }
   | { kind: "ready"; data: InsightsData };
 
-const PERIODS = [30, 90] as const;
+const PERIODS = [30, 90, 365] as const;
 
-function formatRange(from: string, to: string) {
-  return `${from} 〜 ${to}`;
+function formatDateSlash(iso: string | null): string {
+  if (!iso) return "—";
+  return iso.replace(/-/g, "/");
 }
 
-function sumTotalMinutes(data: InsightsData) {
-  return data.daily_durations.reduce((sum, p) => sum + (p.duration_min || 0), 0);
-}
-
-function maxDailyMinutes(data: InsightsData) {
-  let m = 0;
-  for (const p of data.daily_durations) m = Math.max(m, p.duration_min || 0);
-  return m;
-}
-
-export default function InsightsTimePage() {
+export default function InsightsNotesPage() {
   const { me, isLoading: authLoading } = useAuth();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+
   const guestMode = !authLoading && !me;
-  const guestData = useMemo(
-    () => (guestMode ? makeMockInsights(days) : null),
-    [guestMode, days]
-  );
+  const guestData = useMemo(() => (guestMode ? makeMockInsights(days) : null), [guestMode, days]);
 
   useEffect(() => {
     if (authLoading || guestMode) return;
@@ -66,15 +55,6 @@ export default function InsightsTimePage() {
 
   const data = guestData ?? (state.kind === "ready" ? state.data : null);
 
-  const total = useMemo(() => (data ? sumTotalMinutes(data) : 0), [data]);
-  const max = useMemo(() => (data ? maxDailyMinutes(data) : 0), [data]);
-
-  const avgPerDay = useMemo(() => {
-    if (!data) return 0;
-    const denom = Math.max(1, data.range.days);
-    return Math.round((total / denom) * 10) / 10;
-  }, [data, total]);
-
   return (
     <div className="page insightsPage">
       <div className="insightsPage__bg" aria-hidden="true" />
@@ -83,8 +63,8 @@ export default function InsightsTimePage() {
         <div className="insightsHero__head">
           <div>
             <div className="insightsHero__kicker">Insights</div>
-            <h1 className="insightsHero__title">練習時間（詳細）</h1>
-            <p className="insightsHero__sub">期間を切り替えて推移と集計を確認できます。</p>
+            <h1 className="insightsHero__title">最高音の推移（詳細）</h1>
+            <p className="insightsHero__sub">裏声と地声の最高音を日次で確認できます。</p>
           </div>
           <Link to="/insights" className="insightsBack">
             戻る
@@ -124,38 +104,37 @@ export default function InsightsTimePage() {
         <div className="insightsStack">
           <section className="insightsCard">
             <div className="insightsCard__head">
-              <div className="insightsCard__title">サマリー</div>
+              <div className="insightsCard__title">日次推移</div>
             </div>
-
-            <div className="insightsStats">
-              <Stat label="合計" value={`${total} 分`} />
-              <Stat label="平均（分/日）" value={`${avgPerDay}`} />
-              <Stat label="最大" value={`${max} 分`} />
-              <Stat label="練習日数" value={`${data.practice_days_count} 日`} />
-            </div>
-
-            <div className="insightsMuted">期間: {formatRange(data.range.from, data.range.to)}</div>
+            <NotePitchChart
+              falsetto={data.note_series.falsetto}
+              chest={data.note_series.chest}
+              showXAxis
+            />
+            <div className="insightsMuted">欠損日は線をつないで表示し、点のみ省略します。</div>
           </section>
 
           <section className="insightsCard">
             <div className="insightsCard__head">
-              <div className="insightsCard__title">練習時間の推移</div>
+              <div className="insightsCard__title">全期間の最高到達音</div>
             </div>
-
-            <DurationHeatmapCalendar points={data.daily_durations} />
-            <div className="insightsMuted">日付ごとの練習時間を色の濃さで確認できます</div>
+            <div className="insightsKeyValue">
+              <div className="insightsKeyValue__k">裏声</div>
+              <div className="insightsKeyValue__v">
+                {data.top_notes.falsetto.note ?? "—"}
+                <span className="insightsKeyValue__sub">（{formatDateSlash(data.top_notes.falsetto.date)}）</span>
+              </div>
+            </div>
+            <div className="insightsKeyValue" style={{ marginTop: 8 }}>
+              <div className="insightsKeyValue__k">地声</div>
+              <div className="insightsKeyValue__v">
+                {data.top_notes.chest.note ?? "—"}
+                <span className="insightsKeyValue__sub">（{formatDateSlash(data.top_notes.chest.date)}）</span>
+              </div>
+            </div>
           </section>
         </div>
       )}
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="insightsStat">
-      <div className="insightsStat__label">{label}</div>
-      <div className="insightsStat__value">{value}</div>
     </div>
   );
 }

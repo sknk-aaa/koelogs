@@ -23,11 +23,45 @@
 }
 
 .lineChart__scroll {
+  flex: 1;
+  min-width: 0;
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   border-radius: 12px;
+}
+
+.lineChart__plot {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.lineChart__yAxis {
+  width: 34px;
+  height: 220px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.lineChart__yTitle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 10px;
+  font-weight: 900;
+  opacity: 0.62;
+}
+
+.lineChart__yTick {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  opacity: 0.66;
+  line-height: 1;
 }
 
 .lineChart__svg {

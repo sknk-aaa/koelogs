@@ -230,6 +230,74 @@
   font-size: 13px;
 }
 
+.logNew__pitchRow {
+  display: grid;
+  gap: 8px;
+}
+
+.logNew__pitchViz {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--card));
+}
+
+.logNew__pitchNote {
+  min-height: 62px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
+  display: grid;
+  place-items: center;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+.logNew__pitchTuner {
+  display: grid;
+  gap: 6px;
+}
+
+.logNew__pitchTunerScale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.logNew__pitchTunerRail {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: linear-gradient(90deg, rgba(255, 120, 120, 0.2), rgba(255, 255, 255, 0.8) 50%, rgba(120, 180, 255, 0.2));
+}
+
+.logNew__pitchTunerCenter {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--accent) 48%, var(--text));
+}
+
+.logNew__pitchTunerNeedle {
+  position: absolute;
+  top: -5px;
+  width: 2px;
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
 .logNew__errorBox {
   padding: 10px 12px;
   border-radius: 12px;
@@ -321,6 +389,18 @@
 .logNew__btn--primary:hover {
   filter: saturate(1.08) brightness(1.03);
   box-shadow: 0 18px 34px color-mix(in srgb, var(--accent) 36%, transparent);
+}
+
+.logNew__btn--recording {
+  border-color: color-mix(in srgb, #ff4b4b 52%, var(--border));
+  background: linear-gradient(180deg, #ff7a7a, #e23737);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(226, 55, 55, 0.28);
+}
+
+.logNew__btn--recording:hover {
+  filter: brightness(1.03);
+  box-shadow: 0 16px 30px rgba(226, 55, 55, 0.36);
 }
 
 @media (max-width: 720px) {

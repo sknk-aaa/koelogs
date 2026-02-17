@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { upsertTrainingLog, type UpsertTrainingLogInput } from "../api/trainingLogs";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
@@ -37,6 +37,74 @@ const MENU_COLOR_PALETTE: { name: string; color: string }[] = [
   { name: "Blue", color: "#DBEAFE" },
 ];
 
+type PitchTarget = "falsetto" | "chest";
+
+function autoCorrelate(buf: Float32Array, sampleRate: number): number | null {
+  const size = buf.length;
+  let rms = 0;
+  for (let i = 0; i < size; i += 1) rms += buf[i] * buf[i];
+  rms = Math.sqrt(rms / size);
+  if (rms < 0.01) return null;
+
+  let r1 = 0;
+  let r2 = size - 1;
+  const threshold = 0.2;
+  for (let i = 0; i < size / 2; i += 1) {
+    if (Math.abs(buf[i]) < threshold) {
+      r1 = i;
+      break;
+    }
+  }
+  for (let i = 1; i < size / 2; i += 1) {
+    if (Math.abs(buf[size - i]) < threshold) {
+      r2 = size - i;
+      break;
+    }
+  }
+
+  const sliced = buf.slice(r1, r2);
+  const n = sliced.length;
+  if (n < 2) return null;
+
+  const c = new Array<number>(n).fill(0);
+  for (let i = 0; i < n; i += 1) {
+    for (let j = 0; j < n - i; j += 1) c[i] += sliced[j] * sliced[j + i];
+  }
+
+  let d = 0;
+  while (d + 1 < n && c[d] > c[d + 1]) d += 1;
+
+  let maxPos = -1;
+  let maxVal = -1;
+  for (let i = d; i < n; i += 1) {
+    if (c[i] > maxVal) {
+      maxVal = c[i];
+      maxPos = i;
+    }
+  }
+  if (maxPos <= 0) return null;
+
+  const x1 = c[maxPos - 1] ?? c[maxPos];
+  const x2 = c[maxPos];
+  const x3 = c[maxPos + 1] ?? c[maxPos];
+  const a = (x1 + x3 - 2 * x2) / 2;
+  const b = (x3 - x1) / 2;
+  const shift = a === 0 ? 0 : -b / (2 * a);
+  const period = maxPos + shift;
+  if (!Number.isFinite(period) || period <= 0) return null;
+
+  const freq = sampleRate / period;
+  if (!Number.isFinite(freq) || freq < 50 || freq > 1800) return null;
+  return freq;
+}
+
+function midiToNote(midi: number): string {
+  const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  const note = names[((midi % 12) + 12) % 12];
+  const octave = Math.floor(midi / 12) - 1;
+  return `${note}${octave}`;
+}
+
 export default function LogNewPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -64,6 +132,21 @@ export default function LogNewPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [initialLoading, setInitialLoading] = useState(false);
+  const [pitchRecording, setPitchRecording] = useState<PitchTarget | null>(null);
+  const [pitchCurrent, setPitchCurrent] = useState<string | null>(null);
+  const [pitchPeak, setPitchPeak] = useState<string | null>(null);
+  const [pitchMessage, setPitchMessage] = useState<string | null>(null);
+  const [pitchCents, setPitchCents] = useState<number | null>(null);
+
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const maxFreqRef = useRef<number>(0);
+  const currentTargetRef = useRef<PitchTarget | null>(null);
+  const peakNoteRef = useRef<string | null>(null);
+  const uiUpdateAtRef = useRef<number>(0);
 
   const selectedMenuIdsArray = useMemo(() => Array.from(selectedMenuIds), [selectedMenuIds]);
 
@@ -126,6 +209,166 @@ export default function LogNewPage() {
       cancelled = true;
     };
   }, [practicedOn]);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      if (mediaStreamRef.current) mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      if (sourceRef.current) sourceRef.current.disconnect();
+      if (analyserRef.current) analyserRef.current.disconnect();
+      if (audioContextRef.current) void audioContextRef.current.close();
+    };
+  }, []);
+
+  const stopPitchCapture = async (applyPeak: boolean) => {
+    if (rafRef.current != null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+
+    if (sourceRef.current) {
+      try {
+        sourceRef.current.disconnect();
+      } catch {
+        // no-op
+      }
+      sourceRef.current = null;
+    }
+
+    if (analyserRef.current) {
+      try {
+        analyserRef.current.disconnect();
+      } catch {
+        // no-op
+      }
+      analyserRef.current = null;
+    }
+
+    if (audioContextRef.current) {
+      try {
+        await audioContextRef.current.close();
+      } catch {
+        // no-op
+      }
+      audioContextRef.current = null;
+    }
+
+    const target = currentTargetRef.current;
+    const peak = peakNoteRef.current;
+
+    setPitchRecording(null);
+    currentTargetRef.current = null;
+    setPitchCurrent(null);
+    setPitchCents(null);
+
+    if (applyPeak && peak && target) {
+      if (target === "falsetto") {
+        setFalsettoEnabled(true);
+        setFalsettoTopNote(peak);
+      } else {
+        setChestEnabled(true);
+        setChestTopNote(peak);
+      }
+      setPitchMessage(`最高音候補 ${peak} を入力しました`);
+      return;
+    }
+
+    if (applyPeak && !peak) {
+      setPitchMessage("有効な音高を検出できませんでした。静かな環境で再試行してください。");
+    }
+  };
+
+  const startPitchCapture = async (target: PitchTarget) => {
+    if (pitchRecording) {
+      await stopPitchCapture(false);
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setPitchMessage("このブラウザでは録音に対応していません。");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          noiseSuppression: false,
+          autoGainControl: false,
+          echoCancellation: false,
+        },
+      });
+
+      const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctx) {
+        stream.getTracks().forEach((t) => t.stop());
+        setPitchMessage("AudioContext が利用できません。");
+        return;
+      }
+
+      const ctx = new Ctx();
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.05;
+      source.connect(analyser);
+
+      audioContextRef.current = ctx;
+      sourceRef.current = source;
+      analyserRef.current = analyser;
+      mediaStreamRef.current = stream;
+      currentTargetRef.current = target;
+      setPitchRecording(target);
+      setPitchMessage("録音中…もう一度押すと確定します");
+      setPitchCurrent(null);
+      setPitchPeak(null);
+      setPitchCents(null);
+      peakNoteRef.current = null;
+      maxFreqRef.current = 0;
+      uiUpdateAtRef.current = 0;
+
+      const data = new Float32Array(analyser.fftSize);
+
+      const tick = () => {
+        const an = analyserRef.current;
+        const ac = audioContextRef.current;
+        if (!an || !ac) return;
+
+        an.getFloatTimeDomainData(data);
+        const freq = autoCorrelate(data, ac.sampleRate);
+        const now = performance.now();
+        const shouldSyncUi = now - uiUpdateAtRef.current >= 50;
+        if (freq) {
+          const midiFloat = 69 + 12 * Math.log2(freq / 440);
+          const midiNearest = Math.round(midiFloat);
+          const current = midiToNote(midiNearest);
+          if (shouldSyncUi) {
+            setPitchCurrent(current);
+            setPitchCents((midiFloat - midiNearest) * 100);
+            uiUpdateAtRef.current = now;
+          }
+          if (freq > maxFreqRef.current) {
+            maxFreqRef.current = freq;
+            setPitchPeak(current);
+            peakNoteRef.current = current;
+          }
+        } else if (shouldSyncUi) {
+          setPitchCurrent(null);
+          setPitchCents(null);
+          uiUpdateAtRef.current = now;
+        }
+        rafRef.current = requestAnimationFrame(tick);
+      };
+
+      rafRef.current = requestAnimationFrame(tick);
+    } catch (e) {
+      setPitchMessage(`録音を開始できませんでした: ${errorMessage(e, "permission denied")}`);
+      void stopPitchCapture(false);
+    }
+  };
 
   const toggleMenu = (id: number) => {
     setSelectedMenuIds((prev) => {
@@ -207,6 +450,18 @@ export default function LogNewPage() {
   const onCancel = () => {
     navigate(`/log?date=${encodeURIComponent(practicedOn)}`);
   };
+
+  const tunerNeedle = useMemo(() => {
+    if (pitchCents == null) return null;
+    const bounded = Math.max(-50, Math.min(50, pitchCents));
+    return `${bounded}%`;
+  }, [pitchCents]);
+  const pitchCentsLabel = useMemo(() => {
+    if (pitchCents == null) return "音を検出中…";
+    const rounded = Math.round(pitchCents);
+    if (rounded === 0) return "in tune";
+    return `${rounded < 0 ? "♭" : "#"} ${Math.abs(rounded)} cents`;
+  }, [pitchCents]);
 
   return (
     <div className="page logNew">
@@ -371,6 +626,42 @@ export default function LogNewPage() {
               disabled={!falsettoEnabled}
               className="logNew__input"
             />
+            <div className="logNew__pitchRow">
+              <button
+                type="button"
+                className={`logNew__btn ${pitchRecording === "falsetto" ? "logNew__btn--recording" : "logNew__btn--ghost"}`}
+                onClick={() => {
+                  if (pitchRecording === "falsetto") void stopPitchCapture(true);
+                  else void startPitchCapture("falsetto");
+                }}
+              >
+                {pitchRecording === "falsetto" ? "録音停止して入力" : "録音して自動入力"}
+              </button>
+              <div className="logNew__muted">
+                {pitchRecording === "falsetto" && (pitchCurrent || pitchPeak)
+                  ? `検出: ${pitchCurrent ?? "—"} / 最高: ${pitchPeak ?? "—"}`
+                  : "高めの母音を安定して発声すると検出しやすいです"}
+              </div>
+              {pitchRecording === "falsetto" && (
+                <div className="logNew__pitchViz">
+                  <div className="logNew__pitchNote">{pitchCurrent ?? "—"}</div>
+                  <div className="logNew__pitchTuner">
+                    <div className="logNew__pitchTunerScale">
+                      <span>♭</span>
+                      <span />
+                      <span>#</span>
+                    </div>
+                    <div className="logNew__pitchTunerRail">
+                      <span className="logNew__pitchTunerCenter" />
+                      {tunerNeedle && <span className="logNew__pitchTunerNeedle" style={{ left: `calc(50% + ${tunerNeedle})` }} />}
+                    </div>
+                    <div className="logNew__muted">
+                      {pitchCentsLabel}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="logNew__field">
@@ -385,7 +676,45 @@ export default function LogNewPage() {
               disabled={!chestEnabled}
               className="logNew__input"
             />
+            <div className="logNew__pitchRow">
+              <button
+                type="button"
+                className={`logNew__btn ${pitchRecording === "chest" ? "logNew__btn--recording" : "logNew__btn--ghost"}`}
+                onClick={() => {
+                  if (pitchRecording === "chest") void stopPitchCapture(true);
+                  else void startPitchCapture("chest");
+                }}
+              >
+                {pitchRecording === "chest" ? "録音停止して入力" : "録音して自動入力"}
+              </button>
+              <div className="logNew__muted">
+                {pitchRecording === "chest" && (pitchCurrent || pitchPeak)
+                  ? `検出: ${pitchCurrent ?? "—"} / 最高: ${pitchPeak ?? "—"}`
+                  : "裏声と分けて測ると精度が上がります"}
+              </div>
+              {pitchRecording === "chest" && (
+                <div className="logNew__pitchViz">
+                  <div className="logNew__pitchNote">{pitchCurrent ?? "—"}</div>
+                  <div className="logNew__pitchTuner">
+                    <div className="logNew__pitchTunerScale">
+                      <span>♭</span>
+                      <span />
+                      <span>#</span>
+                    </div>
+                    <div className="logNew__pitchTunerRail">
+                      <span className="logNew__pitchTunerCenter" />
+                      {tunerNeedle && <span className="logNew__pitchTunerNeedle" style={{ left: `calc(50% + ${tunerNeedle})` }} />}
+                    </div>
+                    <div className="logNew__muted">
+                      {pitchCentsLabel}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
+
+          {pitchMessage && <div className="logNew__muted">{pitchMessage}</div>}
         </section>
 
         <section className="card logNew__section">

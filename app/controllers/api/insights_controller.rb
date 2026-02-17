@@ -31,6 +31,24 @@ module Api
         { date: d.iso8601, duration_min: duration_by_date[d] || 0 }
       end
 
+      # --- daily top note series (missing days => nil) ---
+      falsetto_midi_by_date = {}
+      chest_midi_by_date = {}
+      logs.each do |l|
+        falsetto_midi_by_date[l.practiced_on] = note_to_midi(l.falsetto_top_note)
+        chest_midi_by_date[l.practiced_on] = note_to_midi(l.chest_top_note)
+      end
+
+      falsetto_series = (0...days).map do |i|
+        d = from + i
+        { date: d.iso8601, midi: falsetto_midi_by_date[d] }
+      end
+
+      chest_series = (0...days).map do |i|
+        d = from + i
+        { date: d.iso8601, midi: chest_midi_by_date[d] }
+      end
+
       # --- menu ranking (menu_id based) ---
       ranking_rows =
         TrainingLogMenu
@@ -58,6 +76,7 @@ module Api
 
       top_fal = best_note_with_date(all_time_logs, :falsetto_top_note)
       top_ch  = best_note_with_date(all_time_logs, :chest_top_note)
+      streaks = streak_metrics(all_time_logs.pluck(:practiced_on).compact)
 
       render json: {
         data: {
@@ -65,6 +84,11 @@ module Api
           daily_durations: daily_durations,
           practice_days_count: practice_days_count,
           menu_ranking: menu_ranking,
+          note_series: {
+            falsetto: falsetto_series,
+            chest: chest_series
+          },
+          streaks: streaks,
           top_notes: { falsetto: top_fal, chest: top_ch }
         }
       }, status: :ok
@@ -135,6 +159,37 @@ module Api
       (octave + 1) * 12 + semitone
     rescue
       nil
+    end
+
+    # dates: Array<Date>
+    # 戻り: { current_days: Integer, longest_days: Integer }
+    def streak_metrics(dates)
+      uniq_sorted = dates.uniq.sort
+      return { current_days: 0, longest_days: 0 } if uniq_sorted.empty?
+
+      # longest streak
+      longest = 1
+      run = 1
+      (1...uniq_sorted.length).each do |i|
+        if uniq_sorted[i] == uniq_sorted[i - 1] + 1
+          run += 1
+        else
+          longest = [ longest, run ].max
+          run = 1
+        end
+      end
+      longest = [ longest, run ].max
+
+      # current streak (today から連続している日数。今日の記録がなければ0)
+      date_set = uniq_sorted.each_with_object({}) { |dt, h| h[dt] = true }
+      cur = 0
+      d = Date.current
+      while date_set[d]
+        cur += 1
+        d -= 1
+      end
+
+      { current_days: cur, longest_days: longest }
     end
   end
 end

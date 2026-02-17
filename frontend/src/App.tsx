@@ -11,6 +11,7 @@ import TrainingPage from "./pages/TrainingPage";
 import InsightsPage from "./pages/InsightsPage";
 import InsightsTimePage from "./pages/InsightsTimePage";
 import InsightsMenusPage from "./pages/InsightsMenusPage";
+import InsightsNotesPage from "./pages/InsightsNotesPage";
 
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="/insights" element={<InsightsPage />} />
             <Route path="/insights/time" element={<InsightsTimePage />} />
             <Route path="/insights/menus" element={<InsightsMenusPage />} />
+            <Route path="/insights/notes" element={<InsightsNotesPage />} />
 
             {/* 認証が必要なページ */}
             <Route element={<RequireAuth />}>

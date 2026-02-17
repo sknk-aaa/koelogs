@@ -23,11 +23,24 @@ export type TopNote = {
   date: string | null; // YYYY-MM-DD（その最高音を記録した日付。なければ null）
 };
 
+export type DailyNotePoint = {
+  date: string; // YYYY-MM-DD
+  midi: number | null; // 欠損日は null
+};
+
 export type InsightsData = {
   range: InsightsRange;
   daily_durations: DailyDurationPoint[];
   practice_days_count: number; // within range
   menu_ranking: MenuRankingItem[];
+  note_series: {
+    falsetto: DailyNotePoint[];
+    chest: DailyNotePoint[];
+  };
+  streaks: {
+    current_days: number;
+    longest_days: number;
+  };
   top_notes: {
     falsetto: TopNote;
     chest: TopNote;

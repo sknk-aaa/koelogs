@@ -1,4 +1,4 @@
-import type { DailyDurationPoint, InsightsData, MenuRankingItem } from "../../types/insights";
+import type { DailyDurationPoint, DailyNotePoint, InsightsData, MenuRankingItem } from "../../types/insights";
 
 function toISO(d: Date): string {
   const y = d.getFullYear();
@@ -43,6 +43,22 @@ function buildMenuRanking(days: number): MenuRankingItem[] {
   ];
 }
 
+function buildNoteSeries(days: number, endDate: Date, baseMidi: number): DailyNotePoint[] {
+  const pattern = [0, 1, -1, 0, 2, 0, -2, 1];
+  const out: DailyNotePoint[] = [];
+
+  for (let i = 0; i < days; i += 1) {
+    const date = addDays(endDate, -(days - 1 - i));
+    const miss = i % 5 === 0;
+    out.push({
+      date: toISO(date),
+      midi: miss ? null : baseMidi + pattern[i % pattern.length],
+    });
+  }
+
+  return out;
+}
+
 export function makeMockInsights(days: number): InsightsData {
   const safeDays = Math.max(7, days);
   const toDate = new Date();
@@ -60,6 +76,14 @@ export function makeMockInsights(days: number): InsightsData {
     daily_durations: dailyDurations,
     practice_days_count: practiceDaysCount,
     menu_ranking: buildMenuRanking(safeDays),
+    note_series: {
+      falsetto: buildNoteSeries(safeDays, toDate, 69),
+      chest: buildNoteSeries(safeDays, toDate, 64),
+    },
+    streaks: {
+      current_days: 3,
+      longest_days: 11,
+    },
     top_notes: {
       falsetto: {
         note: "A4",

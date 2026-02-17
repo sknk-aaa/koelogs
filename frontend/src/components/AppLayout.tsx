@@ -30,6 +30,7 @@ export default function AppLayout() {
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
+    overflowX: "clip",
     background:
       "radial-gradient(1200px 800px at 50% -200px, var(--bgTop) 0%, var(--bgMid) 45%, var(--bgBottom) 100%)",
   },

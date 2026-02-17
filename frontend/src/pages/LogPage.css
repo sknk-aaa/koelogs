@@ -1,13 +1,55 @@
-/* frontend/src/pages/LogPage.css */
-
 .logPage {
   width: 100%;
+  position: relative;
+  isolation: isolate;
 }
 
-/* ===== Header: PC 3-column / Mobile stack ===== */
+.logPage::before {
+  content: "";
+  position: absolute;
+  inset: -40px -20px auto;
+  height: 260px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(540px 180px at 10% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 65%),
+    radial-gradient(460px 160px at 90% 0%, rgba(255, 255, 255, 0.7), transparent 70%);
+  filter: blur(8px);
+}
+
+.logPage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.33;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), transparent 55%);
+}
+
+.logPage__stack {
+  display: grid;
+  gap: 16px;
+}
+
+.logPage__card {
+  margin-bottom: 0;
+  position: relative;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(130deg, rgba(255, 255, 255, 0.95), rgba(0, 0, 0, 0.08)) border-box;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 180ms ease;
+}
+
 .logPage__header {
   display: grid;
-  grid-template-columns: 1fr auto 1fr; /* left / center / right */
+  grid-template-columns: auto minmax(240px, 320px) auto;
   align-items: end;
   gap: 12px;
   margin-bottom: 14px;
@@ -18,33 +60,96 @@
 }
 
 .logPage__headerCenter {
-  justify-self: center; /* ✅ PCでは週カレンダー中央 */
+  justify-self: center;
+  width: 100%;
 }
 
 .logPage__headerRight {
-  justify-self: end; /* ✅ 右に月ボタン */
+  justify-self: end;
   display: flex;
   align-items: end;
 }
 
 .logPage__title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 950;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
 }
 
 .logPage__monthBtn {
   white-space: nowrap;
 }
 
-/* ===== Layout ===== */
-.logPage__stack {
-  display: grid;
-  gap: 14px;
+.logPage__btn {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, filter 160ms ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
-.logPage__card {
-  margin-bottom: 0;
+.logPage__btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.logPage__btn:active {
+  transform: translateY(1px);
+}
+
+.logPage__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.logPage__btn--subtle {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+}
+
+.logPage__btn--subtle:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.logPage__btn--softAccent {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 14%, white),
+    color-mix(in srgb, var(--accent) 8%, white)
+  );
+}
+
+.logPage__btn--softAccent:hover {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+}
+
+.logPage__btn--cta {
+  height: 46px;
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 92%, white),
+      color-mix(in srgb, var(--accent) 80%, black)
+    );
+  color: var(--accentText);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.logPage__btn--cta:hover {
+  filter: saturate(1.08) brightness(1.03);
+  box-shadow: 0 18px 34px color-mix(in srgb, var(--accent) 36%, transparent);
 }
 
 .logPage__cardHead {
@@ -56,49 +161,56 @@
 }
 
 .logPage__cardTitle {
+  font-size: 15px;
   font-weight: 950;
-  display: flex;
-  align-items: baseline;
+  letter-spacing: 0.2px;
+  position: relative;
+  padding-left: 10px;
+}
+
+.logPage__cardTitle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 66%, #ffffff);
+}
+
+.logPage__cardHeadRight {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
 }
 
-.logPage__subtle {
-  font-size: 12px;
-  opacity: 0.6;
-  font-weight: 800;
-}
-
-/* ===== Badges ===== */
 .logPage__cardBadge {
   font-size: 11px;
   font-weight: 900;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.70);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.76);
 }
 
 .logPage__cardBadge--ok {
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(16, 185, 129, 0.36);
   background: rgba(16, 185, 129, 0.12);
 }
 
-.logPage__cardBadge--info {
-  border-color: rgba(59, 130, 246, 0.35);
-  background: rgba(59, 130, 246, 0.12);
-}
-
-.logPage__cardBadge--ng {
-  border-color: rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.10);
-}
-
 .logPage__cardBadge--empty {
-  border-color: rgba(0,0,0,0.10);
-  background: rgba(0,0,0,0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
 }
 
-/* ===== Summary (KPI) ===== */
+.logPage__recordBtn {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 11px;
+  font-size: 12px;
+}
+
 .logPage__kpiRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -107,16 +219,18 @@
 }
 
 .logPage__kpi {
-  border-radius: 16px;
-  padding: 12px 12px;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: rgba(0,0,0,0.02);
+  border-radius: 14px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.66));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .logPage__kpiLabel {
   font-size: 12px;
-  opacity: 0.7;
   font-weight: 900;
+  opacity: 0.72;
   margin-bottom: 8px;
 }
 
@@ -127,9 +241,9 @@
 }
 
 .logPage__kpiNumber {
-  font-size: 34px;
+  font-size: 35px;
   font-weight: 950;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.6px;
   line-height: 1;
 }
 
@@ -146,16 +260,17 @@
 }
 
 .logPage__mini {
-  border-radius: 16px;
-  padding: 12px 14px;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: #fff;
+  border-radius: 14px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .logPage__miniLabel {
   font-size: 12px;
-  opacity: 0.7;
   font-weight: 900;
+  opacity: 0.7;
   margin-bottom: 6px;
 }
 
@@ -164,15 +279,14 @@
   font-weight: 950;
 }
 
-/* ===== Sections ===== */
 .logPage__section {
   margin-top: 10px;
 }
 
 .logPage__sectionTitle {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 950;
-  opacity: 0.75;
+  opacity: 0.72;
   margin-bottom: 8px;
 }
 
@@ -185,13 +299,12 @@
 .logPage__notesBox {
   white-space: pre-wrap;
   line-height: 1.7;
-  padding: 12px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: rgba(0,0,0,0.02);
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.02);
 }
 
-/* ===== Empty state ===== */
 .logPage__empty {
   display: grid;
   gap: 6px;
@@ -203,144 +316,272 @@
 }
 
 .logPage__muted {
-  opacity: 0.7;
+  opacity: 0.72;
   line-height: 1.6;
+  font-size: 13px;
 }
 
-/* ===== AI card accent ===== */
-.logPage__aiCard {
-  position: relative;
-  overflow: hidden;
-}
-
-.logPage__aiCard--saved {
-  border: 1px solid rgba(16, 185, 129, 0.22);
-}
-
-.logPage__aiCard--error {
-  border: 1px solid rgba(239, 68, 68, 0.22);
-}
-
-.logPage__aiText {
-  white-space: pre-wrap;
-  line-height: 1.75;
-}
-
-.logPage__aiMoreRow {
-  margin-top: 10px;
-}
-
-/* ===== Error ===== */
 .logPage__error {
   color: #b00020;
   white-space: pre-wrap;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(176, 0, 32, 0.20);
+  border: 1px solid rgba(176, 0, 32, 0.2);
   background: rgba(176, 0, 32, 0.06);
+  font-size: 13px;
 }
 
-/* ===== Actions ===== */
 .logPage__actions {
   display: grid;
   gap: 10px;
   margin-top: 14px;
 }
 
-/* ===== Buttons (strong again) ===== */
-.logPage__btn {
-  height: 44px;
-  padding: 0 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  background: rgba(255,255,255,0.90);
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-  transition: transform 80ms ease, box-shadow 120ms ease, filter 120ms ease, background 120ms ease;
+.logAi {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(145deg, color-mix(in srgb, var(--accent) 38%, transparent), rgba(0, 0, 0, 0.12)) border-box;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.1);
 }
 
-.logPage__btn:hover {
-  background: #fff;
-  box-shadow: 0 12px 26px rgba(0,0,0,0.10);
+.logAi::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(700px 220px at 0% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 56%),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.62));
 }
 
-.logPage__btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+.logAi > * {
+  position: relative;
 }
 
-.logPage__btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  box-shadow: none;
+.logAi__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.66);
+  backdrop-filter: blur(8px);
 }
 
-.logPage__btn--primary {
-  background: rgba(0,0,0,0.92);
-  color: #fff;
-  border-color: rgba(0,0,0,0.92);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+.logAi__title {
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
 }
 
-.logPage__btn--primary:hover {
-  filter: brightness(1.06);
-  box-shadow: 0 14px 28px rgba(0,0,0,0.22);
+.logAi__meta {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.68;
+  margin-top: 2px;
 }
 
-/* “続きを読む” */
-.logPage__moreBtn {
-  border: none;
-  background: transparent;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
+.logAi__headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.logPage__moreBtn--link {
+.logAi__pill {
+  font-size: 11px;
+  font-weight: 950;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.logAi__pill--ok {
+  border-color: rgba(16, 185, 129, 0.32);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.logAi__pill--info {
+  border-color: rgba(0, 0, 0, 0.16);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.logAi__pill--ng {
+  border-color: rgba(239, 68, 68, 0.32);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.logAi__content {
+  padding: 14px;
+}
+
+.logAi__text {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  font-size: 13px;
+}
+
+.logAi__text--muted {
+  opacity: 0.75;
+}
+
+.logAi__actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.logAi__toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 7px 11px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  background: rgba(255, 255, 255, 0.70);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  font-weight: 950;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: rgba(255, 255, 255, 0.92);
+  font: inherit;
   font-size: 12px;
-  opacity: 0.92;
-  transition: transform 80ms ease, box-shadow 120ms ease, background 120ms ease;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
-.logPage__moreBtn--link:hover {
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.10);
+.logAi__toggle:hover {
+  background: #fff;
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
 }
 
-.logPage__moreBtn--link:active {
-  transform: translateY(1px);
-}
-
-.logPage__moreIcon {
+.logAi__toggleIcon {
+  width: 17px;
+  height: 17px;
+  border-radius: 999px;
   display: inline-flex;
-  width: 18px;
-  height: 18px;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  background: rgba(0,0,0,0.06);
+  background: rgba(0, 0, 0, 0.05);
   font-size: 10px;
-  line-height: 1;
 }
 
-/* ===== Week Calendar (refined + compact mobile) ===== */
+.goalBar {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  display: grid;
+  gap: 8px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.72)) padding-box,
+    linear-gradient(120deg, color-mix(in srgb, var(--accent) 34%, transparent), rgba(0, 0, 0, 0.1)) border-box;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.goalBar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.goalBar__label {
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+  opacity: 0.74;
+}
+
+.goalBar__text {
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.goalBar__btn {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.goalBar__btn:hover {
+  background: #fff;
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+}
+
+.goalBar__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.goalBar__btn--primary {
+  background: var(--text);
+  color: var(--accentText);
+  border-color: var(--text);
+}
+
+.goalBar__btn--primary:hover {
+  filter: brightness(1.05);
+}
+
+.goalBar__edit {
+  display: grid;
+  gap: 8px;
+}
+
+.goalBar__count {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.62;
+}
+
+.goalBar__input {
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: var(--card);
+  color: var(--text);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.goalBar__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.goalBar__error {
+  color: #b00020;
+  white-space: pre-wrap;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(176, 0, 32, 0.2);
+  background: rgba(176, 0, 32, 0.06);
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .weekCal {
-  border-radius: 16px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(0,0,0,0.02);
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background:
+    linear-gradient(170deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.54));
   padding: 10px 10px 12px;
-  min-width: 248px;
+  width: 100%;
+  min-width: 0;
+  max-width: 320px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
 }
 
 .weekCal__hiddenDate {
@@ -369,9 +610,9 @@
 .weekCal__navBtn {
   height: 34px;
   width: 38px;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.70);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.84);
   cursor: pointer;
   font-size: 18px;
   font-weight: 900;
@@ -379,25 +620,26 @@
 }
 
 .weekCal__navBtn:hover {
-  background: rgba(255,255,255,0.92);
+  background: #fff;
 }
 
 .weekCal__titleBtn {
   height: 34px;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: rgba(255,255,255,0.60);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.76);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  font-size: 13px;
   font-weight: 950;
   letter-spacing: 0.2px;
 }
 
 .weekCal__titleBtn:hover {
-  background: rgba(255,255,255,0.85);
+  background: #fff;
 }
 
 .weekCal__titleHint {
@@ -415,9 +657,9 @@
 
 .weekCal__dowItem {
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
-  opacity: 0.6;
+  opacity: 0.58;
 }
 
 .weekCal__grid {
@@ -428,7 +670,7 @@
 
 .weekCal__day {
   position: relative;
-  height: 38px;
+  height: 36px;
   border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;
@@ -437,8 +679,8 @@
 }
 
 .weekCal__day:hover {
-  background: rgba(255,255,255,0.70);
-  border-color: rgba(0,0,0,0.06);
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 .weekCal__dayNum {
@@ -446,333 +688,30 @@
 }
 
 .weekCal__day.is-selected {
-  background: rgba(16, 185, 129, 0.18);
-  border-color: rgba(16, 185, 129, 0.25);
+  background: color-mix(in srgb, var(--accentSoft) 76%, white);
+  border-color: color-mix(in srgb, var(--accent) 22%, rgba(0, 0, 0, 0.08));
 }
 
 .weekCal__day.is-otherMonth {
   opacity: 0.45;
 }
 
-/* ✅ 今日の丸を “もうちょい下” に（bottom を小さく） */
 .weekCal__todayDot {
   position: absolute;
-  bottom: 4px; /* ← 7px→4px */
+  bottom: 4px;
   left: 50%;
   transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
 }
 
 .weekCal__day.is-selected .weekCal__todayDot {
-  background: rgba(0,0,0,0.65);
+  background: rgba(0, 0, 0, 0.7);
 }
 
-/* サマリー見出し右側（バッジ + 記録ボタン） */
-.logPage__cardHeadRight {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* カード内の記録ボタンは少し小さめにして収まり良く */
-.logPage__recordBtn {
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 12px;
-}
-
-
-/* ===== Lux AI Card (robot removed) ===== */
-.logAi {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.08);
-}
-
-/* 背景グラデ */
-.logAi::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(800px 260px at 20% 0%, rgba(16,185,129,0.18), transparent 55%),
-    radial-gradient(700px 240px at 95% 20%, rgba(59,130,246,0.14), transparent 55%),
-    linear-gradient(to bottom, rgba(255,255,255,0.75), rgba(255,255,255,0.45));
-  pointer-events: none;
-}
-
-.logAi > * {
-  position: relative;
-}
-
-/* header */
-.logAi__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  background: rgba(255,255,255,0.65);
-  backdrop-filter: blur(12px);
-}
-
-.logAi__title {
-  font-weight: 950;
-  font-size: 16px;
-  letter-spacing: 0.3px;
-}
-
-.logAi__meta {
-  font-size: 12px;
-  opacity: 0.65;
-  font-weight: 800;
-  margin-top: 2px;
-}
-
-.logAi__headerRight {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* status pill */
-.logAi__pill {
-  font-size: 11px;
-  font-weight: 950;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.70);
-}
-
-.logAi__pill--ok {
-  border-color: rgba(16,185,129,0.30);
-  background: rgba(16,185,129,0.12);
-}
-
-.logAi__pill--info {
-  border-color: rgba(59,130,246,0.30);
-  background: rgba(59,130,246,0.12);
-}
-
-.logAi__pill--ng {
-  border-color: rgba(239,68,68,0.30);
-  background: rgba(239,68,68,0.10);
-}
-
-/* content */
-.logAi__content {
-  padding: 16px;
-}
-
-.logAi__text {
-  white-space: pre-wrap;
-  line-height: 1.8;
-  font-size: 14px;
-}
-
-.logAi__text--muted {
-  opacity: 0.7;
-}
-
-.logAi__actions {
-  margin-top: 14px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.logAi__toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.80);
-  font: inherit;
-  cursor: pointer;
-  font-weight: 950;
-  font-size: 12px;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.10);
-  transition: transform 80ms ease, box-shadow 120ms ease, background 120ms ease;
-}
-
-.logAi__toggle:hover {
-  background: rgba(255,255,255,0.95);
-  box-shadow: 0 16px 36px rgba(0,0,0,0.14);
-}
-
-.logAi__toggle:active {
-  transform: translateY(1px);
-}
-
-.logAi__toggleIcon {
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: rgba(0,0,0,0.06);
-  font-size: 10px;
-}
-
-.logPage__kpi {
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: blur(10px);
-}
-
-.logPage__kpi--main .logPage__kpiNumber {
-  font-size: 32px;
-}
-
-.logPage__kpiBigValue {
-  font-size: 22px;
-  font-weight: 950;
-  letter-spacing: -0.2px;
-}
-
-
-
-
-
-/* ===== Goal bar (under LogHeader) ===== */
-.goalBar {
-  margin-top: 10px;
-  margin-bottom: 8px;
-  display: grid;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: rgba(255,255,255,0.70);
-  backdrop-filter: blur(10px);
-}
-
-.goalBar__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.goalBar__label {
-  font-size: 12px;
-  font-weight: 950;
-  opacity: 0.75;
-}
-
-.goalBar__text {
-  font-size: 13px;
-  font-weight: 900;
-  line-height: 1.45;
-  opacity: 0.95;
-}
-
-.goalBar__btn {
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.70);
-  cursor: pointer;
-  font-weight: 950;
-  font-size: 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  transition: transform 80ms ease, box-shadow 120ms ease, background 120ms ease;
-}
-
-.goalBar__btn:hover {
-  background: rgba(255,255,255,0.92);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.10);
-}
-
-.goalBar__btn:active {
-  transform: translateY(1px);
-}
-
-.goalBar__btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-
-.goalBar__btn--primary:hover {
-  filter: brightness(1.06);
-  box-shadow: 0 14px 28px rgba(0,0,0,0.22);
-}
-
-.goalBar__edit {
-  display: grid;
-  gap: 8px;
-}
-
-.goalBar__count {
-  font-size: 12px;
-  font-weight: 900;
-  opacity: 0.6;
-}
-
-.goalBar__input {
-  height: 40px;
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.90);
-  padding: 0 12px;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.goalBar__actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.goalBar__error {
-  color: #b00020;
-  white-space: pre-wrap;
-  padding: 8px 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(176, 0, 32, 0.20);
-  background: rgba(176, 0, 32, 0.06);
-  font-size: 12px;
-  font-weight: 900;
-}
-
-/* =========================
-   KPI layout (Mobile)
-   - 1段目: 練習時間（全幅）
-   - 2段目: 裏声/地声（横並び）
-   ========================= */
-@media (max-width: 520px) {
-  /* ここが一番重要：2列→1列に上書き */
-  .logPage__kpiRow {
-    grid-template-columns: 1fr !important;
-    gap: 10px;
-  }
-
-  /* 裏声/地声（小カード2つ）を横並びにする */
-  .logPage__kpiSmallGrid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 10px;
-  }
-
-  /* 見た目の密度調整（任意） */
-  .logPage__kpi,
-  .logPage__mini {
-    border-radius: 16px;
-  }
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 520px) {
-  /* ✅ スマホは縦並び（今のまま） */
+@media (max-width: 900px) {
   .logPage__header {
     grid-template-columns: 1fr;
     align-items: stretch;
@@ -783,15 +722,27 @@
     justify-self: stretch;
   }
 
-  .logPage__headerRight .btn {
+  .logPage__headerRight .logPage__btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .logPage__kpiRow {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .logPage__kpiSmallGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
 
   .weekCal {
     width: 100%;
     min-width: 0;
     padding: 8px 8px 10px;
-    border-radius: 14px;
+    border-radius: 12px;
   }
 
   .weekCal__top {
@@ -802,18 +753,14 @@
   .weekCal__navBtn {
     height: 30px;
     width: 34px;
-    border-radius: 10px;
+    border-radius: 9px;
     font-size: 16px;
   }
 
   .weekCal__titleBtn {
     height: 30px;
-    border-radius: 10px;
+    border-radius: 9px;
     font-size: 13px;
-  }
-
-  .weekCal__dowItem {
-    font-size: 10px;
   }
 
   .weekCal__day {
@@ -824,10 +771,9 @@
     font-size: 13px;
   }
 
-  /* ✅ スマホはさらに少し下へ */
   .weekCal__todayDot {
     bottom: 3px;
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
   }
 }

@@ -1,0 +1,334 @@
+.logNew {
+  position: relative;
+  isolation: isolate;
+  padding-bottom: 128px;
+}
+
+.logNew::before {
+  content: "";
+  position: absolute;
+  inset: -40px -20px auto;
+  height: 260px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(540px 180px at 10% 0%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 65%),
+    radial-gradient(460px 160px at 90% 0%, rgba(255, 255, 255, 0.72), transparent 70%);
+  filter: blur(8px);
+}
+
+.logNew__form {
+  display: grid;
+  gap: 16px;
+}
+
+.logNew__loading {
+  font-size: 13px;
+  opacity: 0.72;
+}
+
+.logNew__section {
+  display: grid;
+  gap: 14px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(130deg, rgba(255, 255, 255, 0.95), rgba(0, 0, 0, 0.08)) border-box;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.logNew__sectionTitle {
+  position: relative;
+  padding-left: 10px;
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+}
+
+.logNew__sectionTitle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 66%, #ffffff);
+}
+
+.logNew__field {
+  display: grid;
+  gap: 8px;
+}
+
+.logNew__label {
+  font-size: 13px;
+  font-weight: 900;
+  opacity: 0.82;
+}
+
+.logNew__subLabel {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.75;
+}
+
+.logNew__muted {
+  font-size: 12px;
+  opacity: 0.72;
+  line-height: 1.5;
+}
+
+.logNew__input,
+.logNew__textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: var(--card);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.logNew__input {
+  height: 44px;
+  padding: 0 12px;
+}
+
+.logNew__textarea {
+  min-height: 122px;
+  padding: 10px 12px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.logNew__panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.logNew__palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.logNew__swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+}
+
+.logNew__swatch.is-active {
+  border: 2px solid rgba(0, 0, 0, 0.65);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+.logNew__swatchCheck {
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.logNew__previewRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.logNew__panelActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.logNew__menuList {
+  display: grid;
+  gap: 10px;
+}
+
+.logNew__menuRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.88);
+  cursor: pointer;
+}
+
+.logNew__menuRow.is-checked {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.logNew__check {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.02);
+  color: transparent;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.logNew__menuRow.is-checked .logNew__check {
+  background: color-mix(in srgb, var(--accent) 14%, white);
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  color: var(--accent);
+}
+
+.logNew__selectedText {
+  font-size: 12px;
+  opacity: 0.74;
+  font-weight: 800;
+}
+
+.logNew__removeBtn {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.75;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.logNew__selectedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.logNew__checkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.logNew__errorBox {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(176, 0, 32, 0.22);
+  background: rgba(176, 0, 32, 0.06);
+}
+
+.logNew__errorTitle {
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.logNew__errorList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+
+.logNew__stickyBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-top: 10px;
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+  z-index: 90;
+}
+
+.logNew__stickyInner {
+  max-width: 920px;
+  margin: 0 auto;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.logNew__btn {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.logNew__btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.logNew__btn:active {
+  transform: translateY(1px);
+}
+
+.logNew__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.logNew__btn--ghost {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: none;
+}
+
+.logNew__btn--primary {
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 92%, white),
+    color-mix(in srgb, var(--accent) 80%, black)
+  );
+  color: var(--accentText);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.logNew__btn--primary:hover {
+  filter: saturate(1.08) brightness(1.03);
+  box-shadow: 0 18px 34px color-mix(in srgb, var(--accent) 36%, transparent);
+}
+
+@media (max-width: 720px) {
+  .logNew__stickyInner {
+    justify-content: stretch;
+  }
+
+  .logNew__btn {
+    flex: 1;
+  }
+}

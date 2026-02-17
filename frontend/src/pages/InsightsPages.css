@@ -1,0 +1,365 @@
+.insightsPage {
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+}
+
+.insightsPage__bg {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 320px;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 64%),
+    radial-gradient(420px 160px at 92% 0%, rgba(255, 255, 255, 0.58), transparent 68%);
+  filter: blur(8px);
+}
+
+.insightsHero {
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(130deg, color-mix(in srgb, var(--accent) 40%, transparent), rgba(0, 0, 0, 0.08)) border-box;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.insightsHero__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.insightsHero__kicker {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.insightsHero__title {
+  margin: 4px 0 0;
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+}
+
+.insightsHero__sub {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.76;
+}
+
+.insightsHero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.insightsChip {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.insightsBack {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.74);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.insightsGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.insightsCard {
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0.09)) border-box;
+  padding: 14px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  min-width: 0;
+}
+
+.insightsCard--link {
+  display: block;
+}
+
+.insightsCard__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.insightsCard__title {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.insightsCard__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.74;
+  flex-shrink: 0;
+}
+
+.insightsCard__hintText {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.insightsMuted {
+  font-size: 12px;
+  opacity: 0.72;
+  line-height: 1.5;
+}
+
+.insightsError {
+  border-radius: 12px;
+  border: 1px solid rgba(176, 0, 32, 0.24);
+  background: rgba(176, 0, 32, 0.07);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.insightsKeyValue {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.insightsKeyValue__k {
+  font-size: 13px;
+  opacity: 0.8;
+  font-weight: 700;
+}
+
+.insightsKeyValue__v {
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.insightsKeyValue__sub {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.55;
+  margin-left: 6px;
+}
+
+.insightsBars {
+  display: grid;
+  gap: 10px;
+}
+
+.insightsBars__row {
+  display: grid;
+  gap: 6px;
+}
+
+.insightsBars__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.insightsBars__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.insightsBars__rank {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.76;
+}
+
+.insightsBars__meta {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.insightsBarTrack {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.insightsBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 54%, #121212);
+}
+
+.insightsSegment {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.insightsSegment__btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  min-width: 64px;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  opacity: 0.78;
+}
+
+.insightsSegment__btn.is-active {
+  background: color-mix(in srgb, var(--accent) 12%, #f8f8f8);
+  opacity: 1;
+}
+
+.insightsStack {
+  display: grid;
+  gap: 14px;
+}
+
+.insightsStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.insightsStat {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 12px;
+}
+
+.insightsStat__label {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.72;
+}
+
+.insightsStat__value {
+  font-size: 20px;
+  font-weight: 950;
+  margin-top: 6px;
+}
+
+.insightsControls {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.insightsControls__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.insightsInput,
+.insightsSelect {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.insightsSelect {
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.insightsSummaryRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.insightsBadge {
+  font-size: 12px;
+  font-weight: 900;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 6px 10px;
+}
+
+.insightsRankRow {
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.insightsRankTop {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.insightsRankNo {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  border: 1px solid var(--border);
+  background: var(--card);
+  flex-shrink: 0;
+}
+
+@media (min-width: 760px) {
+  .insightsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .insightsControls {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+  }
+
+  .insightsControls__row {
+    grid-template-columns: 1fr auto;
+  }
+}

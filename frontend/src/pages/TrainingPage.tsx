@@ -6,7 +6,6 @@ import { useScaleTracks } from "../features/training/hooks/useScaleTracks";
 import { useAudioPlayer } from "../features/training/hooks/useAudioPlayer";
 import TrackFilters from "../features/training/components/TrackFilters";
 import AudioPlayer from "../features/training/components/AudioPlayer";
-import { styles } from "../features/training/styles";
 import { useSettings } from "../features/settings/useSettings";
 
 import "./TrainingPage.css";
@@ -33,87 +32,75 @@ export default function TrainingPage() {
   const disabled = loading || !!error || !selected;
 
   return (
-    <div style={styles.page} className="TrainingPage">
-      <div style={styles.bgGlow} aria-hidden="true" />
-      <div style={styles.shell}>
-        {/* ✅ ここ：style={styles.header} を完全に削除してCSSに任せる */}
-        <header className="TrainingHeader">
-          <div style={{ minWidth: 0 }}>
-            <div style={styles.kicker}>Training</div>
-            <h1 style={styles.title}>発声トレーニング</h1>
+    <div className="page trainingPage">
+      <div className="trainingPage__bg" aria-hidden="true" />
+
+      <section className="card trainingPage__hero">
+        <div>
+          <div className="trainingPage__kicker">Training Studio</div>
+          <h1 className="trainingPage__title">発声トレーニング</h1>
+        </div>
+        <div className="trainingPage__chips">
+          <span className="trainingPage__chip">{scaleTypeLabel(scaleType)}</span>
+          <span className="trainingPage__chip">{tempo} bpm</span>
+        </div>
+      </section>
+
+      <main className="trainingPage__grid">
+        <section className="card trainingPage__panel">
+          <div className="trainingPage__panelHead">
+            <div className="trainingPage__panelTitle">選択</div>
+            <div className="trainingPage__panelMeta">スケール / テンポ</div>
           </div>
 
-          {/* ✅ ここ：style={styles.headerRight} も完全に削除 */}
-          <div className="TrainingHeaderRight">
+          <div className="trainingPage__filtersWrap">
+            <TrackFilters
+              scaleType={scaleType}
+              tempo={tempo}
+              scaleTypes={SCALE_TYPES}
+              tempos={TEMPOS}
+              disabled={loading}
+              onChangeScaleType={setScaleType}
+              onChangeTempo={setTempo}
+            />
           </div>
-        </header>
 
-        <main style={styles.card}>
-          <section style={styles.section}>
-            <div style={styles.sectionHead}>
-              <div style={styles.sectionTitle}>選択</div>
-              <div style={styles.sectionMeta}>
-                <span style={styles.badge}>{scaleTypeLabel(scaleType)}</span>
-                <span style={styles.badge}>{tempo} bpm</span>
-              </div>
+          {loading && (
+            <div className="trainingPage__loading" aria-hidden="true">
+              <div className="trainingPage__skeleton" />
+              <div className="trainingPage__skeleton trainingPage__skeleton--long" />
             </div>
+          )}
 
-            <div style={styles.filtersBox}>
-              <TrackFilters
-                scaleType={scaleType}
-                tempo={tempo}
-                scaleTypes={SCALE_TYPES}
-                tempos={TEMPOS}
-                disabled={loading}
-                onChangeScaleType={setScaleType}
-                onChangeTempo={setTempo}
-              />
+          {error && (
+            <div className="trainingPage__error" role="alert">
+              <div className="trainingPage__errorTitle">読み込みに失敗しました</div>
+              <div className="trainingPage__errorText">Error: {error}</div>
             </div>
+          )}
+        </section>
 
-            {loading && (
-              <div style={styles.skeletonRow} aria-hidden="true">
-                <div style={styles.skeleton} />
-                <div style={{ ...styles.skeleton, width: "72%" }} />
-              </div>
-            )}
+        <section className="card trainingPage__panel">
+          <div className="trainingPage__panelHead">
+            <div className="trainingPage__panelTitle">プレイヤー</div>
+          </div>
 
-            {error && (
-              <div style={styles.errorBox} role="alert">
-                <div style={styles.errorTitle}>読み込みに失敗しました</div>
-                <div style={styles.errorText}>Error: {error}</div>
-              </div>
-            )}
-          </section>
-
-          <div style={styles.divider} />
-
-          <section style={styles.section}>
-            <div style={styles.sectionHead}>
-              <div style={styles.sectionTitle}>プレイヤー</div>
-              <div style={styles.sectionMeta}>
-                <span style={styles.miniNote}>
-                  {selected ? "Ready" : "スケール/テンポを選んでください"}
-                </span>
-              </div>
-            </div>
-
-            <div style={styles.playerShell}>
-              <AudioPlayer
-                audioRef={audioRef}
-                src={selected?.file_path ?? undefined}
-                disabled={disabled}
-                isPlaying={isPlaying}
-                onTogglePlay={togglePlay}
-                onPlay={onPlay}
-                onPause={onPause}
-                onEnded={onEnded}
-                defaultVolume={settings.defaultVolume}
-                loopEnabled={settings.loopEnabled}
-              />
-            </div>
-          </section>
-        </main>
-      </div>
+          <div className="trainingPage__playerWrap">
+            <AudioPlayer
+              audioRef={audioRef}
+              src={selected?.file_path ?? undefined}
+              disabled={disabled}
+              isPlaying={isPlaying}
+              onTogglePlay={togglePlay}
+              onPlay={onPlay}
+              onPause={onPause}
+              onEnded={onEnded}
+              defaultVolume={settings.defaultVolume}
+              loopEnabled={settings.loopEnabled}
+            />
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

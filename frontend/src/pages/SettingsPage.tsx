@@ -17,13 +17,16 @@ export default function SettingsPage() {
 
   return (
     <div className="page settingsPage">
-      <h1 className="h1">設定</h1>
-      <p className="p">テーマや動作設定を変更できます（端末に保存されます）。</p>
+      <div className="settingsPage__bg" aria-hidden="true" />
 
-      {/* テーマ */}
-      <div className="card settingsPage__card">
+      <section className="card settingsPage__hero">
+        <div className="settingsPage__kicker">Settings</div>
+        <h1 className="settingsPage__title">設定</h1>
+        <p className="settingsPage__sub">テーマ、再生挙動、表示の読みやすさをここで調整できます。</p>
+      </section>
+
+      <section className="card settingsPage__card">
         <div className="settingsPage__cardTitle">テーマカラー</div>
-
         <div className="settingsPage__themeGrid">
           {THEMES.map((t) => {
             const selected = t.key === themeKey;
@@ -35,36 +38,24 @@ export default function SettingsPage() {
                 className={`settingsPage__themeBtn ${selected ? "isSelected" : ""}`}
               >
                 <span className="settingsPage__swatchWrap">
-                  <span
-                    className="settingsPage__swatch"
-                    style={{ background: t.vars["--accent"] }}
-                  />
-                  <span
-                    className="settingsPage__swatch"
-                    style={{ background: t.vars["--accentSoft"] }}
-                  />
+                  <span className="settingsPage__swatch" style={{ background: t.vars["--accent"] }} />
+                  <span className="settingsPage__swatch" style={{ background: t.vars["--accentSoft"] }} />
                 </span>
-
-                <span className="settingsPage__themeName">
-                  {t.name}
-                  {selected ? <span className="settingsPage__selectedDot"> ●</span> : null}
-                </span>
+                <span className="settingsPage__themeName">{t.name}</span>
               </button>
             );
           })}
         </div>
-      </div>
+      </section>
 
-      {/* トレーニング */}
-      <div className="card settingsPage__card">
+      <section className="card settingsPage__card">
         <div className="settingsPage__cardTitle">トレーニング</div>
 
         <div className="settingsPage__block">
           <div className="settingsPage__label">トレーニング音源のデフォルト音量</div>
-
           <div className="settingsPage__volumeRow">
             <span className="settingsPage__volumeIcon" aria-hidden="true">
-              🔉
+              Vol
             </span>
             <input
               type="range"
@@ -81,41 +72,36 @@ export default function SettingsPage() {
             />
             <span className="settingsPage__volumeValue">{volumePct}%</span>
           </div>
-
-          <div className="settingsPage__hint">
-            次のトラック再生開始時にこの音量が初期値になります。
-          </div>
+          <div className="settingsPage__hint">次のトラック再生開始時にこの音量が初期値になります。</div>
         </div>
 
         <div className="settingsPage__hr" />
 
         <div className="settingsPage__block">
           <div className="settingsPage__label">ループ再生</div>
-
-          <label className="settingsPage__toggle">
+          <label className="settingsPage__toggle" aria-label="loop toggle">
             <input
               type="checkbox"
               checked={settings.loopEnabled}
               onChange={(e) => patchSettings({ loopEnabled: e.target.checked })}
             />
-            <span>{settings.loopEnabled ? "ON" : "OFF"}</span>
+            <span className="settingsPage__toggleTrack">
+              <span className="settingsPage__toggleThumb" />
+            </span>
+            <span className="settingsPage__toggleText">{settings.loopEnabled ? "ON" : "OFF"}</span>
           </label>
-
           <div className="settingsPage__hint">
             ON にすると、音源が最後まで再生されたあと自動で繰り返します。
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* AIおすすめ */}
-      <div className="card settingsPage__card">
+      <section className="card settingsPage__card">
         <div className="settingsPage__cardTitle">AIおすすめ</div>
-
         <div className="settingsPage__block">
           <div className="settingsPage__label">参照日数（今日を除く直近）</div>
-
           <div className="settingsPage__row">
-            <label className="settingsPage__pillRadio">
+            <label className={`settingsPage__pillRadio ${settings.aiRangeDays === 7 ? "isSelected" : ""}`}>
               <input
                 type="radio"
                 checked={settings.aiRangeDays === 7}
@@ -124,7 +110,7 @@ export default function SettingsPage() {
               <span>7日</span>
             </label>
 
-            <label className="settingsPage__pillRadio">
+            <label className={`settingsPage__pillRadio ${settings.aiRangeDays === 14 ? "isSelected" : ""}`}>
               <input
                 type="radio"
                 checked={settings.aiRangeDays === 14}
@@ -133,22 +119,18 @@ export default function SettingsPage() {
               <span>14日</span>
             </label>
           </div>
-
           <div className="settingsPage__hint">
             日数を増やすと安定した提案になりやすい一方、直近の変化には鈍くなります。
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* アクセシビリティ */}
-      <div className="card settingsPage__card">
+      <section className="card settingsPage__card">
         <div className="settingsPage__cardTitle">アクセシビリティ</div>
-
         <div className="settingsPage__block">
           <div className="settingsPage__label">フォントサイズ</div>
-
           <div className="settingsPage__row">
-            <label className="settingsPage__pillRadio">
+            <label className={`settingsPage__pillRadio ${settings.fontScale === "normal" ? "isSelected" : ""}`}>
               <input
                 type="radio"
                 checked={settings.fontScale === "normal"}
@@ -157,7 +139,7 @@ export default function SettingsPage() {
               <span>標準</span>
             </label>
 
-            <label className="settingsPage__pillRadio">
+            <label className={`settingsPage__pillRadio ${settings.fontScale === "large" ? "isSelected" : ""}`}>
               <input
                 type="radio"
                 checked={settings.fontScale === "large"}
@@ -166,12 +148,11 @@ export default function SettingsPage() {
               <span>大きめ</span>
             </label>
           </div>
-
           <div className="settingsPage__hint">
             大きめは読みやすさ優先です（全体のベース文字サイズを拡大します）。
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

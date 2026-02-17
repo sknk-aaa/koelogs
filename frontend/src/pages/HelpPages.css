@@ -1,0 +1,100 @@
+.helpPage {
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+}
+
+.helpPage__bg {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 320px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 64%),
+    radial-gradient(420px 160px at 92% 0%, rgba(255, 255, 255, 0.58), transparent 68%);
+  filter: blur(8px);
+}
+
+.helpPage__hero {
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(130deg, color-mix(in srgb, var(--accent) 40%, transparent), rgba(0, 0, 0, 0.08)) border-box;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.helpPage__kicker {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.helpPage__title {
+  margin: 2px 0 0;
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+}
+
+.helpPage__sub {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.75;
+}
+
+.helpPage__card {
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0.09)) border-box;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  display: grid;
+  gap: 12px;
+}
+
+.helpPage__list,
+.helpPage__ordered {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.9;
+  font-size: 13px;
+}
+
+.helpPage__ordered li,
+.helpPage__list li {
+  margin-bottom: 2px;
+}
+
+.helpPage__note {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.72;
+  line-height: 1.6;
+}
+
+.helpPage__chipRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.helpPage__chip {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 900;
+}

@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import { updateMeDisplayName } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
+
+import "./ProfilePage.css";
 
 export default function ProfilePage() {
   const { me, refresh } = useAuth();
@@ -9,11 +12,19 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState(initial);
   const [isSaving, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    setDisplayName(initial);
+  }, [initial]);
+
   if (!me) {
     return (
-      <div className="page" style={styles.page}>
-        <h1 className="h1">プロフィール（表示名）</h1>
-        <p className="p">ログインしてください。</p>
+      <div className="page profilePage">
+        <div className="profilePage__bg" aria-hidden="true" />
+        <section className="card profilePage__hero">
+          <div className="profilePage__kicker">Profile</div>
+          <h1 className="profilePage__title">プロフィール</h1>
+          <p className="profilePage__sub">ログインしてください。</p>
+        </section>
       </div>
     );
   }
@@ -35,27 +46,35 @@ export default function ProfilePage() {
   const canSave = displayName.trim().length <= 30;
 
   return (
-    <div className="page" style={styles.page}>
-      <h1 className="h1">プロフィール（表示名）</h1>
+    <div className="page profilePage">
+      <div className="profilePage__bg" aria-hidden="true" />
 
-      <div className="card" style={styles.card}>
-        <div style={styles.row}>
-          <div style={styles.k}>メール</div>
-          <div style={styles.v}>{me.email}</div>
+      <section className="card profilePage__hero">
+        <div className="profilePage__kicker">Profile</div>
+        <h1 className="profilePage__title">プロフィール</h1>
+        <p className="profilePage__sub">表示名を更新して、記録画面での表示を整えます。</p>
+      </section>
+
+      <section className="card profilePage__card">
+        <div className="profilePage__cardTitle">アカウント情報</div>
+
+        <div className="profilePage__row">
+          <div className="profilePage__k">メール</div>
+          <div className="profilePage__v">{me.email}</div>
         </div>
 
-        <div style={styles.hr} />
+        <div className="profilePage__hr" />
 
-        <label style={styles.label}>
-          <div style={styles.k}>表示名（30文字まで / 未設定可）</div>
+        <label className="profilePage__label">
+          <div className="profilePage__k">表示名（30文字まで / 未設定可）</div>
           <input
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            style={styles.input}
-            maxLength={60} // 入力側は余裕。サーバで30制限。
+            className="profilePage__input"
+            maxLength={60}
           />
-          <div style={styles.hint}>
-            現在：{displayName.trim().length} / 30
+          <div className="profilePage__hint">
+            現在: {displayName.trim().length} / 30
             {!canSave && "（30文字以内にしてください）"}
           </div>
         </label>
@@ -64,57 +83,13 @@ export default function ProfilePage() {
           type="button"
           onClick={onSave}
           disabled={isSaving || !canSave}
-          style={{
-            ...styles.btn,
-            ...(isSaving || !canSave ? styles.btnDisabled : null),
-          }}
+          className="profilePage__saveBtn"
         >
           {isSaving ? "保存中…" : "保存"}
         </button>
 
-        <div style={styles.note}>
-          空欄で保存すると「未設定」になります。
-        </div>
-      </div>
+        <div className="profilePage__note">空欄で保存すると「未設定」になります。</div>
+      </section>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {},
-  card: {},
-  row: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  k: { fontSize: 13, fontWeight: 800, opacity: 0.75 },
-  v: { fontSize: 13, fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis" },
-  hr: { height: 1, background: "rgba(0,0,0,0.06)", margin: "12px 0" },
-  label: { display: "block" },
-  input: {
-    width: "100%",
-    marginTop: 8,
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    outline: "none",
-    fontSize: 14,
-    fontWeight: 700,
-  },
-  hint: { marginTop: 6, fontSize: 12, opacity: 0.65 },
-  btn: {
-    width: "100%",
-    marginTop: 12,
-    padding: "12px 12px",
-    borderRadius: 14,
-    border: "1px solid rgba(0,0,0,0.10)",
-    background: "rgba(255,255,255,0.85)",
-    cursor: "pointer",
-    fontSize: 14,
-    fontWeight: 900,
-  },
-  btnDisabled: { opacity: 0.5, cursor: "not-allowed" },
-  note: { marginTop: 10, fontSize: 12, opacity: 0.7, lineHeight: 1.6 },
-};

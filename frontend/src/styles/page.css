@@ -1,28 +1,29 @@
 .page {
-  padding: 14px 14px 90px;
-  max-width: 920px;
+  padding: 16px 16px 104px;
+  max-width: 960px;
   margin: 0 auto;
   color: var(--text);
 }
 
 .h1 {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
-  margin: 6px 0 10px;
+  letter-spacing: 0.1px;
+  margin: 8px 0 12px;
 }
 
 .p {
-  font-size: 13px;
+  font-size: 14px;
   opacity: 0.85;
-  line-height: 1.7;
-  margin: 0 0 12px;
+  line-height: 1.72;
+  margin: 0 0 14px;
 }
 
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 14px;
+  border-radius: 18px;
+  padding: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
 }
 
@@ -52,6 +53,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+@media (min-width: 760px) {
+  .page {
+    padding-top: 18px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .h1 {
+    font-size: 21px;
+  }
+}
 /* タップしやすさ（全体に効く） */
 input, textarea, button {
   font-size: 16px; /* iOSの勝手ズーム抑制にも効く */
@@ -69,5 +82,4 @@ input, textarea, button {
 .btn:active {
   transform: translateY(1px);
 }
-
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_16_130620) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_18_013000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,6 +23,48 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_16_130620) do
     t.bigint "user_id", null: false
     t.index ["user_id", "generated_for_date"], name: "index_ai_recommendations_on_user_id_and_generated_for_date", unique: true
     t.index ["user_id"], name: "index_ai_recommendations_on_user_id"
+  end
+
+  create_table "analysis_menus", force: :cascade do |t|
+    t.boolean "archived", default: false, null: false
+    t.boolean "compare_by_scale", default: false, null: false
+    t.boolean "compare_by_tempo", default: false, null: false
+    t.string "compare_mode", default: "flexible", null: false
+    t.datetime "created_at", null: false
+    t.string "fixed_scale_type"
+    t.integer "fixed_tempo"
+    t.text "focus_points"
+    t.string "name", null: false
+    t.jsonb "selected_metrics", default: [], null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["selected_metrics"], name: "index_analysis_menus_on_selected_metrics", using: :gin
+    t.index ["user_id", "archived"], name: "index_analysis_menus_on_user_id_and_archived"
+    t.index ["user_id", "name"], name: "index_analysis_menus_on_user_id_and_name", unique: true
+    t.index ["user_id"], name: "index_analysis_menus_on_user_id"
+  end
+
+  create_table "analysis_sessions", force: :cascade do |t|
+    t.bigint "analysis_menu_id", null: false
+    t.integer "audio_byte_size"
+    t.string "audio_content_type"
+    t.string "audio_path"
+    t.datetime "created_at", null: false
+    t.integer "duration_sec", default: 0, null: false
+    t.text "feedback_text"
+    t.string "peak_note"
+    t.integer "pitch_stability_score"
+    t.integer "range_semitones"
+    t.jsonb "raw_metrics", default: {}, null: false
+    t.string "recorded_scale_type"
+    t.integer "recorded_tempo"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.integer "voice_consistency_score"
+    t.index ["analysis_menu_id", "recorded_scale_type", "recorded_tempo", "created_at"], name: "idx_analysis_sessions_compare_key"
+    t.index ["analysis_menu_id"], name: "index_analysis_sessions_on_analysis_menu_id"
+    t.index ["user_id", "analysis_menu_id", "created_at"], name: "idx_on_user_id_analysis_menu_id_created_at_09a97c749f"
+    t.index ["user_id"], name: "index_analysis_sessions_on_user_id"
   end
 
   create_table "scale_tracks", force: :cascade do |t|
@@ -62,6 +104,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_16_130620) do
     t.boolean "archived", default: false, null: false
     t.string "color", default: "#DDEBFF", null: false
     t.datetime "created_at", null: false
+    t.text "focus_points"
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -83,6 +126,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_16_130620) do
   end
 
   add_foreign_key "ai_recommendations", "users"
+  add_foreign_key "analysis_menus", "users"
+  add_foreign_key "analysis_sessions", "analysis_menus"
+  add_foreign_key "analysis_sessions", "users"
   add_foreign_key "training_log_menus", "training_logs", column: ["training_log_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_logs_same_user", on_delete: :cascade
   add_foreign_key "training_log_menus", "training_menus", column: ["training_menu_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_menus_same_user", on_delete: :restrict
   add_foreign_key "training_log_menus", "users"

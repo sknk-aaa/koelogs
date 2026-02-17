@@ -8,6 +8,7 @@ import AppLayout from "./components/AppLayout";
 import LogPage from "./pages/LogPage";
 import LogNewPage from "./pages/LogNewPage";
 import TrainingPage from "./pages/TrainingPage";
+import AnalysisHistoryPage from "./pages/AnalysisHistoryPage";
 import InsightsPage from "./pages/InsightsPage";
 import InsightsTimePage from "./pages/InsightsTimePage";
 import InsightsMenusPage from "./pages/InsightsMenusPage";
@@ -44,6 +45,7 @@ export default function App() {
             {/* 認証が必要なページ */}
             <Route element={<RequireAuth />}>
               <Route path="/log/new" element={<LogNewPage />} />
+              <Route path="/analysis/history" element={<AnalysisHistoryPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Route>

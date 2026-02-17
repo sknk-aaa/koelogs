@@ -70,42 +70,14 @@ export default function AppHeader({ title }: Props) {
     }
   }, [logout, navigate]);
 
-  const onContact = () => {
+  const onContact = useCallback(() => {
     const mailto = buildMailto();
     window.location.href = mailto;
-  };
+  }, []);
 
   const sections: DrawerSection[] = useMemo(
-    () => [
-      {
-        title: "設定",
-        items: [
-          {
-            label: "設定",
-            to: "/settings",
-            match: "exact",
-            onClick: () => navigate("/settings"),
-          },
-        ],
-      },
-      {
-        title: "アカウント",
-        items: [
-          {
-            label: "プロフィール（表示名）",
-            to: "/profile",
-            match: "exact",
-            onClick: () => navigate("/profile"),
-          },
-          {
-            label: "ログアウト",
-            variant: "danger",
-            onClick: onLogout,
-            disabled: !me,
-          },
-        ],
-      },
-      {
+    () => {
+      const baseHelp: DrawerSection = {
         title: "ヘルプ",
         items: [
           {
@@ -126,9 +98,48 @@ export default function AppHeader({ title }: Props) {
             onClick: onContact,
           },
         ],
-      },
-    ],
-    [navigate, onLogout, me]
+      };
+
+      if (!me) {
+        return [
+          {
+            title: "アカウント",
+            items: [
+              { label: "ログイン", onClick: () => navigate("/login"), to: "/login", match: "exact" },
+              { label: "Sign up", onClick: () => navigate("/signup"), to: "/signup", match: "exact" },
+            ],
+          },
+          baseHelp,
+        ];
+      }
+
+      return [
+        {
+          title: "設定",
+          items: [
+            { label: "設定", onClick: () => navigate("/settings"), to: "/settings", match: "exact" },
+          ],
+        },
+        {
+          title: "アカウント",
+          items: [
+            {
+              label: "プロフィール（表示名）",
+              to: "/profile",
+              match: "exact",
+              onClick: () => navigate("/profile"),
+            },
+            {
+              label: "ログアウト",
+              variant: "danger",
+              onClick: onLogout,
+            },
+          ],
+        },
+        baseHelp,
+      ];
+    },
+    [me, navigate, onContact, onLogout]
   );
 
   const onClickBrand = () => {
@@ -158,7 +169,7 @@ export default function AppHeader({ title }: Props) {
             {title}
           </div>
 
-          {/* 右：ユーザー名 + ハンバーガー */}
+          {/* 右：ログイン状態に応じて切り替え */}
           <div style={styles.right}>
             {!isLoading && me && !isMobile && (
               <div style={styles.email} title={me.display_name ?? me.email}>
@@ -166,16 +177,37 @@ export default function AppHeader({ title }: Props) {
               </div>
             )}
 
-            <button
-              type="button"
-              aria-label="メニューを開く"
-              onClick={() => setOpen(true)}
-              style={styles.menuBtn}
-            >
-              <span style={styles.bar} />
-              <span style={styles.bar} />
-              <span style={styles.bar} />
-            </button>
+            {!isLoading && !me && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate("/login")}
+                  style={styles.authBtn}
+                >
+                  ログイン
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/signup")}
+                  style={{ ...styles.authBtn, ...styles.authBtnPrimary }}
+                >
+                  Sign up
+                </button>
+              </>
+            )}
+
+            {!isLoading && (
+              <button
+                type="button"
+                aria-label="メニューを開く"
+                onClick={() => setOpen(true)}
+                style={styles.menuBtn}
+              >
+                <span style={styles.bar} />
+                <span style={styles.bar} />
+                <span style={styles.bar} />
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -218,8 +250,8 @@ const styles: Record<string, React.CSSProperties> = {
   right: {
     display: "flex",
     alignItems: "center",
-    gap: 10,
-    minWidth: 88,
+    gap: 8,
+    minWidth: 116,
     justifyContent: "flex-end",
   },
 
@@ -258,6 +290,21 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     maxWidth: 220,
+  },
+  authBtn: {
+    height: 34,
+    borderRadius: 10,
+    border: "1px solid rgba(0,0,0,0.10)",
+    background: "rgba(255,255,255,0.85)",
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 900,
+    padding: "0 10px",
+    whiteSpace: "nowrap",
+  },
+  authBtnPrimary: {
+    borderColor: "color-mix(in srgb, var(--accent) 44%, rgba(0,0,0,0.1))",
+    background: "color-mix(in srgb, var(--accent) 14%, white)",
   },
 
   menuBtn: {

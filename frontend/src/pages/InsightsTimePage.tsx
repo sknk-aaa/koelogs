@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { fetchInsights } from "../api/insights";
 import type { InsightsData } from "../types/insights";
 import LineChart from "../features/insights/components/LineChart";
+import { useAuth } from "../features/auth/useAuth";
+import { makeMockInsights } from "../features/insights/mockInsights";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -28,10 +30,18 @@ function maxDailyMinutes(data: InsightsData) {
 }
 
 export default function InsightsTimePage() {
+  const { me, isLoading: authLoading } = useAuth();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const guestMode = !authLoading && !me;
+  const guestData = useMemo(
+    () => (guestMode ? makeMockInsights(days) : null),
+    [guestMode, days]
+  );
 
   useEffect(() => {
+    if (authLoading || guestMode) return;
+
     let cancelled = false;
     (async () => {
       setState({ kind: "loading" });
@@ -52,9 +62,9 @@ export default function InsightsTimePage() {
     return () => {
       cancelled = true;
     };
-  }, [days]);
+  }, [authLoading, days, guestMode]);
 
-  const data = state.kind === "ready" ? state.data : null;
+  const data = guestData ?? (state.kind === "ready" ? state.data : null);
 
   const total = useMemo(() => (data ? sumTotalMinutes(data) : 0), [data]);
   const max = useMemo(() => (data ? maxDailyMinutes(data) : 0), [data]);
@@ -98,10 +108,19 @@ export default function InsightsTimePage() {
         </div>
       </section>
 
-      {state.kind === "loading" && <div className="insightsMuted">読み込み中…</div>}
-      {state.kind === "error" && <div className="insightsError">取得に失敗しました: {state.message}</div>}
+      {guestMode && (
+        <section className="card insightsGuest">
+          <div className="insightsGuest__title">ゲスト表示中</div>
+          <div className="insightsGuest__text">
+            分析画面の構成は確認できます。個人の練習履歴に基づく詳細データはログイン後に表示されます。
+          </div>
+        </section>
+      )}
 
-      {state.kind === "ready" && data && (
+      {!guestData && state.kind === "loading" && <div className="insightsMuted">読み込み中…</div>}
+      {!guestData && state.kind === "error" && <div className="insightsError">取得に失敗しました: {state.message}</div>}
+
+      {data && (
         <div className="insightsStack">
           <section className="insightsCard">
             <div className="insightsCard__head">

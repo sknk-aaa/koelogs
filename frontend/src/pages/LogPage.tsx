@@ -5,6 +5,7 @@ import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRe
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
 import { useSettings } from "../features/settings/useSettings";
+import { useAuth } from "../features/auth/useAuth";
 
 import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
 
@@ -46,6 +47,7 @@ export default function LogPage() {
   const isToday = date === today;
   const monthKey = useMemo(() => date.slice(0, 7), [date]); // YYYY-MM
   const { settings } = useSettings();
+  const { me: authMe, isLoading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,6 +138,13 @@ export default function LogPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (!authMe) {
+        setLoading(false);
+        setError(null);
+        setLog(null);
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
@@ -154,12 +163,18 @@ export default function LogPage() {
     return () => {
       cancelled = true;
     };
-  }, [date]);
+  }, [date, authMe]);
 
   // ai recommendation fetch (read-only)
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (!authMe) {
+        setAiError(null);
+        setAiRec(null);
+        return;
+      }
+
       setAiError(null);
 
       const res = await fetchAiRecommendationByDate(date);
@@ -176,17 +191,25 @@ export default function LogPage() {
     return () => {
       cancelled = true;
     };
-  }, [date]);
+  }, [date, authMe]);
 
   const onChangeDate = (next: string) => {
     setParams({ date: next });
   };
 
   const goNew = () => {
+    if (!authMe) {
+      navigate(`/login`, { state: { fromPath: `/log?date=${encodeURIComponent(date)}` } });
+      return;
+    }
     navigate(`/log/new?date=${encodeURIComponent(date)}`);
   };
 
   const onAskAi = async () => {
+    if (!authMe) {
+      navigate(`/login`, { state: { fromPath: `/log?date=${encodeURIComponent(date)}` } });
+      return;
+    }
     if (aiLoading) return;
 
     setAiLoading(true);
@@ -210,12 +233,37 @@ export default function LogPage() {
     setAiExpanded(true);
   };
 
-  const showAiArea = !!aiRec || aiLoading || !!aiError;
-  const showAiButton = isToday && !aiLoading && !aiRec && !aiError;
+  const guestMode = !authLoading && !authMe;
+  const previewLog: TrainingLog = {
+    id: -1,
+    practiced_on: date,
+    duration_min: 28,
+    menus: [
+      { id: -11, name: "リップロール", color: "#F59E0B", archived: false },
+      { id: -12, name: "ハミング", color: "#34D399", archived: false },
+      { id: -13, name: "ミックス練習", color: "#60A5FA", archived: false },
+    ],
+    notes: "高音で喉が締まりやすい。息の量を少し減らすと当たりが安定した。",
+    falsetto_top_note: "A4",
+    chest_top_note: "E4",
+  };
+  const previewAiRec: AiRecommendation = {
+    id: -1,
+    generated_for_date: date,
+    range_days: settings.aiRangeDays,
+    recommendation_text:
+      "今日はウォームアップを10分入れてから、ミックス練習を中心に。後半はテンポを落として音程の安定を優先しましょう。",
+    created_at: new Date().toISOString(),
+  };
 
-  const menuItems = log?.menus ?? [];
+  const effectiveLog = guestMode ? previewLog : log;
+  const effectiveAiRec = guestMode ? previewAiRec : aiRec;
+  const showAiArea = guestMode || !!effectiveAiRec || aiLoading || !!aiError;
+  const showAiButton = isToday && !aiLoading && !effectiveAiRec && !aiError;
 
-  const aiTextRaw = aiRec?.recommendation_text ?? "";
+  const menuItems = effectiveLog?.menus ?? [];
+
+  const aiTextRaw = effectiveAiRec?.recommendation_text ?? "";
   const aiCollapsible = aiTextRaw ? shouldCollapseText(aiTextRaw, AI_PREVIEW_CHARS) : false;
   const aiShownText =
     aiTextRaw && !aiExpanded && aiCollapsible ? previewText(aiTextRaw, AI_PREVIEW_CHARS) : aiTextRaw;
@@ -228,10 +276,20 @@ export default function LogPage() {
 
   return (
     <div className="page logPage">
-      <LogHeader date={date} onChangeDate={onChangeDate} onOpenMonthly={() => setMonthModalOpen(true)} />
+      <LogHeader
+        date={date}
+        onChangeDate={onChangeDate}
+        onOpenMonthly={() => {
+          if (!authMe) {
+            navigate(`/login`, { state: { fromPath: `/log?date=${encodeURIComponent(date)}` } });
+            return;
+          }
+          setMonthModalOpen(true);
+        }}
+      />
 
       {/* ✅ 目標：LogHeader直下／日付移動しても固定 */}
-      <div className="goalBar">
+      {!!me && <div className="goalBar">
         {!goalEditing ? (
           goalText ? (
             <div className="goalBar__view">
@@ -293,7 +351,16 @@ export default function LogPage() {
             </div>
           </div>
         )}
-      </div>
+      </div>}
+
+      {guestMode && (
+        <div className="logPage__guestGuide card">
+          <div className="logPage__guestTitle">ゲスト表示中: これはサンプルです</div>
+          <div className="logPage__guestText">
+            未ログインでも画面の使い方を確認できます。記録保存・AI生成はログイン後に有効になります。
+          </div>
+        </div>
+      )}
 
       <MonthlyLogsModal
         open={monthModalOpen}
@@ -306,12 +373,18 @@ export default function LogPage() {
 
       <div className="logPage__stack">
         <SummaryCard
-          loading={loading}
-          error={error}
-          log={log}
+          loading={guestMode ? false : loading}
+          error={guestMode ? null : error}
+          log={effectiveLog}
           menuItems={menuItems}
           emptyHint={emptyHint}
-          recordLabel={isToday ? "今日のトレーニングを記録" : "この日のトレーニングを記録"}
+          recordLabel={
+            guestMode
+              ? "ログインして記録する"
+              : isToday
+                ? "今日のトレーニングを記録"
+                : "この日のトレーニングを記録"
+          }
           onClickRecord={goNew}
         />
 
@@ -319,8 +392,8 @@ export default function LogPage() {
           <AiRecommendationCard
             rangeDays={settings.aiRangeDays}
             aiLoading={aiLoading}
-            aiError={aiError}
-            aiRec={aiRec}
+            aiError={guestMode ? null : aiError}
+            aiRec={effectiveAiRec}
             shownText={aiShownText}
             collapsible={aiCollapsible}
             expanded={aiExpanded}
@@ -330,9 +403,9 @@ export default function LogPage() {
       </div>
 
       <div className="logPage__actions">
-        {showAiButton && (
+        {(showAiButton || guestMode) && (
           <button onClick={onAskAi} className="logPage__btn">
-            AIに今日のおすすめを聞く
+            {guestMode ? "ログインしてAIおすすめを生成" : "AIに今日のおすすめを聞く"}
           </button>
         )}
       </div>

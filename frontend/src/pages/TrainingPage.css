@@ -74,6 +74,29 @@
   gap: 16px;
 }
 
+.trainingPage__guestGuide {
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 36%, transparent), rgba(0, 0, 0, 0.1)) border-box;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.trainingPage__guestTitle {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.trainingPage__guestText {
+  font-size: 13px;
+  line-height: 1.65;
+  opacity: 0.76;
+}
+
 .trainingPage__panel {
   border-radius: 16px;
   border: 1px solid transparent;

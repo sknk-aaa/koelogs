@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { fetchInsights } from "../api/insights";
 import type { InsightsData, MenuRankingItem } from "../types/insights";
 import ColoredTag from "../components/ColoredTag";
+import { useAuth } from "../features/auth/useAuth";
+import { makeMockInsights } from "../features/insights/mockInsights";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -27,12 +29,20 @@ function clamp(n: number, min: number, max: number) {
 }
 
 export default function InsightsMenusPage() {
+  const { me, isLoading: authLoading } = useAuth();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
   const [sortMode, setSortMode] = useState<SortMode>("count_desc");
   const [q, setQ] = useState("");
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const guestMode = !authLoading && !me;
+  const guestData = useMemo(
+    () => (guestMode ? makeMockInsights(days) : null),
+    [guestMode, days]
+  );
 
   useEffect(() => {
+    if (authLoading || guestMode) return;
+
     let cancelled = false;
     (async () => {
       setState({ kind: "loading" });
@@ -53,12 +63,13 @@ export default function InsightsMenusPage() {
     return () => {
       cancelled = true;
     };
-  }, [days]);
+  }, [authLoading, days, guestMode]);
 
   const derived = useMemo(() => {
-    if (state.kind !== "ready") return null;
+    const source = guestData ?? (state.kind === "ready" ? state.data : null);
+    if (!source) return null;
 
-    const items: MenuRankingItem[] = state.data.menu_ranking ?? [];
+    const items: MenuRankingItem[] = source.menu_ranking ?? [];
     const totalCount = items.reduce((sum, it) => sum + (it.count || 0), 0);
 
     const nq = normalize(q);
@@ -75,12 +86,12 @@ export default function InsightsMenusPage() {
 
     const maxC = Math.max(1, ...sorted.map((x) => x.count || 0));
 
-    return { totalCount, list: sorted, maxC, range: state.data.range };
-  }, [q, sortMode, state]);
+    return { totalCount, list: sorted, maxC, range: source.range };
+  }, [guestData, q, sortMode, state]);
 
   const content = (() => {
-    if (state.kind === "loading") return <div className="insightsMuted">読み込み中…</div>;
-    if (state.kind === "error") return <div className="insightsError">取得に失敗しました: {state.message}</div>;
+    if (!guestData && state.kind === "loading") return <div className="insightsMuted">読み込み中…</div>;
+    if (!guestData && state.kind === "error") return <div className="insightsError">取得に失敗しました: {state.message}</div>;
     if (!derived) return null;
 
     const { totalCount, list, maxC, range } = derived;
@@ -189,6 +200,15 @@ export default function InsightsMenusPage() {
           </div>
         </div>
       </section>
+
+      {guestMode && (
+        <section className="card insightsGuest">
+          <div className="insightsGuest__title">ゲスト表示中</div>
+          <div className="insightsGuest__text">
+            分析画面の構成は確認できます。個人の練習履歴に基づく詳細データはログイン後に表示されます。
+          </div>
+        </section>
+      )}
 
       {content}
     </div>

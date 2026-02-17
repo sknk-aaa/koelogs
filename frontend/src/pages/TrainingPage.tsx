@@ -7,12 +7,14 @@ import { useAudioPlayer } from "../features/training/hooks/useAudioPlayer";
 import TrackFilters from "../features/training/components/TrackFilters";
 import AudioPlayer from "../features/training/components/AudioPlayer";
 import { useSettings } from "../features/settings/useSettings";
+import { useAuth } from "../features/auth/useAuth";
 
 import "./TrainingPage.css";
 
 export default function TrainingPage() {
   const { tracks, loading, error } = useScaleTracks();
   const { settings } = useSettings();
+  const { me, isLoading: authLoading } = useAuth();
 
   const [scaleType, setScaleType] = useState<ScaleType>("5tone");
   const [tempo, setTempo] = useState<Tempo>(120);
@@ -30,6 +32,7 @@ export default function TrainingPage() {
   );
 
   const disabled = loading || !!error || !selected;
+  const guestMode = !authLoading && !me;
 
   return (
     <div className="page trainingPage">
@@ -45,6 +48,15 @@ export default function TrainingPage() {
           <span className="trainingPage__chip">{tempo} bpm</span>
         </div>
       </section>
+
+      {guestMode && (
+        <section className="card trainingPage__guestGuide">
+          <div className="trainingPage__guestTitle">ゲスト表示中</div>
+          <div className="trainingPage__guestText">
+            トレーニング再生はそのまま使えます。ログ保存や個人データ連携はログイン後に有効になります。
+          </div>
+        </section>
+      )}
 
       <main className="trainingPage__grid">
         <section className="card trainingPage__panel">

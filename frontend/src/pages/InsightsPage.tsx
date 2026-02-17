@@ -5,6 +5,8 @@ import { fetchInsights } from "../api/insights";
 import type { DailyDurationPoint, InsightsData, MenuRankingItem } from "../types/insights";
 import LineChart from "../features/insights/components/LineChart";
 import ColoredTag from "../components/ColoredTag";
+import { useAuth } from "../features/auth/useAuth";
+import { makeMockInsights } from "../features/insights/mockInsights";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -118,9 +120,17 @@ function formatDateSlash(iso: string | null): string | null {
 
 export default function InsightsPage() {
   const days = 30;
+  const { me, isLoading: authLoading } = useAuth();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const guestMode = !authLoading && !me;
+  const guestData = useMemo(
+    () => (guestMode ? makeMockInsights(days) : null),
+    [guestMode, days]
+  );
 
   useEffect(() => {
+    if (authLoading || guestMode) return;
+
     let cancelled = false;
     (async () => {
       setState({ kind: "loading" });
@@ -141,12 +151,12 @@ export default function InsightsPage() {
     return () => {
       cancelled = true;
     };
-  }, [days]);
+  }, [authLoading, days, guestMode]);
 
-  const data = state.kind === "ready" ? state.data : null;
+  const data = guestData ?? (state.kind === "ready" ? state.data : null);
   const maxY = useMemo(() => (data ? maxDaily(data.daily_durations) : 0), [data]);
 
-  if (state.kind === "loading") {
+  if (!guestData && state.kind === "loading") {
     return (
       <div className="page insightsPage">
         <div className="insightsPage__bg" aria-hidden="true" />
@@ -159,7 +169,7 @@ export default function InsightsPage() {
     );
   }
 
-  if (state.kind === "error") {
+  if (!guestData && state.kind === "error") {
     return (
       <div className="page insightsPage">
         <div className="insightsPage__bg" aria-hidden="true" />
@@ -212,6 +222,15 @@ export default function InsightsPage() {
           <div className="insightsChip">練習日数: {freq}</div>
         </div>
       </section>
+
+      {guestMode && (
+        <section className="card insightsGuest">
+          <div className="insightsGuest__title">ゲスト表示中</div>
+          <div className="insightsGuest__text">
+            分析画面の構成は確認できます。個人の練習履歴に基づく詳細データはログイン後に表示されます。
+          </div>
+        </section>
+      )}
 
       <div className="insightsGrid">
         <ClickableCard title="練習時間の推移" to="/insights/time">

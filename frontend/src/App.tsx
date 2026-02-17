@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
 import RequireAuth from "./features/auth/RequireAuth";
-import { useAuth } from "./features/auth/useAuth";
 import AppLayout from "./components/AppLayout";
 
 import LogPage from "./pages/LogPage";
@@ -15,9 +14,6 @@ import InsightsMenusPage from "./pages/InsightsMenusPage";
 
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-import LandingPage from "./pages/LandingPage";
-
-// ✅ Step7 追加ページ
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import HelpGuidePage from "./pages/HelpGuidePage";
@@ -28,7 +24,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<RootEntry />} />
+          <Route path="/" element={<Navigate to="/log" replace />} />
 
           {/* 公開ページ（レイアウト外） */}
           <Route path="/login" element={<LoginPage />} />
@@ -36,22 +32,21 @@ export default function App() {
 
           {/* 共通ヘッダー/フッター */}
           <Route element={<AppLayout />}>
+            {/* 公開ページ */}
+            <Route path="/log" element={<LogPage />} />
+            <Route path="/training" element={<TrainingPage />} />
+            <Route path="/insights" element={<InsightsPage />} />
+            <Route path="/insights/time" element={<InsightsTimePage />} />
+            <Route path="/insights/menus" element={<InsightsMenusPage />} />
+
             {/* 認証が必要なページ */}
             <Route element={<RequireAuth />}>
-              <Route path="/log" element={<LogPage />} />
               <Route path="/log/new" element={<LogNewPage />} />
-              <Route path="/training" element={<TrainingPage />} />
-
-              <Route path="/insights" element={<InsightsPage />} />
-              <Route path="/insights/time" element={<InsightsTimePage />} />
-              <Route path="/insights/menus" element={<InsightsMenusPage />} />
-
-              {/* ✅ Step7：設定/アカウント */}
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Route>
 
-            {/* ✅ Step7：ヘルプは「ログイン不要」 */}
+            {/* ヘルプはログイン不要 */}
             <Route path="/help/guide" element={<HelpGuidePage />} />
             <Route path="/help/about" element={<HelpAboutPage />} />
 
@@ -62,24 +57,6 @@ export default function App() {
       </AuthProvider>
     </BrowserRouter>
   );
-}
-
-function RootEntry() {
-  const { me, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div style={styles.wrap}>
-        <p style={styles.p}>読み込み中...</p>
-      </div>
-    );
-  }
-
-  if (me) {
-    return <Navigate to="/log" replace />;
-  }
-
-  return <LandingPage />;
 }
 
 function NotFound() {

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_18_214000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_19_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -158,6 +158,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_214000) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  create_table "weekly_logs", force: :cascade do |t|
+    t.string "chest_top_note"
+    t.datetime "created_at", null: false
+    t.jsonb "effect_feedbacks", default: [], null: false
+    t.string "falsetto_top_note"
+    t.text "notes"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.date "week_start", null: false
+    t.index ["user_id", "week_start"], name: "index_weekly_logs_on_user_id_and_week_start", unique: true
+    t.index ["user_id"], name: "index_weekly_logs_on_user_id"
+  end
+
   add_foreign_key "ai_recommendations", "users"
   add_foreign_key "analysis_menus", "users"
   add_foreign_key "analysis_sessions", "analysis_menus"
@@ -169,4 +182,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_214000) do
   add_foreign_key "training_log_menus", "users"
   add_foreign_key "training_logs", "users"
   add_foreign_key "training_menus", "users"
+  add_foreign_key "weekly_logs", "users"
 end

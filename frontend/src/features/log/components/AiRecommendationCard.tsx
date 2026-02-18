@@ -1,38 +1,39 @@
-import type { AiRecommendation } from "../../../types/aiRecommendation";
-
 type Props = {
-  rangeDays: number;
+  title: string;
+  meta: string;
   aiLoading: boolean;
   aiError: string | null;
-  aiRec: AiRecommendation | null;
+  recommendationText: string | null;
+  isSaved: boolean;
   sampleMode?: boolean;
-  shownText: string;
+  shownText: string | null;
   collapsible: boolean;
   expanded: boolean;
   onToggleExpanded: () => void;
 };
 
 export default function AiRecommendationCard({
-  rangeDays,
+  title,
+  meta,
   aiLoading,
   aiError,
-  aiRec,
+  recommendationText,
+  isSaved,
   sampleMode = false,
   shownText,
   collapsible,
   expanded,
   onToggleExpanded,
 }: Props) {
-  const status =
-    aiLoading ? "loading" : aiError ? "error" : aiRec ? "saved" : "empty";
+  const status = aiLoading ? "loading" : aiError ? "error" : isSaved ? "saved" : "empty";
 
   return (
     <div className={`logAi card logPage__card logAi--${status}`}>
       {/* ヘッダー */}
       <div className="logAi__header">
         <div>
-          <div className="logAi__title">今日のおすすめメニュー</div>
-          <div className="logAi__meta">今日を含めて直近 {rangeDays} 日を参考</div>
+          <div className="logAi__title">{title}</div>
+          <div className="logAi__meta">{meta}</div>
         </div>
 
         <div className="logAi__headerRight">
@@ -63,7 +64,7 @@ export default function AiRecommendationCard({
           </div>
         )}
 
-        {!aiLoading && aiRec && (
+        {!aiLoading && recommendationText && shownText && (
           <>
             <div className="logAi__text">{shownText}</div>
 

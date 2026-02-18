@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import type { DailyNotePoint } from "../../../types/insights";
 import "./NotePitchChart.css";
@@ -56,6 +56,7 @@ export default function NotePitchChart({
   chest: DailyNotePoint[];
   showXAxis?: boolean;
 }) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const H = 210;
   const PAD = 18;
 
@@ -106,6 +107,17 @@ export default function NotePitchChart({
     [chest, minMidi, maxMidi, width]
   );
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const raf = requestAnimationFrame(() => {
+      el.scrollLeft = el.scrollWidth;
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [width, showXAxis, falsetto.length, chest.length]);
+
   return (
     <div className="notePitchChart">
       <div className="notePitchChart__legend">
@@ -125,7 +137,7 @@ export default function NotePitchChart({
           })}
         </div>
 
-        <div className="notePitchChart__scroll">
+        <div className="notePitchChart__scroll" ref={scrollRef}>
           <div style={{ width, minWidth: 0 }}>
             <svg viewBox={`0 0 ${width} ${H}`} className="notePitchChart__svg" preserveAspectRatio="none">
               {ticks.map((m) => {

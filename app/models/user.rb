@@ -7,6 +7,7 @@ class User < ApplicationRecord
   has_many :analysis_menus, dependent: :destroy
   has_many :analysis_sessions, dependent: :destroy
   has_many :ai_recommendations, dependent: :destroy
+  has_many :weekly_logs, dependent: :destroy
 
   validates :email, presence: true, uniqueness: true
 

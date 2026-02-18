@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
 import HamburgerDrawer, { type DrawerSection } from "./HamburgerDrawer";
+import { getLastLogPath } from "../features/log/logNavigation";
 
 type Props = {
   title: string;
@@ -143,7 +144,7 @@ export default function AppHeader({ title }: Props) {
   );
 
   const onClickBrand = () => {
-    navigate("/log");
+    navigate(getLastLogPath());
   };
 
   return (

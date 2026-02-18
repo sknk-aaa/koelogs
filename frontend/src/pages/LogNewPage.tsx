@@ -568,11 +568,11 @@ export default function LogNewPage() {
       return;
     }
 
-    navigate(`/log?date=${encodeURIComponent(practicedOn)}`, { replace: true });
+    navigate(`/log?mode=day&date=${encodeURIComponent(practicedOn)}`, { replace: true });
   };
 
   const onCancel = () => {
-    navigate(`/log?date=${encodeURIComponent(practicedOn)}`);
+    navigate(`/log?mode=day&date=${encodeURIComponent(practicedOn)}`);
   };
 
   const tunerNeedle = useMemo(() => {

@@ -30,15 +30,16 @@ module Api
 
       logs = current_user.training_logs
                         .where(practiced_on: from..to)
-                        .includes(:training_menus) # ✅ N+1防止（generatorが training_menus を参照）
+                        .includes(:training_menus, :training_log_feedback) # ✅ N+1防止（generatorが association を参照）
                         .order(:practiced_on)
+      collective_effects = Ai::CollectiveEffectSummary.new(window_days: 90, min_count: 3).build
 
       text = Ai::RecommendationGenerator.new(
         user: current_user,
         date: target_date,
         range_days: range_days,
         include_today: include_today
-      ).generate!(logs: logs)
+      ).generate!(logs: logs, collective_effects: collective_effects)
 
       rec = current_user.ai_recommendations.new(
         generated_for_date: target_date,

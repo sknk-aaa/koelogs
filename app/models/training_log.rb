@@ -7,6 +7,7 @@ class TrainingLog < ApplicationRecord
 
   has_many :training_log_menus, -> { order(created_at: :asc) }, dependent: :delete_all
   has_many :training_menus, through: :training_log_menus
+  has_one :training_log_feedback, dependent: :delete
 
   before_validation :normalize_duration
   before_validation :normalize_enabled_flags

@@ -36,9 +36,21 @@ const MENU_COLOR_PALETTE: { name: string; color: string }[] = [
   { name: "Gray", color: "#E5E7EB" },
   { name: "Blue", color: "#DBEAFE" },
 ];
+const IMPROVEMENT_TAG_OPTIONS = [
+  { key: "high_note_ease", label: "高音の出しやすさ" },
+  { key: "pitch_stability", label: "音程の安定" },
+  { key: "passaggio_smoothness", label: "換声点の滑らかさ" },
+  { key: "less_breathlessness", label: "息切れしにくさ" },
+  { key: "volume_stability", label: "声量の安定" },
+  { key: "less_throat_tension", label: "喉の力み軽減" },
+  { key: "resonance_clarity", label: "声の抜け・響き" },
+  { key: "long_tone_sustain", label: "ロングトーン維持" },
+] as const;
 const PEAK_CONFIRM_FRAMES = 4;
 
 type PitchTarget = "falsetto" | "chest";
+type ImprovementTagKey = (typeof IMPROVEMENT_TAG_OPTIONS)[number]["key"];
+type EffectFeedbackInput = { menuId: number | null; improvementTags: ImprovementTagKey[] };
 
 function autoCorrelate(buf: Float32Array, sampleRate: number): number | null {
   const size = buf.length;
@@ -124,6 +136,7 @@ export default function LogNewPage() {
   const [menuCatalog, setMenuCatalog] = useState<TrainingMenu[]>([]);
   const [menuToAdd, setMenuToAdd] = useState("");
   const [selectedMenuIds, setSelectedMenuIds] = useState<Set<number>>(() => new Set());
+  const [effectFeedbacks, setEffectFeedbacks] = useState<EffectFeedbackInput[]>([]);
 
   // 追加時の色
   const [menuColorToAdd, setMenuColorToAdd] = useState(MENU_COLOR_PALETTE[0].color);
@@ -189,6 +202,7 @@ export default function LogNewPage() {
 
       const existing = res.data as TrainingLog | null;
       if (!existing) {
+        setEffectFeedbacks([]);
         setInitialLoading(false);
         return;
       }
@@ -200,6 +214,21 @@ export default function LogNewPage() {
         existing.menu_ids && existing.menu_ids.length ? existing.menu_ids : (existing.menus ?? []).map((m) => m.id);
 
       setSelectedMenuIds(new Set(ids));
+      const validEffectFeedbacks = Array.isArray(existing.effect_feedbacks)
+        ? existing.effect_feedbacks
+            .map((entry): EffectFeedbackInput | null => {
+              const menuId = typeof entry?.menu_id === "number" && entry.menu_id > 0 ? entry.menu_id : null;
+              const improvementTags = Array.isArray(entry?.improvement_tags)
+                ? entry.improvement_tags.filter(
+                    (tag): tag is ImprovementTagKey => IMPROVEMENT_TAG_OPTIONS.some((opt) => opt.key === tag)
+                  )
+                : [];
+              if (!menuId || improvementTags.length === 0) return null;
+              return { menuId, improvementTags: Array.from(new Set(improvementTags)) };
+            })
+            .filter((v): v is EffectFeedbackInput => v !== null)
+        : [];
+      setEffectFeedbacks(validEffectFeedbacks);
 
       const f = existing.falsetto_top_note;
       setFalsettoEnabled(f != null);
@@ -413,6 +442,59 @@ export default function LogNewPage() {
     });
   };
 
+  const addEffectFeedbackBox = () => {
+    setEffectFeedbacks((prev) => [...prev, { menuId: null, improvementTags: [] }]);
+  };
+
+  const removeEffectFeedbackBox = (idx: number) => {
+    setEffectFeedbacks((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const setEffectFeedbackMenu = (idx: number, menuId: number | null) => {
+    setEffectFeedbacks((prev) => prev.map((row, i) => (i === idx ? { ...row, menuId } : row)));
+  };
+
+  const toggleEffectFeedbackTag = (idx: number, key: ImprovementTagKey) => {
+    setEffectFeedbacks((prev) =>
+      prev.map((row, i) => {
+        if (i !== idx) return row;
+        const has = row.improvementTags.includes(key);
+        return {
+          ...row,
+          improvementTags: has ? row.improvementTags.filter((t) => t !== key) : [...row.improvementTags, key],
+        };
+      })
+    );
+  };
+
+  const normalizedEffectFeedbackPayload = () => {
+    return effectFeedbacks
+      .filter((row) => row.menuId && row.improvementTags.length > 0)
+      .map((row) => ({
+        menu_id: row.menuId as number,
+        improvement_tags: Array.from(new Set(row.improvementTags)),
+      }))
+      .filter((row, idx, arr) => arr.findIndex((v) => v.menu_id === row.menu_id) === idx);
+  };
+
+  const availableMenuOptions = useMemo(() => {
+    return menuCatalog
+      .filter((m) => !m.archived)
+      .map((m) => ({ id: m.id, name: m.name }))
+      .sort((a, b) => a.name.localeCompare(b.name, "ja"));
+  }, [menuCatalog]);
+
+  const selectedEffectMenuIdSet = useMemo(() => {
+    const ids = effectFeedbacks.map((row) => row.menuId).filter((id): id is number => typeof id === "number");
+    return new Set(ids);
+  }, [effectFeedbacks]);
+
+  const menuOptionsForRow = (currentMenuId: number | null) => {
+    return availableMenuOptions.filter((menu) => menu.id === currentMenuId || !selectedEffectMenuIdSet.has(menu.id));
+  };
+
+  const canAddEffectBox = availableMenuOptions.length > effectFeedbacks.length;
+
   const addMenu = async () => {
     const v = menuToAdd.trim();
     if (!v) return;
@@ -436,6 +518,7 @@ export default function LogNewPage() {
         next.delete(menu.id);
         return next;
       });
+      setEffectFeedbacks((prev) => prev.filter((row) => row.menuId !== menu.id));
     } catch (e) {
       setErrors([errorMessage(e, "メニュー削除に失敗しました")]);
     }
@@ -469,6 +552,7 @@ export default function LogNewPage() {
       duration_min: Number.isNaN(parsedDuration as number) ? null : parsedDuration,
       menu_ids: quickMode ? [] : selectedMenuIdsArray,
       notes: notes.trim() === "" ? null : notes,
+      effect_feedbacks: quickMode ? [] : normalizedEffectFeedbackPayload(),
 
       falsetto_enabled: effectiveFalsettoEnabled,
       falsetto_top_note: effectiveFalsettoEnabled ? falsettoTopNote.trim() : null,
@@ -829,6 +913,81 @@ export default function LogNewPage() {
             placeholder={quickMode ? "いまの声の状態・気づき（任意）" : "メモ（任意）"}
             className="logNew__textarea"
           />
+
+          {!quickMode && (
+            <div className="logNew__aiQualityBox">
+              <div className="logNew__aiQualityTitle">以下を記録すると、AIおすすめの精度が上がります（任意）</div>
+              <div className="logNew__muted">
+                当てはまるものだけでOKです。選んだ内容は、あなた向けの提案精度向上に使われます。
+              </div>
+
+              <div className="logNew__subLabel">効いた実感があったメニューごとに、改善した感覚を記録（複数追加可）</div>
+              <div className="logNew__effectBoxes">
+                {effectFeedbacks.map((row, idx) => (
+                  <div key={`effect-row-${idx}`} className="logNew__effectBox">
+                    <div className="logNew__effectBoxHead">
+                      <div className="logNew__subLabel">記録 {idx + 1}</div>
+                      <button
+                        type="button"
+                        className="logNew__removeBtn"
+                        onClick={() => removeEffectFeedbackBox(idx)}
+                      >
+                        削除
+                      </button>
+                    </div>
+
+                    <div className="logNew__field">
+                      <label className="logNew__label">効いた実感があったメニュー</label>
+                      <select
+                        className="logNew__input"
+                        value={row.menuId ?? ""}
+                        onChange={(e) => {
+                          const raw = Number.parseInt(e.target.value, 10);
+                          setEffectFeedbackMenu(idx, Number.isNaN(raw) ? null : raw);
+                        }}
+                      >
+                        <option value="">選択してください</option>
+                        {menuOptionsForRow(row.menuId).map((menu) => (
+                          <option key={`effect-menu-option-${idx}-${menu.id}`} value={menu.id}>{menu.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="logNew__field">
+                      <div className="logNew__label">改善した感覚（複数選択）</div>
+                      <div className="logNew__chipList">
+                        {IMPROVEMENT_TAG_OPTIONS.map((tag) => {
+                          const selected = row.improvementTags.includes(tag.key);
+                          return (
+                            <button
+                              key={`effect-tag-${idx}-${tag.key}`}
+                              type="button"
+                              className={`logNew__chip ${selected ? "is-selected" : ""}`}
+                              onClick={() => toggleEffectFeedbackTag(idx, tag.key)}
+                            >
+                              {tag.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="logNew__btn logNew__btn--ghost"
+                onClick={addEffectFeedbackBox}
+                disabled={!canAddEffectBox}
+              >
+                記録ボックスを追加
+              </button>
+              {!canAddEffectBox && (
+                <div className="logNew__muted">追加できるメニューがありません。必要なら上でメニューを追加してください。</div>
+              )}
+            </div>
+          )}
         </section>
 
         {errors.length > 0 && (

@@ -2,6 +2,7 @@ class User < ApplicationRecord
   has_secure_password
 
   has_many :training_logs, dependent: :destroy
+  has_many :training_log_feedbacks, dependent: :destroy
   has_many :training_menus, dependent: :destroy
   has_many :analysis_menus, dependent: :destroy
   has_many :analysis_sessions, dependent: :destroy

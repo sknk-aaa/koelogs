@@ -13,7 +13,7 @@ type LoadState =
   | { kind: "error"; message: string }
   | { kind: "ready"; data: InsightsData };
 
-const PERIODS = [7, 30, 90, 365] as const;
+const PERIODS = [30, 90, 365] as const;
 
 function formatDateSlash(iso: string | null): string {
   if (!iso) return "—";
@@ -22,7 +22,7 @@ function formatDateSlash(iso: string | null): string {
 
 export default function InsightsNotesPage() {
   const { me, isLoading: authLoading } = useAuth();
-  const [days, setDays] = useState<(typeof PERIODS)[number]>(7);
+  const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
   const [state, setState] = useState<LoadState>({ kind: "loading" });
 
   const guestMode = !authLoading && !me;

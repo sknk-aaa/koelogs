@@ -6,6 +6,8 @@ Rails.application.routes.draw do
     # training logs
     get "training_logs", to: "training_logs#index"
     post "training_logs", to: "training_logs#create"
+    get "weekly_logs", to: "weekly_logs#show"
+    post "weekly_logs", to: "weekly_logs#create"
 
     # training menus
     resources :training_menus, only: [ :index, :create, :update ]

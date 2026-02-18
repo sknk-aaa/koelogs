@@ -19,10 +19,6 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-function formatRange(from: string, to: string) {
-  return `${from} 〜 ${to}`;
-}
-
 function maxDaily(points: DailyDurationPoint[]) {
   let m = 0;
   for (const p of points) m = Math.max(m, p.duration_min || 0);
@@ -205,10 +201,6 @@ export default function InsightsPage() {
             <p className="insightsHero__sub">記録データの流れを俯瞰し、次の練習方針を決めるためのサマリーです。</p>
           </div>
         </div>
-        <div className="insightsHero__chips">
-          <div className="insightsChip">期間: {formatRange(data.range.from, data.range.to)}</div>
-          <div className="insightsChip">練習日数: {freq}</div>
-        </div>
       </section>
 
       {guestMode && (
@@ -236,7 +228,7 @@ export default function InsightsPage() {
           <MenuRankingPreview items={data.menu_ranking} />
         </ClickableCard>
 
-        <ClickableCard title="最高音の推移（裏声 / 地声）(7日間)" to="/insights/notes">
+        <ClickableCard title="最高音の推移（裏声 / 地声）(30日間)" to="/insights/notes">
           <NotePitchChart
             falsetto={data.note_series.falsetto}
             chest={data.note_series.chest}

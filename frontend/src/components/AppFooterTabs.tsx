@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { getLastLogPath } from "../features/log/logNavigation";
 
 // 画像をimport（ViteならこれでOK）
 import logActive from "../assets/tabs/log_active.png";
@@ -10,7 +11,7 @@ import insightsInactive from "../assets/tabs/insights_inactive.png";
 
 type TabKey = "log" | "training" | "insights";
 
-const TABS: {
+const BASE_TABS: {
   key: TabKey;
   label: string;
   to: string;
@@ -41,9 +42,15 @@ const TABS: {
 ];
 
 export default function AppFooterTabs() {
+  const logTabTo = getLastLogPath();
+  const tabs = BASE_TABS.map((tab) => ({
+    ...tab,
+    to: tab.key === "log" ? logTabTo : tab.to,
+  }));
+
   return (
     <nav style={styles.nav} aria-label="mode tabs">
-      {TABS.map((t) => (
+      {tabs.map((t) => (
         <NavLink
           key={t.key}
           to={t.to}

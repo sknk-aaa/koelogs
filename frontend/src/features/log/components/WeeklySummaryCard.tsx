@@ -213,7 +213,7 @@ export default function WeeklySummaryCard({
           </div>
 
           <div className="logPage__section">
-            <div className="logPage__sectionTitle">効いた実感があったメニュー（編集可）</div>
+            <div className="logPage__sectionTitle">効いた実感があったメニュー（記録すると、AIおすすめの精度が上がります（任意））</div>
 
             <div className="logNew__effectBoxes">
               {effectFeedbacks.map((row, idx) => (

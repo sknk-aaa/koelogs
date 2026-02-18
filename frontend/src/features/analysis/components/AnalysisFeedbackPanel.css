@@ -1,0 +1,70 @@
+.analysisFeedback {
+  display: grid;
+  gap: 8px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  padding-left: 8px;
+}
+
+.analysisFeedback__summary {
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 700;
+}
+
+.analysisFeedback__list {
+  display: grid;
+  gap: 8px;
+}
+
+.analysisFeedback__item {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 8px;
+}
+
+.analysisFeedback__itemHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.analysisFeedback__label {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.analysisFeedback__score {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.8;
+}
+
+.analysisFeedback__reason {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.analysisFeedback__evidenceWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.analysisFeedback__evidence {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.82);
+  padding: 3px 8px;
+}
+
+.analysisFeedback__note {
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.8;
+}

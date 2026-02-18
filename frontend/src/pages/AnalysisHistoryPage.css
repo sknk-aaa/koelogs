@@ -55,6 +55,10 @@
   justify-content: flex-end;
 }
 
+.analysisHistory__menuRow {
+  display: flex;
+}
+
 .analysisHistory__select {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -225,10 +229,7 @@
 }
 
 .analysisHistory__feedback {
-  font-size: 12px;
-  line-height: 1.55;
-  border-left: 2px solid color-mix(in srgb, var(--accent) 44%, var(--border));
-  padding-left: 8px;
+  margin-top: 4px;
 }
 
 .analysisHistory__muted {

@@ -2,6 +2,17 @@
 
 module Ai
   class RecommendationGenerator
+    GOAL_TAG_KEYWORDS = {
+      "high_note_ease" => [ /高音/, /高い音/, /high note/, /hi note/ ],
+      "pitch_stability" => [ /音程/, /ピッチ/, /pitch/ ],
+      "passaggio_smoothness" => [ /換声点/, /ミックス/, /地声.*裏声/, /裏声.*地声/ ],
+      "less_breathlessness" => [ /息切れ/, /息が続/, /ブレス/, /breath/ ],
+      "volume_stability" => [ /声量/, /音量/, /大きさ/, /volume/ ],
+      "less_throat_tension" => [ /喉/, /のど/, /力み/, /締め/, /throat/ ],
+      "resonance_clarity" => [ /響き/, /抜け/, /こも/, /resonance/ ],
+      "long_tone_sustain" => [ /ロングトーン/, /持続/, /伸ば/, /sustain/ ]
+    }.freeze
+
     def initialize(user:, date:, range_days: 7, include_today: false, client: Gemini::Client.new)
       @user = user
       @date = date
@@ -11,8 +22,10 @@ module Ai
     end
 
     def generate!(logs:, collective_effects:)
-      system = build_system_text
-      payload = build_user_text(logs, collective_effects)
+      collective_used = collective_knowledge_used?(logs, collective_effects)
+      goal_related_tags = infer_goal_related_tags
+      system = build_system_text(collective_used:, goal_related_tags:)
+      payload = build_user_text(logs, collective_effects, collective_used:, goal_related_tags:)
 
       @client.generate_text!(
         user_text: payload,
@@ -24,7 +37,7 @@ module Ai
 
     private
 
-    def build_system_text
+    def build_system_text(collective_used:, goal_related_tags:)
       goal_line =
         if @user.respond_to?(:goal_text) && @user.goal_text.present?
           <<~GOAL
@@ -34,6 +47,32 @@ module Ai
           GOAL
         else
           ""
+        end
+
+      collective_rule_block =
+        if collective_used
+          <<~RULES
+            - 集合知（あなたの効果メモ/全ユーザー傾向）を根拠に使う場合のみ、該当文に出典ラベルを必ず付ける（形式: 「出典: あなたの記録」または「出典: 全体傾向」）。
+            - 集合知を根拠に使う場合のみ、根拠文に具体的なメニュー名を必ず入れる。
+          RULES
+        else
+          <<~RULES
+            - 集合知を根拠に使っていない場合、出典ラベルの記載は不要。
+          RULES
+        end
+
+      goal_collective_rule_block =
+        if goal_related_tags.any?
+          labels = goal_related_tags.filter_map { |tag| TrainingLogFeedback::TAG_LABELS[tag] }.join(" / ")
+          <<~RULES
+            - 目標に関連する改善タグ（推定）は「#{labels}」です。
+            - 集合知を使う場合は、まずこのタグと一致する改善傾向を優先して採用する。
+            - 一致しない集合知は、個人ログ根拠で必要性を説明できる場合のみ補助的に使う。
+          RULES
+        else
+          <<~RULES
+            - 目標に関連する改善タグを特定できない場合、集合知との無理な一致づけは行わない。
+          RULES
         end
 
       <<~SYS
@@ -47,6 +86,8 @@ module Ai
         - 「足りていない点」は必ず根拠付きで書く（例: 練習時間の偏り、最高音の推移、記録メモの傾向、実施メニューの偏り）。
         - 根拠は「どのデータから言えるか」が分かるように具体化し、断定しすぎない。
         - 「全ユーザーの傾向」が与えられた場合は、個人データを主根拠、全ユーザー傾向を補助根拠として使う。
+        #{collective_rule_block}
+        #{goal_collective_rule_block}
         - 目標が抽象的、またはログが不足して声の状態を正確に把握できない場合は、その旨を明記し「追加で欲しいデータ」を1〜2個だけ具体的に書く。
         - 出力は 300〜700文字程度。短い見出しと箇条書きで、読みやすく簡潔にする。
         - 具体的に「メニュー」「時間配分」「狙い（1行）」を出す。
@@ -58,7 +99,7 @@ module Ai
       SYS
     end
 
-    def build_user_text(logs, collective_effects)
+    def build_user_text(logs, collective_effects, collective_used:, goal_related_tags:)
       from = (@include_today ? (@date - (@range_days - 1)) : (@date - @range_days)).iso8601
       to = (@include_today ? @date : (@date - 1)).iso8601
 
@@ -67,6 +108,13 @@ module Ai
       lines << "対象日: #{@date.iso8601}"
       range_label = @include_today ? "当日を含む直近#{@range_days}日" : "今日を除く直近#{@range_days}日"
       lines << "参照期間: #{from}〜#{to}（#{range_label}）"
+      lines << "集合知利用: #{collective_used ? 'あり' : 'なし'}"
+      if goal_related_tags.any?
+        goal_labels = goal_related_tags.filter_map { |tag| TrainingLogFeedback::TAG_LABELS[tag] }
+        lines << "目標関連改善タグ(推定): #{goal_labels.join(' | ')}"
+      else
+        lines << "目標関連改善タグ(推定): (特定できず)"
+      end
       lines << "練習ログ:"
 
       if logs.empty?
@@ -124,6 +172,25 @@ module Ai
       lines << "3) おすすめメニュー（最大3つ、各: メニュー名 / 時間 / 狙い）"
       lines << "4) 補足（目標が抽象的、またはデータ不足で精度に限界がある場合のみ。追加で欲しいデータを1〜2個）"
       lines.join("\n")
+    end
+
+    def collective_knowledge_used?(logs, collective_effects)
+      has_user_effect_memo = logs.any? do |log|
+        feedback = log.respond_to?(:training_log_feedback) ? log.training_log_feedback : nil
+        feedback.present? && normalize_feedback_effects(feedback).any?
+      end
+      has_global_collective = collective_effects[:rows].present?
+      has_user_effect_memo || has_global_collective
+    end
+
+    def infer_goal_related_tags
+      text = @user.respond_to?(:goal_text) ? @user.goal_text.to_s : ""
+      return [] if text.blank?
+
+      lowered = text.downcase
+      GOAL_TAG_KEYWORDS.filter_map do |tag, patterns|
+        tag if patterns.any? { |pattern| lowered.match?(pattern) }
+      end
     end
 
     def build_feedback_menu_name_map(logs)

@@ -70,9 +70,11 @@ module Api
       end
 
       # --- top notes (ALL TIME) + achieved date ---
-      all_time_logs = current_user.training_logs
-                                  .select(:practiced_on, :falsetto_top_note, :chest_top_note)
-                                  .order(:practiced_on)
+      all_time_scope = current_user.training_logs
+      total_practice_days_count = all_time_scope.count
+      all_time_logs = all_time_scope
+                      .select(:practiced_on, :falsetto_top_note, :chest_top_note)
+                      .order(:practiced_on)
 
       top_fal = best_note_with_date(all_time_logs, :falsetto_top_note)
       top_ch  = best_note_with_date(all_time_logs, :chest_top_note)
@@ -83,6 +85,7 @@ module Api
           range: { from: from.iso8601, to: to.iso8601, days: days },
           daily_durations: daily_durations,
           practice_days_count: practice_days_count,
+          total_practice_days_count: total_practice_days_count,
           menu_ranking: menu_ranking,
           note_series: {
             falsetto: falsetto_series,

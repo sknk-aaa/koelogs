@@ -5,6 +5,7 @@ type Props = {
   aiLoading: boolean;
   aiError: string | null;
   aiRec: AiRecommendation | null;
+  sampleMode?: boolean;
   shownText: string;
   collapsible: boolean;
   expanded: boolean;
@@ -16,6 +17,7 @@ export default function AiRecommendationCard({
   aiLoading,
   aiError,
   aiRec,
+  sampleMode = false,
   shownText,
   collapsible,
   expanded,
@@ -30,10 +32,13 @@ export default function AiRecommendationCard({
       <div className="logAi__header">
         <div>
           <div className="logAi__title">今日のおすすめメニュー</div>
-          <div className="logAi__meta">直近 {rangeDays} 日を参考</div>
+          <div className="logAi__meta">今日を含めて直近 {rangeDays} 日を参考</div>
         </div>
 
         <div className="logAi__headerRight">
+          {sampleMode && (
+            <div className="logAi__pill logAi__pill--sample">サンプル</div>
+          )}
           {status === "loading" && (
             <div className="logAi__pill logAi__pill--info">生成中</div>
           )}

@@ -75,6 +75,7 @@ export function makeMockInsights(days: number): InsightsData {
     },
     daily_durations: dailyDurations,
     practice_days_count: practiceDaysCount,
+    total_practice_days_count: practiceDaysCount,
     menu_ranking: buildMenuRanking(safeDays),
     note_series: {
       falsetto: buildNoteSeries(safeDays, toDate, 69),

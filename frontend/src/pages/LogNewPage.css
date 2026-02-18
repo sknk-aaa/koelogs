@@ -112,6 +112,64 @@
   background: rgba(255, 255, 255, 0.74);
 }
 
+.logNew__aiQualityBox {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, var(--card));
+}
+
+.logNew__aiQualityTitle {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.logNew__chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.logNew__chip {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logNew__chip.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  color: var(--accentText);
+}
+
+.logNew__effectBoxes {
+  display: grid;
+  gap: 10px;
+}
+
+.logNew__effectBox {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 10px;
+}
+
+.logNew__effectBoxHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .logNew__palette {
   display: flex;
   flex-wrap: wrap;

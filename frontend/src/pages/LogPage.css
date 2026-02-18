@@ -36,6 +36,79 @@
   gap: 16px;
 }
 
+.logPage__guestHero {
+  margin-bottom: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__guestHeroTitle {
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.4;
+}
+
+.logPage__guestHeroText {
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.78;
+}
+
+.logPage__guestHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.logPage__guestPreview {
+  margin-bottom: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__guestPreviewTitle {
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.logPage__guestPreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.logPage__guestPreviewCard {
+  border-radius: 13px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.88);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__guestPreviewCardTitle {
+  font-size: 12px;
+  font-weight: 950;
+  opacity: 0.82;
+}
+
+.logPage__guestPreviewCardValue {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.logPage__guestPreviewCardText {
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: 0.74;
+}
+
+.logPage__guestReCtaText {
+  font-size: 13px;
+  font-weight: 900;
+  opacity: 0.8;
+}
+
 .logPage__card {
   margin-bottom: 0;
   position: relative;
@@ -204,6 +277,11 @@
   background: rgba(0, 0, 0, 0.03);
 }
 
+.logPage__cardBadge--sample {
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 16%, #ffffff);
+}
+
 .logPage__recordBtn {
   height: 38px;
   padding: 0 12px;
@@ -251,6 +329,13 @@
   font-size: 12px;
   font-weight: 900;
   opacity: 0.7;
+}
+
+.logPage__kpiSub {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.72;
 }
 
 .logPage__kpiSmallGrid {
@@ -305,9 +390,13 @@
   background: rgba(0, 0, 0, 0.02);
 }
 
+.logPage__notesBox--placeholder {
+  color: color-mix(in srgb, var(--text) 74%, transparent);
+}
+
 .logPage__empty {
   display: grid;
-  gap: 6px;
+  gap: 10px;
   padding: 6px 0;
 }
 
@@ -335,28 +424,6 @@
   display: grid;
   gap: 10px;
   margin-top: 14px;
-}
-
-.logPage__guestGuide {
-  margin-bottom: 14px;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 36%, transparent), rgba(0, 0, 0, 0.1)) border-box;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
-  display: grid;
-  gap: 6px;
-}
-
-.logPage__guestTitle {
-  font-size: 14px;
-  font-weight: 950;
-}
-
-.logPage__guestText {
-  font-size: 13px;
-  line-height: 1.65;
-  opacity: 0.76;
 }
 
 .logAi {
@@ -435,6 +502,11 @@
 .logAi__pill--ng {
   border-color: rgba(239, 68, 68, 0.32);
   background: rgba(239, 68, 68, 0.12);
+}
+
+.logAi__pill--sample {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, #ffffff);
 }
 
 .logAi__content {
@@ -747,6 +819,11 @@
   .logPage__headerRight .logPage__btn {
     width: 100%;
   }
+
+  .logPage__guestPreviewGrid {
+    grid-template-columns: 1fr;
+  }
+
 }
 
 @media (max-width: 520px) {

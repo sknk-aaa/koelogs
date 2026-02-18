@@ -36,7 +36,7 @@ module Api
           return render json: { errors: [ "practiced_on is invalid. use YYYY-MM-DD" ] }, status: :unprocessable_entity
         end
 
-      log = current_user.training_logs.includes(:training_menus).find_or_initialize_by(practiced_on: practiced_on)
+      log = current_user.training_logs.includes(:training_menus, :training_log_feedback).find_or_initialize_by(practiced_on: practiced_on)
 
       # enabled flags（事故防止のためフロントから送る）
       falsetto_enabled = ActiveModel::Type::Boolean.new.cast(create_params[:falsetto_enabled])
@@ -59,6 +59,18 @@ module Api
         return render json: { errors: [ "menu_ids contains invalid id" ] }, status: :unprocessable_entity
       end
 
+      effect_feedbacks = normalize_effect_feedbacks(create_params[:effect_feedbacks])
+      effect_menu_ids = effect_feedbacks.map { |e| e[:menu_id] }.uniq
+      valid_effect_menu_ids = current_user.training_menus.where(id: effect_menu_ids).pluck(:id)
+      if (effect_menu_ids - valid_effect_menu_ids).any?
+        return render json: { errors: [ "effect_feedbacks contains invalid menu_id" ] }, status: :unprocessable_entity
+      end
+
+      invalid_tags = effect_feedbacks.flat_map { |e| e[:improvement_tags] }.uniq - TrainingLogFeedback::IMPROVEMENT_TAGS
+      if invalid_tags.any?
+        return render json: { errors: [ "effect_feedbacks contains invalid tag(s)" ] }, status: :unprocessable_entity
+      end
+
       ActiveRecord::Base.transaction do
         log.save!
 
@@ -69,10 +81,24 @@ module Api
           { user_id: current_user.id, training_log_id: log.id, training_menu_id: mid, created_at: now }
         end
         TrainingLogMenu.insert_all!(rows) if rows.any?
+
+        feedback = log.training_log_feedback
+        if effect_feedbacks.empty?
+          feedback&.destroy!
+        else
+          feedback ||= log.build_training_log_feedback(user: current_user)
+          feedback.menu_effects = effect_feedbacks.map do |entry|
+            {
+              "menu_id" => entry[:menu_id],
+              "improvement_tags" => entry[:improvement_tags]
+            }
+          end
+          feedback.save!
+        end
       end
 
       # includes し直し（serialize で association を使う）
-      log = current_user.training_logs.includes(:training_menus, :training_log_menus).find(log.id)
+      log = current_user.training_logs.includes(:training_menus, :training_log_menus, :training_log_feedback).find(log.id)
 
       render json: { data: serialize(log) }, status: :ok
     rescue ActiveRecord::RecordInvalid => e
@@ -95,7 +121,7 @@ module Api
         end
 
       log = current_user.training_logs
-                        .includes(:training_menus, :training_log_menus)
+                        .includes(:training_menus, :training_log_menus, :training_log_feedback)
                         .find_by(practiced_on: date)
 
       return render json: { data: nil }, status: :ok if log.nil?
@@ -123,7 +149,7 @@ module Api
 
       logs = current_user.training_logs
                          .where(practiced_on: from..to)
-                         .includes(:training_menus, :training_log_menus)
+                         .includes(:training_menus, :training_log_menus, :training_log_feedback)
                          .order(practiced_on: :desc)
 
       render json: { data: logs.map { |log| serialize(log) } }, status: :ok
@@ -138,8 +164,23 @@ module Api
         :falsetto_top_note,
         :chest_enabled,
         :chest_top_note,
-        menu_ids: []
+        menu_ids: [],
+        effect_feedbacks: [ :menu_id, { improvement_tags: [] } ]
       )
+    end
+
+    def normalize_effect_feedbacks(raw)
+      Array(raw).filter_map do |entry|
+        next unless entry.is_a?(ActionController::Parameters) || entry.is_a?(Hash)
+
+        menu_id = Integer(entry[:menu_id] || entry["menu_id"], exception: false)
+        next unless menu_id&.positive?
+
+        improvement_tags = Array(entry[:improvement_tags] || entry["improvement_tags"]).map(&:to_s).map(&:strip).reject(&:blank?).uniq
+        next if improvement_tags.empty?
+
+        { menu_id: menu_id, improvement_tags: improvement_tags }
+      end
     end
 
     def serialize(log)
@@ -162,8 +203,38 @@ module Api
         notes: log.notes,
         falsetto_top_note: log.falsetto_top_note,
         chest_top_note: log.chest_top_note,
+        effect_feedbacks: serialize_effect_feedbacks(log),
+        effective_menu_ids: log.training_log_feedback&.effective_menu_ids || [],
+        improvement_tags: log.training_log_feedback&.improvement_tags || [],
         updated_at: log.updated_at&.iso8601
       }
+    end
+
+    def serialize_effect_feedbacks(log)
+      feedback = log.training_log_feedback
+      return [] unless feedback
+
+      if feedback.menu_effects.present?
+        return Array(feedback.menu_effects).filter_map do |entry|
+          menu_id = Integer(entry["menu_id"] || entry[:menu_id], exception: false)
+          next unless menu_id&.positive?
+
+          tags = Array(entry["improvement_tags"] || entry[:improvement_tags]).map(&:to_s).map(&:strip).reject(&:blank?).uniq
+          next if tags.empty?
+
+          { menu_id: menu_id, improvement_tags: tags }
+        end
+      end
+
+      Array(feedback.effective_menu_ids).filter_map do |menu_id|
+        id = Integer(menu_id, exception: false)
+        next unless id&.positive?
+
+        tags = Array(feedback.improvement_tags).map(&:to_s).map(&:strip).reject(&:blank?).uniq
+        next if tags.empty?
+
+        { menu_id: id, improvement_tags: tags }
+      end
     end
   end
 end

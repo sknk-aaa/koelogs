@@ -1,6 +1,6 @@
 // frontend/src/pages/TrainingPage.tsx
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { ScaleTrack, ScaleType, Tempo } from "../api/scaleTracks";
 import { SCALE_TYPES, TEMPOS } from "../features/training/constants";
 import { useScaleTracks } from "../features/training/hooks/useScaleTracks";
@@ -57,8 +57,67 @@ const METRIC_OPTIONS: Array<{ key: MetricKey; label: string; description: string
   },
 ];
 const DEFAULT_SELECTED_METRICS: MetricKey[] = ["pitch_stability", "pitch_accuracy", "volume_stability"];
+type AnalysisPreset = {
+  key: "long_tone" | "high_note" | "loudness_control" | "pitch_stability_base";
+  name: string;
+  description: string;
+  focusPoints: string;
+  compareByScale: boolean;
+  fixedScaleType: string | null;
+  compareByTempo: boolean;
+  fixedTempo: number | null;
+  selectedMetrics: MetricKey[];
+};
+
+const ANALYSIS_PRESETS: AnalysisPreset[] = [
+  {
+    key: "long_tone",
+    name: "ロングトーン安定",
+    description: "息のコントロールと持続を確認するプリセットです。",
+    focusPoints: "一定音量・一定音程で、最後まで息の支えを保つ",
+    compareByScale: true,
+    fixedScaleType: "5tone",
+    compareByTempo: true,
+    fixedTempo: 100,
+    selectedMetrics: ["phonation_duration", "volume_stability", "pitch_stability"],
+  },
+  {
+    key: "high_note",
+    name: "高音チャレンジ",
+    description: "高音到達と、高音域での精度を確認するプリセットです。",
+    focusPoints: "無理に押し上げず、声が細くならない範囲で最高音を更新する",
+    compareByScale: true,
+    fixedScaleType: "octave",
+    compareByTempo: true,
+    fixedTempo: 100,
+    selectedMetrics: ["peak_note", "pitch_accuracy", "pitch_stability"],
+  },
+  {
+    key: "loudness_control",
+    name: "声量コントロール",
+    description: "声量の平均とバラつきを確認するプリセットです。",
+    focusPoints: "声量を上げても音量の波を抑え、一定の鳴りを保つ",
+    compareByScale: true,
+    fixedScaleType: "5tone",
+    compareByTempo: true,
+    fixedTempo: 100,
+    selectedMetrics: ["avg_loudness", "volume_stability", "pitch_stability"],
+  },
+  {
+    key: "pitch_stability_base",
+    name: "音程安定ベース",
+    description: "5tone など通常の練習の中で、音程のブレ・狙い音への一致・音量の乱れを総合的に確認するプリセットです。",
+    focusPoints: "音程の揺れを抑え、狙った音を安定して再現する",
+    compareByScale: false,
+    fixedScaleType: null,
+    compareByTempo: false,
+    fixedTempo: null,
+    selectedMetrics: ["pitch_stability", "pitch_accuracy", "volume_stability"],
+  },
+];
 
 export default function TrainingPage() {
+  const navigate = useNavigate();
   const { tracks, loading, error } = useScaleTracks();
   const { settings } = useSettings();
   const { me, isLoading: authLoading } = useAuth();
@@ -85,6 +144,7 @@ export default function TrainingPage() {
   const [editingAnalysisSelectedMetrics, setEditingAnalysisSelectedMetrics] = useState<MetricKey[]>(DEFAULT_SELECTED_METRICS);
   const [editingAnalysisDetailEnabled, setEditingAnalysisDetailEnabled] = useState(false);
   const [analysisMetricInfoOpen, setAnalysisMetricInfoOpen] = useState(false);
+  const [analysisPresetInfoOpen, setAnalysisPresetInfoOpen] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [analysisSaving, setAnalysisSaving] = useState(false);
   const [analysisSessionSaving, setAnalysisSessionSaving] = useState(false);
@@ -134,6 +194,9 @@ export default function TrainingPage() {
 
   const disabled = loading || !!error || !selected;
   const guestMode = !authLoading && !me;
+  const goLogin = () => {
+    navigate("/login", { state: { fromPath: "/training" } });
+  };
 
   useEffect(() => {
     if (!me) {
@@ -216,6 +279,31 @@ export default function TrainingPage() {
       setAnalysisDetailEnabled(false);
     } catch (e) {
       setAnalysisError(errorMessage(e, "分析メニューの保存に失敗しました"));
+    } finally {
+      setAnalysisSaving(false);
+    }
+  };
+
+  const onCreatePresetMenu = async (preset: AnalysisPreset) => {
+    setAnalysisSaving(true);
+    setAnalysisError(null);
+    try {
+      const created = await createAnalysisMenu({
+        name: preset.name,
+        focus_points: preset.focusPoints,
+        compare_by_scale: preset.compareByScale,
+        compare_by_tempo: preset.compareByTempo,
+        fixed_scale_type: preset.fixedScaleType,
+        fixed_tempo: preset.fixedTempo,
+        selected_metrics: preset.selectedMetrics,
+      });
+      setAnalysisMenus((prev) => {
+        const replaced = prev.some((m) => m.id === created.id);
+        return replaced ? prev.map((m) => (m.id === created.id ? created : m)) : [...prev, created];
+      });
+      setActiveAnalysisMenuId(created.id);
+    } catch (e) {
+      setAnalysisError(errorMessage(e, "プリセットメニューの保存に失敗しました"));
     } finally {
       setAnalysisSaving(false);
     }
@@ -669,11 +757,18 @@ export default function TrainingPage() {
       </section>
 
       {guestMode && (
-        <section className="card trainingPage__guestGuide">
-          <div className="trainingPage__guestTitle">ゲスト表示中</div>
-          <div className="trainingPage__guestText">
-            トレーニング再生はそのまま使えます。ログ保存や個人データ連携はログイン後に有効になります。
+        <section className="card trainingPage__aiIntroCard">
+          <div className="trainingPage__aiIntroTitle">AI録音分析</div>
+          <div className="trainingPage__aiIntroText">
+            録音した音声から、ピッチ安定度や音程精度などを分析します。
+            結果をもとに、次に改善するポイントを具体的に確認できます。
           </div>
+          <div className="trainingPage__aiIntroExample">
+            例: ピッチ安定度 78 / 改善ポイント: 語尾で音程が下がる傾向
+          </div>
+          <button className="trainingPage__aiIntroBtn" onClick={goLogin}>
+            ログインしてAI録音分析を使う
+          </button>
         </section>
       )}
 
@@ -745,6 +840,38 @@ export default function TrainingPage() {
         ) : (
           <>
             <div className="trainingPage__analysisForm">
+              <div className="trainingPage__analysisPresetBox">
+                <div className="trainingPage__analysisRuleHead">
+                  <div className="trainingPage__analysisRuleTitle">おすすめプリセット</div>
+                  <button
+                    type="button"
+                    className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
+                    onClick={() => setAnalysisPresetInfoOpen(true)}
+                  >
+                    プリセット説明
+                  </button>
+                </div>
+                <div className="trainingPage__analysisPresetGrid">
+                  {ANALYSIS_PRESETS.map((preset) => (
+                    <div key={preset.key} className="trainingPage__analysisPresetItem">
+                      <div className="trainingPage__analysisPresetName">{preset.name}</div>
+                      <div className="trainingPage__analysisPresetDesc">{preset.description}</div>
+                      <div className="trainingPage__analysisPresetMeta">
+                        判定項目: {preset.selectedMetrics.map((key) => metricLabel(key)).join(" / ")}
+                      </div>
+                      <button
+                        type="button"
+                        className="trainingPage__analysisMiniBtn"
+                        disabled={analysisSaving}
+                        onClick={() => void onCreatePresetMenu(preset)}
+                      >
+                        {analysisSaving ? "保存中…" : "このプリセットを保存"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="trainingPage__field">
                 <label className="trainingPage__label" htmlFor="analysis-menu-name">メニュー名</label>
                 <input
@@ -1183,6 +1310,58 @@ export default function TrainingPage() {
                       <div key={opt.key} className="trainingPage__metricInfoItem">
                         <div className="trainingPage__metricInfoLabel">{opt.label}</div>
                         <div className="trainingPage__metricInfoText">{opt.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {analysisPresetInfoOpen && (
+              <div
+                className="trainingPage__modalOverlay"
+                role="button"
+                tabIndex={0}
+                onClick={() => setAnalysisPresetInfoOpen(false)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setAnalysisPresetInfoOpen(false);
+                }}
+              >
+                <div
+                  className="trainingPage__modalCard"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="プリセットメニューの説明"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  <div className="trainingPage__modalHead">
+                    <div className="trainingPage__modalTitle">プリセットメニューについて</div>
+                    <button
+                      type="button"
+                      className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
+                      onClick={() => setAnalysisPresetInfoOpen(false)}
+                    >
+                      閉じる
+                    </button>
+                  </div>
+                  <div className="trainingPage__modalBody">
+                    {ANALYSIS_PRESETS.map((preset) => (
+                      <div key={`preset-info-${preset.key}`} className="trainingPage__metricInfoItem">
+                        <div className="trainingPage__metricInfoLabel">{preset.name}</div>
+                        <div className="trainingPage__metricInfoText">{preset.description}</div>
+                        <div className="trainingPage__metricInfoText">
+                          判定項目: {preset.selectedMetrics.map((key) => metricLabel(key)).join(" / ")}
+                        </div>
+                        <div className="trainingPage__metricInfoText">
+                          比較条件:
+                          {preset.compareByScale
+                            ? ` スケール(${preset.fixedScaleType ?? "指定なし"})`
+                            : " スケール指定なし"}
+                          {preset.compareByTempo
+                            ? ` / テンポ(${preset.fixedTempo ?? "指定なし"}bpm)`
+                            : " / テンポ指定なし"}
+                        </div>
                       </div>
                     ))}
                   </div>

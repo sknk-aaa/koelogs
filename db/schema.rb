@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_18_013000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_18_214000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -67,12 +67,37 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_013000) do
     t.index ["user_id"], name: "index_analysis_sessions_on_user_id"
   end
 
+  create_table "menu_aliases", force: :cascade do |t|
+    t.string "canonical_key", null: false
+    t.decimal "confidence", precision: 4, scale: 3, default: "0.0", null: false
+    t.datetime "created_at", null: false
+    t.datetime "first_seen_at", null: false
+    t.datetime "last_seen_at", null: false
+    t.string "normalized_name", null: false
+    t.string "source", default: "rule", null: false
+    t.datetime "updated_at", null: false
+    t.index ["canonical_key"], name: "index_menu_aliases_on_canonical_key"
+    t.index ["normalized_name"], name: "index_menu_aliases_on_normalized_name", unique: true
+  end
+
   create_table "scale_tracks", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "file_path"
     t.string "scale_type"
     t.integer "tempo"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "training_log_feedbacks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "effective_menu_ids", default: [], null: false
+    t.jsonb "improvement_tags", default: [], null: false
+    t.jsonb "menu_effects", default: [], null: false
+    t.bigint "training_log_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["training_log_id"], name: "index_training_log_feedbacks_on_training_log_id", unique: true
+    t.index ["user_id"], name: "index_training_log_feedbacks_on_user_id"
   end
 
   create_table "training_log_menus", force: :cascade do |t|
@@ -102,14 +127,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_013000) do
 
   create_table "training_menus", force: :cascade do |t|
     t.boolean "archived", default: false, null: false
+    t.decimal "canonical_confidence", precision: 4, scale: 3, default: "0.0", null: false
+    t.string "canonical_core_key", default: "unknown", null: false
+    t.string "canonical_key", default: "unknown|unspecified", null: false
+    t.string "canonical_register", default: "unspecified", null: false
+    t.string "canonical_source", default: "rule", null: false
+    t.integer "canonical_version", default: 1, null: false
     t.string "color", default: "#DDEBFF", null: false
     t.datetime "created_at", null: false
     t.text "focus_points"
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["canonical_key"], name: "index_training_menus_on_canonical_key"
     t.index ["id", "user_id"], name: "idx_training_menus_id_user", unique: true
     t.index ["user_id", "archived"], name: "index_training_menus_on_user_id_and_archived"
+    t.index ["user_id", "canonical_key"], name: "index_training_menus_on_user_id_and_canonical_key"
     t.index ["user_id", "name"], name: "index_training_menus_on_user_id_and_name", unique: true
     t.index ["user_id"], name: "index_training_menus_on_user_id"
   end
@@ -129,6 +162,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_013000) do
   add_foreign_key "analysis_menus", "users"
   add_foreign_key "analysis_sessions", "analysis_menus"
   add_foreign_key "analysis_sessions", "users"
+  add_foreign_key "training_log_feedbacks", "training_logs"
+  add_foreign_key "training_log_feedbacks", "users"
   add_foreign_key "training_log_menus", "training_logs", column: ["training_log_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_logs_same_user", on_delete: :cascade
   add_foreign_key "training_log_menus", "training_menus", column: ["training_menu_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_menus_same_user", on_delete: :restrict
   add_foreign_key "training_log_menus", "users"

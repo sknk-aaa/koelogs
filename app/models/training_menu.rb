@@ -8,6 +8,8 @@ class TrainingMenu < ApplicationRecord
   scope :active, -> { where(archived: false) }
 
   HEX_COLOR_REGEX = /\A#[0-9A-F]{6}\z/
+  REGISTER_VALUES = %w[falsetto chest mixed unspecified].freeze
+  SOURCE_VALUES = %w[rule ai manual].freeze
 
   before_validation :normalize_name
   before_validation :normalize_color
@@ -16,6 +18,12 @@ class TrainingMenu < ApplicationRecord
   validates :name, uniqueness: { scope: :user_id, case_sensitive: false }
   validates :color, presence: true
   validates :color, format: { with: HEX_COLOR_REGEX, message: "must be HEX like #A1B2C3" }
+  validates :canonical_core_key, presence: true
+  validates :canonical_register, inclusion: { in: REGISTER_VALUES }
+  validates :canonical_key, presence: true
+  validates :canonical_source, inclusion: { in: SOURCE_VALUES }
+  validates :canonical_version, numericality: { only_integer: true, greater_than: 0 }
+  validates :canonical_confidence, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 1 }
 
   private
 

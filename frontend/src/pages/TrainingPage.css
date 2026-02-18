@@ -71,6 +71,50 @@
   margin-bottom: 16px;
 }
 
+.trainingPage__aiIntroCard {
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 36%, transparent), rgba(0, 0, 0, 0.1)) border-box;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.trainingPage__aiIntroTitle {
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.trainingPage__aiIntroText {
+  font-size: 13px;
+  line-height: 1.65;
+  opacity: 0.8;
+}
+
+.trainingPage__aiIntroExample {
+  font-size: 12px;
+  line-height: 1.55;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 44%, var(--border));
+  padding-left: 8px;
+  opacity: 0.86;
+}
+
+.trainingPage__aiIntroBtn {
+  height: 40px;
+  justify-self: start;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 86%, white);
+  color: var(--accentText);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
 .trainingPage__guestTitle {
   font-size: 14px;
   font-weight: 950;
@@ -203,6 +247,47 @@
   border-radius: 10px;
   padding: 8px 10px;
   background: rgba(255, 255, 255, 0.62);
+}
+
+.trainingPage__analysisPresetBox {
+  display: grid;
+  gap: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.trainingPage__analysisPresetGrid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.trainingPage__analysisPresetItem {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 8px 10px;
+}
+
+.trainingPage__analysisPresetName {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.trainingPage__analysisPresetDesc {
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: 0.82;
+}
+
+.trainingPage__analysisPresetMeta {
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.78;
 }
 
 .trainingPage__analysisDetail {

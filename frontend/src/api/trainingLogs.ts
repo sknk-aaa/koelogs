@@ -44,6 +44,7 @@ export type UpsertTrainingLogInput = {
   duration_min: number | null;
   menu_ids: number[]; // ✅ menus(string[]) -> menu_ids(number[])
   notes: string | null;
+  effect_feedbacks: Array<{ menu_id: number; improvement_tags: string[] }>;
 
   // enabled flags（事故防止で必須にする）
   falsetto_enabled: boolean;

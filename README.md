@@ -148,4 +148,5 @@ npm --prefix frontend run build
 
 - UI監査: `docs/UI_AUDIT.md`
 - 開発ログ: `docs/DEVLOG_2026-02-17.md`
+- 未ログイン/初ログイン改善: `docs/ONBOARDING_GUEST_FIRST_LOGIN_IMPROVEMENTS.md`
 - エージェント運用ルール: `AGENTS.md`

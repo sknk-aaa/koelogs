@@ -41,6 +41,7 @@ module Api
           )
 
           if existing.save
+            canonicalize_menu(existing)
             render json: { data: serialize(existing) }, status: :ok
           else
             render json: { errors: existing.errors.full_messages }, status: :unprocessable_entity
@@ -55,6 +56,7 @@ module Api
 
       menu = current_user.training_menus.new(create_params)
       if menu.save
+        canonicalize_menu(menu)
         render json: { data: serialize(menu) }, status: :created
       else
         render json: { errors: menu.errors.full_messages }, status: :unprocessable_entity
@@ -65,6 +67,7 @@ module Api
     # name変更 or archived切替 or color変更
     def update
       if @menu.update(update_params)
+        canonicalize_menu(@menu) if @menu.previous_changes.key?("name")
         render json: { data: serialize(@menu) }
       else
         render json: { errors: @menu.errors.full_messages }, status: :unprocessable_entity
@@ -91,8 +94,21 @@ module Api
         name: menu.name,
         color: menu.color,
         archived: menu.archived,
+        canonical_core_key: menu.canonical_core_key,
+        canonical_register: menu.canonical_register,
+        canonical_key: menu.canonical_key,
+        canonical_confidence: menu.canonical_confidence.to_f,
+        canonical_source: menu.canonical_source,
+        canonical_version: menu.canonical_version,
         created_at: menu.created_at.iso8601
       }
+    end
+
+    def canonicalize_menu(menu)
+      MenuCanonicalization::Apply.call(training_menu: menu)
+      menu.reload
+    rescue => e
+      Rails.logger.error("[MenuCanonicalization] #{e.class}: #{e.message}")
     end
   end
 end

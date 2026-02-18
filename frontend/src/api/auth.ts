@@ -5,6 +5,7 @@ export type Me = {
   email: string;
   display_name: string | null;
   goal_text: string | null;
+  created_at: string;
 };
 
 export async function fetchMe(): Promise<Me | null> {

@@ -9,6 +9,7 @@ type Props = {
   log: TrainingLog | null;
   menuItems: MenuItem[];
   emptyHint: string;
+  currentStreakDays: number | null;
 
   // ✅ 追加：記録ボタンをカード近くに置く
   recordLabel: string;
@@ -25,6 +26,7 @@ export default function SummaryCard({
   log,
   menuItems,
   emptyHint,
+  currentStreakDays,
   recordLabel,
   onClickRecord,
 }: Props) {
@@ -52,7 +54,38 @@ export default function SummaryCard({
 
       {!loading && !error && !log && (
         <div className="logPage__empty">
-          <div className="logPage__emptyTitle">まだログがありません</div>
+          <div className="logPage__emptyTitle">記録すると、ここに今日の結果が表示されます</div>
+          <div className="logPage__kpiRow" aria-label="記録後の表示イメージ">
+            <div className="logPage__kpi">
+              <div className="logPage__kpiLabel">練習時間</div>
+              <div className="logPage__kpiValue">
+                <span className="logPage__kpiNumber">-</span>
+                <span className="logPage__kpiUnit">分</span>
+              </div>
+            </div>
+
+            <div className="logPage__kpiSmallGrid">
+              <div className="logPage__mini">
+                <div className="logPage__miniLabel">裏声最高音</div>
+                <div className="logPage__miniValue">-</div>
+              </div>
+              <div className="logPage__mini">
+                <div className="logPage__miniLabel">地声最高音</div>
+                <div className="logPage__miniValue">-</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="logPage__section">
+            <div className="logPage__sectionTitle">メニュー</div>
+            <div className="logPage__muted">-</div>
+          </div>
+
+          <div className="logPage__section">
+            <div className="logPage__sectionTitle">メモ</div>
+            <div className="logPage__notesBox logPage__notesBox--placeholder">-</div>
+          </div>
+
           <div className="logPage__muted">{emptyHint}</div>
         </div>
       )}
@@ -65,6 +98,9 @@ export default function SummaryCard({
               <div className="logPage__kpiValue">
                 <span className="logPage__kpiNumber">{log.duration_min ?? 0}</span>
                 <span className="logPage__kpiUnit">分</span>
+              </div>
+              <div className="logPage__kpiSub">
+                連続日数: {currentStreakDays ?? 0} 日
               </div>
             </div>
 

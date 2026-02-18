@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
+import { fetchInsights } from "../api/insights";
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
 import { useSettings } from "../features/settings/useSettings";
@@ -14,6 +15,7 @@ import "./LogPage.css";
 import LogHeader from "../features/log/components/LogHeader";
 import SummaryCard from "../features/log/components/SummaryCard";
 import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
+import WelcomeGuideModal from "../features/log/components/WelcomeGuideModal";
 
 import { fetchMe, updateMeGoalText, type Me } from "../api/auth";
 
@@ -27,6 +29,7 @@ function todayISO(): string {
 
 const AI_PREVIEW_CHARS = 100;
 const GOAL_MAX = 50;
+const FIRST_LOGIN_GUIDE_KEY_PREFIX = "voice_app_log_first_guide_seen_user_";
 
 function shouldCollapseText(text: string, previewChars: number) {
   return text.trim().length > previewChars;
@@ -36,6 +39,15 @@ function previewText(text: string, previewChars: number) {
   const t = text.trim();
   if (t.length <= previewChars) return t;
   return t.slice(0, previewChars) + "…";
+}
+
+function isWithinFirst7Days(createdAt?: string | null): boolean {
+  if (!createdAt) return false;
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return false;
+  const elapsedMs = Date.now() - created.getTime();
+  if (elapsedMs < 0) return false;
+  return elapsedMs < 7 * 24 * 60 * 60 * 1000;
 }
 
 export default function LogPage() {
@@ -52,6 +64,9 @@ export default function LogPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<TrainingLog | null>(null);
+  const [currentStreakDays, setCurrentStreakDays] = useState<number | null>(null);
+  const [totalPracticeDaysCount, setTotalPracticeDaysCount] = useState<number | null>(null);
+  const [firstGuideOpen, setFirstGuideOpen] = useState(false);
 
   // ===== Me / Goal =====
   const [me, setMe] = useState<Me | null>(null);
@@ -165,6 +180,31 @@ export default function LogPage() {
     };
   }, [date, authMe]);
 
+  // streak fetch
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!authMe) {
+        setCurrentStreakDays(null);
+        setTotalPracticeDaysCount(null);
+        return;
+      }
+      const res = await fetchInsights(30);
+      if (cancelled) return;
+      if ("error" in res && res.error) {
+        setCurrentStreakDays(null);
+        setTotalPracticeDaysCount(null);
+        return;
+      }
+      setCurrentStreakDays(res.data?.streaks.current_days ?? null);
+      setTotalPracticeDaysCount(res.data?.total_practice_days_count ?? 0);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authMe]);
+
   // ai recommendation fetch (read-only)
   useEffect(() => {
     let cancelled = false;
@@ -192,6 +232,26 @@ export default function LogPage() {
       cancelled = true;
     };
   }, [date, authMe]);
+
+  useEffect(() => {
+    if (authLoading || !authMe) {
+      setFirstGuideOpen(false);
+      return;
+    }
+    if (totalPracticeDaysCount === null) {
+      setFirstGuideOpen(false);
+      return;
+    }
+
+    const key = `${FIRST_LOGIN_GUIDE_KEY_PREFIX}${authMe.id}`;
+    let seen = false;
+    try {
+      seen = window.localStorage.getItem(key) === "1";
+    } catch {
+      seen = false;
+    }
+    setFirstGuideOpen(!seen && totalPracticeDaysCount === 0);
+  }, [authLoading, authMe, totalPracticeDaysCount]);
 
   const onChangeDate = (next: string) => {
     setParams({ date: next });
@@ -233,6 +293,18 @@ export default function LogPage() {
     setAiExpanded(true);
   };
 
+  const closeFirstGuide = () => {
+    if (authMe) {
+      const key = `${FIRST_LOGIN_GUIDE_KEY_PREFIX}${authMe.id}`;
+      try {
+        window.localStorage.setItem(key, "1");
+      } catch {
+        // localStorage未使用環境では保存しない
+      }
+    }
+    setFirstGuideOpen(false);
+  };
+
   const guestMode = !authLoading && !authMe;
   const previewLog: TrainingLog = {
     id: -1,
@@ -269,10 +341,15 @@ export default function LogPage() {
     aiTextRaw && !aiExpanded && aiCollapsible ? previewText(aiTextRaw, AI_PREVIEW_CHARS) : aiTextRaw;
 
   const emptyHint = isToday
-    ? "まだ今日のログはありません。まずは記録して、必要ならAIおすすめも生成しましょう。"
-    : "この日のログはまだありません。必要ならこの日付で記録できます。";
+    ? "最初は1項目だけでもOKです。入力した分だけ反映されます。"
+    : "この日付で入力すると、今日の結果と同じ形式で表示されます。";
 
   const goalText = me?.goal_text ?? null;
+  const isWithinInitial7Days = isWithinFirst7Days(me?.created_at);
+  const aiCreateButtonText =
+    !guestMode && isWithinInitial7Days
+      ? "目標やトレーニングデータから今日のおすすめを作成"
+      : "AI提案を作成";
 
   return (
     <div className="page logPage">
@@ -285,6 +362,17 @@ export default function LogPage() {
             return;
           }
           setMonthModalOpen(true);
+        }}
+      />
+
+      <WelcomeGuideModal
+        open={firstGuideOpen}
+        onClose={closeFirstGuide}
+        onStartRecord={() => {
+          closeFirstGuide();
+          navigate(`/log/new?date=${encodeURIComponent(date)}`, {
+            state: { quickFromWelcome: true },
+          });
         }}
       />
 
@@ -304,7 +392,11 @@ export default function LogPage() {
           ) : (
             <div className="goalBar__view">
               <div className="goalBar__row">
-                <div className="goalBar__label">目標を設定する（最大50文字）</div>
+                <div className="goalBar__label">
+                  {isWithinInitial7Days
+                    ? "目標を設定する（最大50文字・AIおすすめに反映）"
+                    : "目標を設定する（最大50文字）"}
+                </div>
                 <button className="goalBar__btn" type="button" onClick={openGoalEdit}>
                   設定する
                 </button>
@@ -353,15 +445,6 @@ export default function LogPage() {
         )}
       </div>}
 
-      {guestMode && (
-        <div className="logPage__guestGuide card">
-          <div className="logPage__guestTitle">ゲスト表示中: これはサンプルです</div>
-          <div className="logPage__guestText">
-            未ログインでも画面の使い方を確認できます。記録保存・AI生成はログイン後に有効になります。
-          </div>
-        </div>
-      )}
-
       <MonthlyLogsModal
         open={monthModalOpen}
         month={monthKey}
@@ -386,6 +469,7 @@ export default function LogPage() {
                 : "この日のトレーニングを記録"
           }
           onClickRecord={goNew}
+          currentStreakDays={guestMode ? 3 : currentStreakDays}
         />
 
         {showAiArea && (
@@ -405,10 +489,11 @@ export default function LogPage() {
       <div className="logPage__actions">
         {(showAiButton || guestMode) && (
           <button onClick={onAskAi} className="logPage__btn">
-            {guestMode ? "ログインしてAIおすすめを生成" : "AIに今日のおすすめを聞く"}
+            {guestMode ? "ログインしてAI提案を作成" : aiCreateButtonText}
           </button>
         )}
       </div>
+
     </div>
   );
 }

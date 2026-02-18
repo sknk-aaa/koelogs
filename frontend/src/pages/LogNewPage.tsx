@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { upsertTrainingLog, type UpsertTrainingLogInput } from "../api/trainingLogs";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import type { TrainingLog } from "../types/trainingLog";
@@ -107,7 +107,10 @@ function midiToNote(midi: number): string {
 
 export default function LogNewPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params] = useSearchParams();
+  const navState = location.state as { quickFromWelcome?: boolean } | null;
+  const quickMode = navState?.quickFromWelcome === true;
 
   // /log/new?date=YYYY-MM-DD で来たらそれを優先
   const initialDate = params.get("date") || todayISO();
@@ -413,8 +416,10 @@ export default function LogNewPage() {
     setErrors([]);
 
     const localErrors: string[] = [];
-    if (falsettoEnabled && !falsettoTopNote.trim()) localErrors.push("裏声最高音が未入力です");
-    if (chestEnabled && !chestTopNote.trim()) localErrors.push("地声最高音が未入力です");
+    if (!quickMode) {
+      if (falsettoEnabled && !falsettoTopNote.trim()) localErrors.push("裏声最高音が未入力です");
+      if (chestEnabled && !chestTopNote.trim()) localErrors.push("地声最高音が未入力です");
+    }
 
     if (localErrors.length) {
       setErrors(localErrors);
@@ -422,18 +427,22 @@ export default function LogNewPage() {
       return;
     }
 
+    const quickFalsettoEnabled = falsettoTopNote.trim().length > 0;
+    const quickChestEnabled = chestTopNote.trim().length > 0;
+    const effectiveFalsettoEnabled = quickMode ? quickFalsettoEnabled : falsettoEnabled;
+    const effectiveChestEnabled = quickMode ? quickChestEnabled : chestEnabled;
     const parsedDuration = durationMin.trim() === "" ? null : Number.parseInt(durationMin.trim(), 10);
 
     const payload: UpsertTrainingLogInput = {
       practiced_on: practicedOn,
       duration_min: Number.isNaN(parsedDuration as number) ? null : parsedDuration,
-      menu_ids: selectedMenuIdsArray,
+      menu_ids: quickMode ? [] : selectedMenuIdsArray,
       notes: notes.trim() === "" ? null : notes,
 
-      falsetto_enabled: falsettoEnabled,
-      falsetto_top_note: falsettoEnabled ? falsettoTopNote.trim() : null,
-      chest_enabled: chestEnabled,
-      chest_top_note: chestEnabled ? chestTopNote.trim() : null,
+      falsetto_enabled: effectiveFalsettoEnabled,
+      falsetto_top_note: effectiveFalsettoEnabled ? falsettoTopNote.trim() : null,
+      chest_enabled: effectiveChestEnabled,
+      chest_top_note: effectiveChestEnabled ? chestTopNote.trim() : null,
     };
 
     const result = await upsertTrainingLog(payload);
@@ -468,39 +477,42 @@ export default function LogNewPage() {
       <form id="log-new-form" onSubmit={onSubmit} className="logNew__form">
         {initialLoading && <div className="logNew__loading">既存ログを読み込み中…</div>}
 
-        <section className="card logNew__section">
-          <div className="logNew__sectionTitle">基本情報</div>
+        {!quickMode && (
+          <section className="card logNew__section">
+            <div className="logNew__sectionTitle">基本情報</div>
 
-          <div className="logNew__field">
-            <label className="logNew__label" htmlFor="practicedOn">日付</label>
-            <input
-              id="practicedOn"
-              type="date"
-              value={practicedOn}
-              onChange={(e) => setPracticedOn(e.target.value)}
-              className="logNew__input"
-            />
-          </div>
+            <div className="logNew__field">
+              <label className="logNew__label" htmlFor="practicedOn">日付</label>
+              <input
+                id="practicedOn"
+                type="date"
+                value={practicedOn}
+                onChange={(e) => setPracticedOn(e.target.value)}
+                className="logNew__input"
+              />
+            </div>
 
-          <div className="logNew__field">
-            <label className="logNew__label" htmlFor="durationMin">練習時間（分）</label>
-            <input
-              id="durationMin"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              step={1}
-              value={durationMin}
-              onChange={(e) => setDurationMin(e.target.value)}
-              onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-              placeholder="例: 30"
-              className="logNew__input"
-            />
-          </div>
-        </section>
+            <div className="logNew__field">
+              <label className="logNew__label" htmlFor="durationMin">練習時間（分）</label>
+              <input
+                id="durationMin"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step={1}
+                value={durationMin}
+                onChange={(e) => setDurationMin(e.target.value)}
+                onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                placeholder="例: 30"
+                className="logNew__input"
+              />
+            </div>
+          </section>
+        )}
 
-        <section className="card logNew__section">
-          <div className="logNew__sectionTitle">練習メニュー（複数選択）</div>
+        {!quickMode && (
+          <section className="card logNew__section">
+            <div className="logNew__sectionTitle">練習メニュー（複数選択）</div>
 
           <div className="logNew__panel">
             <div className="logNew__subLabel">メニュー名</div>
@@ -609,10 +621,66 @@ export default function LogNewPage() {
               )}
             </div>
           </div>
-        </section>
+          </section>
+        )}
 
         <section className="card logNew__section">
-          <div className="logNew__sectionTitle">音域メモ</div>
+          <div className="logNew__sectionTitle">{quickMode ? "最高音を記録" : "音域メモ"}</div>
+
+          {quickMode && (
+            <div className="logNew__muted">
+              日付: {practicedOn}
+            </div>
+          )}
+
+          {quickMode ? (
+            <>
+              <div className="logNew__field">
+                <label className="logNew__label">裏声最高音</label>
+                <input
+                  value={falsettoTopNote}
+                  onChange={(e) => setFalsettoTopNote(e.target.value)}
+                  placeholder="例: G5, F#5 など"
+                  className="logNew__input"
+                />
+                <div className="logNew__pitchRow">
+                  <button
+                    type="button"
+                    className={`logNew__btn ${pitchRecording === "falsetto" ? "logNew__btn--recording" : "logNew__btn--ghost"}`}
+                    onClick={() => {
+                      if (pitchRecording === "falsetto") void stopPitchCapture(true);
+                      else void startPitchCapture("falsetto");
+                    }}
+                  >
+                    {pitchRecording === "falsetto" ? "録音停止して入力" : "録音して自動入力"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="logNew__field">
+                <label className="logNew__label">地声最高音</label>
+                <input
+                  value={chestTopNote}
+                  onChange={(e) => setChestTopNote(e.target.value)}
+                  placeholder="例: G4, F#4 など"
+                  className="logNew__input"
+                />
+                <div className="logNew__pitchRow">
+                  <button
+                    type="button"
+                    className={`logNew__btn ${pitchRecording === "chest" ? "logNew__btn--recording" : "logNew__btn--ghost"}`}
+                    onClick={() => {
+                      if (pitchRecording === "chest") void stopPitchCapture(true);
+                      else void startPitchCapture("chest");
+                    }}
+                  >
+                    {pitchRecording === "chest" ? "録音停止して入力" : "録音して自動入力"}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
 
           <div className="logNew__field">
             <label className="logNew__checkRow">
@@ -715,15 +783,19 @@ export default function LogNewPage() {
           </div>
 
           {pitchMessage && <div className="logNew__muted">{pitchMessage}</div>}
+            </>
+          )}
+
+          {quickMode && pitchMessage && <div className="logNew__muted">{pitchMessage}</div>}
         </section>
 
         <section className="card logNew__section">
-          <div className="logNew__sectionTitle">自由記述</div>
+          <div className="logNew__sectionTitle">{quickMode ? "現在の声の状況を教えてください" : "自由記述"}</div>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={6}
-            placeholder="メモ（任意）"
+            placeholder={quickMode ? "いまの声の状態・気づき（任意）" : "メモ（任意）"}
             className="logNew__textarea"
           />
         </section>

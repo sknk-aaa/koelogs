@@ -2,10 +2,11 @@
 
 module Ai
   class RecommendationGenerator
-    def initialize(user:, date:, range_days: 7, client: Gemini::Client.new)
+    def initialize(user:, date:, range_days: 7, include_today: false, client: Gemini::Client.new)
       @user = user
       @date = date
       @range_days = range_days
+      @include_today = include_today
       @client = client
     end
 
@@ -50,12 +51,13 @@ module Ai
     end
 
     def build_user_text(logs)
-      from = (@date - @range_days).iso8601
-      to = (@date - 1).iso8601
+      from = (@include_today ? (@date - (@range_days - 1)) : (@date - @range_days)).iso8601
+      to = (@include_today ? @date : (@date - 1)).iso8601
 
       lines = []
       lines << "対象日: #{@date.iso8601}"
-      lines << "参照期間: #{from}〜#{to}（今日を除く直近#{@range_days}日）"
+      range_label = @include_today ? "当日を含む直近#{@range_days}日" : "今日を除く直近#{@range_days}日"
+      lines << "参照期間: #{from}〜#{to}（#{range_label}）"
       lines << "training_logs:"
 
       if logs.empty?

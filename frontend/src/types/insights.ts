@@ -32,6 +32,7 @@ export type InsightsData = {
   range: InsightsRange;
   daily_durations: DailyDurationPoint[];
   practice_days_count: number; // within range
+  total_practice_days_count: number; // all time
   menu_ranking: MenuRankingItem[];
   note_series: {
     falsetto: DailyNotePoint[];

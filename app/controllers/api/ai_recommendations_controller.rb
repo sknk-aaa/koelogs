@@ -24,8 +24,9 @@ module Api
       existing = current_user.ai_recommendations.find_by(generated_for_date: target_date)
       return render json: { data: serialize(existing) }, status: :ok if existing
 
-      from = target_date - range_days
-      to = target_date - 1
+      include_today = true
+      from = include_today ? (target_date - (range_days - 1)) : (target_date - range_days)
+      to = include_today ? target_date : (target_date - 1)
 
       logs = current_user.training_logs
                         .where(practiced_on: from..to)
@@ -35,7 +36,8 @@ module Api
       text = Ai::RecommendationGenerator.new(
         user: current_user,
         date: target_date,
-        range_days: range_days
+        range_days: range_days,
+        include_today: include_today
       ).generate!(logs: logs)
 
       rec = current_user.ai_recommendations.new(

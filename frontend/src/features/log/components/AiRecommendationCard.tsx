@@ -30,7 +30,7 @@ export default function AiRecommendationCard({
       <div className="logAi__header">
         <div>
           <div className="logAi__title">今日のおすすめメニュー</div>
-          <div className="logAi__meta">直近 {rangeDays} 日を参考</div>
+          <div className="logAi__meta">今日を含めて直近 {rangeDays} 日を参考</div>
         </div>
 
         <div className="logAi__headerRight">

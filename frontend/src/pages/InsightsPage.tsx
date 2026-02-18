@@ -115,7 +115,7 @@ function ChevronRight() {
 }
 
 export default function InsightsPage() {
-  const days = 90;
+  const days = 30;
   const { me, isLoading: authLoading } = useAuth();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   const guestMode = !authLoading && !me;

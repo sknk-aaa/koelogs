@@ -36,6 +36,79 @@
   gap: 16px;
 }
 
+.logPage__guestHero {
+  margin-bottom: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__guestHeroTitle {
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.4;
+}
+
+.logPage__guestHeroText {
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.78;
+}
+
+.logPage__guestHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.logPage__guestPreview {
+  margin-bottom: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__guestPreviewTitle {
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.logPage__guestPreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.logPage__guestPreviewCard {
+  border-radius: 13px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.88);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__guestPreviewCardTitle {
+  font-size: 12px;
+  font-weight: 950;
+  opacity: 0.82;
+}
+
+.logPage__guestPreviewCardValue {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.logPage__guestPreviewCardText {
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: 0.74;
+}
+
+.logPage__guestReCtaText {
+  font-size: 13px;
+  font-weight: 900;
+  opacity: 0.8;
+}
+
 .logPage__card {
   margin-bottom: 0;
   position: relative;
@@ -202,6 +275,11 @@
 .logPage__cardBadge--empty {
   border-color: rgba(0, 0, 0, 0.12);
   background: rgba(0, 0, 0, 0.03);
+}
+
+.logPage__cardBadge--sample {
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 16%, #ffffff);
 }
 
 .logPage__recordBtn {
@@ -424,6 +502,11 @@
 .logAi__pill--ng {
   border-color: rgba(239, 68, 68, 0.32);
   background: rgba(239, 68, 68, 0.12);
+}
+
+.logAi__pill--sample {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, #ffffff);
 }
 
 .logAi__content {
@@ -735,6 +818,10 @@
 
   .logPage__headerRight .logPage__btn {
     width: 100%;
+  }
+
+  .logPage__guestPreviewGrid {
+    grid-template-columns: 1fr;
   }
 
 }

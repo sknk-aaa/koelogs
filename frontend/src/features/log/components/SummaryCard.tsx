@@ -10,6 +10,7 @@ type Props = {
   menuItems: MenuItem[];
   emptyHint: string;
   currentStreakDays: number | null;
+  sampleMode?: boolean;
 
   // ✅ 追加：記録ボタンをカード近くに置く
   recordLabel: string;
@@ -27,6 +28,7 @@ export default function SummaryCard({
   menuItems,
   emptyHint,
   currentStreakDays,
+  sampleMode = false,
   recordLabel,
   onClickRecord,
 }: Props) {
@@ -36,6 +38,9 @@ export default function SummaryCard({
         <div className="logPage__cardTitle">サマリー</div>
 
         <div className="logPage__cardHeadRight">
+          {sampleMode && (
+            <div className="logPage__cardBadge logPage__cardBadge--sample">サンプル</div>
+          )}
           {log && <div className="logPage__cardBadge logPage__cardBadge--ok">記録あり</div>}
           {!log && !loading && !error && (
             <div className="logPage__cardBadge logPage__cardBadge--empty">未記録</div>

@@ -236,7 +236,7 @@ export default function InsightsPage() {
           <MenuRankingPreview items={data.menu_ranking} />
         </ClickableCard>
 
-        <ClickableCard title="最高音の推移（裏声 / 地声）" to="/insights/notes">
+        <ClickableCard title="最高音の推移（裏声 / 地声）(7日間)" to="/insights/notes">
           <NotePitchChart
             falsetto={data.note_series.falsetto}
             chest={data.note_series.chest}

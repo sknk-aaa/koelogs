@@ -36,6 +36,7 @@ const MENU_COLOR_PALETTE: { name: string; color: string }[] = [
   { name: "Gray", color: "#E5E7EB" },
   { name: "Blue", color: "#DBEAFE" },
 ];
+const PEAK_CONFIRM_FRAMES = 4;
 
 type PitchTarget = "falsetto" | "chest";
 
@@ -147,6 +148,9 @@ export default function LogNewPage() {
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const rafRef = useRef<number | null>(null);
   const maxFreqRef = useRef<number>(0);
+  const peakCandidateMidiRef = useRef<number | null>(null);
+  const peakCandidateCountRef = useRef<number>(0);
+  const peakCandidateFreqRef = useRef<number>(0);
   const currentTargetRef = useRef<PitchTarget | null>(null);
   const peakNoteRef = useRef<string | null>(null);
   const uiUpdateAtRef = useRef<number>(0);
@@ -331,6 +335,9 @@ export default function LogNewPage() {
       setPitchCents(null);
       peakNoteRef.current = null;
       maxFreqRef.current = 0;
+      peakCandidateMidiRef.current = null;
+      peakCandidateCountRef.current = 0;
+      peakCandidateFreqRef.current = 0;
       uiUpdateAtRef.current = 0;
 
       const data = new Float32Array(analyser.fftSize);
@@ -353,10 +360,34 @@ export default function LogNewPage() {
             setPitchCents((midiFloat - midiNearest) * 100);
             uiUpdateAtRef.current = now;
           }
+
           if (freq > maxFreqRef.current) {
-            maxFreqRef.current = freq;
-            setPitchPeak(current);
-            peakNoteRef.current = current;
+            const candidateMidi = peakCandidateMidiRef.current;
+            const isNearCandidate =
+              candidateMidi != null && Math.abs(candidateMidi - midiNearest) <= 1;
+
+            if (!isNearCandidate) {
+              peakCandidateMidiRef.current = midiNearest;
+              peakCandidateCountRef.current = 1;
+              peakCandidateFreqRef.current = freq;
+            } else {
+              peakCandidateCountRef.current += 1;
+              if (freq > peakCandidateFreqRef.current) peakCandidateFreqRef.current = freq;
+            }
+
+            if (peakCandidateCountRef.current >= PEAK_CONFIRM_FRAMES) {
+              maxFreqRef.current = peakCandidateFreqRef.current;
+              const confirmedNote = midiToNote(peakCandidateMidiRef.current ?? midiNearest);
+              setPitchPeak(confirmedNote);
+              peakNoteRef.current = confirmedNote;
+              peakCandidateMidiRef.current = null;
+              peakCandidateCountRef.current = 0;
+              peakCandidateFreqRef.current = 0;
+            }
+          } else {
+            peakCandidateMidiRef.current = null;
+            peakCandidateCountRef.current = 0;
+            peakCandidateFreqRef.current = 0;
           }
         } else if (shouldSyncUi) {
           setPitchCurrent(null);

@@ -257,9 +257,19 @@ export default function LogPage() {
     setParams({ date: next });
   };
 
+  const goLogin = () => {
+    navigate(`/login`, { state: { fromPath: `/log?date=${encodeURIComponent(date)}` } });
+  };
+
+  const scrollToGuestPreview = () => {
+    const el = document.getElementById("guest-preview");
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const goNew = () => {
     if (!authMe) {
-      navigate(`/login`, { state: { fromPath: `/log?date=${encodeURIComponent(date)}` } });
+      goLogin();
       return;
     }
     navigate(`/log/new?date=${encodeURIComponent(date)}`);
@@ -267,7 +277,7 @@ export default function LogPage() {
 
   const onAskAi = async () => {
     if (!authMe) {
-      navigate(`/login`, { state: { fromPath: `/log?date=${encodeURIComponent(date)}` } });
+      goLogin();
       return;
     }
     if (aiLoading) return;
@@ -454,6 +464,51 @@ export default function LogPage() {
         }}
       />
 
+      {guestMode && (
+        <>
+          <section className="card logPage__guestHero">
+            <div className="logPage__guestHeroTitle">声の状態を記録すると、今日の練習がすぐ決まる</div>
+            <div className="logPage__guestHeroText">まずはサンプルで使い方を30秒で確認できます</div>
+            <div className="logPage__guestHeroActions">
+              <button className="logPage__btn logPage__btn--subtle" onClick={scrollToGuestPreview}>
+                サンプルを見る
+              </button>
+              <button className="logPage__btn logPage__btn--softAccent" onClick={goLogin}>
+                ログインして始める
+              </button>
+            </div>
+          </section>
+
+          <section id="guest-preview" className="card logPage__guestPreview">
+            <div className="logPage__guestPreviewTitle">サンプルデータ表示中（保存されません）</div>
+            <div className="logPage__guestPreviewGrid">
+              <article className="logPage__guestPreviewCard">
+                <div className="logPage__guestPreviewCardTitle">最高音の変化が見える</div>
+                <div className="logPage__guestPreviewCardValue">裏声 A4 / 地声 E4</div>
+                <div className="logPage__guestPreviewCardText">裏声・地声の推移を日次で確認</div>
+              </article>
+
+              <article className="logPage__guestPreviewCard">
+                <div className="logPage__guestPreviewCardTitle">継続状況が一目で分かる</div>
+                <div className="logPage__guestPreviewCardValue">現在 3 日 / 最長 11 日</div>
+                <div className="logPage__guestPreviewCardText">現在連続日数 / 最長記録</div>
+              </article>
+
+              <article className="logPage__guestPreviewCard">
+                <div className="logPage__guestPreviewCardTitle">次にやることが決まる</div>
+                <div className="logPage__guestPreviewCardValue">今日のおすすめ</div>
+                <div className="logPage__guestPreviewCardText">目標と記録からAIが提案</div>
+              </article>
+            </div>
+
+            <div className="logPage__guestReCtaText">ここまでの流れをあなたのデータで始める</div>
+            <button className="logPage__btn logPage__btn--softAccent" onClick={goLogin}>
+              ログインして始める
+            </button>
+          </section>
+        </>
+      )}
+
       <div className="logPage__stack">
         <SummaryCard
           loading={guestMode ? false : loading}
@@ -461,6 +516,7 @@ export default function LogPage() {
           log={effectiveLog}
           menuItems={menuItems}
           emptyHint={emptyHint}
+          sampleMode={guestMode}
           recordLabel={
             guestMode
               ? "ログインして記録する"
@@ -478,6 +534,7 @@ export default function LogPage() {
             aiLoading={aiLoading}
             aiError={guestMode ? null : aiError}
             aiRec={effectiveAiRec}
+            sampleMode={guestMode}
             shownText={aiShownText}
             collapsible={aiCollapsible}
             expanded={aiExpanded}
@@ -488,9 +545,16 @@ export default function LogPage() {
 
       <div className="logPage__actions">
         {(showAiButton || guestMode) && (
-          <button onClick={onAskAi} className="logPage__btn">
-            {guestMode ? "ログインしてAI提案を作成" : aiCreateButtonText}
-          </button>
+          <>
+            <button onClick={onAskAi} className="logPage__btn">
+              {guestMode ? "ログインしてAI提案を作成" : aiCreateButtonText}
+            </button>
+            {guestMode && (
+              <div className="logPage__muted">
+                ログイン後は、あなたの目標と記録を使って提案します。
+              </div>
+            )}
+          </>
         )}
       </div>
 

@@ -4,7 +4,13 @@ export type Me = {
   id: number;
   email: string;
   display_name: string | null;
+  avatar_icon: string;
+  avatar_image_url: string | null;
   goal_text: string | null;
+  public_profile_enabled: boolean;
+  public_goal_enabled: boolean;
+  ranking_participation_enabled: boolean;
+  ai_contribution_count: number;
   created_at: string;
 };
 
@@ -22,26 +28,25 @@ export async function fetchMe(): Promise<Me | null> {
 }
 
 export async function updateMeDisplayName(displayName: string): Promise<Me> {
-  const res = await fetch(`${API_BASE}/api/me`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify({ me: { display_name: displayName } }),
-  });
-
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    const msg = json?.error ?? `updateMeDisplayName failed: ${res.status}`;
-    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
-  }
-
-  return json as Me;
+  return updateMe({ display_name: displayName });
 }
 
 export async function updateMeGoalText(goalText: string): Promise<Me> {
+  return updateMe({ goal_text: goalText });
+}
+
+export async function updateMe(input: {
+  display_name?: string;
+  avatar_icon?: string;
+  avatar_image_url?: string;
+  goal_text?: string;
+  public_profile_enabled?: boolean;
+  public_goal_enabled?: boolean;
+  ranking_participation_enabled?: boolean;
+  current_password?: string;
+  password?: string;
+  password_confirmation?: string;
+}): Promise<Me> {
   const res = await fetch(`${API_BASE}/api/me`, {
     method: "PATCH",
     headers: {
@@ -49,12 +54,12 @@ export async function updateMeGoalText(goalText: string): Promise<Me> {
       Accept: "application/json",
     },
     credentials: "include",
-    body: JSON.stringify({ me: { goal_text: goalText } }),
+    body: JSON.stringify({ me: input }),
   });
 
   const json = await res.json().catch(() => null);
   if (!res.ok) {
-    const msg = json?.error ?? `updateMeGoalText failed: ${res.status}`;
+    const msg = json?.error ?? `updateMe failed: ${res.status}`;
     throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
   }
 

@@ -1,0 +1,86 @@
+.communityProfile__hero {
+  margin-bottom: 12px;
+}
+
+.communityProfile__kicker {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.communityProfile__title {
+  margin: 2px 0 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.communityProfile__card {
+  margin-bottom: 10px;
+}
+
+.communityProfile__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.communityProfile__name {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.communityProfile__stats {
+  margin-top: 8px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.communityProfile__goal {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.communityProfile__cardTitle {
+  font-size: 14px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.communityProfile__muted {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.communityProfile__badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.communityProfile__badge {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.communityProfile__badgeIcon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.communityProfile__badgeName {
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}

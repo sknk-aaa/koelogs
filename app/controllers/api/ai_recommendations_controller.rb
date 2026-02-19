@@ -48,6 +48,11 @@ module Api
       )
 
       if rec.save
+        begin
+          Ai::ContributionTracker.new(ai_recommendation: rec, collective_effects: collective_effects).record!
+        rescue => e
+          Rails.logger.error("[AI][ContributionTracker] #{e.class}: #{e.message}")
+        end
         render json: { data: serialize(rec) }, status: :created
       else
         render json: { errors: rec.errors.full_messages }, status: :unprocessable_entity

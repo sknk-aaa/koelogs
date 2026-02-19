@@ -3,12 +3,10 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { fetchWeeklyLogByWeekStart, upsertWeeklyLog } from "../api/weeklyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
-import { fetchTrainingMenus } from "../api/trainingMenus";
 import { fetchInsights } from "../api/insights";
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
 import type { WeeklyLog, WeeklyLogSummary } from "../types/weeklyLog";
-import type { TrainingMenu } from "../types/trainingMenu";
 import type { SaveRewards } from "../types/gamification";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
@@ -140,7 +138,6 @@ export default function LogPage() {
   const [weekError, setWeekError] = useState<string | null>(null);
   const [weekLog, setWeekLog] = useState<WeeklyLog | null>(null);
   const [weekSummary, setWeekSummary] = useState<WeeklyLogSummary | null>(null);
-  const [weekMenuOptions, setWeekMenuOptions] = useState<Array<{ id: number; name: string }>>([]);
   const [weekSaveLoading, setWeekSaveLoading] = useState(false);
   const [weekSaveError, setWeekSaveError] = useState<string | null>(null);
   const [weekHasUnsavedChanges, setWeekHasUnsavedChanges] = useState(false);
@@ -290,34 +287,6 @@ export default function LogPage() {
     };
   }, [selectedWeekStart, authMe, isWeekMode]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!authMe || !isWeekMode) {
-        setWeekMenuOptions([]);
-        return;
-      }
-
-      try {
-        const menus = await fetchTrainingMenus(false);
-        if (cancelled) return;
-        setWeekMenuOptions(
-          menus
-            .filter((m: TrainingMenu) => !m.archived)
-            .map((m: TrainingMenu) => ({ id: m.id, name: m.name }))
-            .sort((a, b) => a.name.localeCompare(b.name, "ja"))
-        );
-      } catch {
-        if (cancelled) return;
-        setWeekMenuOptions([]);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authMe, isWeekMode]);
-
   // streak fetch
   useEffect(() => {
     let cancelled = false;
@@ -436,10 +405,7 @@ export default function LogPage() {
     navigate(`/log/new?date=${encodeURIComponent(selectedDate)}`);
   };
 
-  const onSaveWeeklyLog = async (payload: {
-    notes: string | null;
-    effect_feedbacks: Array<{ menu_id: number; improvement_tags: string[] }>;
-  }) => {
+  const onSaveWeeklyLog = async (payload: { notes: string | null }) => {
     if (!authMe) {
       goLogin();
       return;
@@ -452,7 +418,7 @@ export default function LogPage() {
     const result = await upsertWeeklyLog({
       week_start: selectedWeekStart,
       notes: payload.notes,
-      effect_feedbacks: payload.effect_feedbacks,
+      effect_feedbacks: [],
     });
 
     if (!result.ok) {
@@ -864,7 +830,6 @@ export default function LogPage() {
             log={weekLog}
             summary={weekSummary}
             emptyHint={weeklyEmptyHint}
-            menuOptions={weekMenuOptions}
             saving={weekSaveLoading}
             saveError={weekSaveError}
             onSave={onSaveWeeklyLog}

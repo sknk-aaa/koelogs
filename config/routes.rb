@@ -25,6 +25,15 @@ Rails.application.routes.draw do
     get "ai_recommendations", to: "ai_recommendations#show"
     post "ai_recommendations", to: "ai_recommendations#create"
 
+    # community
+    get "community/posts", to: "community_posts#index"
+    post "community/posts", to: "community_posts#create"
+    get "community/favorites", to: "community_posts#favorites"
+    post "community/posts/:id/favorite", to: "community_posts#favorite"
+    delete "community/posts/:id/favorite", to: "community_posts#unfavorite"
+    get "community/rankings", to: "community_rankings#show"
+    get "community/profiles/:id", to: "community_profiles#show"
+
     # auth
     post "auth/signup", to: "auth#signup"
     post "auth/login", to: "auth#login"

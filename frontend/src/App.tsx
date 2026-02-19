@@ -19,6 +19,9 @@ import SignupPage from "./pages/SignupPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import MyPage from "./pages/MyPage";
+import CommunityPage from "./pages/CommunityPage";
+import CommunityProfilePage from "./pages/CommunityProfilePage";
+import CommunityRankingPage from "./pages/CommunityRankingPage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
 
@@ -42,6 +45,9 @@ export default function App() {
             <Route path="/insights/time" element={<InsightsTimePage />} />
             <Route path="/insights/menus" element={<InsightsMenusPage />} />
             <Route path="/insights/notes" element={<InsightsNotesPage />} />
+            <Route path="/community" element={<CommunityPage />} />
+            <Route path="/community/rankings" element={<CommunityRankingPage />} />
+            <Route path="/community/profile/:userId" element={<CommunityProfilePage />} />
 
             {/* 認証が必要なページ */}
             <Route element={<RequireAuth />}>

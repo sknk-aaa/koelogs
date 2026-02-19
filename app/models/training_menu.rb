@@ -4,6 +4,7 @@ class TrainingMenu < ApplicationRecord
 
   has_many :training_log_menus, dependent: :delete_all
   has_many :training_logs, through: :training_log_menus
+  has_many :community_posts, dependent: :delete_all
 
   scope :active, -> { where(archived: false) }
 

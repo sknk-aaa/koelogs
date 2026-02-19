@@ -1,0 +1,24 @@
+<svg width="740" height="290" viewBox="430 110 740 290" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="kgSwoosh" x1="470" y1="320" x2="1130" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6FD7FA"/>
+      <stop offset="0.58" stop-color="#3DA6E8"/>
+      <stop offset="1" stop-color="#2E7BCF"/>
+    </linearGradient>
+    <filter id="kgGlow" x="870" y="274" width="290" height="110" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#4FB8F2" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <title>KoeLog Logo</title>
+
+  <text x="800" y="275" text-anchor="middle" font-size="188" font-family="'Poppins','Avenir Next','Segoe UI',sans-serif" font-style="italic" font-weight="700">
+    <tspan fill="#111111">Koe</tspan><tspan fill="#4FB8F2">Log</tspan>
+  </text>
+
+  <path d="M470 326C586 292 719 290 865 308C956 318 1033 322 1130 307" stroke="url(#kgSwoosh)" stroke-width="7.5" stroke-linecap="round"/>
+
+  <g filter="url(#kgGlow)">
+    <path d="M880 316C970 324 1038 324 1145 308" stroke="#4FB8F2" stroke-opacity="0.82" stroke-width="8.5" stroke-linecap="round"/>
+  </g>
+</svg>

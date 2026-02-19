@@ -955,11 +955,13 @@
 
 .trainingPage__modalCard {
   width: min(620px, 96vw);
+  max-height: min(86vh, 760px);
   border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--card);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
   padding: 14px;
 }
@@ -979,6 +981,9 @@
 .trainingPage__modalBody {
   display: grid;
   gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .trainingPage__metricInfoItem {
@@ -986,6 +991,11 @@
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.75);
   padding: 8px 10px;
+}
+
+.trainingPage__metricInfoItem--method {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
 }
 
 .trainingPage__metricInfoLabel {

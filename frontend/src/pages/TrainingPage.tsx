@@ -25,36 +25,54 @@ type MetricKey =
   | "peak_note"
   | "avg_loudness";
 
-const METRIC_OPTIONS: Array<{ key: MetricKey; label: string; description: string }> = [
+const METRIC_OPTIONS: Array<{
+  key: MetricKey;
+  label: string;
+  description: string;
+  detail: string;
+  caution: string;
+}> = [
   {
     key: "pitch_stability",
     label: "ピッチ安定度",
     description: "発声中の音程のブレの少なさ。高いほど一定の音程を保てています。",
+    detail: "ロングトーンや母音の伸ばしで、音程が上下に揺れすぎていないかを確認する項目です。",
+    caution: "ビブラートを意図して使う練習では、値が低めになることがあります。",
   },
   {
     key: "pitch_accuracy",
     label: "音程精度",
     description: "検出ピッチが半音中心にどれだけ近いか。高いほど狙った音程に近い状態です。",
+    detail: "狙った音高に対して、実際の音程がどれくらい外れているかを確認する項目です。",
+    caution: "滑らかに音をつなぐ練習では、遷移区間で誤差が大きく見える場合があります。",
   },
   {
     key: "volume_stability",
     label: "音量安定",
     description: "発声中の音量のばらつきの少なさ。高いほど音量を一定に保てています。",
+    detail: "声量を保ったままムラなく発声できているかを確認する項目です。",
+    caution: "マイク位置や部屋の反響の変化でも値が揺れるため、録音環境をそろえるのがおすすめです。",
   },
   {
     key: "phonation_duration",
     label: "発声時間",
     description: "有効な発声として検出された合計時間。ロングトーン系の比較に向いています。",
+    detail: "録音時間のうち、実際に発声していた時間の長さを確認する項目です。",
+    caution: "無音区間が長い録音や、息だけの区間が多い録音では短く出ます。",
   },
   {
     key: "peak_note",
     label: "最高音",
     description: "録音内で検出された最も高い音。",
+    detail: "そのテイクで到達した最大音高を把握する項目です。",
+    caution: "一瞬のノイズで高く出るのを避けるため、同条件で複数回の記録を比較してください。",
   },
   {
     key: "avg_loudness",
     label: "発声の大きさの平均",
     description: "発声区間の平均音量(dBFS)。声量の目安として使えます。",
+    detail: "発声区間全体の平均音量を確認する項目です。",
+    caution: "端末やマイク感度に依存するため、絶対値よりも自分の過去記録との比較が有効です。",
   },
 ];
 const DEFAULT_SELECTED_METRICS: MetricKey[] = ["pitch_stability", "pitch_accuracy", "volume_stability"];
@@ -62,6 +80,9 @@ type AnalysisPreset = {
   key: "long_tone" | "high_note" | "loudness_control" | "pitch_stability_base";
   name: string;
   description: string;
+  target: string;
+  howToUse: string;
+  readPoint: string;
   focusPoints: string;
   compareByScale: boolean;
   fixedScaleType: string | null;
@@ -75,6 +96,9 @@ const ANALYSIS_PRESETS: AnalysisPreset[] = [
     key: "long_tone",
     name: "ロングトーン安定",
     description: "息のコントロールと持続を確認するプリセットです。",
+    target: "ロングトーンの最後で音程や音量が崩れやすいと感じるとき",
+    howToUse: "同じ母音で一定の強さを保ちながら、できるだけ一定の長さで発声します。",
+    readPoint: "発声時間の伸びと、音量安定・ピッチ安定度をセットで確認してください。",
     focusPoints: "一定音量・一定音程で、最後まで息の支えを保つ",
     compareByScale: true,
     fixedScaleType: "5tone",
@@ -86,6 +110,9 @@ const ANALYSIS_PRESETS: AnalysisPreset[] = [
     key: "high_note",
     name: "高音チャレンジ",
     description: "高音到達と、高音域での精度を確認するプリセットです。",
+    target: "高音の到達点を更新したい、または高音域の当たりを安定させたいとき",
+    howToUse: "喉で押し上げず、無理のない範囲で段階的に高音へアプローチします。",
+    readPoint: "最高音だけでなく、音程精度とピッチ安定度が維持できているかを確認してください。",
     focusPoints: "無理に押し上げず、声が細くならない範囲で最高音を更新する",
     compareByScale: true,
     fixedScaleType: "octave",
@@ -97,6 +124,9 @@ const ANALYSIS_PRESETS: AnalysisPreset[] = [
     key: "loudness_control",
     name: "声量コントロール",
     description: "声量の平均とバラつきを確認するプリセットです。",
+    target: "声量を上げても声が暴れない状態を作りたいとき",
+    howToUse: "一定のフレーズで、声量を落としすぎず安定して発声します。",
+    readPoint: "平均音量と音量安定を同時に見て、声量と安定性のバランスを確認してください。",
     focusPoints: "声量を上げても音量の波を抑え、一定の鳴りを保つ",
     compareByScale: true,
     fixedScaleType: "5tone",
@@ -108,6 +138,9 @@ const ANALYSIS_PRESETS: AnalysisPreset[] = [
     key: "pitch_stability_base",
     name: "音程安定ベース",
     description: "5tone など通常の練習の中で、音程のブレ・狙い音への一致・音量の乱れを総合的に確認するプリセットです。",
+    target: "普段の練習全体の安定度を定点観測したいとき",
+    howToUse: "毎回ほぼ同じテンポ・同じ姿勢で録音し、継続的に比較できる状態を作ります。",
+    readPoint: "単発の上下よりも、複数回の推移で改善傾向を見るのがおすすめです。",
     focusPoints: "音程の揺れを抑え、狙った音を安定して再現する",
     compareByScale: false,
     fixedScaleType: null,
@@ -1398,12 +1431,50 @@ export default function TrainingPage() {
                     </button>
                   </div>
                   <div className="trainingPage__modalBody">
+                    <div className="trainingPage__metricInfoItem">
+                      <div className="trainingPage__metricInfoLabel">詳細設定で変更できる項目</div>
+                      <div className="trainingPage__metricInfoText">
+                        1) 比較条件（スケール）: ONにすると、同じスケール条件で履歴比較しやすくなります。
+                      </div>
+                      <div className="trainingPage__metricInfoText">
+                        2) 比較条件（テンポ）: ONにすると、同じテンポ条件で履歴比較しやすくなります。
+                      </div>
+                      <div className="trainingPage__metricInfoText">
+                        3) 判定項目: 目的に合わせて評価する軸を選択できます。迷う場合はデフォルト3項目がおすすめです。
+                      </div>
+                    </div>
                     {METRIC_OPTIONS.map((opt) => (
                       <div key={opt.key} className="trainingPage__metricInfoItem">
                         <div className="trainingPage__metricInfoLabel">{opt.label}</div>
                         <div className="trainingPage__metricInfoText">{opt.description}</div>
+                        <div className="trainingPage__metricInfoText">{opt.detail}</div>
+                        <div className="trainingPage__metricInfoText">{opt.caution}</div>
                       </div>
                     ))}
+                    <div className="trainingPage__metricInfoItem trainingPage__metricInfoItem--method">
+                      <div className="trainingPage__metricInfoLabel">判定方法（点数算出の考え方）</div>
+                      <div className="trainingPage__metricInfoText">
+                        ・ピッチ安定度: 検出ピッチのばらつき（標準偏差）を使い、ばらつきが小さいほど高得点になります。
+                      </div>
+                      <div className="trainingPage__metricInfoText">
+                        ・音程精度: 半音中心からの平均ズレ（cent）を使い、ズレが小さいほど高得点になります。
+                      </div>
+                      <div className="trainingPage__metricInfoText">
+                        ・音量安定: 発声区間の音量ばらつき（dBの標準偏差）を使い、ばらつきが小さいほど高得点になります。
+                      </div>
+                      <div className="trainingPage__metricInfoText">
+                        ・発声時間: 録音時間のうち、実際に有効発声と判定された時間（秒）を表示します。
+                      </div>
+                      <div className="trainingPage__metricInfoText">
+                        ・最高音: 録音中に検出された最も高い音名を表示します。
+                      </div>
+                      <div className="trainingPage__metricInfoText">
+                        ・発声の大きさ平均: 発声区間の平均音量（dBFS）を表示します。
+                      </div>
+                      <div className="trainingPage__metricInfoText">
+                        ※ マイク感度・距離・部屋の反響で数値は変動します。公平な比較のため、できるだけ同じ環境で録音してください。
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1439,20 +1510,14 @@ export default function TrainingPage() {
                   </div>
                   <div className="trainingPage__modalBody">
                     {ANALYSIS_PRESETS.map((preset) => (
-                      <div key={`preset-info-${preset.key}`} className="trainingPage__metricInfoItem">
+                        <div key={`preset-info-${preset.key}`} className="trainingPage__metricInfoItem">
                         <div className="trainingPage__metricInfoLabel">{preset.name}</div>
                         <div className="trainingPage__metricInfoText">{preset.description}</div>
+                        <div className="trainingPage__metricInfoText">向いている目的: {preset.target}</div>
+                        <div className="trainingPage__metricInfoText">実施のコツ: {preset.howToUse}</div>
+                        <div className="trainingPage__metricInfoText">結果の見方: {preset.readPoint}</div>
                         <div className="trainingPage__metricInfoText">
                           判定項目: {preset.selectedMetrics.map((key) => metricLabel(key)).join(" / ")}
-                        </div>
-                        <div className="trainingPage__metricInfoText">
-                          比較条件:
-                          {preset.compareByScale
-                            ? ` スケール(${preset.fixedScaleType ?? "指定なし"})`
-                            : " スケール指定なし"}
-                          {preset.compareByTempo
-                            ? ` / テンポ(${preset.fixedTempo ?? "指定なし"}bpm)`
-                            : " / テンポ指定なし"}
                         </div>
                       </div>
                     ))}

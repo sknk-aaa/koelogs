@@ -375,6 +375,56 @@
   font-size: 13px;
 }
 
+.logNew__aiPromptOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(17, 17, 17, 0.32);
+  backdrop-filter: blur(2px);
+}
+
+.logNew__aiPromptCard {
+  width: min(100%, 420px);
+  display: grid;
+  gap: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+}
+
+.logNew__aiPromptTitle {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.logNew__aiPromptText {
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.84;
+}
+
+.logNew__aiPromptError {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #b00020;
+  background: rgba(176, 0, 32, 0.08);
+  border: 1px solid rgba(176, 0, 32, 0.22);
+  border-radius: 10px;
+  padding: 8px 10px;
+  white-space: pre-wrap;
+}
+
+.logNew__aiPromptActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .logNew__stickyBar {
   position: fixed;
   left: 0;

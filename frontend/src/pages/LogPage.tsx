@@ -130,6 +130,7 @@ export default function LogPage() {
   const [currentStreakDays, setCurrentStreakDays] = useState<number | null>(null);
   const [totalPracticeDaysCount, setTotalPracticeDaysCount] = useState<number | null>(null);
   const [firstGuideOpen, setFirstGuideOpen] = useState(false);
+  const [showGuideHintBanner, setShowGuideHintBanner] = useState(false);
 
   const [weekLoading, setWeekLoading] = useState(false);
   const [weekError, setWeekError] = useState<string | null>(null);
@@ -473,7 +474,7 @@ export default function LogPage() {
     setAiExpanded(true);
   };
 
-  const closeFirstGuide = () => {
+  const closeFirstGuide = (showHintBanner: boolean) => {
     if (authMe) {
       const key = `${FIRST_LOGIN_GUIDE_KEY_PREFIX}${authMe.id}`;
       try {
@@ -483,6 +484,7 @@ export default function LogPage() {
       }
     }
     setFirstGuideOpen(false);
+    setShowGuideHintBanner(showHintBanner);
   };
 
   const previewLog: TrainingLog = {
@@ -634,14 +636,43 @@ export default function LogPage() {
 
       <WelcomeGuideModal
         open={firstGuideOpen}
-        onClose={closeFirstGuide}
+        onClose={() => closeFirstGuide(true)}
+        onOpenGuide={() => {
+          closeFirstGuide(false);
+          navigate("/help/guide");
+        }}
         onStartRecord={() => {
-          closeFirstGuide();
+          closeFirstGuide(false);
           navigate(`/log/new?date=${encodeURIComponent(selectedDate)}`, {
             state: { quickFromWelcome: true },
           });
         }}
       />
+
+      {showGuideHintBanner && (
+        <section className="card logPage__guideHint" role="status">
+          <div className="logPage__guideHintText">迷ったら使い方を見る</div>
+          <div className="logPage__guideHintActions">
+            <button
+              type="button"
+              className="logPage__btn logPage__btn--subtle"
+              onClick={() => {
+                setShowGuideHintBanner(false);
+                navigate("/help/guide");
+              }}
+            >
+              使い方を見る
+            </button>
+            <button
+              type="button"
+              className="logPage__btn logPage__btn--subtle"
+              onClick={() => setShowGuideHintBanner(false)}
+            >
+              閉じる
+            </button>
+          </div>
+        </section>
+      )}
 
       {!!me && (
         <div className="goalBar">

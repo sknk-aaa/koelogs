@@ -62,6 +62,29 @@
   background: color-mix(in srgb, var(--accent) 14%, #ffffff);
 }
 
+.logPage__guideHint {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+}
+
+.logPage__guideHintText {
+  font-size: 13px;
+  font-weight: 900;
+  opacity: 0.84;
+}
+
+.logPage__guideHintActions {
+  display: flex;
+  gap: 8px;
+}
+
 .logPage__guestHero {
   margin-bottom: 12px;
   display: grid;
@@ -904,6 +927,15 @@
 }
 
 @media (max-width: 520px) {
+  .logPage__guideHint {
+    display: grid;
+  }
+
+  .logPage__guideHintActions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
   .logPage__modeSwitch {
     width: 100%;
   }

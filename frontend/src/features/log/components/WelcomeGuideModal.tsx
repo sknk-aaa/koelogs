@@ -5,13 +5,14 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onStartRecord: () => void;
+  onOpenGuide: () => void;
 };
 
 function isEsc(e: KeyboardEvent) {
   return e.key === "Escape";
 }
 
-export default function WelcomeGuideModal({ open, onClose, onStartRecord }: Props) {
+export default function WelcomeGuideModal({ open, onClose, onStartRecord, onOpenGuide }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -39,6 +40,9 @@ export default function WelcomeGuideModal({ open, onClose, onStartRecord }: Prop
             記録する
           </button>
         </div>
+        <button type="button" className="wgm__helpLink" onClick={onOpenGuide}>
+          使い方を見る（1分）
+        </button>
       </section>
     </div>
   );

@@ -2,9 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { upsertTrainingLog, type UpsertTrainingLogInput } from "../api/trainingLogs";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
+import { createAiRecommendation } from "../api/aiRecommendations";
+import { fetchInsights } from "../api/insights";
 import type { TrainingLog } from "../types/trainingLog";
 import { fetchTrainingMenus, createTrainingMenu, updateTrainingMenu } from "../api/trainingMenus";
 import type { TrainingMenu } from "../types/trainingMenu";
+import { useSettings } from "../features/settings/useSettings";
 import ColoredTag from "../components/ColoredTag";
 
 import "./LogNewPage.css";
@@ -111,6 +114,7 @@ export default function LogNewPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
+  const { settings } = useSettings();
   const navState = location.state as { quickFromWelcome?: boolean } | null;
   const quickMode = navState?.quickFromWelcome === true;
 
@@ -137,6 +141,11 @@ export default function LogNewPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [aiPromptOpen, setAiPromptOpen] = useState(false);
+  const [aiPromptDate, setAiPromptDate] = useState<string | null>(null);
+  const [aiPromptLoading, setAiPromptLoading] = useState(false);
+  const [aiPromptError, setAiPromptError] = useState<string | null>(null);
+  const [showAiPromptOnSave, setShowAiPromptOnSave] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
   const [pitchRecording, setPitchRecording] = useState<PitchTarget | null>(null);
   const [pitchCurrent, setPitchCurrent] = useState<string | null>(null);
@@ -170,6 +179,27 @@ export default function LogNewPage() {
         console.error(e);
       }
     })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 初回保存時のみ AI生成ポップアップを出す
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const res = await fetchInsights(30);
+      if (cancelled) return;
+
+      if ("error" in res && res.error) {
+        setShowAiPromptOnSave(false);
+        return;
+      }
+
+      const total = res.data?.total_practice_days_count ?? 0;
+      setShowAiPromptOnSave(total === 0);
+    })();
+
     return () => {
       cancelled = true;
     };
@@ -507,11 +537,48 @@ export default function LogNewPage() {
       return;
     }
 
+    if (showAiPromptOnSave) {
+      setAiPromptDate(practicedOn);
+      setAiPromptError(null);
+      setAiPromptOpen(true);
+      setShowAiPromptOnSave(false);
+      return;
+    }
+
     navigate(`/log?mode=day&date=${encodeURIComponent(practicedOn)}`, { replace: true });
   };
 
   const onCancel = () => {
     navigate(`/log?mode=day&date=${encodeURIComponent(practicedOn)}`);
+  };
+
+  const onSkipAiRecommendation = () => {
+    if (aiPromptLoading) return;
+    const targetDate = aiPromptDate ?? practicedOn;
+    setAiPromptOpen(false);
+    navigate(`/log?mode=day&date=${encodeURIComponent(targetDate)}`, { replace: true });
+  };
+
+  const onCreateAiRecommendation = async () => {
+    if (!aiPromptDate || aiPromptLoading) return;
+
+    setAiPromptLoading(true);
+    setAiPromptError(null);
+
+    const res = await createAiRecommendation({
+      date: aiPromptDate,
+      range_days: settings.aiRangeDays,
+    });
+
+    if (!res.ok) {
+      setAiPromptError(res.errors.join("\n"));
+      setAiPromptLoading(false);
+      return;
+    }
+
+    setAiPromptOpen(false);
+    setAiPromptLoading(false);
+    navigate(`/log?mode=day&date=${encodeURIComponent(aiPromptDate)}`, { replace: true });
   };
 
   const tunerNeedle = useMemo(() => {
@@ -849,7 +916,7 @@ export default function LogNewPage() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={6}
-            placeholder={quickMode ? "いまの声の状態・気づき（任意）" : "メモ（任意）"}
+            placeholder={quickMode ? "いまの声の状態・気づき（詳細に記述することでAIがより適切なアドバイスを提供できます）" : "メモ（声の状態や悩みを詳細に記述すると、AIがより適切なアドバイスを提供できます。） "}
             className="logNew__textarea"
           />
         </section>
@@ -865,6 +932,36 @@ export default function LogNewPage() {
           </section>
         )}
       </form>
+
+      {aiPromptOpen && (
+        <div className="logNew__aiPromptOverlay" role="dialog" aria-modal="true" aria-label="AIおすすめ生成確認">
+          <section className="logNew__aiPromptCard">
+            <div className="logNew__aiPromptTitle">AIおすすめを生成しますか？</div>
+            <div className="logNew__aiPromptText">
+              保存した記録をもとに、今日のおすすめメニューを提案します。
+            </div>
+            {aiPromptError && <div className="logNew__aiPromptError">{aiPromptError}</div>}
+            <div className="logNew__aiPromptActions">
+              <button
+                type="button"
+                className="logNew__btn logNew__btn--ghost"
+                onClick={onSkipAiRecommendation}
+                disabled={aiPromptLoading}
+              >
+                あとで
+              </button>
+              <button
+                type="button"
+                className="logNew__btn logNew__btn--primary"
+                onClick={() => void onCreateAiRecommendation()}
+                disabled={aiPromptLoading}
+              >
+                {aiPromptLoading ? "生成中…" : "生成する"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       <div className="logNew__stickyBar">
         <div className="logNew__stickyInner">

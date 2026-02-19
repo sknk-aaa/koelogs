@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { fetchWeeklyLogByWeekStart, upsertWeeklyLog } from "../api/weeklyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
@@ -9,6 +9,7 @@ import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
 import type { WeeklyLog, WeeklyLogSummary } from "../types/weeklyLog";
 import type { TrainingMenu } from "../types/trainingMenu";
+import type { SaveRewards } from "../types/gamification";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 
@@ -76,6 +77,7 @@ const GOAL_MAX = 50;
 const FIRST_LOGIN_GUIDE_KEY_PREFIX = "voice_app_log_first_guide_seen_user_";
 
 type LogMode = "day" | "week";
+type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
 
 function shouldCollapseText(text: string, previewChars: number) {
   return text.trim().length > previewChars;
@@ -98,6 +100,7 @@ function isWithinFirst7Days(createdAt?: string | null): boolean {
 
 export default function LogPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params, setParams] = useSearchParams();
   const today = useMemo(() => todayISO(), []);
   const rawMode = params.get("mode");
@@ -129,6 +132,7 @@ export default function LogPage() {
   const [log, setLog] = useState<TrainingLog | null>(null);
   const [currentStreakDays, setCurrentStreakDays] = useState<number | null>(null);
   const [totalPracticeDaysCount, setTotalPracticeDaysCount] = useState<number | null>(null);
+  const [saveToast, setSaveToast] = useState<SaveRewards | null>(null);
   const [firstGuideOpen, setFirstGuideOpen] = useState(false);
   const [showGuideHintBanner, setShowGuideHintBanner] = useState(false);
 
@@ -339,6 +343,21 @@ export default function LogPage() {
     };
   }, [authMe]);
 
+  // /log/new 保存後のトースト受け取り
+  useEffect(() => {
+    const navState = location.state as LogPageNavState;
+    const incomingToast = navState?.gamificationToast ?? null;
+    if (!incomingToast) return;
+
+    setSaveToast(incomingToast);
+    const timer = window.setTimeout(() => setSaveToast(null), 2800);
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [location.pathname, location.search, location.state, navigate]);
+
   // daily ai recommendation fetch
   useEffect(() => {
     let cancelled = false;
@@ -533,6 +552,16 @@ export default function LogPage() {
     !guestMode && isWithinInitial7Days
       ? "目標やトレーニングデータから今日のおすすめを作成"
       : "AI提案を作成";
+  const toastLines = useMemo(() => {
+    if (!saveToast) return [] as string[];
+    const lines: string[] = [];
+    if (saveToast.xp_earned > 0) lines.push(`+${saveToast.xp_earned} XP`);
+    if ((saveToast.streak_message_days ?? 0) > 0) lines.push(`連続 ${saveToast.streak_message_days} 日達成`);
+    if (saveToast.unlocked_badges.length > 0) {
+      lines.push(`バッジ獲得: ${saveToast.unlocked_badges.map((b) => b.name).join(" / ")}`);
+    }
+    return lines;
+  }, [saveToast]);
 
   useEffect(() => {
     setLastLogPath(currentLogPath);
@@ -671,6 +700,14 @@ export default function LogPage() {
               閉じる
             </button>
           </div>
+        </section>
+      )}
+
+      {toastLines.length > 0 && (
+        <section className="logPage__rewardToast" role="status" aria-live="polite">
+          {toastLines.map((line, idx) => (
+            <div key={`${line}-${idx}`} className="logPage__rewardToastLine">{line}</div>
+          ))}
         </section>
       )}
 

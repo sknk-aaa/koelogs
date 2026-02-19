@@ -25,6 +25,7 @@ module Api
       week_start = parse_week_start!(create_params[:week_start])
 
       log = current_user.weekly_logs.find_or_initialize_by(week_start: week_start)
+      was_new_record = log.new_record?
       log.notes = create_params[:notes].presence
 
       effect_feedbacks = normalize_effect_feedbacks(create_params[:effect_feedbacks])
@@ -47,9 +48,19 @@ module Api
       end
 
       if log.save
+        rewards =
+          if was_new_record
+            Gamification::Awarder.call(
+              user: current_user,
+              grants: [ { rule_key: "weekly_log_saved", source_type: "weekly_log", source_id: log.id } ]
+            )
+          else
+            nil
+          end
         render json: {
           data: serialize(log),
-          summary: build_summary(week_start)
+          summary: build_summary(week_start),
+          rewards: rewards
         }, status: :ok
       else
         render json: { errors: log.errors.full_messages }, status: :unprocessable_entity

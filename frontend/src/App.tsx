@@ -18,6 +18,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
+import MyPage from "./pages/MyPage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
 
@@ -48,6 +49,7 @@ export default function App() {
               <Route path="/analysis/history" element={<AnalysisHistoryPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/mypage" element={<MyPage />} />
             </Route>
 
             {/* ヘルプはログイン不要 */}

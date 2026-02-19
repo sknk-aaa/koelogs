@@ -6,6 +6,7 @@ function titleFromPath(pathname: string) {
   if (pathname.startsWith("/analysis/history")) return "分析履歴";
   if (pathname.startsWith("/training")) return "トレーニング";
   if (pathname.startsWith("/insights")) return "分析";
+  if (pathname.startsWith("/mypage")) return "マイページ";
   if (pathname.startsWith("/settings")) return "設定";
   if (pathname.startsWith("/account") || pathname.startsWith("/profile")) return "アカウント";
   if (pathname.startsWith("/help")) return "ヘルプ";

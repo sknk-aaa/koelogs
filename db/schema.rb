@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_19_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_19_220000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -147,6 +147,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_19_020000) do
     t.index ["user_id"], name: "index_training_menus_on_user_id"
   end
 
+  create_table "user_badges", force: :cascade do |t|
+    t.string "badge_key", null: false
+    t.datetime "created_at", null: false
+    t.datetime "unlocked_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "badge_key"], name: "index_user_badges_on_user_id_and_badge_key", unique: true
+    t.index ["user_id", "unlocked_at"], name: "index_user_badges_on_user_id_and_unlocked_at"
+    t.index ["user_id"], name: "index_user_badges_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "display_name"
@@ -171,6 +182,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_19_020000) do
     t.index ["user_id"], name: "index_weekly_logs_on_user_id"
   end
 
+  create_table "xp_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "points", null: false
+    t.string "rule_key", null: false
+    t.bigint "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "created_at"], name: "index_xp_events_on_user_id_and_created_at"
+    t.index ["user_id", "rule_key", "source_type", "source_id"], name: "idx_xp_events_unique_source", unique: true
+    t.index ["user_id"], name: "index_xp_events_on_user_id"
+  end
+
   add_foreign_key "ai_recommendations", "users"
   add_foreign_key "analysis_menus", "users"
   add_foreign_key "analysis_sessions", "analysis_menus"
@@ -182,5 +206,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_19_020000) do
   add_foreign_key "training_log_menus", "users"
   add_foreign_key "training_logs", "users"
   add_foreign_key "training_menus", "users"
+  add_foreign_key "user_badges", "users"
   add_foreign_key "weekly_logs", "users"
+  add_foreign_key "xp_events", "users"
 end

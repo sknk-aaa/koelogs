@@ -1,0 +1,368 @@
+.myPage {
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+  display: grid;
+  gap: 14px;
+}
+
+.myPage__hero {
+  display: grid;
+  gap: 8px;
+}
+
+.myPage__kicker {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.myPage__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.myPage__sub {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.76;
+}
+
+.myPage__missionCard,
+.myPage__card {
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(130deg, rgba(255, 255, 255, 0.94), rgba(0, 0, 0, 0.1)) border-box;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.myPage__cardTitle {
+  font-size: 15px;
+  font-weight: 950;
+  margin-bottom: 10px;
+}
+
+.myPage__missionList {
+  display: grid;
+  gap: 9px;
+}
+
+.myPage__missionPrimary {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.84);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.myPage__mission {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.84);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.myPage__missionTitle {
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.myPage__missionText {
+  font-size: 12px;
+  opacity: 0.74;
+  line-height: 1.5;
+}
+
+.myPage__missionBtn {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  color: inherit;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.myPage__missionListBtn {
+  margin-top: 10px;
+  min-height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.myPage__allClear {
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, white);
+  padding: 12px;
+}
+
+.myPage__allClearTitle {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.myPage__allClearText {
+  margin-top: 3px;
+  font-size: 12px;
+  opacity: 0.74;
+}
+
+.myPage__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.myPage__stat,
+.myPage__dayItem {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.86);
+  padding: 10px;
+  display: grid;
+  gap: 5px;
+}
+
+.myPage__label {
+  font-size: 11px;
+  font-weight: 900;
+  opacity: 0.68;
+}
+
+.myPage__value {
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.myPage__xpRail {
+  margin-top: 10px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.myPage__xpFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 24%, #62d3f2),
+    color-mix(in srgb, var(--accent) 58%, #7e82ee)
+  );
+}
+
+.myPage__badgeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.myPage__badge {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.88);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+}
+
+.myPage__badge.is-locked {
+  opacity: 0.72;
+}
+
+.myPage__badgeIcon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.myPage__badge.is-locked .myPage__badgeIcon {
+  filter: grayscale(1);
+}
+
+.myPage__badgeName {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.myPage__badgeMeta {
+  font-size: 11px;
+  font-weight: 900;
+  opacity: 0.74;
+}
+
+.myPage__hint {
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.myPage__trendHead {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.myPage__linkBtn {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, white);
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.myPage__daysGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.myPage__chips {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.myPage__chip {
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.86);
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.myPage__modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.38);
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+}
+
+.myPage__modalCard {
+  width: min(680px, 100%);
+  max-height: min(80vh, 760px);
+  overflow: auto;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  padding: 14px;
+}
+
+.myPage__modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.myPage__modalTitle {
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.myPage__modalClose {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.myPage__modalList {
+  display: grid;
+  gap: 10px;
+}
+
+.myPage__modalMission {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.88);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.myPage__modalMission.is-done {
+  opacity: 0.75;
+}
+
+.myPage__modalMissionTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.myPage__missionStatus {
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.myPage__missionStatus.is-pending {
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, white);
+}
+
+.myPage__missionStatus.is-done {
+  border: 1px solid rgba(34, 197, 94, 0.36);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+@media (max-width: 780px) {
+  .myPage__stats,
+  .myPage__daysGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .myPage__badgeGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

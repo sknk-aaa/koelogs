@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { fetchWeeklyLogByWeekStart, upsertWeeklyLog } from "../api/weeklyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
-import { fetchTrainingMenus } from "../api/trainingMenus";
 import { fetchInsights } from "../api/insights";
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
 import type { WeeklyLog, WeeklyLogSummary } from "../types/weeklyLog";
-import type { TrainingMenu } from "../types/trainingMenu";
+import type { SaveRewards } from "../types/gamification";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 
@@ -76,6 +75,7 @@ const GOAL_MAX = 50;
 const FIRST_LOGIN_GUIDE_KEY_PREFIX = "voice_app_log_first_guide_seen_user_";
 
 type LogMode = "day" | "week";
+type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
 
 function shouldCollapseText(text: string, previewChars: number) {
   return text.trim().length > previewChars;
@@ -98,6 +98,7 @@ function isWithinFirst7Days(createdAt?: string | null): boolean {
 
 export default function LogPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params, setParams] = useSearchParams();
   const today = useMemo(() => todayISO(), []);
   const rawMode = params.get("mode");
@@ -129,6 +130,7 @@ export default function LogPage() {
   const [log, setLog] = useState<TrainingLog | null>(null);
   const [currentStreakDays, setCurrentStreakDays] = useState<number | null>(null);
   const [totalPracticeDaysCount, setTotalPracticeDaysCount] = useState<number | null>(null);
+  const [saveToast, setSaveToast] = useState<SaveRewards | null>(null);
   const [firstGuideOpen, setFirstGuideOpen] = useState(false);
   const [showGuideHintBanner, setShowGuideHintBanner] = useState(false);
 
@@ -136,7 +138,6 @@ export default function LogPage() {
   const [weekError, setWeekError] = useState<string | null>(null);
   const [weekLog, setWeekLog] = useState<WeeklyLog | null>(null);
   const [weekSummary, setWeekSummary] = useState<WeeklyLogSummary | null>(null);
-  const [weekMenuOptions, setWeekMenuOptions] = useState<Array<{ id: number; name: string }>>([]);
   const [weekSaveLoading, setWeekSaveLoading] = useState(false);
   const [weekSaveError, setWeekSaveError] = useState<string | null>(null);
   const [weekHasUnsavedChanges, setWeekHasUnsavedChanges] = useState(false);
@@ -286,34 +287,6 @@ export default function LogPage() {
     };
   }, [selectedWeekStart, authMe, isWeekMode]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!authMe || !isWeekMode) {
-        setWeekMenuOptions([]);
-        return;
-      }
-
-      try {
-        const menus = await fetchTrainingMenus(false);
-        if (cancelled) return;
-        setWeekMenuOptions(
-          menus
-            .filter((m: TrainingMenu) => !m.archived)
-            .map((m: TrainingMenu) => ({ id: m.id, name: m.name }))
-            .sort((a, b) => a.name.localeCompare(b.name, "ja"))
-        );
-      } catch {
-        if (cancelled) return;
-        setWeekMenuOptions([]);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authMe, isWeekMode]);
-
   // streak fetch
   useEffect(() => {
     let cancelled = false;
@@ -338,6 +311,21 @@ export default function LogPage() {
       cancelled = true;
     };
   }, [authMe]);
+
+  // /log/new 保存後のトースト受け取り
+  useEffect(() => {
+    const navState = location.state as LogPageNavState;
+    const incomingToast = navState?.gamificationToast ?? null;
+    if (!incomingToast) return;
+
+    setSaveToast(incomingToast);
+    const timer = window.setTimeout(() => setSaveToast(null), 2800);
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [location.pathname, location.search, location.state, navigate]);
 
   // daily ai recommendation fetch
   useEffect(() => {
@@ -417,10 +405,7 @@ export default function LogPage() {
     navigate(`/log/new?date=${encodeURIComponent(selectedDate)}`);
   };
 
-  const onSaveWeeklyLog = async (payload: {
-    notes: string | null;
-    effect_feedbacks: Array<{ menu_id: number; improvement_tags: string[] }>;
-  }) => {
+  const onSaveWeeklyLog = async (payload: { notes: string | null }) => {
     if (!authMe) {
       goLogin();
       return;
@@ -433,7 +418,7 @@ export default function LogPage() {
     const result = await upsertWeeklyLog({
       week_start: selectedWeekStart,
       notes: payload.notes,
-      effect_feedbacks: payload.effect_feedbacks,
+      effect_feedbacks: [],
     });
 
     if (!result.ok) {
@@ -533,6 +518,16 @@ export default function LogPage() {
     !guestMode && isWithinInitial7Days
       ? "目標やトレーニングデータから今日のおすすめを作成"
       : "AI提案を作成";
+  const toastLines = useMemo(() => {
+    if (!saveToast) return [] as string[];
+    const lines: string[] = [];
+    if (saveToast.xp_earned > 0) lines.push(`+${saveToast.xp_earned} XP`);
+    if ((saveToast.streak_message_days ?? 0) > 0) lines.push(`連続 ${saveToast.streak_message_days} 日達成`);
+    if (saveToast.unlocked_badges.length > 0) {
+      lines.push(`バッジ獲得: ${saveToast.unlocked_badges.map((b) => b.name).join(" / ")}`);
+    }
+    return lines;
+  }, [saveToast]);
 
   useEffect(() => {
     setLastLogPath(currentLogPath);
@@ -671,6 +666,14 @@ export default function LogPage() {
               閉じる
             </button>
           </div>
+        </section>
+      )}
+
+      {toastLines.length > 0 && (
+        <section className="logPage__rewardToast" role="status" aria-live="polite">
+          {toastLines.map((line, idx) => (
+            <div key={`${line}-${idx}`} className="logPage__rewardToastLine">{line}</div>
+          ))}
         </section>
       )}
 
@@ -827,7 +830,6 @@ export default function LogPage() {
             log={weekLog}
             summary={weekSummary}
             emptyHint={weeklyEmptyHint}
-            menuOptions={weekMenuOptions}
             saving={weekSaveLoading}
             saveError={weekSaveError}
             onSave={onSaveWeeklyLog}

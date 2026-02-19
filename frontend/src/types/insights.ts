@@ -1,4 +1,6 @@
 // frontend/src/types/insights.ts
+import type { GamificationSummary } from "./gamification";
+
 export type InsightsRange = {
   from: string; // YYYY-MM-DD
   to: string;   // YYYY-MM-DD
@@ -46,6 +48,7 @@ export type InsightsData = {
     falsetto: TopNote;
     chest: TopNote;
   };
+  gamification: GamificationSummary;
 };
 
 export type InsightsResponse =

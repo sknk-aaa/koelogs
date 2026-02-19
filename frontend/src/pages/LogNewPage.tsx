@@ -5,6 +5,7 @@ import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { createAiRecommendation } from "../api/aiRecommendations";
 import { fetchInsights } from "../api/insights";
 import type { TrainingLog } from "../types/trainingLog";
+import type { SaveRewards } from "../types/gamification";
 import { fetchTrainingMenus, createTrainingMenu, updateTrainingMenu } from "../api/trainingMenus";
 import type { TrainingMenu } from "../types/trainingMenu";
 import { useSettings } from "../features/settings/useSettings";
@@ -146,6 +147,7 @@ export default function LogNewPage() {
   const [aiPromptLoading, setAiPromptLoading] = useState(false);
   const [aiPromptError, setAiPromptError] = useState<string | null>(null);
   const [showAiPromptOnSave, setShowAiPromptOnSave] = useState(false);
+  const [pendingRewards, setPendingRewards] = useState<SaveRewards | null>(null);
   const [initialLoading, setInitialLoading] = useState(false);
   const [pitchRecording, setPitchRecording] = useState<PitchTarget | null>(null);
   const [pitchCurrent, setPitchCurrent] = useState<string | null>(null);
@@ -537,6 +539,9 @@ export default function LogNewPage() {
       return;
     }
 
+    const nextRewards = result.rewards ?? null;
+    setPendingRewards(nextRewards);
+
     if (showAiPromptOnSave) {
       setAiPromptDate(practicedOn);
       setAiPromptError(null);
@@ -545,7 +550,10 @@ export default function LogNewPage() {
       return;
     }
 
-    navigate(`/log?mode=day&date=${encodeURIComponent(practicedOn)}`, { replace: true });
+    navigate(`/log?mode=day&date=${encodeURIComponent(practicedOn)}`, {
+      replace: true,
+      state: nextRewards ? { gamificationToast: nextRewards } : null,
+    });
   };
 
   const onCancel = () => {
@@ -556,7 +564,10 @@ export default function LogNewPage() {
     if (aiPromptLoading) return;
     const targetDate = aiPromptDate ?? practicedOn;
     setAiPromptOpen(false);
-    navigate(`/log?mode=day&date=${encodeURIComponent(targetDate)}`, { replace: true });
+    navigate(`/log?mode=day&date=${encodeURIComponent(targetDate)}`, {
+      replace: true,
+      state: pendingRewards ? { gamificationToast: pendingRewards } : null,
+    });
   };
 
   const onCreateAiRecommendation = async () => {
@@ -578,7 +589,10 @@ export default function LogNewPage() {
 
     setAiPromptOpen(false);
     setAiPromptLoading(false);
-    navigate(`/log?mode=day&date=${encodeURIComponent(aiPromptDate)}`, { replace: true });
+    navigate(`/log?mode=day&date=${encodeURIComponent(aiPromptDate)}`, {
+      replace: true,
+      state: pendingRewards ? { gamificationToast: pendingRewards } : null,
+    });
   };
 
   const tunerNeedle = useMemo(() => {

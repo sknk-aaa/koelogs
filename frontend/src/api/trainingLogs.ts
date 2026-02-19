@@ -4,6 +4,7 @@ import type {
   TrainingLogMonthResponse,
   TrainingLogResponse,
 } from "../types/trainingLog";
+import type { SaveRewards } from "../types/gamification";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -54,7 +55,7 @@ export type UpsertTrainingLogInput = {
 };
 
 export type UpsertTrainingLogResult =
-  | { ok: true; data: TrainingLog }
+  | { ok: true; data: TrainingLog; rewards: SaveRewards | null }
   | { ok: false; status: number; errors: string[] };
 
 export async function upsertTrainingLog(input: UpsertTrainingLogInput): Promise<UpsertTrainingLogResult> {
@@ -66,12 +67,12 @@ export async function upsertTrainingLog(input: UpsertTrainingLogInput): Promise<
   });
 
   const json = (await res.json().catch(() => null)) as
-    | { data?: TrainingLog; errors?: string[]; error?: string }
+    | { data?: TrainingLog; rewards?: SaveRewards | null; errors?: string[]; error?: string }
     | null;
 
   if (res.ok) {
     if (!json?.data) return { ok: false, status: 500, errors: ["Response has no data"] };
-    return { ok: true, data: json.data };
+    return { ok: true, data: json.data, rewards: json.rewards ?? null };
   }
 
   if (res.status === 422) {

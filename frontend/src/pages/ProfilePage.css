@@ -94,6 +94,32 @@
   margin: 14px 0;
 }
 
+.profilePage__passwordAccordion {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px 10px;
+}
+
+.profilePage__passwordSummary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--accent) 58%, #334);
+  list-style: none;
+}
+
+.profilePage__passwordSummary::-webkit-details-marker {
+  display: none;
+}
+
+.profilePage__passwordBody {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
 .profilePage__label {
   display: block;
 }
@@ -121,6 +147,165 @@
   opacity: 0.66;
 }
 
+.profilePage__toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.profilePage__previewCard {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.profilePage__previewLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  border: 1px solid color-mix(in srgb, var(--accent) 44%, #999);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  color: color-mix(in srgb, var(--accent) 60%, #223);
+  background: color-mix(in srgb, var(--accent) 10%, #fff);
+}
+
+.profilePage__previewLink.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.profilePage__switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profilePage__avatarPreview {
+  margin-top: 10px;
+}
+
+.profilePage__avatarPreviewImg {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  display: block;
+  object-fit: cover;
+}
+
+.profilePage__avatarCustom {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.profilePage__avatarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.profilePage__avatarFileBtn,
+.profilePage__avatarResetBtn {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.86);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.profilePage__avatarFileInput {
+  display: none;
+}
+
+.profilePage__avatarGrid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.profilePage__avatarBtn {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.profilePage__avatarBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, #999);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.profilePage__avatarBtnImg {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: block;
+}
+
+.profilePage__contribution {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  border: 1px solid #e4d4ab;
+  background: linear-gradient(135deg, #fffaf0 0%, #fff2d8 100%);
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 18px rgba(137, 108, 36, 0.12);
+}
+
+.profilePage__awardIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #ead8a8;
+}
+
+.profilePage__contributionValue {
+  font-weight: 900;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.profilePage__contributionCount {
+  display: inline-block;
+  margin: 0 2px;
+  font-size: 18px;
+  font-weight: 950;
+  color: #9a6500;
+  letter-spacing: 0.2px;
+}
+
+.profilePage__contributionHelp {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
 .profilePage__saveBtn {
   width: 100%;
   margin-top: 12px;
@@ -131,6 +316,11 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 900;
+}
+
+.profilePage__saveBtn--secondary {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .profilePage__saveBtn:disabled {

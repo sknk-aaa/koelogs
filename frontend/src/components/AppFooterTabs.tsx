@@ -8,8 +8,12 @@ import trainingActive from "../assets/tabs/training_active.png";
 import trainingInactive from "../assets/tabs/training_inactive.png";
 import insightsActive from "../assets/tabs/insights_active.png";
 import insightsInactive from "../assets/tabs/insights_inactive.png";
+import mypageActive from "../assets/tabs/mypage_active.svg";
+import mypageInactive from "../assets/tabs/mypage_inactive.svg";
+import communityActive from "../assets/tabs/community_active.svg";
+import communityInactive from "../assets/tabs/community_inactive.svg";
 
-type TabKey = "log" | "training" | "insights";
+type TabKey = "log" | "training" | "insights" | "mypage" | "community";
 
 const BASE_TABS: {
   key: TabKey;
@@ -18,6 +22,13 @@ const BASE_TABS: {
   iconActive: string;
   iconInactive: string;
 }[] = [
+  {
+    key: "mypage",
+    label: "マイページ",
+    to: "/mypage",
+    iconActive: mypageActive,
+    iconInactive: mypageInactive,
+  },
   {
     key: "log",
     label: "ログ",
@@ -31,6 +42,13 @@ const BASE_TABS: {
     to: "/training",
     iconActive: trainingActive,
     iconInactive: trainingInactive,
+  },
+  {
+    key: "community",
+    label: "コミュニティ",
+    to: "/community",
+    iconActive: communityActive,
+    iconInactive: communityInactive,
   },
   {
     key: "insights",
@@ -98,7 +116,7 @@ const styles: Record<string, React.CSSProperties> = {
     backdropFilter: "blur(10px)",
     borderTop: "1px solid rgba(0,0,0,0.06)",
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
+    gridTemplateColumns: "repeat(5, 1fr)",
   },
 
   tab: {
@@ -127,5 +145,5 @@ const styles: Record<string, React.CSSProperties> = {
     display: "block",
   },
 
-  label: { fontSize: 12 },
+  label: { fontSize: 11, whiteSpace: "nowrap" },
 };

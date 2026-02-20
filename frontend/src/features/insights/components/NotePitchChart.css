@@ -1,30 +1,32 @@
 .notePitchChart {
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.74);
-  padding: 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(63, 138, 226, 0.2);
+  background: #fff;
+  box-shadow: 0 14px 28px rgba(42, 89, 153, 0.12);
+  padding: 10px;
 }
 
 .notePitchChart__legend {
   display: flex;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .notePitchChart__chip {
   font-size: 11px;
   font-weight: 900;
   border-radius: 999px;
-  padding: 4px 8px;
-  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border: 1px solid rgba(36, 110, 202, 0.2);
+  color: #21508f;
 }
 
 .notePitchChart__chip--fal {
-  background: color-mix(in srgb, #f472b6 14%, white);
+  background: color-mix(in srgb, #bfe2ff 38%, #fff);
 }
 
 .notePitchChart__chip--chest {
-  background: color-mix(in srgb, #60a5fa 14%, white);
+  background: color-mix(in srgb, #7dc0ff 34%, #fff);
 }
 
 .notePitchChart__plot {
@@ -46,7 +48,8 @@
   transform: translateY(-50%);
   font-size: 10px;
   font-weight: 800;
-  opacity: 0.68;
+  color: #3a6599;
+  opacity: 0.82;
   line-height: 1;
 }
 
@@ -57,7 +60,9 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  border-radius: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(64, 132, 214, 0.18);
+  background: #fff;
 }
 
 .notePitchChart__svg {
@@ -68,10 +73,11 @@
 
 .notePitchChart__labels {
   position: relative;
-  height: 18px;
-  margin-top: 8px;
+  height: 20px;
+  margin-top: 10px;
   font-size: 11px;
-  opacity: 0.68;
+  color: #4f6f95;
+  opacity: 0.9;
 }
 
 .notePitchChart__label {

@@ -1,0 +1,97 @@
+.metronomeLoader {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.metronomeLoader__svg {
+  width: 72px;
+  height: 72px;
+  display: block;
+}
+
+.metronomeLoader__label {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.metronomeLoader--compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+}
+
+.metronomeLoader--compact .metronomeLoader__svg {
+  width: 18px;
+  height: 18px;
+}
+
+.metronomeLoader--compact .metronomeLoader__label {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.metronomeLoader--compact .metronomeLoader__arm {
+  stroke-width: 4;
+}
+
+.metronomeLoader--compact .metronomeLoader__guide {
+  stroke-width: 1.2;
+}
+
+.metronomeLoader__body {
+  fill: #f6f9ff;
+  stroke: rgba(40, 98, 175, 0.3);
+  stroke-width: 1.5;
+}
+
+.metronomeLoader__guide {
+  stroke: rgba(40, 98, 175, 0.22);
+  stroke-width: 1.5;
+}
+
+.metronomeLoader__arm {
+  stroke: #2f8df1;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.metronomeLoader__weight {
+  fill: #61bcff;
+  stroke: #2f8df1;
+  stroke-width: 1.5;
+}
+
+.metronomeLoader__pivot {
+  fill: #2f8df1;
+}
+
+.metronomeLoader__base {
+  fill: rgba(40, 98, 175, 0.45);
+}
+
+.metronomeLoader__armWrap {
+  transform-box: view-box;
+  transform-origin: 60px 36px;
+  animation: metronomeSwing 1s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes metronomeSwing {
+  from {
+    transform: rotate(-24deg);
+  }
+  to {
+    transform: rotate(24deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metronomeLoader__armWrap {
+    animation: none;
+    transform: rotate(0deg);
+  }
+}

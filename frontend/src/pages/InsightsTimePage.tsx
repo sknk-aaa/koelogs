@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { fetchInsights } from "../api/insights";
 import type { InsightsData } from "../types/insights";
 import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
+import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
 import "./InsightsPages.css";
@@ -119,7 +120,7 @@ export default function InsightsTimePage() {
         </section>
       )}
 
-      {!guestData && state.kind === "loading" && <div className="insightsMuted">読み込み中…</div>}
+      {!guestData && state.kind === "loading" && <MetronomeLoader label="読み込み中..." />}
       {!guestData && state.kind === "error" && <div className="insightsError">取得に失敗しました: {state.message}</div>}
 
       {data && (

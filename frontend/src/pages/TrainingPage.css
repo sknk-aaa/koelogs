@@ -711,6 +711,16 @@
   cursor: pointer;
 }
 
+.trainingPage__busyInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trainingPage__busyLoader {
+  opacity: 0.95;
+}
+
 .trainingPage__saveBtn:disabled {
   opacity: 0.58;
   cursor: not-allowed;

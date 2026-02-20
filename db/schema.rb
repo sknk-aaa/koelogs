@@ -10,9 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_18_214000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "ai_contribution_events", force: :cascade do |t|
+    t.bigint "ai_recommendation_id", null: false
+    t.string "canonical_key"
+    t.datetime "created_at", null: false
+    t.jsonb "improvement_tags", default: [], null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["ai_recommendation_id"], name: "index_ai_contribution_events_on_ai_recommendation_id"
+    t.index ["user_id", "ai_recommendation_id"], name: "idx_ai_contrib_unique_user_recommendation", unique: true
+    t.index ["user_id"], name: "index_ai_contribution_events_on_user_id"
+  end
 
   create_table "ai_recommendations", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -65,6 +77,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_214000) do
     t.index ["analysis_menu_id"], name: "index_analysis_sessions_on_analysis_menu_id"
     t.index ["user_id", "analysis_menu_id", "created_at"], name: "idx_on_user_id_analysis_menu_id_created_at_09a97c749f"
     t.index ["user_id"], name: "index_analysis_sessions_on_user_id"
+  end
+
+  create_table "community_post_favorites", force: :cascade do |t|
+    t.bigint "community_post_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["community_post_id", "created_at"], name: "idx_on_community_post_id_created_at_f99b0b2bc7"
+    t.index ["community_post_id"], name: "index_community_post_favorites_on_community_post_id"
+    t.index ["user_id", "community_post_id"], name: "idx_community_post_favorites_unique", unique: true
+    t.index ["user_id"], name: "index_community_post_favorites_on_user_id"
+  end
+
+  create_table "community_posts", force: :cascade do |t|
+    t.string "canonical_key", null: false
+    t.text "comment"
+    t.datetime "created_at", null: false
+    t.integer "effect_level", null: false
+    t.jsonb "improvement_tags", default: [], null: false
+    t.date "practiced_on"
+    t.boolean "published", default: true, null: false
+    t.bigint "training_menu_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["canonical_key", "created_at"], name: "index_community_posts_on_canonical_key_and_created_at"
+    t.index ["published", "created_at"], name: "index_community_posts_on_published_and_created_at"
+    t.index ["training_menu_id"], name: "index_community_posts_on_training_menu_id"
+    t.index ["user_id", "created_at"], name: "index_community_posts_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_community_posts_on_user_id"
   end
 
   create_table "menu_aliases", force: :cascade do |t|
@@ -147,21 +188,73 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_214000) do
     t.index ["user_id"], name: "index_training_menus_on_user_id"
   end
 
+  create_table "user_badges", force: :cascade do |t|
+    t.string "badge_key", null: false
+    t.datetime "created_at", null: false
+    t.datetime "unlocked_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "badge_key"], name: "index_user_badges_on_user_id_and_badge_key", unique: true
+    t.index ["user_id", "unlocked_at"], name: "index_user_badges_on_user_id_and_unlocked_at"
+    t.index ["user_id"], name: "index_user_badges_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
+    t.string "avatar_icon", default: "note_blue", null: false
+    t.text "avatar_image_url"
     t.datetime "created_at", null: false
     t.string "display_name"
     t.string "email", null: false
     t.string "goal_text", limit: 50
     t.string "password_digest", null: false
+    t.datetime "password_reset_sent_at"
+    t.string "password_reset_token_digest"
+    t.boolean "public_goal_enabled", default: false, null: false
+    t.boolean "public_profile_enabled", default: false, null: false
+    t.boolean "ranking_participation_enabled", default: false, null: false
     t.datetime "updated_at", null: false
+    t.index ["avatar_icon"], name: "index_users_on_avatar_icon"
     t.index ["display_name"], name: "index_users_on_display_name"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["password_reset_token_digest"], name: "index_users_on_password_reset_token_digest", unique: true
   end
 
+  create_table "weekly_logs", force: :cascade do |t|
+    t.string "chest_top_note"
+    t.datetime "created_at", null: false
+    t.jsonb "effect_feedbacks", default: [], null: false
+    t.string "falsetto_top_note"
+    t.text "notes"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.date "week_start", null: false
+    t.index ["user_id", "week_start"], name: "index_weekly_logs_on_user_id_and_week_start", unique: true
+    t.index ["user_id"], name: "index_weekly_logs_on_user_id"
+  end
+
+  create_table "xp_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "points", null: false
+    t.string "rule_key", null: false
+    t.bigint "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "created_at"], name: "index_xp_events_on_user_id_and_created_at"
+    t.index ["user_id", "rule_key", "source_type", "source_id"], name: "idx_xp_events_unique_source", unique: true
+    t.index ["user_id"], name: "index_xp_events_on_user_id"
+  end
+
+  add_foreign_key "ai_contribution_events", "ai_recommendations"
+  add_foreign_key "ai_contribution_events", "users"
   add_foreign_key "ai_recommendations", "users"
   add_foreign_key "analysis_menus", "users"
   add_foreign_key "analysis_sessions", "analysis_menus"
   add_foreign_key "analysis_sessions", "users"
+  add_foreign_key "community_post_favorites", "community_posts"
+  add_foreign_key "community_post_favorites", "users"
+  add_foreign_key "community_posts", "training_menus"
+  add_foreign_key "community_posts", "users"
   add_foreign_key "training_log_feedbacks", "training_logs"
   add_foreign_key "training_log_feedbacks", "users"
   add_foreign_key "training_log_menus", "training_logs", column: ["training_log_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_logs_same_user", on_delete: :cascade
@@ -169,4 +262,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_18_214000) do
   add_foreign_key "training_log_menus", "users"
   add_foreign_key "training_logs", "users"
   add_foreign_key "training_menus", "users"
+  add_foreign_key "user_badges", "users"
+  add_foreign_key "weekly_logs", "users"
+  add_foreign_key "xp_events", "users"
 end

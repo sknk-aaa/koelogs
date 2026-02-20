@@ -37,6 +37,8 @@ module Api
         end
 
       log = current_user.training_logs.includes(:training_menus, :training_log_feedback).find_or_initialize_by(practiced_on: practiced_on)
+      log_was_new_record = log.new_record?
+      had_feedback_before = log.training_log_feedback.present?
 
       # enabled flags（事故防止のためフロントから送る）
       falsetto_enabled = ActiveModel::Type::Boolean.new.cast(create_params[:falsetto_enabled])
@@ -99,8 +101,29 @@ module Api
 
       # includes し直し（serialize で association を使う）
       log = current_user.training_logs.includes(:training_menus, :training_log_menus, :training_log_feedback).find(log.id)
+      grants = []
+      if log_was_new_record
+        grants << { rule_key: "training_log_saved", source_type: "training_log", source_id: log.id }
+      end
+      if !had_feedback_before && effect_feedbacks.any?
+        grants << { rule_key: "training_log_feedback_added", source_type: "training_log_feedback", source_id: log.id }
+      end
 
-      render json: { data: serialize(log) }, status: :ok
+      rewards =
+        if grants.any?
+          awarded = Gamification::Awarder.call(user: current_user, grants: grants)
+          streak_message_days =
+            if log_was_new_record && practiced_on == Date.current && awarded[:streak_current_days].to_i.positive?
+              awarded[:streak_current_days].to_i
+            else
+              nil
+            end
+          awarded.merge(streak_message_days: streak_message_days)
+        else
+          nil
+        end
+
+      render json: { data: serialize(log), rewards: rewards }, status: :ok
     rescue ActiveRecord::RecordInvalid => e
       render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
     end

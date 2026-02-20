@@ -221,6 +221,179 @@
   gap: 12px;
 }
 
+.trainingPage__analysisStep {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.62);
+  position: relative;
+  overflow: hidden;
+}
+
+.trainingPage__analysisStep::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+
+.trainingPage__analysisStep--manage {
+  border-color: color-mix(in srgb, #4b9ecf 34%, var(--border));
+  background: color-mix(in srgb, #dff3ff 22%, var(--card));
+}
+
+.trainingPage__analysisStep--manage::before {
+  background: color-mix(in srgb, #4b9ecf 82%, #fff);
+}
+
+.trainingPage__analysisStep--record {
+  border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 20%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #fff5dc 62%, var(--card)),
+    color-mix(in srgb, var(--accent) 10%, var(--card))
+  );
+}
+
+.trainingPage__analysisStep--record::before {
+  background: color-mix(in srgb, var(--accent) 86%, #fff);
+}
+
+.trainingPage__analysisStep--select {
+  background: color-mix(in srgb, #ebffe9 24%, var(--card));
+}
+
+.trainingPage__analysisStep--history {
+  border-color: color-mix(in srgb, #8a84c9 34%, var(--border));
+  background: color-mix(in srgb, #f4f1ff 22%, var(--card));
+}
+
+.trainingPage__analysisStep--history::before {
+  background: color-mix(in srgb, #8a84c9 84%, #fff);
+}
+
+.trainingPage__analysisStepHead {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--border) 82%, transparent);
+}
+
+.trainingPage__analysisStepHeadText {
+  min-width: 0;
+}
+
+.trainingPage__analysisStepToggleBtn {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.trainingPage__analysisStepBadge {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--card));
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.trainingPage__analysisStep--manage .trainingPage__analysisStepBadge {
+  border-color: color-mix(in srgb, #4b9ecf 52%, var(--border));
+  background: color-mix(in srgb, #4b9ecf 16%, var(--card));
+}
+
+.trainingPage__analysisStep--record .trainingPage__analysisStepBadge {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  background: color-mix(in srgb, var(--accent) 22%, var(--card));
+}
+
+.trainingPage__analysisStep--history .trainingPage__analysisStepBadge {
+  border-color: color-mix(in srgb, #8a84c9 52%, var(--border));
+  background: color-mix(in srgb, #8a84c9 16%, var(--card));
+}
+
+.trainingPage__analysisStepTitle {
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.trainingPage__analysisStepTitle--record {
+  color: color-mix(in srgb, var(--accent) 78%, #111);
+}
+
+.trainingPage__analysisStep--manage .trainingPage__analysisStepTitle {
+  color: color-mix(in srgb, #2f6f95 88%, #111);
+}
+
+.trainingPage__analysisStep--history .trainingPage__analysisStepTitle {
+  color: color-mix(in srgb, #5f5a94 84%, #111);
+}
+
+.trainingPage__analysisStepDesc {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.76;
+}
+
+.trainingPage__analysisGuide {
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: 0.84;
+}
+
+.trainingPage__analysisSelectorBox {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.74);
+  padding: 8px 10px;
+}
+
+.trainingPage__analysisTargetMeta {
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.84;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trainingPage__analysisHistoryFilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trainingPage__analysisHistoryFilterLabel {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 900;
+  opacity: 0.76;
+}
+
+.trainingPage__analysisHistorySelect {
+  width: min(320px, 100%);
+  height: 34px;
+  font-size: 12px;
+}
+
 .trainingPage__analysisGuest {
   border-radius: 12px;
   border: 1px dashed var(--border);
@@ -256,6 +429,11 @@
   border-radius: 10px;
   padding: 8px 10px;
   background: rgba(255, 255, 255, 0.62);
+}
+
+.trainingPage__analysisPresetActions {
+  display: inline-flex;
+  gap: 6px;
 }
 
 .trainingPage__analysisPresetGrid {
@@ -360,6 +538,11 @@
   gap: 8px;
   font-size: 12px;
   font-weight: 800;
+  cursor: pointer;
+}
+
+.trainingPage__analysisModeToggle input {
+  cursor: pointer;
 }
 
 .trainingPage__analysisSelected {
@@ -418,6 +601,34 @@
   gap: 8px;
 }
 
+.trainingPage__analysisResult {
+  display: grid;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--card));
+  padding: 10px;
+}
+
+.trainingPage__analysisResultHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 10px;
+}
+
+.trainingPage__analysisResultTitle {
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.trainingPage__analysisResultMeta {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.72;
+}
+
 .trainingPage__analysisSummary span {
   font-size: 12px;
   font-weight: 800;
@@ -466,6 +677,10 @@
   padding: 0 10px;
 }
 
+.trainingPage__select {
+  cursor: pointer;
+}
+
 .trainingPage__textarea {
   min-height: 84px;
   padding: 8px 10px;
@@ -496,9 +711,35 @@
   cursor: pointer;
 }
 
+.trainingPage__busyInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trainingPage__busyLoader {
+  opacity: 0.95;
+}
+
 .trainingPage__saveBtn:disabled {
   opacity: 0.58;
   cursor: not-allowed;
+}
+
+.trainingPage__saveBtn:hover:not(:disabled),
+.trainingPage__analysisMiniBtn:hover,
+.trainingPage__analysisDelete:hover,
+.trainingPage__fileBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+}
+
+.trainingPage__saveBtn:focus-visible,
+.trainingPage__analysisMiniBtn:focus-visible,
+.trainingPage__analysisDelete:focus-visible,
+.trainingPage__fileBtn:focus-visible,
+.trainingPage__select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, #fff);
+  outline-offset: 2px;
 }
 
 .trainingPage__analysisError {
@@ -566,11 +807,29 @@
 .trainingPage__analysisHistory {
   display: grid;
   gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--card));
+  padding: 10px;
+}
+
+.trainingPage__analysisHistoryHead {
+  display: grid;
+  gap: 2px;
+}
+
+.trainingPage__analysisHistoryKicker {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  opacity: 0.7;
 }
 
 .trainingPage__analysisHistoryTitle {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 900;
+  line-height: 1.35;
 }
 
 .trainingPage__analysisHistoryList {
@@ -584,13 +843,44 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.72);
-  padding: 8px 10px;
+  padding: 6px 8px;
+  cursor: default;
+}
+
+.trainingPage__analysisHistoryHeadRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .trainingPage__analysisHistoryDate {
   font-size: 12px;
   font-weight: 800;
   opacity: 0.76;
+  cursor: default;
+}
+
+.trainingPage__analysisHistoryToggleBtn {
+  height: 26px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+.trainingPage__analysisHistoryPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.trainingPage__analysisHistoryPreview span {
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 3px 8px;
+  cursor: default;
 }
 
 .trainingPage__analysisHistoryMetrics {
@@ -622,11 +912,19 @@
 
 .trainingPage__analysisAiFeedback {
   margin-top: 4px;
-  font-size: 12px;
-  line-height: 1.55;
-  border-left: 2px solid color-mix(in srgb, var(--accent) 40%, var(--border));
-  padding-left: 8px;
-  opacity: 0.9;
+}
+
+.trainingPage__analysisStep,
+.trainingPage__analysisStepHead,
+.trainingPage__analysisStepTitle,
+.trainingPage__analysisStepDesc,
+.trainingPage__analysisHistory,
+.trainingPage__analysisSummary span,
+.trainingPage__analysisDiff span,
+.trainingPage__analysisHistoryMetrics,
+.trainingPage__analysisHistoryDiff,
+.trainingPage__analysisTargetMeta {
+  cursor: default;
 }
 
 .trainingPage__analysisMiniBtn {
@@ -667,11 +965,13 @@
 
 .trainingPage__modalCard {
   width: min(620px, 96vw);
+  max-height: min(86vh, 760px);
   border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--card);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
   padding: 14px;
 }
@@ -691,6 +991,9 @@
 .trainingPage__modalBody {
   display: grid;
   gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .trainingPage__metricInfoItem {
@@ -698,6 +1001,11 @@
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.75);
   padding: 8px 10px;
+}
+
+.trainingPage__metricInfoItem--method {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
 }
 
 .trainingPage__metricInfoLabel {

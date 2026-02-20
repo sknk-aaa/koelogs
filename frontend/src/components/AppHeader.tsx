@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
 import HamburgerDrawer, { type DrawerSection } from "./HamburgerDrawer";
+import { getLastLogPath } from "../features/log/logNavigation";
 
 type Props = {
   title: string;
@@ -143,7 +144,7 @@ export default function AppHeader({ title }: Props) {
   );
 
   const onClickBrand = () => {
-    navigate("/log");
+    navigate(getLastLogPath());
   };
 
   return (
@@ -160,7 +161,7 @@ export default function AppHeader({ title }: Props) {
               aria-label="ログページへ"
               title="ログへ"
             >
-              voice-app
+              <img src="/koelog-logo.svg" alt="KoeLog" style={styles.brandLogo} />
             </button>
           </div>
 
@@ -272,14 +273,22 @@ const styles: Record<string, React.CSSProperties> = {
 
   // アプリ名ボタン（リンク風）
   brandBtn: {
-    fontSize: 14,
-    fontWeight: 900,
     letterSpacing: 0.2,
     border: "none",
     background: "transparent",
     cursor: "pointer",
-    padding: "8px 10px",
+    padding: "6px 4px",
     borderRadius: 12,
+    display: "inline-flex",
+    alignItems: "center",
+    lineHeight: 0,
+  },
+
+  brandLogo: {
+    display: "block",
+    height: 40,
+    width: "auto",
+    transform: "translate(6px, 2px)",
   },
 
   email: {

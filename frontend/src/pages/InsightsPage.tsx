@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { fetchInsights } from "../api/insights";
-import type { DailyDurationPoint, InsightsData, MenuRankingItem } from "../types/insights";
-import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
+import type { InsightsData, MenuRankingItem } from "../types/insights";
 import NotePitchChart from "../features/insights/components/NotePitchChart";
 import ColoredTag from "../components/ColoredTag";
+import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
 import "./InsightsPages.css";
@@ -17,16 +17,6 @@ type LoadState =
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
-}
-
-function formatRange(from: string, to: string) {
-  return `${from} 〜 ${to}`;
-}
-
-function maxDaily(points: DailyDurationPoint[]) {
-  let m = 0;
-  for (const p of points) m = Math.max(m, p.duration_min || 0);
-  return m;
 }
 
 function MenuRankingPreview({ items }: { items: MenuRankingItem[] }) {
@@ -88,17 +78,6 @@ function ClickableCard({
   );
 }
 
-function StaticCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="insightsCard">
-      <div className="insightsCard__head">
-        <div className="insightsCard__title">{title}</div>
-      </div>
-      {children}
-    </div>
-  );
-}
-
 function ChevronRight() {
   return (
     <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -150,8 +129,6 @@ export default function InsightsPage() {
   }, [authLoading, days, guestMode]);
 
   const data = guestData ?? (state.kind === "ready" ? state.data : null);
-  const maxY = useMemo(() => (data ? maxDaily(data.daily_durations) : 0), [data]);
-
   if (!guestData && state.kind === "loading") {
     return (
       <div className="page insightsPage">
@@ -159,7 +136,7 @@ export default function InsightsPage() {
         <section className="card insightsHero">
           <div className="insightsHero__kicker">Insights</div>
           <h1 className="insightsHero__title">分析</h1>
-          <p className="insightsHero__sub">読み込み中…</p>
+          <MetronomeLoader label="読み込み中..." />
         </section>
       </div>
     );
@@ -191,8 +168,6 @@ export default function InsightsPage() {
     );
   }
 
-  const freq = `${data.practice_days_count} / ${data.range.days} 日`;
-
   return (
     <div className="page insightsPage">
       <div className="insightsPage__bg" aria-hidden="true" />
@@ -204,10 +179,6 @@ export default function InsightsPage() {
             <h1 className="insightsHero__title">分析ダッシュボード</h1>
             <p className="insightsHero__sub">記録データの流れを俯瞰し、次の練習方針を決めるためのサマリーです。</p>
           </div>
-        </div>
-        <div className="insightsHero__chips">
-          <div className="insightsChip">期間: {formatRange(data.range.from, data.range.to)}</div>
-          <div className="insightsChip">練習日数: {freq}</div>
         </div>
       </section>
 
@@ -221,45 +192,17 @@ export default function InsightsPage() {
       )}
 
       <div className="insightsGrid">
-        <ClickableCard title="練習時間の推移" to="/insights/time">
-          <div className="insightsKeyValue">
-            <div className="insightsKeyValue__k">最大</div>
-            <div className="insightsKeyValue__v">{maxY} 分</div>
-          </div>
-          <div className="insightsMuted">タップで詳細（日付ラベル付き）</div>
-          <div style={{ marginTop: 10 }}>
-            <DurationHeatmapCalendar points={data.daily_durations} />
-          </div>
-        </ClickableCard>
-
         <ClickableCard title="メニュー頻度" to="/insights/menus">
           <MenuRankingPreview items={data.menu_ranking} />
         </ClickableCard>
 
-        <ClickableCard title="最高音の推移（裏声 / 地声）(7日間)" to="/insights/notes">
+        <ClickableCard title="最高音の推移（裏声 / 地声）(30日間)" to="/insights/notes">
           <NotePitchChart
             falsetto={data.note_series.falsetto}
             chest={data.note_series.chest}
           />
           <div className="insightsMuted">欠損日は点を表示しません（記録なし / 入力なし）</div>
         </ClickableCard>
-
-        <StaticCard title="練習日数（直近期間）">
-          <div className="insightsStack">
-            <div className="insightsKeyValue">
-              <div className="insightsKeyValue__k">練習した日</div>
-              <div className="insightsKeyValue__v">{freq}</div>
-            </div>
-            <div className="insightsKeyValue">
-              <div className="insightsKeyValue__k">現在連続日数</div>
-              <div className="insightsKeyValue__v">{data.streaks.current_days} 日</div>
-            </div>
-            <div className="insightsKeyValue">
-              <div className="insightsKeyValue__k">最長継続日数</div>
-              <div className="insightsKeyValue__v">{data.streaks.longest_days} 日</div>
-            </div>
-          </div>
-        </StaticCard>
       </div>
     </div>
   );

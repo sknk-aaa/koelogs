@@ -6,6 +6,7 @@ import type { InsightsData } from "../types/insights";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
 import NotePitchChart from "../features/insights/components/NotePitchChart";
+import MetronomeLoader from "../components/MetronomeLoader";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -13,7 +14,11 @@ type LoadState =
   | { kind: "error"; message: string }
   | { kind: "ready"; data: InsightsData };
 
-const PERIODS = [7, 30, 90, 365] as const;
+const PERIODS = [30, 90, 365] as const;
+const NOTE_TYPES = [
+  { key: "falsetto", label: "裏声" },
+  { key: "chest", label: "地声" },
+] as const;
 
 function formatDateSlash(iso: string | null): string {
   if (!iso) return "—";
@@ -22,7 +27,8 @@ function formatDateSlash(iso: string | null): string {
 
 export default function InsightsNotesPage() {
   const { me, isLoading: authLoading } = useAuth();
-  const [days, setDays] = useState<(typeof PERIODS)[number]>(7);
+  const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
+  const [noteType, setNoteType] = useState<(typeof NOTE_TYPES)[number]["key"]>("falsetto");
   const [state, setState] = useState<LoadState>({ kind: "loading" });
 
   const guestMode = !authLoading && !me;
@@ -97,19 +103,35 @@ export default function InsightsNotesPage() {
         </section>
       )}
 
-      {!guestData && state.kind === "loading" && <div className="insightsMuted">読み込み中…</div>}
+      {!guestData && state.kind === "loading" && <MetronomeLoader label="読み込み中..." />}
       {!guestData && state.kind === "error" && <div className="insightsError">取得に失敗しました: {state.message}</div>}
 
       {data && (
         <div className="insightsStack">
           <section className="insightsCard">
             <div className="insightsCard__head">
-              <div className="insightsCard__title">日次推移</div>
+              <div className="insightsCard__title">日次推移（{noteType === "falsetto" ? "裏声" : "地声"}）</div>
+            </div>
+            <div className="insightsSegment" style={{ marginBottom: 10 }}>
+              {NOTE_TYPES.map((type) => {
+                const active = type.key === noteType;
+                return (
+                  <button
+                    key={type.key}
+                    type="button"
+                    onClick={() => setNoteType(type.key)}
+                    className={`insightsSegment__btn${active ? " is-active" : ""}`}
+                  >
+                    {type.label}
+                  </button>
+                );
+              })}
             </div>
             <NotePitchChart
               falsetto={data.note_series.falsetto}
               chest={data.note_series.chest}
               showXAxis
+              variant={noteType}
             />
             <div className="insightsMuted">欠損日は線をつないで表示し、点のみ省略します。</div>
           </section>

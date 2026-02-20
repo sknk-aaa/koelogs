@@ -4,15 +4,17 @@ import { deleteAnalysisSession, fetchAnalysisSessionsPage } from "../api/analysi
 import { fetchAnalysisMenus } from "../api/analysisMenus";
 import type { AnalysisMenu } from "../types/analysisMenu";
 import type { AnalysisSession } from "../types/analysisSession";
+import AnalysisFeedbackPanel from "../features/analysis/components/AnalysisFeedbackPanel";
 
 import "./AnalysisHistoryPage.css";
 
 type PeriodKey = "7" | "30" | "90" | "all";
 
 export default function AnalysisHistoryPage() {
-  const [params] = useSearchParams();
-  const menuId = Number.parseInt(params.get("menu_id") ?? "", 10);
-  const [menu, setMenu] = useState<AnalysisMenu | null>(null);
+  const [params, setParams] = useSearchParams();
+  const menuIdParam = Number.parseInt(params.get("menu_id") ?? "", 10);
+  const [menus, setMenus] = useState<AnalysisMenu[]>([]);
+  const [selectedMenuId, setSelectedMenuId] = useState<number | null>(null);
   const [sessions, setSessions] = useState<AnalysisSession[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [period, setPeriod] = useState<PeriodKey>("30");
@@ -24,17 +26,12 @@ export default function AnalysisHistoryPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!Number.isFinite(menuId)) {
-      setError("menu_id が不正です");
-      setLoading(false);
-      return;
-    }
     let cancelled = false;
     (async () => {
       try {
-        const menus = await fetchAnalysisMenus(false);
+        const fetchedMenus = await fetchAnalysisMenus(false);
         if (cancelled) return;
-        setMenu(menus.find((m) => m.id === menuId) ?? null);
+        setMenus(fetchedMenus);
       } catch (e) {
         if (!cancelled) setError(errorMessage(e, "メニュー情報の取得に失敗しました"));
       }
@@ -42,10 +39,32 @@ export default function AnalysisHistoryPage() {
     return () => {
       cancelled = true;
     };
-  }, [menuId]);
+  }, []);
 
   useEffect(() => {
-    if (!Number.isFinite(menuId)) {
+    if (menus.length === 0) {
+      setSelectedMenuId(null);
+      return;
+    }
+    if (Number.isFinite(menuIdParam) && menus.some((m) => m.id === menuIdParam)) {
+      setSelectedMenuId(menuIdParam);
+      return;
+    }
+    setSelectedMenuId((prev) => (prev && menus.some((m) => m.id === prev) ? prev : menus[0]?.id ?? null));
+  }, [menus, menuIdParam]);
+
+  useEffect(() => {
+    if (!selectedMenuId) return;
+    const current = Number.parseInt(params.get("menu_id") ?? "", 10);
+    if (current === selectedMenuId) return;
+    const next = new URLSearchParams(params);
+    next.set("menu_id", String(selectedMenuId));
+    setParams(next, { replace: true });
+  }, [selectedMenuId, params, setParams]);
+
+  useEffect(() => {
+    if (!selectedMenuId) {
+      setSessions([]);
       setLoading(false);
       return;
     }
@@ -55,7 +74,7 @@ export default function AnalysisHistoryPage() {
       setError(null);
       try {
         const res = await fetchAnalysisSessionsPage({
-          analysis_menu_id: menuId,
+          analysis_menu_id: selectedMenuId,
           days: period === "all" ? undefined : Number.parseInt(period, 10),
           sort_by: "created_at",
           sort_dir: "desc",
@@ -77,7 +96,9 @@ export default function AnalysisHistoryPage() {
     return () => {
       cancelled = true;
     };
-  }, [menuId, period, page, perPage, reloadTick]);
+  }, [selectedMenuId, period, page, perPage, reloadTick]);
+
+  const menu = useMemo(() => menus.find((m) => m.id === selectedMenuId) ?? null, [menus, selectedMenuId]);
 
   const selected = useMemo(() => sessions.find((s) => s.id === selectedId) ?? sessions[0] ?? null, [sessions, selectedId]);
 
@@ -119,6 +140,26 @@ export default function AnalysisHistoryPage() {
       </section>
 
       <section className="card analysisHistory__filters">
+        <div className="analysisHistory__filterLabel">メニュー</div>
+        <div className="analysisHistory__menuRow">
+          <select
+            className="analysisHistory__select"
+            value={selectedMenuId ?? ""}
+            onChange={(e) => {
+              const v = Number.parseInt(e.target.value, 10);
+              setSelectedMenuId(Number.isNaN(v) ? null : v);
+              setPage(1);
+            }}
+            disabled={menus.length === 0}
+          >
+            {menus.length === 0 && <option value="">メニューがありません</option>}
+            {menus.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="analysisHistory__filterLabel">期間</div>
         <div className="analysisHistory__filterRow">
           {(["7", "30", "90", "all"] as const).map((key) => (
@@ -268,13 +309,23 @@ export default function AnalysisHistoryPage() {
               {selected.audio_url && (
                 <audio controls preload="none" src={selected.audio_url} className="analysisHistory__audio analysisHistory__audio--detail" />
               )}
-              {selected.feedback_text && <div className="analysisHistory__feedback">{selected.feedback_text}</div>}
+              {(selected.ai_feedback || selected.feedback_text) && (
+                <AnalysisFeedbackPanel
+                  className="analysisHistory__feedback"
+                  feedback={selected.ai_feedback}
+                  fallbackText={selected.feedback_text}
+                />
+              )}
             </section>
           )}
         </>
       )}
 
-      {!loading && !error && sessions.length === 0 && (
+      {!loading && !error && menus.length === 0 && (
+        <div className="analysisHistory__muted">分析メニューがありません。トレーニングページで作成してください。</div>
+      )}
+
+      {!loading && !error && menus.length > 0 && sessions.length === 0 && (
         <div className="analysisHistory__muted">該当条件に履歴がありません。</div>
       )}
     </div>

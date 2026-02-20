@@ -72,3 +72,16 @@
   background: color-mix(in srgb, var(--accent) 88%, white);
   color: var(--accentText);
 }
+
+.wgm__helpLink {
+  justify-self: end;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--accent) 78%, #1f2937);
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  padding: 2px 0 0;
+}

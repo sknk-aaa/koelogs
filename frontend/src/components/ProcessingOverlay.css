@@ -1,0 +1,61 @@
+.processingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+}
+
+.processingOverlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 15, 24, 0.28);
+  backdrop-filter: blur(2px);
+}
+
+.processingOverlay__card {
+  position: relative;
+  z-index: 1;
+  width: min(360px, calc(100vw - 28px));
+  border-radius: 16px;
+  border: 1px solid rgba(96, 150, 214, 0.34);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 38px rgba(0, 0, 0, 0.16);
+  padding: 14px 14px 12px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.processingOverlay__video {
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(96, 150, 214, 0.22);
+  background: #fff;
+}
+
+.processingOverlay__title {
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+}
+
+.processingOverlay__desc {
+  font-size: 12px;
+  line-height: 1.55;
+  text-align: center;
+  opacity: 0.76;
+}
+
+@media (max-width: 480px) {
+  .processingOverlay__video {
+    width: 132px;
+    height: 132px;
+  }
+
+  .processingOverlay__title {
+    font-size: 16px;
+  }
+}

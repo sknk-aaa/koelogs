@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { getLastLogPath } from "../features/log/logNavigation";
 
 // 画像をimport（ViteならこれでOK）
 import logActive from "../assets/tabs/log_active.png";
@@ -7,16 +8,27 @@ import trainingActive from "../assets/tabs/training_active.png";
 import trainingInactive from "../assets/tabs/training_inactive.png";
 import insightsActive from "../assets/tabs/insights_active.png";
 import insightsInactive from "../assets/tabs/insights_inactive.png";
+import mypageActive from "../assets/tabs/mypage_active.svg";
+import mypageInactive from "../assets/tabs/mypage_inactive.svg";
+import communityActive from "../assets/tabs/community_active.svg";
+import communityInactive from "../assets/tabs/community_inactive.svg";
 
-type TabKey = "log" | "training" | "insights";
+type TabKey = "log" | "training" | "insights" | "mypage" | "community";
 
-const TABS: {
+const BASE_TABS: {
   key: TabKey;
   label: string;
   to: string;
   iconActive: string;
   iconInactive: string;
 }[] = [
+  {
+    key: "mypage",
+    label: "マイページ",
+    to: "/mypage",
+    iconActive: mypageActive,
+    iconInactive: mypageInactive,
+  },
   {
     key: "log",
     label: "ログ",
@@ -32,6 +44,13 @@ const TABS: {
     iconInactive: trainingInactive,
   },
   {
+    key: "community",
+    label: "コミュニティ",
+    to: "/community",
+    iconActive: communityActive,
+    iconInactive: communityInactive,
+  },
+  {
     key: "insights",
     label: "分析",
     to: "/insights",
@@ -41,9 +60,15 @@ const TABS: {
 ];
 
 export default function AppFooterTabs() {
+  const logTabTo = getLastLogPath();
+  const tabs = BASE_TABS.map((tab) => ({
+    ...tab,
+    to: tab.key === "log" ? logTabTo : tab.to,
+  }));
+
   return (
     <nav style={styles.nav} aria-label="mode tabs">
-      {TABS.map((t) => (
+      {tabs.map((t) => (
         <NavLink
           key={t.key}
           to={t.to}
@@ -91,7 +116,7 @@ const styles: Record<string, React.CSSProperties> = {
     backdropFilter: "blur(10px)",
     borderTop: "1px solid rgba(0,0,0,0.06)",
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
+    gridTemplateColumns: "repeat(5, 1fr)",
   },
 
   tab: {
@@ -120,5 +145,5 @@ const styles: Record<string, React.CSSProperties> = {
     display: "block",
   },
 
-  label: { fontSize: 12 },
+  label: { fontSize: 11, whiteSpace: "nowrap" },
 };

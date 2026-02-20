@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { fetchInsights } from "../api/insights";
 import type { InsightsData, MenuRankingItem } from "../types/insights";
 import ColoredTag from "../components/ColoredTag";
+import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
 import "./InsightsPages.css";
@@ -90,7 +91,7 @@ export default function InsightsMenusPage() {
   }, [guestData, q, sortMode, state]);
 
   const content = (() => {
-    if (!guestData && state.kind === "loading") return <div className="insightsMuted">読み込み中…</div>;
+    if (!guestData && state.kind === "loading") return <MetronomeLoader label="読み込み中..." />;
     if (!guestData && state.kind === "error") return <div className="insightsError">取得に失敗しました: {state.message}</div>;
     if (!derived) return null;
 

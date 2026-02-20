@@ -15,24 +15,17 @@ module Ai
     # }
     def build
       from = @window_days.days.ago
-      feedbacks = TrainingLogFeedback.includes(training_log: :training_menus)
-                                     .where("training_log_feedbacks.created_at >= ?", from)
+      posts = CommunityPost.where(published: true).where("community_posts.created_at >= ?", from)
       counts = Hash.new { |h, k| h[k] = Hash.new(0) }
+      contributors = Hash.new { |h, k| h[k] = {} }
 
-      feedbacks.find_each do |feedback|
-        menus_by_id = feedback.training_log.training_menus.index_by(&:id)
-        effects = normalized_effects(feedback)
-        next if effects.empty?
+      posts.find_each do |post|
+        canonical_key = post.canonical_key.to_s.presence || "unknown|unspecified"
+        next if canonical_key.start_with?("unknown")
 
-        effects.each do |effect|
-          canonical_key = menus_by_id[effect[:menu_id]]&.canonical_key.to_s.presence || "unknown|unspecified"
-          next if canonical_key.start_with?("unknown")
-
-          effect[:improvement_tags].each do |tag|
-            next unless TrainingLogFeedback::IMPROVEMENT_TAGS.include?(tag)
-
-            counts[tag][canonical_key] += 1
-          end
+        normalized_tags(post.improvement_tags).each do |tag|
+          counts[tag][canonical_key] += 1
+          contributors[[ tag, canonical_key ]][post.user_id] = true
         end
       end
 
@@ -45,7 +38,8 @@ module Ai
           {
             canonical_key: canonical_key,
             display_label: MenuCanonicalization::RuleEngine.label_for_key(canonical_key),
-            count: count
+            count: count,
+            contributor_user_ids: contributors[[ tag, canonical_key ]].keys
           }
         end
         next if sorted.empty?
@@ -66,28 +60,13 @@ module Ai
 
     private
 
-    def normalized_effects(feedback)
-      if feedback.menu_effects.present?
-        return Array(feedback.menu_effects).filter_map do |entry|
-          menu_id = Integer(entry["menu_id"] || entry[:menu_id], exception: false)
-          next unless menu_id&.positive?
-
-          tags = Array(entry["improvement_tags"] || entry[:improvement_tags]).map(&:to_s).map(&:strip).reject(&:blank?).uniq
-          next if tags.empty?
-
-          { menu_id: menu_id, improvement_tags: tags }
-        end
-      end
-
-      tags = Array(feedback.improvement_tags).map(&:to_s).map(&:strip).reject(&:blank?).uniq
-      return [] if tags.empty?
-
-      Array(feedback.effective_menu_ids).filter_map do |menu_id|
-        id = Integer(menu_id, exception: false)
-        next unless id&.positive?
-
-        { menu_id: id, improvement_tags: tags }
-      end
+    def normalized_tags(raw_tags)
+      Array(raw_tags)
+        .map(&:to_s)
+        .map(&:strip)
+        .reject(&:blank?)
+        .uniq
+        .select { |tag| TrainingLogFeedback::IMPROVEMENT_TAGS.include?(tag) }
     end
   end
 end

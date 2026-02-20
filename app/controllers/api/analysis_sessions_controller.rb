@@ -152,6 +152,7 @@ module Api
         audio_url: session.audio_url.present? ? "#{request.base_url}#{session.audio_url}" : nil,
         has_audio: session.audio_path.present?,
         feedback_text: session.feedback_text,
+        ai_feedback: extract_ai_feedback(session.raw_metrics),
         raw_metrics: session.raw_metrics,
         created_at: session.created_at.iso8601
       }
@@ -171,7 +172,7 @@ module Api
     end
 
     def attach_ai_feedback!(session, menu)
-      text = Ai::AnalysisFeedbackGenerator.new.generate!(
+      result = Ai::AnalysisFeedbackGenerator.new.generate!(
         menu_name: menu.name,
         focus_points: menu.focus_points,
         selected_metrics: menu.selected_metrics,
@@ -185,11 +186,23 @@ module Api
           avg_loudness_db: session.raw_metrics["avg_loudness_db"]
         }
       )
-      session.update_columns(feedback_text: text.to_s.strip.presence)
+      raw = session.raw_metrics.is_a?(Hash) ? session.raw_metrics.deep_dup : {}
+      raw["ai_feedback"] = result[:feedback_json] if result[:feedback_json].present?
+      session.update_columns(
+        feedback_text: result[:feedback_text].to_s.strip.presence,
+        raw_metrics: raw
+      )
     rescue Gemini::Error => e
       Rails.logger.error("[Gemini Analysis] #{e.message} status=#{e.status} body=#{e.body}")
     rescue => e
       Rails.logger.error("[AI Analysis] #{e.class}: #{e.message}")
+    end
+
+    def extract_ai_feedback(raw_metrics)
+      return nil unless raw_metrics.is_a?(Hash)
+
+      payload = raw_metrics["ai_feedback"] || raw_metrics[:ai_feedback]
+      payload.is_a?(Hash) ? payload : nil
     end
   end
 end

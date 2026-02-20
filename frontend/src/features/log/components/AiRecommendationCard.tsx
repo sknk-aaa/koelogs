@@ -1,38 +1,41 @@
-import type { AiRecommendation } from "../../../types/aiRecommendation";
+import MetronomeLoader from "../../../components/MetronomeLoader";
 
 type Props = {
-  rangeDays: number;
+  title: string;
+  meta: string;
   aiLoading: boolean;
   aiError: string | null;
-  aiRec: AiRecommendation | null;
+  recommendationText: string | null;
+  isSaved: boolean;
   sampleMode?: boolean;
-  shownText: string;
+  shownText: string | null;
   collapsible: boolean;
   expanded: boolean;
   onToggleExpanded: () => void;
 };
 
 export default function AiRecommendationCard({
-  rangeDays,
+  title,
+  meta,
   aiLoading,
   aiError,
-  aiRec,
+  recommendationText,
+  isSaved,
   sampleMode = false,
   shownText,
   collapsible,
   expanded,
   onToggleExpanded,
 }: Props) {
-  const status =
-    aiLoading ? "loading" : aiError ? "error" : aiRec ? "saved" : "empty";
+  const status = aiLoading ? "loading" : aiError ? "error" : isSaved ? "saved" : "empty";
 
   return (
     <div className={`logAi card logPage__card logAi--${status}`}>
       {/* ヘッダー */}
       <div className="logAi__header">
         <div>
-          <div className="logAi__title">今日のおすすめメニュー</div>
-          <div className="logAi__meta">今日を含めて直近 {rangeDays} 日を参考</div>
+          <div className="logAi__title">{title}</div>
+          <div className="logAi__meta">{meta}</div>
         </div>
 
         <div className="logAi__headerRight">
@@ -40,7 +43,10 @@ export default function AiRecommendationCard({
             <div className="logAi__pill logAi__pill--sample">サンプル</div>
           )}
           {status === "loading" && (
-            <div className="logAi__pill logAi__pill--info">生成中</div>
+            <div className="logAi__pill logAi__pill--info logAi__loadingInline">
+              生成中
+              <MetronomeLoader compact label="" className="logAi__loaderInline" />
+            </div>
           )}
           {status === "saved" && (
             <div className="logAi__pill logAi__pill--ok">保存済み</div>
@@ -54,7 +60,10 @@ export default function AiRecommendationCard({
       {/* 本文 */}
       <div className="logAi__content">
         {aiLoading && (
-          <div className="logAi__text logAi__text--muted">生成中…</div>
+          <div className="logAi__text logAi__text--muted logAi__loadingInline">
+            生成中…
+            <MetronomeLoader compact label="" className="logAi__loaderInline" />
+          </div>
         )}
 
         {!aiLoading && aiError && (
@@ -63,7 +72,7 @@ export default function AiRecommendationCard({
           </div>
         )}
 
-        {!aiLoading && aiRec && (
+        {!aiLoading && recommendationText && shownText && (
           <>
             <div className="logAi__text">{shownText}</div>
 

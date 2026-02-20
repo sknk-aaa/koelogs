@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { fetchInsights } from "../api/insights";
 import type { InsightsData } from "../types/insights";
 import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
+import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
 import "./InsightsPages.css";
@@ -30,6 +31,7 @@ function maxDailyMinutes(data: InsightsData) {
 }
 
 export default function InsightsTimePage() {
+  const location = useLocation();
   const { me, isLoading: authLoading } = useAuth();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
   const [state, setState] = useState<LoadState>({ kind: "loading" });
@@ -65,6 +67,7 @@ export default function InsightsTimePage() {
   }, [authLoading, days, guestMode]);
 
   const data = guestData ?? (state.kind === "ready" ? state.data : null);
+  const backTo = ((location.state as { fromPath?: string } | null)?.fromPath) || "/insights";
 
   const total = useMemo(() => (data ? sumTotalMinutes(data) : 0), [data]);
   const max = useMemo(() => (data ? maxDailyMinutes(data) : 0), [data]);
@@ -86,7 +89,7 @@ export default function InsightsTimePage() {
             <h1 className="insightsHero__title">練習時間（詳細）</h1>
             <p className="insightsHero__sub">期間を切り替えて推移と集計を確認できます。</p>
           </div>
-          <Link to="/insights" className="insightsBack">
+          <Link to={backTo} className="insightsBack">
             戻る
           </Link>
         </div>
@@ -117,7 +120,7 @@ export default function InsightsTimePage() {
         </section>
       )}
 
-      {!guestData && state.kind === "loading" && <div className="insightsMuted">読み込み中…</div>}
+      {!guestData && state.kind === "loading" && <MetronomeLoader label="読み込み中..." />}
       {!guestData && state.kind === "error" && <div className="insightsError">取得に失敗しました: {state.message}</div>}
 
       {data && (

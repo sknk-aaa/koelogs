@@ -38,6 +38,8 @@ Rails.application.routes.draw do
     post "auth/signup", to: "auth#signup"
     post "auth/login", to: "auth#login"
     post "auth/logout", to: "auth#logout"
+    post "auth/password_reset_requests", to: "auth#password_reset_request"
+    post "auth/password_resets", to: "auth#password_reset"
 
     # me
     get "me", to: "me#show"

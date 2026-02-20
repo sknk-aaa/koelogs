@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
+import { requestPasswordReset, resetPassword } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
 
 import "./AuthPages.css";
@@ -12,22 +13,37 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (me) {
-    navigate("/log", { replace: true });
-  }
+  useEffect(() => {
+    if (me) {
+      navigate("/log", { replace: true });
+    }
+  }, [me, navigate]);
 
   const state = location.state as LoginLocationState | null;
   const from = state?.fromPath ?? "/log";
+  const resetToken = useMemo(() => {
+    const value = new URLSearchParams(location.search).get("reset_token");
+    return value?.trim() ?? "";
+  }, [location.search]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [resetRequestEmail, setResetRequestEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirmation, setNewPasswordConfirmation] = useState("");
+  const [showResetRequest, setShowResetRequest] = useState(false);
+  const [resetCompleted, setResetCompleted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const showResetForm = resetToken.length > 0 && !resetCompleted;
+
+  const onLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setNotice(null);
 
     try {
       await login(email, password);
@@ -37,6 +53,49 @@ export default function LoginPage() {
         setError(err.message);
       } else {
         setError("ログインに失敗しました");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onRequestResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      await requestPasswordReset(resetRequestEmail);
+      setNotice("入力したメールアドレス宛に、再設定メールを送信しました。");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("メール送信に失敗しました");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      await resetPassword(resetToken, newPassword, newPasswordConfirmation);
+      setResetCompleted(true);
+      setNotice("パスワードを再設定しました。新しいパスワードでログインしてください。");
+      setNewPassword("");
+      setNewPasswordConfirmation("");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("パスワード再設定に失敗しました");
       }
     } finally {
       setSubmitting(false);
@@ -60,36 +119,118 @@ export default function LoginPage() {
         </section>
 
         <section className="card authPage__card">
-          <form onSubmit={onSubmit} className="authPage__form">
-            <div className="authPage__field">
-              <label className="authPage__label">Email</label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                className="authPage__input"
-              />
-            </div>
+          {showResetForm ? (
+            <form onSubmit={onResetPasswordSubmit} className="authPage__form">
+              <div className="authPage__field">
+                <label className="authPage__label">新しいパスワード</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                  className="authPage__input"
+                />
+              </div>
 
-            <div className="authPage__field">
-              <label className="authPage__label">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                className="authPage__input"
-              />
-            </div>
+              <div className="authPage__field">
+                <label className="authPage__label">新しいパスワード（確認）</label>
+                <input
+                  type="password"
+                  value={newPasswordConfirmation}
+                  onChange={(e) => setNewPasswordConfirmation(e.target.value)}
+                  autoComplete="new-password"
+                  className="authPage__input"
+                />
+              </div>
 
-            {error && <div className="authPage__error">{error}</div>}
+              {error && <div className="authPage__error">{error}</div>}
+              {notice && <div className="authPage__notice">{notice}</div>}
 
-            <button type="submit" disabled={submitting} className="authPage__submit">
-              {submitting ? "ログイン中..." : "ログイン"}
-            </button>
+              <button type="submit" disabled={submitting} className="authPage__submit">
+                {submitting ? "再設定中..." : "パスワードを再設定"}
+              </button>
 
-            <p className="authPage__support">毎日の記録は自動で日付単位に整理されます。</p>
-          </form>
+              <p className="authPage__support">このリンクの有効期限は30分です。</p>
+            </form>
+          ) : showResetRequest ? (
+            <form onSubmit={onRequestResetSubmit} className="authPage__form">
+              <div className="authPage__field">
+                <label className="authPage__label">Email</label>
+                <input
+                  value={resetRequestEmail}
+                  onChange={(e) => setResetRequestEmail(e.target.value)}
+                  autoComplete="email"
+                  className="authPage__input"
+                />
+              </div>
+
+              {error && <div className="authPage__error">{error}</div>}
+              {notice && <div className="authPage__notice">{notice}</div>}
+
+              <button type="submit" disabled={submitting} className="authPage__submit">
+                {submitting ? "送信中..." : "再設定メールを送る"}
+              </button>
+
+              <button
+                type="button"
+                className="authPage__ghostButton"
+                onClick={() => {
+                  setShowResetRequest(false);
+                  setError(null);
+                  setNotice(null);
+                }}
+              >
+                ログインに戻る
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={onLoginSubmit} className="authPage__form">
+              <div className="authPage__field">
+                <label className="authPage__label">Email</label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  className="authPage__input"
+                />
+              </div>
+
+              <div className="authPage__field">
+                <label className="authPage__label">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  className="authPage__input"
+                />
+              </div>
+
+              {error && <div className="authPage__error">{error}</div>}
+              {notice && <div className="authPage__notice">{notice}</div>}
+
+              <button type="submit" disabled={submitting} className="authPage__submit">
+                {submitting ? "ログイン中..." : "ログイン"}
+              </button>
+
+              <div className="authPage__actions">
+                <button
+                  type="button"
+                  className="authPage__ghostButton"
+                  onClick={() => {
+                    setShowResetRequest(true);
+                    setError(null);
+                    setNotice(null);
+                    setResetRequestEmail(email);
+                  }}
+                >
+                  パスワードを忘れた？
+                </button>
+              </div>
+
+              <p className="authPage__support">毎日の記録は自動で日付単位に整理されます。</p>
+            </form>
+          )}
 
           <div className="authPage__link">
             アカウントが無い？ <Link to="/signup">新規登録</Link>

@@ -14,6 +14,8 @@ import { createAnalysisMenu, fetchAnalysisMenus, updateAnalysisMenu } from "../a
 import type { AnalysisSession } from "../types/analysisSession";
 import { createAnalysisSession, fetchAnalysisSessions, uploadAnalysisSessionAudio } from "../api/analysisSessions";
 import AnalysisFeedbackPanel from "../features/analysis/components/AnalysisFeedbackPanel";
+import MetronomeLoader from "../components/MetronomeLoader";
+import ProcessingOverlay from "../components/ProcessingOverlay";
 
 import "./TrainingPage.css";
 
@@ -800,6 +802,11 @@ export default function TrainingPage() {
 
   return (
     <div className="page trainingPage">
+      <ProcessingOverlay
+        open={analysisSessionSaving}
+        title="保存中..."
+        description="AI録音分析の結果を保存しています"
+      />
       <div className="trainingPage__bg" aria-hidden="true" />
 
       <section className="card trainingPage__hero">
@@ -962,7 +969,14 @@ export default function TrainingPage() {
                           disabled={analysisSaving}
                           onClick={() => void onCreatePresetMenu(preset)}
                         >
-                          {analysisSaving ? "保存中…" : "このプリセットを保存"}
+                          {analysisSaving ? (
+                            <span className="trainingPage__busyInline">
+                              保存中…
+                              <MetronomeLoader compact label="" className="trainingPage__busyLoader" />
+                            </span>
+                          ) : (
+                            "このプリセットを保存"
+                          )}
                         </button>
                       </div>
                     ))}
@@ -1081,7 +1095,14 @@ export default function TrainingPage() {
                   disabled={!analysisName.trim() || analysisSaving}
                   onClick={() => void onCreateAnalysisMenu()}
                 >
-                  {analysisSaving ? "保存中…" : "保存"}
+                  {analysisSaving ? (
+                    <span className="trainingPage__busyInline">
+                      保存中…
+                      <MetronomeLoader compact label="" className="trainingPage__busyLoader" />
+                    </span>
+                  ) : (
+                    "保存"
+                  )}
                 </button>
               </div>
               </div>
@@ -1353,7 +1374,16 @@ export default function TrainingPage() {
                     (analysisUseTrainingTrack && !selected?.file_path)
                   }
                 >
-                  {analysisRecording ? "録音停止して分析保存" : analysisSessionSaving ? "保存中…" : "録音開始"}
+                  {analysisRecording ? (
+                    "録音停止して分析保存"
+                  ) : analysisSessionSaving ? (
+                    <span className="trainingPage__busyInline">
+                      保存中…
+                      <MetronomeLoader compact label="" className="trainingPage__busyLoader" />
+                    </span>
+                  ) : (
+                    "録音開始"
+                  )}
                 </button>
                 <label className={`trainingPage__fileBtn ${analysisFileAnalyzing ? "is-busy" : ""}`}>
                   {analysisFileAnalyzing ? "解析中…" : "音声ファイルを解析"}

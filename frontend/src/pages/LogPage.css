@@ -632,6 +632,16 @@
   opacity: 0.75;
 }
 
+.logAi__loadingInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.logAi__loaderInline {
+  opacity: 0.9;
+}
+
 .logAi__actions {
   margin-top: 12px;
   display: flex;

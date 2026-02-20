@@ -34,9 +34,30 @@ Rails.application.configure do
 
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false
+  config.action_mailer.perform_deliveries = true
 
-  # Set localhost to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  # Set host to be used by links generated in mailer templates.
+  mailer_host = ENV["MAILER_HOST"].presence || "localhost"
+  mailer_port = ENV["MAILER_PORT"].presence&.to_i || 3000
+  config.action_mailer.default_url_options = { host: mailer_host, port: mailer_port }
+
+  # SMTP settings for local verification.
+  if ENV["SMTP_ADDRESS"].present?
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      address: ENV.fetch("SMTP_ADDRESS"),
+      port: ENV.fetch("SMTP_PORT", "587").to_i,
+      domain: ENV["SMTP_DOMAIN"].presence || mailer_host,
+      user_name: ENV["SMTP_USERNAME"],
+      password: ENV["SMTP_PASSWORD"],
+      authentication: (ENV["SMTP_AUTHENTICATION"].presence || "plain").to_sym,
+      enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS_AUTO", "true") == "true",
+      open_timeout: ENV.fetch("SMTP_OPEN_TIMEOUT", "5").to_i,
+      read_timeout: ENV.fetch("SMTP_READ_TIMEOUT", "5").to_i
+    }.compact
+  else
+    config.action_mailer.delivery_method = :test
+  end
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

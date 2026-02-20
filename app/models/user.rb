@@ -1,4 +1,7 @@
 class User < ApplicationRecord
+  PASSWORD_RESET_TOKEN_TTL = 30.minutes
+  PASSWORD_RESET_REQUEST_INTERVAL = 1.minute
+
   AVATAR_ICON_VALUES = %w[
     note_blue
     mic_pink
@@ -44,7 +47,36 @@ class User < ApplicationRecord
   validates :ranking_participation_enabled, inclusion: { in: [ true, false ] }
   validates :avatar_icon, inclusion: { in: AVATAR_ICON_VALUES }
 
+  def can_send_password_reset_email?
+    password_reset_sent_at.nil? || password_reset_sent_at < PASSWORD_RESET_REQUEST_INTERVAL.ago
+  end
+
+  def generate_password_reset_token!
+    token = SecureRandom.urlsafe_base64(32)
+    update!(
+      password_reset_token_digest: digest_password_reset_token(token),
+      password_reset_sent_at: Time.current
+    )
+    token
+  end
+
+  def password_reset_token_valid?(token)
+    return false if token.blank? || password_reset_token_digest.blank? || password_reset_sent_at.blank?
+    return false if password_reset_sent_at < PASSWORD_RESET_TOKEN_TTL.ago
+
+    ActiveSupport::SecurityUtils.secure_compare(
+      password_reset_token_digest,
+      digest_password_reset_token(token)
+    )
+  rescue ArgumentError
+    false
+  end
+
   private
+
+  def digest_password_reset_token(token)
+    Digest::SHA256.hexdigest(token.to_s)
+  end
 
   def normalize_display_name
     return if display_name.nil?

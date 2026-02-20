@@ -113,3 +113,41 @@ export async function logout(): Promise<void> {
 
   if (!res.ok) throw new Error(`logout failed: ${res.status}`);
 }
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/auth/password_reset_requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email }),
+  });
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg = json?.error ?? `password_reset_request failed: ${res.status}`;
+    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
+  }
+}
+
+export async function resetPassword(
+  token: string,
+  password: string,
+  passwordConfirmation: string
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/auth/password_resets`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      token,
+      password,
+      password_confirmation: passwordConfirmation,
+    }),
+  });
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg = json?.error ?? `password_reset failed: ${res.status}`;
+    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
+  }
+}

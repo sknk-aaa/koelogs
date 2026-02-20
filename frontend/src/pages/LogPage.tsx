@@ -12,6 +12,7 @@ import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 
 import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
+import ProcessingOverlay from "../components/ProcessingOverlay";
 
 import "./LogPage.css";
 
@@ -549,6 +550,11 @@ export default function LogPage() {
 
   return (
     <div className="page logPage">
+      <ProcessingOverlay
+        open={aiLoading}
+        title="生成中..."
+        description="今日のおすすめを作成しています"
+      />
       {!!authMe && (
         <div className="logPage__modeSwitch">
           <button

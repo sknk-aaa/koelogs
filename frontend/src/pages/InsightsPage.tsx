@@ -5,6 +5,7 @@ import { fetchInsights } from "../api/insights";
 import type { InsightsData, MenuRankingItem } from "../types/insights";
 import NotePitchChart from "../features/insights/components/NotePitchChart";
 import ColoredTag from "../components/ColoredTag";
+import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
 import "./InsightsPages.css";
@@ -135,7 +136,7 @@ export default function InsightsPage() {
         <section className="card insightsHero">
           <div className="insightsHero__kicker">Insights</div>
           <h1 className="insightsHero__title">分析</h1>
-          <p className="insightsHero__sub">読み込み中…</p>
+          <MetronomeLoader label="読み込み中..." />
         </section>
       </div>
     );

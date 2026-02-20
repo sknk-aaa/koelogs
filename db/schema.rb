@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_131732) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -207,6 +207,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_131732) do
     t.string "email", null: false
     t.string "goal_text", limit: 50
     t.string "password_digest", null: false
+    t.datetime "password_reset_sent_at"
+    t.string "password_reset_token_digest"
     t.boolean "public_goal_enabled", default: false, null: false
     t.boolean "public_profile_enabled", default: false, null: false
     t.boolean "ranking_participation_enabled", default: false, null: false
@@ -214,6 +216,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_131732) do
     t.index ["avatar_icon"], name: "index_users_on_avatar_icon"
     t.index ["display_name"], name: "index_users_on_display_name"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["password_reset_token_digest"], name: "index_users_on_password_reset_token_digest", unique: true
   end
 
   create_table "weekly_logs", force: :cascade do |t|

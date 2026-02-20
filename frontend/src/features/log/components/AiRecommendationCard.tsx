@@ -1,3 +1,5 @@
+import MetronomeLoader from "../../../components/MetronomeLoader";
+
 type Props = {
   title: string;
   meta: string;
@@ -41,7 +43,10 @@ export default function AiRecommendationCard({
             <div className="logAi__pill logAi__pill--sample">サンプル</div>
           )}
           {status === "loading" && (
-            <div className="logAi__pill logAi__pill--info">生成中</div>
+            <div className="logAi__pill logAi__pill--info logAi__loadingInline">
+              生成中
+              <MetronomeLoader compact label="" className="logAi__loaderInline" />
+            </div>
           )}
           {status === "saved" && (
             <div className="logAi__pill logAi__pill--ok">保存済み</div>
@@ -55,7 +60,10 @@ export default function AiRecommendationCard({
       {/* 本文 */}
       <div className="logAi__content">
         {aiLoading && (
-          <div className="logAi__text logAi__text--muted">生成中…</div>
+          <div className="logAi__text logAi__text--muted logAi__loadingInline">
+            生成中…
+            <MetronomeLoader compact label="" className="logAi__loaderInline" />
+          </div>
         )}
 
         {!aiLoading && aiError && (

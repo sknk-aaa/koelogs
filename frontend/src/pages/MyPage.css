@@ -90,7 +90,7 @@
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
   background: color-mix(in srgb, var(--accent) 12%, white);
-  color: inherit;
+  color: var(--accentTextSoft);
   text-decoration: none;
   font-size: 12px;
   font-weight: 900;
@@ -102,9 +102,15 @@
   border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.85);
+  color: var(--text);
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
+}
+
+.myPage__missionListBtn:disabled {
+  color: color-mix(in srgb, var(--text) 58%, #a3afc3);
+  background: rgba(255, 255, 255, 0.68);
 }
 
 .myPage__allClear {
@@ -236,7 +242,7 @@
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  color: inherit;
+  color: var(--accentTextSoft);
   font-size: 12px;
   font-weight: 900;
 }
@@ -306,6 +312,7 @@
   border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.9);
+  color: var(--text);
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;

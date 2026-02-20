@@ -809,13 +809,6 @@ export default function TrainingPage() {
       />
       <div className="trainingPage__bg" aria-hidden="true" />
 
-      <section className="card trainingPage__hero">
-        <div>
-          <div className="trainingPage__kicker">Training Studio</div>
-          <h1 className="trainingPage__title">発声トレーニング</h1>
-        </div>
-      </section>
-
       {guestMode && (
         <section className="card trainingPage__aiIntroCard">
           <div className="trainingPage__aiIntroTitle">AI録音分析</div>
@@ -833,22 +826,38 @@ export default function TrainingPage() {
       )}
 
       <main className="trainingPage__grid">
-        <section className="card trainingPage__panel">
+        <section className="trainingPage__panel">
           <div className="trainingPage__panelHead">
-            <div className="trainingPage__panelTitle">選択</div>
-            <div className="trainingPage__panelMeta">スケール / テンポ</div>
+            <div className="trainingPage__panelTitle">トレーニング音源</div>
+            <div className="trainingPage__panelMeta">スケール / テンポ / 再生</div>
           </div>
 
-          <div className="trainingPage__filtersWrap">
-            <TrackFilters
-              scaleType={scaleType}
-              tempo={tempo}
-              scaleTypes={SCALE_TYPES}
-              tempos={TEMPOS}
-              disabled={loading}
-              onChangeScaleType={setScaleType}
-              onChangeTempo={setTempo}
-            />
+          <div className="trainingPage__studioCard">
+            <div className="trainingPage__studioFilters">
+              <TrackFilters
+                scaleType={scaleType}
+                tempo={tempo}
+                scaleTypes={SCALE_TYPES}
+                tempos={TEMPOS}
+                disabled={loading}
+                onChangeScaleType={setScaleType}
+                onChangeTempo={setTempo}
+              />
+            </div>
+            <div className="trainingPage__studioPlayer">
+              <AudioPlayer
+                audioRef={audioRef}
+                src={selected?.file_path ?? undefined}
+                disabled={disabled}
+                isPlaying={isPlaying}
+                onTogglePlay={togglePlay}
+                onPlay={onPlay}
+                onPause={onPause}
+                onEnded={onEnded}
+                defaultVolume={settings.defaultVolume}
+                loopEnabled={settings.loopEnabled}
+              />
+            </div>
           </div>
 
           {loading && (
@@ -865,30 +874,9 @@ export default function TrainingPage() {
             </div>
           )}
         </section>
-
-        <section className="card trainingPage__panel">
-          <div className="trainingPage__panelHead">
-            <div className="trainingPage__panelTitle">プレイヤー</div>
-          </div>
-
-          <div className="trainingPage__playerWrap">
-            <AudioPlayer
-              audioRef={audioRef}
-              src={selected?.file_path ?? undefined}
-              disabled={disabled}
-              isPlaying={isPlaying}
-              onTogglePlay={togglePlay}
-              onPlay={onPlay}
-              onPause={onPause}
-              onEnded={onEnded}
-              defaultVolume={settings.defaultVolume}
-              loopEnabled={settings.loopEnabled}
-            />
-          </div>
-        </section>
       </main>
 
-      <section className="card trainingPage__analysisPanel">
+      <section className="trainingPage__analysisPanel">
         <div className="trainingPage__panelHead">
           <div className="trainingPage__panelTitle">AI録音分析メニュー</div>
         </div>

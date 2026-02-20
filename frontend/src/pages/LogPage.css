@@ -41,7 +41,7 @@
   display: inline-flex;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.7);
+  background: #fff;
   padding: 4px;
   gap: 4px;
 }
@@ -51,15 +51,17 @@
   min-width: 82px;
   border-radius: 9px;
   border: 1px solid transparent;
-  background: transparent;
+  background: #fff;
   font-size: 12px;
   font-weight: 900;
+  color: var(--cardText, var(--text));
   cursor: pointer;
 }
 
 .logPage__modeBtn.is-active {
   border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
   background: color-mix(in srgb, var(--accent) 14%, #ffffff);
+  color: var(--accentTextSoft);
 }
 
 .logPage__guideHint {
@@ -222,12 +224,13 @@
   min-height: 36px;
   border-radius: 11px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.7);
+  background: #fff;
   padding: 0 12px;
   display: inline-flex;
   align-items: center;
   font-size: 13px;
   font-weight: 900;
+  color: var(--cardText, var(--text));
 }
 
 .logPage__weekNavBtn,
@@ -294,7 +297,7 @@
 
 .logPage__btn--subtle {
   border-color: var(--border);
-  background: rgba(255, 255, 255, 0.7);
+  background: #fff;
   box-shadow: none;
 }
 
@@ -325,7 +328,7 @@
       color-mix(in srgb, var(--accent) 92%, white),
       color-mix(in srgb, var(--accent) 80%, black)
     );
-  color: var(--accentText);
+  color: #fff;
   box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
@@ -687,11 +690,9 @@
   padding: 11px 12px;
   border-radius: 14px;
   border: 1px solid transparent;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.72)) padding-box,
-    linear-gradient(120deg, color-mix(in srgb, var(--accent) 34%, transparent), rgba(0, 0, 0, 0.1)) border-box;
-  backdrop-filter: blur(8px);
+  background: #fff;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+  color: var(--cardText, var(--text));
 }
 
 .goalBar__row {
@@ -719,9 +720,10 @@
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: rgba(255, 255, 255, 0.9);
+  background: #fff;
   font-size: 12px;
   font-weight: 900;
+  color: var(--cardText, var(--text));
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease;
 }
@@ -738,7 +740,7 @@
 
 .goalBar__btn--primary {
   background: var(--text);
-  color: var(--accentText);
+  color: #fff;
   border-color: var(--text);
 }
 
@@ -788,13 +790,13 @@
 .weekCal {
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
-  background:
-    linear-gradient(170deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.54));
+  background: #fff;
   padding: 10px 10px 12px;
   width: 100%;
   min-width: 0;
   max-width: 320px;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+  color: var(--cardText, var(--text));
 }
 
 .weekCal__hiddenDate {
@@ -825,11 +827,12 @@
   width: 38px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.84);
+  background: #fff;
   cursor: pointer;
   font-size: 18px;
   font-weight: 900;
   line-height: 1;
+  color: var(--cardText, var(--text));
 }
 
 .weekCal__navBtn:hover {
@@ -840,7 +843,7 @@
   height: 34px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.76);
+  background: #fff;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -849,6 +852,7 @@
   font-size: 13px;
   font-weight: 950;
   letter-spacing: 0.2px;
+  color: var(--cardText, var(--text));
 }
 
 .weekCal__titleBtn:hover {
@@ -872,7 +876,8 @@
   text-align: center;
   font-size: 10px;
   font-weight: 900;
-  opacity: 0.58;
+  color: var(--cardText, var(--text));
+  opacity: 0.72;
 }
 
 .weekCal__grid {
@@ -889,6 +894,7 @@
   background: transparent;
   cursor: pointer;
   font-weight: 950;
+  color: var(--cardText, var(--text));
 }
 
 .weekCal__day:hover {

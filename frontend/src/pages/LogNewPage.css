@@ -146,7 +146,7 @@
 .logNew__chip.is-selected {
   border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
   background: color-mix(in srgb, var(--accent) 12%, var(--card));
-  color: var(--accentText);
+  color: var(--accentTextSoft);
 }
 
 .logNew__effectBoxes {
@@ -490,7 +490,7 @@
     color-mix(in srgb, var(--accent) 92%, white),
     color-mix(in srgb, var(--accent) 80%, black)
   );
-  color: var(--accentText);
+  color: #fff;
   box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 

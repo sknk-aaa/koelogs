@@ -16,6 +16,7 @@
   padding: 9px 8px;
   font-size: 13px;
   font-weight: 900;
+  color: color-mix(in srgb, var(--text) 84%, #75839a);
   cursor: pointer;
 }
 

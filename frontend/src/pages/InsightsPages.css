@@ -26,6 +26,7 @@
     linear-gradient(var(--card), var(--card)) padding-box,
     linear-gradient(130deg, color-mix(in srgb, var(--accent) 40%, transparent), rgba(0, 0, 0, 0.08)) border-box;
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+  color: var(--cardText, var(--text));
   display: grid;
   gap: 10px;
   margin-bottom: 16px;
@@ -100,6 +101,7 @@
     linear-gradient(var(--card), var(--card)) padding-box,
     linear-gradient(135deg, color-mix(in srgb, var(--accent) 36%, transparent), rgba(0, 0, 0, 0.1)) border-box;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  color: var(--cardText, var(--text));
   display: grid;
   gap: 6px;
   margin-bottom: 14px;
@@ -125,6 +127,7 @@
   padding: 14px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
   min-width: 0;
+  color: var(--cardText, var(--text));
 }
 
 .insightsCard--link {
@@ -264,6 +267,7 @@
   min-width: 64px;
   font-size: 13px;
   font-weight: 900;
+  color: var(--cardText, var(--text));
   cursor: pointer;
   opacity: 0.78;
 }
@@ -323,6 +327,7 @@
   padding: 10px 12px;
   font-size: 13px;
   background: rgba(255, 255, 255, 0.82);
+  color: var(--cardText, var(--text));
 }
 
 .insightsSelect {

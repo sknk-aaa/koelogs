@@ -70,7 +70,7 @@
 .wgm__btn--primary {
   border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
   background: color-mix(in srgb, var(--accent) 88%, white);
-  color: var(--accentText);
+  color: var(--accentTextSoft);
 }
 
 .wgm__helpLink {

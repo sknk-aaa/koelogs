@@ -728,22 +728,33 @@
   }
 
   .communityPage__rankHeroCopy {
-    left: 12px;
-    top: 8px;
-    width: calc(100% - 24px);
-  }
-
-  .communityPage__rankHeroBand {
-    min-height: 130px;
-    border: none;
-    background: url("/community-rank-hero-bg.png") no-repeat center 0%;
-    background-size: 100% auto;                 /* 小さめに */
-    background-position: center 0%;              /* 上寄せ */
+    position: static;
     width: 100%;
   }
 
+  .communityPage__rankHeroBand {
+    min-height: 0;
+    border: none;
+    background: none;
+    width: 100%;
+    height: auto;
+    padding: 10px 12px 142px;
+    display: grid;
+    gap: 8px;
+  }
+
   .communityPage__rankHeroBand::after {
-    display: none;
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    height: 118px;
+    border-radius: 16px;
+    border: 1px solid #d8e5fb;
+    background: url("/community-rank-hero-bg.png") no-repeat center 35%;
+    background-size: 108% auto;
+    z-index: 1;
   }
 
   .communityPage__rankHeroPills {
@@ -751,16 +762,18 @@
   }
 
   .communityPage__rankHeroBtn {
-    left: 28px;
+    position: absolute;
+    left: 24px;
     right: auto;
-    top: 65px;
-    bottom: auto;
+    top: auto;
+    bottom: 30px;
     width: 200px;
     padding: 7px 12px;
     text-align: center;
     min-width: 0;
     font-size: 13px;
     border-width: 1.5px;
+    z-index: 2;
   }
 
   .communityPage__rankingGrid {

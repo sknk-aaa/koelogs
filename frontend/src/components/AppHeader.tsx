@@ -231,9 +231,10 @@ const styles: Record<string, React.CSSProperties> = {
     position: "sticky",
     top: 0,
     zIndex: 80,
-    background: "rgba(255,255,255,0.72)",
+    background: "var(--headerBg)",
     backdropFilter: "blur(10px)",
-    borderBottom: "1px solid rgba(0,0,0,0.06)",
+    borderBottom: "1px solid var(--headerBorder)",
+    color: "var(--pageText, var(--text))",
   },
 
   // ★ sticky の中で absolute 中央を安定させるためのラッパー
@@ -269,6 +270,7 @@ const styles: Record<string, React.CSSProperties> = {
     textOverflow: "ellipsis",
     maxWidth: "60vw",
     pointerEvents: "none",
+    color: "var(--pageText, var(--text))",
   },
 
   // アプリ名ボタン（リンク風）
@@ -292,7 +294,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   email: {
-    color: "#111",
+    color: "var(--text)",
     fontSize: 12,
     opacity: 0.7,
     whiteSpace: "nowrap",
@@ -303,8 +305,8 @@ const styles: Record<string, React.CSSProperties> = {
   authBtn: {
     height: 34,
     borderRadius: 10,
-    border: "1px solid rgba(0,0,0,0.10)",
-    background: "rgba(255,255,255,0.85)",
+    border: "1px solid var(--border)",
+    background: "var(--surface)",
     cursor: "pointer",
     fontSize: 12,
     fontWeight: 900,
@@ -320,8 +322,8 @@ const styles: Record<string, React.CSSProperties> = {
     width: 40,
     height: 40,
     borderRadius: 14,
-    border: "1px solid rgba(0,0,0,0.10)",
-    background: "rgba(255,255,255,0.85)",
+    border: "1px solid var(--border)",
+    background: "var(--surface)",
     cursor: "pointer",
     display: "grid",
     placeItems: "center",
@@ -333,7 +335,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 18,
     height: 2,
     borderRadius: 999,
-    background: "rgba(0,0,0,0.78)",
+    background: "var(--menuLine)",
     margin: "2px 0",
   },
 };

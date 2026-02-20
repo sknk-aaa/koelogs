@@ -10,7 +10,7 @@ function clamp01(n: number) {
 }
 
 export default function SettingsPage() {
-  const { themeKey, setThemeKey } = useTheme();
+  const { themeKey, setThemeKey, themeMode, setThemeMode, resolvedMode } = useTheme();
   const { settings, patchSettings } = useSettings();
 
   const volumePct = Math.round(clamp01(settings.defaultVolume) * 100);
@@ -23,6 +23,42 @@ export default function SettingsPage() {
         <div className="settingsPage__kicker">Settings</div>
         <h1 className="settingsPage__title">設定</h1>
         <p className="settingsPage__sub">テーマ、再生挙動、表示の読みやすさをここで調整できます。</p>
+      </section>
+
+      <section className="card settingsPage__card">
+        <div className="settingsPage__cardTitle">表示モード</div>
+        <div className="settingsPage__block">
+          <div className="settingsPage__label">ライト / ダーク</div>
+          <div className="settingsPage__row">
+            <label className={`settingsPage__pillRadio ${themeMode === "light" ? "isSelected" : ""}`}>
+              <input
+                type="radio"
+                checked={themeMode === "light"}
+                onChange={() => setThemeMode("light")}
+              />
+              <span>ライト</span>
+            </label>
+            <label className={`settingsPage__pillRadio ${themeMode === "dark" ? "isSelected" : ""}`}>
+              <input
+                type="radio"
+                checked={themeMode === "dark"}
+                onChange={() => setThemeMode("dark")}
+              />
+              <span>ダーク</span>
+            </label>
+            <label className={`settingsPage__pillRadio ${themeMode === "system" ? "isSelected" : ""}`}>
+              <input
+                type="radio"
+                checked={themeMode === "system"}
+                onChange={() => setThemeMode("system")}
+              />
+              <span>システム</span>
+            </label>
+          </div>
+          <div className="settingsPage__hint">
+            現在適用中: {resolvedMode === "dark" ? "ダーク" : "ライト"}
+          </div>
+        </div>
       </section>
 
       <section className="card settingsPage__card">

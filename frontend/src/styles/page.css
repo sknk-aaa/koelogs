@@ -2,7 +2,7 @@
   padding: 16px 16px 104px;
   max-width: 960px;
   margin: 0 auto;
-  color: var(--text);
+  color: var(--pageText, var(--text));
 }
 
 .h1 {
@@ -21,15 +21,16 @@
 
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(26, 56, 92, 0.24);
   border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  padding:16px;
+  color: var(--cardText, var(--text));
+  box-shadow: 0 10px 28px rgba(12, 28, 54, 0.12);
 }
 
 .hr {
   height: 1px;
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(21, 48, 83, 0.15);
   margin: 12px 0;
 }
 
@@ -82,4 +83,3 @@ input, textarea, button {
 .btn:active {
   transform: translateY(1px);
 }
-

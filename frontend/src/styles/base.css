@@ -1,18 +1,30 @@
 :root {
-  --accent: #ff3b7a;
-  --accentSoft: rgba(255, 59, 122, 0.14);
+  --accent: #0e91d8;
+  --accentSoft: rgba(14, 145, 216, 0.2);
   --accentText: #ffffff;
-  --bgTop: #ffd1d6;
-  --bgMid: #f7f7fb;
-  --bgBottom: #f2f2f7;
+  --accentTextSoft: #0f324f;
+  --bgTop: #c8def5;
+  --bgMid: #d9e4f2;
+  --bgBottom: #cfd9e8;
 
-  --text: #111111;
-  --muted: rgba(0, 0, 0, 0.65);
-  --border: rgba(0, 0, 0, 0.08);
-  --card: rgba(255, 255, 255, 0.92);
+  --text: #0f1d2e;
+  --muted: rgba(16, 30, 48, 0.68);
+  --border: rgba(29, 58, 94, 0.18);
+  --card: #ffffff;
+  --surface: #ffffff;
+  --surfaceStrong: #ffffff;
+  --headerBg: rgba(255, 255, 255, 0.72);
+  --headerBorder: rgba(0, 0, 0, 0.06);
+  --menuLine: rgba(0, 0, 0, 0.78);
+  --drawerBackdrop: rgba(0, 0, 0, 0.35);
+  --drawerSheet: rgba(255, 255, 255, 0.92);
+  --drawerBorder: rgba(0, 0, 0, 0.08);
+  --drawerCard: #fff;
+  --drawerText: #111;
+  --pageText: #0f1d2e;
+  --cardText: #0f1d2e;
 
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans JP",
-    "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: "Avenir Next", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif;
   --fontScale: 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -21,11 +33,47 @@
 
 * { box-sizing: border-box; }
 
-body { margin: 0; color: var(--text); background: #fff; font-size: calc(16px * var(--fontScale))}
+body {
+  margin: 0;
+  color: var(--text);
+  background: linear-gradient(180deg, #d7e2f0 0%, #c9d5e5 100%);
+  font-size: calc(16px * var(--fontScale));
+}
+
+:root[data-theme-mode="dark"] {
+  --accent: #2f9fff;
+  --accentSoft: rgba(47, 159, 255, 0.2);
+  --accentTextSoft: #10273d;
+  --bgTop: #232b37;
+  --bgMid: #1e2531;
+  --bgBottom: #1a212c;
+
+  --text: #122236;
+  --muted: rgba(20, 35, 54, 0.68);
+  --border: rgba(20, 43, 70, 0.2);
+  --card: #ffffff;
+  --surface: #ffffff;
+  --surfaceStrong: #ffffff;
+  --headerBg: rgba(22, 28, 36, 0.84);
+  --headerBorder: rgba(185, 205, 229, 0.2);
+  --menuLine: rgba(18, 39, 61, 0.9);
+  --drawerBackdrop: rgba(7, 12, 18, 0.52);
+  --drawerSheet: rgba(248, 251, 255, 0.98);
+  --drawerBorder: rgba(21, 45, 73, 0.2);
+  --drawerCard: rgba(255, 255, 255, 0.98);
+  --drawerText: #13263c;
+  --pageText: #eaf3ff;
+  --cardText: #122236;
+}
 
 a { color: inherit; text-decoration: none; }
 
-button, input, textarea { font-family: inherit; }
+button,
+input,
+textarea {
+  font-family: inherit;
+  color: inherit;
+}
 
 html {
   scrollbar-gutter: stable;

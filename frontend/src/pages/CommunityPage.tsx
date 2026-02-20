@@ -197,25 +197,15 @@ export default function CommunityPage() {
 
   return (
     <div className="page communityPage">
-      <section className="card communityPage__hero">
-        <div className="communityPage__kicker">Community</div>
-        <h1 className="communityPage__title">コミュニティ</h1>
-      </section>
-
       <section className="card communityPage__rankHero">
-        <div className="communityPage__rankHeroVisual" aria-hidden="true">
-          <img src={avatarIconPath("heart_red")} alt="" className="communityPage__rankHeroAvatar is-back" />
-          <img src={avatarIconPath("note_blue")} alt="" className="communityPage__rankHeroAvatar is-front" />
-          <span className="communityPage__rankHeroChat">💬</span>
-        </div>
-        <div className="communityPage__rankHeroMain">
-          <div className="communityPage__rankHeroTitle">みんなの進捗ランキングをチェックしてみましょう！</div>
-          <div className="communityPage__rankHeroSub">AIへの貢献数、連続練習日数、一週間の練習時間</div>
-        </div>
-        <div className="communityPage__rankHeroActions">
-          <div className="communityPage__rankHeroDecor" aria-hidden="true">
-            <span className="communityPage__rankHeroSpark">✦</span>
-            <span className="communityPage__rankHeroTrophy">🏆</span>
+        <div className="communityPage__rankHeroBand">
+          <div className="communityPage__rankHeroCopy">
+            <div className="communityPage__rankHeroTitle">みんなの進捗ランキングをチェックしてみましょう！</div>
+          </div>
+          <div className="communityPage__rankHeroPills" aria-hidden="true">
+            <span className="communityPage__rankHeroChip">AI貢献</span>
+            <span className="communityPage__rankHeroChip">連続日数</span>
+            <span className="communityPage__rankHeroChip">7日練習</span>
           </div>
           <button
             type="button"

@@ -25,109 +25,111 @@
 
 .communityPage__rankHero {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
-  background: linear-gradient(140deg, #eaf2ff 0%, #eef5ff 64%, #e8f1ff 100%);
-  border: 1px solid #d7e3f8;
-  border-radius: 18px;
-  padding: 14px;
-}
-
-.communityPage__rankHeroVisual {
-  position: relative;
-  width: 74px;
-  height: 56px;
-  flex: 0 0 auto;
-}
-
-.communityPage__rankHeroAvatar {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid #d3ddee;
+  gap: 8px;
   background: #fff;
-  box-shadow: 0 6px 14px rgba(49, 76, 117, 0.14);
-}
-
-.communityPage__rankHeroAvatar.is-back {
-  left: 0;
-  top: 0;
-}
-
-.communityPage__rankHeroAvatar.is-front {
-  left: 24px;
-  top: 14px;
-}
-
-.communityPage__rankHeroChat {
-  position: absolute;
-  right: 4px;
-  top: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #d3ddee;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-}
-
-.communityPage__rankHeroMain {
-  min-width: 0;
+  border: 1px solid #d9e6fa;
+  border-radius: 22px;
+  padding: 0px 0 0 0px !important;
+  box-shadow: 0 10px 24px rgba(15, 45, 86, 0.12);
 }
 
 .communityPage__rankHeroTitle {
-  font-size: 17px;
-  font-weight: 900;
-  letter-spacing: 0.1px;
-  line-height: 1.45;
-  color: #1f2a3a;
+  font-size: clamp(17px, 2.2vw, 22px  );
+  font-weight: 950;
+  letter-spacing: 0.2px;
+  line-height: 1.3;
+  color: #0f2642;
   margin: 0;
 }
 
 .communityPage__rankHeroSub {
-  margin-top: 4px;
+  margin-top: 2px;
   font-size: 13px;
-  color: #4a5d79;
-  line-height: 1.55;
+  color: #3f5878;
+  line-height: 1.5;
 }
 
-.communityPage__rankHeroActions {
+.communityPage__rankHeroBand {
+  position: relative;
+  border-radius: 20px;
+  border: 1px solid #d8e5fb;
+  background:
+    linear-gradient(130deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08)),
+    url("/community-rank-hero-bg.png");
+  background-repeat: no-repeat, no-repeat;
+  background-position: center center, center center;
+  background-size: cover, cover;
+  padding: 0;
   display: grid;
-  justify-items: end;
-  gap: 5px;
+  align-items: stretch;
+  justify-items: stretch;
+  gap: 0;
+  height: clamp(160px, 20vw, 230px);
+  min-height: 0;
+  overflow: hidden;
 }
 
-.communityPage__rankHeroDecor {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin-right: 2px;
+.communityPage__rankHeroBand::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48%;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(188, 220, 255, 0), rgba(164, 205, 255, 0.2));
 }
 
-.communityPage__rankHeroSpark {
-  color: #e6b442;
-  font-size: 14px;
+.communityPage__rankHeroCopy {
+  position: absolute;
+  left: 18px;
+  top: 14px;
+  z-index: 2;
+  width: min(720px, 72%);
 }
 
-.communityPage__rankHeroTrophy {
-  font-size: 24px;
+.communityPage__rankHeroCopy .communityPage__rankHeroSub {
+  margin-top: 4px;
+}
+
+.communityPage__rankHeroPills {
+  position: absolute;
+  left: 18px;
+  top: 86px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
 }
 
 .communityPage__rankHeroBtn {
-  border: 1px solid #6795d6;
-  background: linear-gradient(180deg, #f9fcff 0%, #eaf2ff 100%);
-  color: #1f57a5;
+  position: absolute;
+  left: 18px;
+  bottom: 16px;
+  z-index: 2;
+  border: 2px solid #6da7ea;
+  background: linear-gradient(180deg, #82b8ff 0%, #4a86dd 100%);
+  color: #ffffff;
   border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 10px 18px;
+  min-width: 0;
+  width: min(380px, 44%);
+  font-size: 17px;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(73, 119, 188, 0.2);
-  white-space: nowrap;
+  box-shadow: 0 10px 22px rgba(64, 129, 210, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.communityPage__rankHeroChip {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 2px 15px;
+  border-radius: 999px;
+  border: 1px solid rgba(117, 165, 229, 0.55);
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 18px;
+  font-weight: 500;
+  color: #335a88;
 }
 
 .communityPage__tabs {
@@ -152,6 +154,7 @@
   padding: 12px 10px;
   font-size: 13px;
   font-weight: 800;
+  color: color-mix(in srgb, var(--text) 82%, #7d8898);
   cursor: pointer;
   width: 100%;
   height: 100%;
@@ -197,6 +200,7 @@
   padding: 10px 8px;
   font-size: 12px;
   font-weight: 800;
+  color: color-mix(in srgb, var(--text) 80%, #7d8898);
   cursor: pointer;
   text-align: left;
   position: relative;
@@ -498,6 +502,7 @@
 .communityPage__submit {
   border: 1px solid color-mix(in srgb, var(--accent) 48%, #999);
   background: color-mix(in srgb, var(--accent) 14%, #fff);
+  color: var(--accentTextSoft);
   border-radius: 12px;
   padding: 10px 12px;
   font-size: 14px;
@@ -506,6 +511,7 @@
 }
 
 .communityPage__submit:disabled {
+  color: color-mix(in srgb, var(--text) 56%, #a8b3c6);
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -531,6 +537,7 @@
 .communityPage__favoriteBtn {
   border: 1px solid #d2dcec;
   background: #f2f6fd;
+  color: var(--text);
   border-radius: 999px;
   padding: 6px 12px;
   font-size: 12px;
@@ -577,6 +584,7 @@
   padding: 12px 16px;
   font-size: 14px;
   font-weight: 900;
+  color: var(--accentTextSoft);
   cursor: pointer;
   box-shadow: 0 14px 26px rgba(0, 0, 0, 0.18);
 }
@@ -707,21 +715,8 @@
 
 @media (max-width: 520px) {
   .communityPage__rankHero {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 12px;
-  }
-
-  .communityPage__rankHeroVisual {
-    display: none;
-  }
-
-  .communityPage__rankHeroMain {
-    order: 1;
-  }
-
-  .communityPage__rankHeroActions {
-    order: 2;
+    padding: 0 !important;
+    border-radius: 20px;
   }
 
   .communityPage__rankHeroTitle {
@@ -732,17 +727,40 @@
     font-size: 12px;
   }
 
-  .communityPage__rankHeroActions {
-    align-items: flex-start;
+  .communityPage__rankHeroCopy {
+    left: 12px;
+    top: 8px;
+    width: calc(100% - 24px);
+  }
+
+  .communityPage__rankHeroBand {
+    min-height: 130px;
+    border: none;
+    background: url("/community-rank-hero-bg.png") no-repeat center 0%;
+    background-size: 100% auto;                 /* 小さめに */
+    background-position: center 0%;              /* 上寄せ */
+    width: 100%;
+  }
+
+  .communityPage__rankHeroBand::after {
+    display: none;
+  }
+
+  .communityPage__rankHeroPills {
+    display: none;
   }
 
   .communityPage__rankHeroBtn {
-    width: 100%;
+    left: 28px;
+    right: auto;
+    top: 65px;
+    bottom: auto;
+    width: 200px;
+    padding: 7px 12px;
     text-align: center;
-  }
-
-  .communityPage__rankHeroDecor {
-    display: none;
+    min-width: 0;
+    font-size: 13px;
+    border-width: 1.5px;
   }
 
   .communityPage__rankingGrid {

@@ -16,8 +16,7 @@ class User < ApplicationRecord
   has_many :training_logs, dependent: :destroy
   has_many :training_log_feedbacks, dependent: :destroy
   has_many :training_menus, dependent: :destroy
-  has_many :analysis_menus, dependent: :destroy
-  has_many :analysis_sessions, dependent: :destroy
+  has_many :measurement_runs, dependent: :destroy
   has_many :ai_recommendations, dependent: :destroy
   has_many :community_posts, dependent: :destroy
   has_many :community_post_favorites, dependent: :destroy

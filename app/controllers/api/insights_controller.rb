@@ -63,42 +63,8 @@ module Api
 
     private
 
-    def note_to_midi(note)
-      s = note.to_s.strip
-      return nil if s.empty?
-
-      m = s.match(/\A([A-Ga-g])([#b]?)(-?\d)\z/)
-      return nil if m.nil?
-
-      letter = m[1].upcase
-      accidental = m[2]
-      octave = m[3].to_i
-
-      semitone_base = {
-        "C" => 0, "D" => 2, "E" => 4, "F" => 5,
-        "G" => 7, "A" => 9, "B" => 11
-      }[letter]
-      return nil if semitone_base.nil?
-
-      semitone = semitone_base
-      semitone += 1 if accidental == "#"
-      semitone -= 1 if accidental == "b"
-
-      if semitone >= 12
-        semitone -= 12
-        octave += 1
-      elsif semitone < 0
-        semitone += 12
-        octave -= 1
-      end
-
-      (octave + 1) * 12 + semitone
-    rescue
-      nil
-    end
-
     def build_measurement_data(from:, to:, days:)
-      kinds = %w[falsetto_peak chest_peak range long_tone pitch_accuracy volume_stability]
+      kinds = %w[range long_tone volume_stability]
       value_by_kind_and_date = {}
       kinds.each { |kind| value_by_kind_and_date[kind] = {} }
       top_notes = {
@@ -106,38 +72,21 @@ module Api
         chest: { note: nil, midi: nil, date: nil }
       }
 
-      sessions = current_user.analysis_sessions.where(created_at: from.beginning_of_day..to.end_of_day).order(:created_at)
-      sessions.each do |session|
-        kind = session.measurement_kind.to_s
+      runs = current_user.measurement_runs
+                        .where(measurement_type: kinds, recorded_at: from.beginning_of_day..to.end_of_day)
+                        .includes(:range_result, :long_tone_result, :volume_stability_result)
+                        .order(:recorded_at)
+      runs.each do |run|
+        kind = run.measurement_type.to_s
         next unless kinds.include?(kind)
 
-        date = session.created_at.in_time_zone.to_date
+        date = run.recorded_at.in_time_zone.to_date
         next if date < from || date > to
 
-        value = measurement_value_for(session, kind)
+        value = measurement_value_for(run, kind)
         next if value.nil?
 
         value_by_kind_and_date[kind][date] = value
-      end
-
-      note_sessions = current_user.analysis_sessions.where(measurement_kind: %w[falsetto_peak chest_peak]).order(:created_at)
-      falsetto_daily_midi = {}
-      chest_daily_midi = {}
-      note_sessions.each do |session|
-        midi = note_to_midi(session.peak_note)
-        next if midi.nil?
-
-        date = session.created_at.in_time_zone.to_date
-        kind = session.measurement_kind.to_s
-        note = session.peak_note.to_s.strip
-
-        if kind == "falsetto_peak"
-          falsetto_daily_midi[date] = midi
-          update_top_note!(top_notes[:falsetto], note: note, midi: midi, date: date)
-        elsif kind == "chest_peak"
-          chest_daily_midi[date] = midi
-          update_top_note!(top_notes[:chest], note: note, midi: midi, date: date)
-        end
       end
 
       measurement_series = kinds.to_h do |kind|
@@ -152,8 +101,8 @@ module Api
       end
 
       note_series = {
-        falsetto: (0...days).map { |i| d = from + i; { date: d.iso8601, midi: falsetto_daily_midi[d] } },
-        chest: (0...days).map { |i| d = from + i; { date: d.iso8601, midi: chest_daily_midi[d] } }
+        falsetto: (0...days).map { |i| d = from + i; { date: d.iso8601, midi: nil } },
+        chest: (0...days).map { |i| d = from + i; { date: d.iso8601, midi: nil } }
       }
 
       {
@@ -163,33 +112,14 @@ module Api
       }
     end
 
-    def update_top_note!(current, note:, midi:, date:)
-      current_midi = current[:midi]
-      current_date = begin
-        Date.iso8601(current[:date].to_s)
-      rescue ArgumentError
-        nil
-      end
-      return if current_midi.present? && (midi < current_midi || (midi == current_midi && current_date.present? && date <= current_date))
-
-      current[:note] = note
-      current[:midi] = midi
-      current[:date] = date.iso8601
-    end
-
-    def measurement_value_for(session, kind)
-      raw = session.raw_metrics.is_a?(Hash) ? session.raw_metrics : {}
+    def measurement_value_for(run, kind)
       case kind
-      when "falsetto_peak", "chest_peak"
-        note_to_midi(session.peak_note)
       when "range"
-        session.range_semitones
+        run.range_result&.range_semitones
       when "long_tone"
-        raw["phonation_duration_sec"] || session.duration_sec
-      when "pitch_accuracy"
-        raw["pitch_accuracy_score"]
+        run.long_tone_result&.sustain_sec&.to_f
       when "volume_stability"
-        raw["volume_stability_score"]
+        run.volume_stability_result&.loudness_range_pct&.to_f
       else
         nil
       end

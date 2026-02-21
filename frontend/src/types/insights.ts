@@ -38,11 +38,8 @@ export type InsightsData = {
     chest: DailyNotePoint[];
   };
   measurement_series?: {
-    falsetto_peak: MeasurementPoint[];
-    chest_peak: MeasurementPoint[];
     range: MeasurementPoint[];
     long_tone: MeasurementPoint[];
-    pitch_accuracy: MeasurementPoint[];
     volume_stability: MeasurementPoint[];
   };
   streaks: {

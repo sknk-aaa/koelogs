@@ -107,11 +107,11 @@ export default function MyPage() {
         done: hasDisplayName,
       },
       {
-        key: "ai_analysis",
-        title: "AI録音分析をやってみよう",
-        description: "トレーニング画面から1回分析を実行してみましょう。",
+        key: "measurement",
+        title: "測定をやってみよう",
+        description: "トレーニング画面から1回測定を実行してみましょう。",
         to: "/training",
-        done: progress.analysis_sessions_count > 0,
+        done: progress.measurement_runs_count > 0,
       },
       {
         key: "ai_recommendation",

@@ -391,3 +391,48 @@
     grid-template-columns: 1fr auto;
   }
 }
+
+.insightsMeasureGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.insightsMeasureCard {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.insightsMeasureLabel {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.76;
+}
+
+.insightsMeasureValue {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.insightsMeasureNumber {
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.insightsMeasureUnit {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.72;
+}
+
+@media (max-width: 760px) {
+  .insightsMeasureGrid {
+    grid-template-columns: 1fr;
+  }
+}

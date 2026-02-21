@@ -17,7 +17,7 @@ export type GamificationSummary = {
   xp_to_next_level: number;
   streak_current_days: number;
   streak_longest_days: number;
-  analysis_sessions_count: number;
+  measurement_runs_count: number;
   ai_recommendations_count: number;
   badge_unlocked_count: number;
   badge_total_count: number;

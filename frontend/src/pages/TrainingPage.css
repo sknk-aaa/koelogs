@@ -165,14 +165,14 @@
   line-height: 1.6;
 }
 
-.trainingPage__analysisPanel {
+.trainingPage__measurementPanel {
   margin-top: 18px;
   display: grid;
   gap: 12px;
   padding: 2px 0;
 }
 
-.trainingPage__analysisStep {
+.trainingPage__measurementStep {
   display: grid;
   gap: 10px;
   border: 1px solid var(--border);
@@ -185,7 +185,7 @@
   box-shadow: 0 10px 20px rgba(12, 28, 54, 0.06);
 }
 
-.trainingPage__analysisStep::before {
+.trainingPage__measurementStep::before {
   content: "";
   position: absolute;
   left: 0;
@@ -195,16 +195,16 @@
   background: color-mix(in srgb, var(--accent) 30%, var(--border));
 }
 
-.trainingPage__analysisStep--manage {
+.trainingPage__measurementStep--manage {
   border-color: color-mix(in srgb, #4b9ecf 34%, var(--border));
   background: color-mix(in srgb, #dff3ff 22%, var(--card));
 }
 
-.trainingPage__analysisStep--manage::before {
+.trainingPage__measurementStep--manage::before {
   background: color-mix(in srgb, #4b9ecf 82%, #fff);
 }
 
-.trainingPage__analysisStep--record {
+.trainingPage__measurementStep--record {
   border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
   box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 20%, transparent);
   background: linear-gradient(
@@ -214,11 +214,11 @@
   );
 }
 
-.trainingPage__analysisStep--record::before {
+.trainingPage__measurementStep--record::before {
   background: color-mix(in srgb, var(--accent) 86%, #fff);
 }
 
-.trainingPage__analysisStepHead {
+.trainingPage__measurementStepHead {
   display: flex;
   gap: 10px;
   align-items: flex-start;
@@ -226,16 +226,11 @@
   border-bottom: 1px dashed color-mix(in srgb, var(--border) 82%, transparent);
 }
 
-.trainingPage__analysisStepHeadText {
+.trainingPage__measurementStepHeadText {
   min-width: 0;
 }
 
-.trainingPage__analysisStepToggleBtn {
-  margin-left: auto;
-  flex: 0 0 auto;
-}
-
-.trainingPage__analysisStepBadge {
+.trainingPage__measurementStepBadge {
   width: 24px;
   height: 24px;
   border-radius: 999px;
@@ -247,57 +242,38 @@
   font-weight: 900;
 }
 
-.trainingPage__analysisStep--manage .trainingPage__analysisStepBadge {
+.trainingPage__measurementStep--manage .trainingPage__measurementStepBadge {
   border-color: color-mix(in srgb, #4b9ecf 52%, var(--border));
   background: color-mix(in srgb, #4b9ecf 16%, var(--card));
 }
 
-.trainingPage__analysisStep--record .trainingPage__analysisStepBadge {
+.trainingPage__measurementStep--record .trainingPage__measurementStepBadge {
   border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
   background: color-mix(in srgb, var(--accent) 22%, var(--card));
 }
 
-.trainingPage__analysisStepTitle {
+.trainingPage__measurementStepTitle {
   font-size: 16px;
   font-weight: 950;
   line-height: 1.35;
 }
 
-.trainingPage__analysisStepTitle--record {
+.trainingPage__measurementStepTitle--record {
   color: color-mix(in srgb, var(--accent) 78%, #111);
 }
 
-.trainingPage__analysisStep--manage .trainingPage__analysisStepTitle {
+.trainingPage__measurementStep--manage .trainingPage__measurementStepTitle {
   color: color-mix(in srgb, #2f6f95 88%, #111);
 }
 
-.trainingPage__analysisStepDesc {
+.trainingPage__measurementStepDesc {
   margin-top: 2px;
   font-size: 12px;
   line-height: 1.5;
   opacity: 0.76;
 }
 
-.trainingPage__analysisGuide {
-  border-radius: 10px;
-  border: 1px dashed var(--border);
-  background: rgba(255, 255, 255, 0.72);
-  padding: 8px 10px;
-  font-size: 12px;
-  line-height: 1.55;
-  opacity: 0.84;
-}
-
-.trainingPage__analysisSelectorBox {
-  display: grid;
-  gap: 8px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.74);
-  padding: 8px 10px;
-}
-
-.trainingPage__analysisTargetMeta {
+.trainingPage__measurementTargetMeta {
   font-size: 12px;
   line-height: 1.45;
   opacity: 0.84;
@@ -306,7 +282,7 @@
   text-overflow: ellipsis;
 }
 
-.trainingPage__analysisGuest {
+.trainingPage__measurementGuest {
   border-radius: 12px;
   border: 1px dashed var(--border);
   background: rgba(255, 255, 255, 0.66);
@@ -316,13 +292,13 @@
   opacity: 0.78;
 }
 
-.trainingPage__analysisPresetGrid {
+.trainingPage__measurementPresetGrid {
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 }
 
-.trainingPage__analysisPresetItem {
+.trainingPage__measurementPresetItem {
   display: grid;
   gap: 6px;
   border: 1px solid var(--border);
@@ -331,18 +307,18 @@
   padding: 8px 10px;
 }
 
-.trainingPage__analysisPresetName {
+.trainingPage__measurementPresetName {
   font-size: 12px;
   font-weight: 900;
 }
 
-.trainingPage__analysisPresetDesc {
+.trainingPage__measurementPresetDesc {
   font-size: 12px;
   line-height: 1.55;
   opacity: 0.82;
 }
 
-.trainingPage__analysisRecorder {
+.trainingPage__measurementRecorder {
   display: grid;
   gap: 8px;
   border-radius: 14px;
@@ -351,12 +327,12 @@
   padding: 12px;
 }
 
-.trainingPage__analysisRecorderTitle {
+.trainingPage__measurementRecorderTitle {
   font-size: 13px;
   font-weight: 900;
 }
 
-.trainingPage__analysisModeBox {
+.trainingPage__measurementModeBox {
   display: grid;
   gap: 8px;
   border-radius: 10px;
@@ -365,13 +341,13 @@
   padding: 8px 10px;
 }
 
-.trainingPage__analysisModeText {
+.trainingPage__measurementModeText {
   font-size: 12px;
   line-height: 1.55;
   opacity: 0.82;
 }
 
-.trainingPage__analysisModeToggle {
+.trainingPage__measurementModeToggle {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -380,17 +356,17 @@
   cursor: pointer;
 }
 
-.trainingPage__analysisModeToggle input {
+.trainingPage__measurementModeToggle input {
   cursor: pointer;
 }
 
-.trainingPage__analysisSelected {
+.trainingPage__measurementSelected {
   font-size: 12px;
   font-weight: 800;
   opacity: 0.78;
 }
 
-.trainingPage__analysisRecorderRow {
+.trainingPage__measurementRecorderRow {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -403,10 +379,375 @@
   color: #fff;
 }
 
-.trainingPage__analysisNowNote {
+.trainingPage__measurementNowNote {
   font-size: 13px;
   font-weight: 800;
   opacity: 0.8;
+}
+
+.trainingPage__measurementPitchLive {
+  display: grid;
+  gap: 6px;
+}
+
+.trainingPage__recordOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(10, 14, 22, 0.46);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  padding: 4px;
+}
+
+.trainingPage__recordCard {
+  width: min(1180px, 100%);
+  max-width: 920px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: rgba(255, 255, 255, 0.98);
+  padding: 8px;
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 4px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+}
+
+.trainingPage__recordCard--monitor {
+  background: #05070d;
+  border-color: #2a3344;
+  color: #e8edf8;
+}
+
+.trainingPage__measurementResult {
+  margin-top: 6px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, #fff);
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.trainingPage__measurementResultTitle {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.trainingPage__measurementResultMeta {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.trainingPage__measurementResultLine {
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: 0.9;
+}
+
+.trainingPage__measurementPitchLiveTitle {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.82;
+}
+
+.trainingPage__measurementPitchLiveChart {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 6px;
+}
+
+.trainingPage__measurementPitchLiveMeta {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.8;
+  margin: 2px 2px 6px;
+}
+
+.trainingPage__measurementPitchLiveChart svg {
+  width: 100%;
+  height: 176px;
+}
+
+.trainingPage__measurementPitchLiveChart--large {
+  display: grid;
+  gap: 4px;
+}
+
+.trainingPage__measurementPitchLiveChart--large svg {
+  height: min(58vh, 460px);
+  min-height: 260px;
+}
+
+@media (max-width: 640px) {
+  .trainingPage__recordOverlay {
+    padding: 0;
+  }
+
+  .trainingPage__recordCard {
+    width: 100%;
+    border-radius: 10px 10px 0 0;
+    padding: 0;
+    gap: 0;
+    border-bottom: 0;
+  }
+
+  .trainingPage__measurementPitchLiveChart {
+    padding: 0;
+  }
+
+  .trainingPage__measurementPitchLiveMeta {
+    margin: 0 0 2px;
+  }
+
+  .trainingPage__measurementPitchLiveChart--large {
+    gap: 0;
+  }
+
+  .trainingPage__measurementPitchLiveChart--large svg {
+    height: 46vh;
+    min-height: 0;
+  }
+
+  .trainingPage__saveBtn.is-recording {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+}
+
+.trainingPage__measurementPitchLiveChart line {
+  stroke: rgba(0, 0, 0, 0.24);
+  stroke-width: 1;
+}
+
+.trainingPage__measurementPitchLiveChart path {
+  stroke: color-mix(in srgb, var(--accent) 48%, #111);
+  stroke-width: 2.5;
+  fill: none;
+}
+
+.trainingPage__measurementPitchLiveEmpty {
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 9px 10px;
+  font-size: 12px;
+  opacity: 0.76;
+}
+
+.trainingPage__monitor {
+  border-radius: 12px;
+  border: 1px solid #2a3344;
+  background: #070b12;
+  color: #eaf0ff;
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__monitorHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.trainingPage__pitchMiniTuner {
+  display: grid;
+  gap: 6px;
+}
+
+.trainingPage__pitchMiniTunerBar {
+  position: relative;
+  height: 26px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #3d3f46, #2f3239);
+  border: 1px solid #4b4f58;
+}
+
+.trainingPage__pitchMiniTunerCenter {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.trainingPage__pitchMiniTunerMark {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.trainingPage__pitchMiniTunerMark--left {
+  left: 28%;
+}
+
+.trainingPage__pitchMiniTunerMark--right {
+  left: 72%;
+}
+
+.trainingPage__pitchMiniTunerIndicator {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 96px;
+  transform: translateX(-50%);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2a8bff, #0c59cd);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+}
+
+.trainingPage__pitchMiniTunerMeta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+  color: #f0f4ff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.trainingPage__pitchMiniTunerMeta span:last-child {
+  text-align: right;
+}
+
+.trainingPage__pitchMiniTunerNote {
+  font-size: 48px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.trainingPage__monitorValue {
+  font-size: 36px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+}
+
+.trainingPage__monitorSub {
+  font-size: 20px;
+  font-weight: 900;
+  color: #8cb6ff;
+}
+
+.trainingPage__monitorEmpty {
+  border-radius: 10px;
+  border: 1px dashed #2a3344;
+  padding: 16px;
+  font-size: 13px;
+  opacity: 0.82;
+}
+
+.trainingPage__monitorSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  background: #04070e;
+}
+
+.trainingPage__monitorGridLine {
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1;
+}
+
+.trainingPage__monitorAxisLabel {
+  fill: rgba(233, 240, 255, 0.9);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.trainingPage__monitorPitchPath {
+  stroke: #ffd24a;
+  stroke-width: 2.4;
+  fill: none;
+}
+
+.trainingPage__dbGaugeWrap {
+  display: grid;
+  place-items: center;
+}
+
+.trainingPage__dbGauge {
+  width: min(72vw, 280px);
+  aspect-ratio: 1 / 1;
+  border-radius: 999px;
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.trainingPage__dbGaugeInner {
+  position: absolute;
+  inset: 22%;
+  border-radius: 999px;
+  background: #06090f;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  font-weight: 950;
+}
+
+.trainingPage__dbStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #d2def8;
+}
+
+.trainingPage__monitorDbPath {
+  stroke: #ff8e27;
+  stroke-width: 2.6;
+  fill: none;
+}
+
+@media (max-width: 640px) {
+  .trainingPage__monitor {
+    border-radius: 8px 8px 0 0;
+    padding: 4px;
+    gap: 6px;
+  }
+
+  .trainingPage__monitorValue {
+    font-size: 30px;
+  }
+
+  .trainingPage__monitorSub {
+    font-size: 18px;
+  }
+
+  .trainingPage__monitorAxisLabel {
+    font-size: 13px;
+  }
+
+  .trainingPage__pitchMiniTunerIndicator {
+    width: 72px;
+  }
+
+  .trainingPage__pitchMiniTunerMeta {
+    font-size: 16px;
+  }
+
+  .trainingPage__pitchMiniTunerNote {
+    font-size: 42px;
+  }
+
+  .trainingPage__dbGauge {
+    width: min(84vw, 320px);
+  }
+
+  .trainingPage__dbGaugeInner {
+    font-size: 34px;
+  }
 }
 
 .trainingPage__fileBtn {
@@ -432,96 +773,6 @@
   inset: 0;
   opacity: 0;
   cursor: pointer;
-}
-
-.trainingPage__analysisSummary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.trainingPage__analysisResult {
-  display: grid;
-  gap: 8px;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--accent) 6%, var(--card));
-  padding: 10px;
-}
-
-.trainingPage__analysisResultHead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px 10px;
-}
-
-.trainingPage__analysisResultTitle {
-  font-size: 13px;
-  font-weight: 950;
-}
-
-.trainingPage__analysisResultMeta {
-  font-size: 11px;
-  font-weight: 700;
-  opacity: 0.72;
-}
-
-.trainingPage__analysisSummary span {
-  font-size: 12px;
-  font-weight: 800;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.72);
-  padding: 5px 8px;
-}
-
-.trainingPage__analysisDiff {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.trainingPage__analysisDiff span {
-  font-size: 12px;
-  font-weight: 800;
-  opacity: 0.84;
-}
-
-.trainingPage__field {
-  display: grid;
-  gap: 6px;
-}
-
-.trainingPage__label {
-  font-size: 12px;
-  font-weight: 900;
-  opacity: 0.8;
-}
-
-.trainingPage__input {
-  width: 100%;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: var(--card);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.trainingPage__input {
-  height: 40px;
-  padding: 0 10px;
-}
-
-.trainingPage__select {
-  cursor: pointer;
-}
-
-.trainingPage__analysisActions {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .trainingPage__saveBtn {
@@ -552,20 +803,19 @@
 }
 
 .trainingPage__saveBtn:hover:not(:disabled),
-.trainingPage__analysisMiniBtn:hover,
+.trainingPage__measurementMiniBtn:hover,
 .trainingPage__fileBtn:hover {
   border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
 }
 
 .trainingPage__saveBtn:focus-visible,
-.trainingPage__analysisMiniBtn:focus-visible,
-.trainingPage__fileBtn:focus-visible,
-.trainingPage__select:focus-visible {
+.trainingPage__measurementMiniBtn:focus-visible,
+.trainingPage__fileBtn:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 60%, #fff);
   outline-offset: 2px;
 }
 
-.trainingPage__analysisError {
+.trainingPage__measurementError {
   border-radius: 10px;
   border: 1px solid rgba(176, 0, 32, 0.22);
   background: rgba(176, 0, 32, 0.06);
@@ -574,62 +824,15 @@
   font-weight: 700;
 }
 
-.trainingPage__analysisList {
-  display: grid;
-  gap: 8px;
-}
-
-.trainingPage__analysisItem {
-  display: grid;
-  gap: 4px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-}
-
-.trainingPage__analysisItem.is-active {
-  border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, var(--card));
-}
-
-.trainingPage__analysisName {
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.trainingPage__analysisFocus {
-  font-size: 12px;
-  line-height: 1.55;
-  opacity: 0.78;
-}
-
-.trainingPage__analysisFixed {
-  font-size: 12px;
-  font-weight: 800;
-  opacity: 0.84;
-}
-
-.trainingPage__analysisEmpty {
-  font-size: 12px;
-  opacity: 0.72;
-}
-
-.trainingPage__analysisAiFeedback {
-  margin-top: 4px;
-}
-
-.trainingPage__analysisStep,
-.trainingPage__analysisStepHead,
-.trainingPage__analysisStepTitle,
-.trainingPage__analysisStepDesc,
-.trainingPage__analysisSummary span,
-.trainingPage__analysisDiff span,
-.trainingPage__analysisTargetMeta {
+.trainingPage__measurementStep,
+.trainingPage__measurementStepHead,
+.trainingPage__measurementStepTitle,
+.trainingPage__measurementStepDesc,
+.trainingPage__measurementTargetMeta {
   cursor: default;
 }
 
-.trainingPage__analysisMiniBtn {
+.trainingPage__measurementMiniBtn {
   border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
   background: color-mix(in srgb, var(--accent) 8%, var(--card));
   color: var(--cardText, var(--text));
@@ -641,12 +844,12 @@
   cursor: pointer;
 }
 
-.trainingPage__analysisMiniBtn.is-active {
+.trainingPage__measurementMiniBtn.is-active {
   border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
   background: color-mix(in srgb, var(--accent) 22%, var(--card));
 }
 
-.trainingPage__analysisMiniBtn--ghost {
+.trainingPage__measurementMiniBtn--ghost {
   border-color: var(--border);
   background: rgba(255, 255, 255, 0.72);
 }
@@ -700,11 +903,6 @@
   border-radius: 10px;
   background: #fff;
   padding: 8px 10px;
-}
-
-.trainingPage__metricInfoItem--method {
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
 }
 
 .trainingPage__metricInfoLabel {

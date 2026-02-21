@@ -21,7 +21,7 @@ module Gamification
           xp_to_next_level: xp_to_next_level,
           streak_current_days: metrics[:current_streak_days],
           streak_longest_days: metrics[:longest_streak_days],
-          analysis_sessions_count: metrics[:analysis_sessions_count],
+          measurement_runs_count: metrics[:measurement_runs_count],
           ai_recommendations_count: metrics[:ai_recommendations_count],
           badge_unlocked_count: badges.count { |b| b[:unlocked] },
           badge_total_count: badges.size,
@@ -39,7 +39,7 @@ module Gamification
           current_streak_days: streaks[:current_days],
           longest_streak_days: streaks[:longest_days],
           total_xp: user.xp_events.sum(:points).to_i,
-          analysis_sessions_count: user.analysis_sessions.count,
+          measurement_runs_count: user.measurement_runs.count,
           ai_recommendations_count: user.ai_recommendations.count
         }
       end

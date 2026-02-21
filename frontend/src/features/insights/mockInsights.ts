@@ -83,11 +83,8 @@ export function makeMockInsights(days: number): InsightsData {
       chest: buildNoteSeries(safeDays, toDate, 64),
     },
     measurement_series: {
-      falsetto_peak: buildMeasurementSeries(safeDays, toDate, 70, 1),
-      chest_peak: buildMeasurementSeries(safeDays, toDate, 64, 1),
       range: buildMeasurementSeries(safeDays, toDate, 11, 1),
       long_tone: buildMeasurementSeries(safeDays, toDate, 14, 0.6),
-      pitch_accuracy: buildMeasurementSeries(safeDays, toDate, 74, 1.2),
       volume_stability: buildMeasurementSeries(safeDays, toDate, 78, 1.4),
     },
     streaks: {
@@ -114,7 +111,7 @@ export function makeMockInsights(days: number): InsightsData {
       xp_to_next_level: 40,
       streak_current_days: 3,
       streak_longest_days: 11,
-      analysis_sessions_count: 0,
+      measurement_runs_count: 0,
       ai_recommendations_count: 1,
       badge_unlocked_count: 2,
       badge_total_count: 5,

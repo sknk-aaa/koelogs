@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { fetchInsights } from "../api/insights";
-import type { InsightsData, MenuRankingItem } from "../types/insights";
+import type { InsightsData } from "../types/insights";
 import NotePitchChart from "../features/insights/components/NotePitchChart";
-import ColoredTag from "../components/ColoredTag";
 import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
@@ -17,42 +16,6 @@ type LoadState =
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
-}
-
-function MenuRankingPreview({ items }: { items: MenuRankingItem[] }) {
-  const top = items.slice(0, 8);
-  const totalCount = items.reduce((sum, x) => sum + (x.count || 0), 0);
-  const maxC = top.reduce((m, x) => Math.max(m, x.count), 1);
-
-  if (top.length === 0) {
-    return <div className="insightsMuted">データなし（直近期間にメニュー記録がありません）</div>;
-  }
-
-  return (
-    <div className="insightsBars">
-      {top.map((it, idx) => {
-        const pctBar = clamp((it.count / maxC) * 100, 0, 100);
-        const pctText = totalCount > 0 ? ((it.count / totalCount) * 100).toFixed(1) : "0.0";
-        return (
-          <div key={it.menu_id} className="insightsBars__row">
-            <div className="insightsBars__top">
-              <div className="insightsBars__left">
-                <div className="insightsBars__rank">{idx + 1}.</div>
-                <ColoredTag text={it.name} color={it.color} />
-              </div>
-              <div className="insightsBars__meta">
-                {it.count} 回（{pctText}%）
-              </div>
-            </div>
-            <div className="insightsBarTrack">
-              <div className="insightsBarFill" style={{ width: `${pctBar}%` }} />
-            </div>
-          </div>
-        );
-      })}
-      <div className="insightsMuted">合計 {totalCount} 回</div>
-    </div>
-  );
 }
 
 function ClickableCard({
@@ -192,16 +155,32 @@ export default function InsightsPage() {
       )}
 
       <div className="insightsGrid">
-        <ClickableCard title="メニュー頻度" to="/insights/menus">
-          <MenuRankingPreview items={data.menu_ranking} />
-        </ClickableCard>
-
-        <ClickableCard title="最高音の推移（裏声 / 地声）(30日間)" to="/insights/notes">
+        <ClickableCard title="声の成長推移（30日間）" to="/insights/notes">
           <NotePitchChart
             falsetto={data.note_series.falsetto}
             chest={data.note_series.chest}
           />
           <div className="insightsMuted">欠損日は点を表示しません（記録なし / 入力なし）</div>
+        </ClickableCard>
+
+        <ClickableCard title="練習時間（30日間）" to="/insights/time">
+          <div className="insightsBars">
+            {data.daily_durations.slice(-7).map((row) => {
+              const max = Math.max(1, ...data.daily_durations.map((d) => d.duration_min || 0));
+              const pct = clamp(((row.duration_min || 0) / max) * 100, 0, 100);
+              return (
+                <div key={`duration-${row.date}`} className="insightsBars__row">
+                  <div className="insightsBars__top">
+                    <div className="insightsBars__left">{row.date.slice(5)}</div>
+                    <div className="insightsBars__meta">{row.duration_min || 0}分</div>
+                  </div>
+                  <div className="insightsBarTrack">
+                    <div className="insightsBarFill" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </ClickableCard>
       </div>
     </div>

@@ -17,10 +17,6 @@ type Props = {
   onClickRecord: () => void;
 };
 
-function dash(v?: string | null) {
-  return v && v.trim().length ? v : "—";
-}
-
 export default function SummaryCard({
   loading,
   error,
@@ -68,17 +64,6 @@ export default function SummaryCard({
                 <span className="logPage__kpiUnit">分</span>
               </div>
             </div>
-
-            <div className="logPage__kpiSmallGrid">
-              <div className="logPage__mini">
-                <div className="logPage__miniLabel">裏声最高音</div>
-                <div className="logPage__miniValue">-</div>
-              </div>
-              <div className="logPage__mini">
-                <div className="logPage__miniLabel">地声最高音</div>
-                <div className="logPage__miniValue">-</div>
-              </div>
-            </div>
           </div>
 
           <div className="logPage__section">
@@ -106,17 +91,6 @@ export default function SummaryCard({
               </div>
               <div className="logPage__kpiSub">
                 連続日数: {currentStreakDays ?? 0} 日
-              </div>
-            </div>
-
-            <div className="logPage__kpiSmallGrid">
-              <div className="logPage__mini">
-                <div className="logPage__miniLabel">裏声最高音</div>
-                <div className="logPage__miniValue">{dash(log.falsetto_top_note)}</div>
-              </div>
-              <div className="logPage__mini">
-                <div className="logPage__miniLabel">地声最高音</div>
-                <div className="logPage__miniValue">{dash(log.chest_top_note)}</div>
               </div>
             </div>
           </div>

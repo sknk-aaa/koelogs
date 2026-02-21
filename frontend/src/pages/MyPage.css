@@ -233,6 +233,28 @@
   gap: 10px;
 }
 
+.myPage__summarySwitch {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.myPage__summaryBtn {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.myPage__summaryBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+}
+
 .myPage__linkBtn {
   min-height: 30px;
   padding: 0 10px;
@@ -249,7 +271,7 @@
 
 .myPage__daysGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 

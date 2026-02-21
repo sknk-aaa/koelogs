@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { fetchInsights } from "../api/insights";
-import type { InsightsData } from "../types/insights";
+import type { InsightsData, MeasurementPoint } from "../types/insights";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
 import NotePitchChart from "../features/insights/components/NotePitchChart";
@@ -19,6 +19,12 @@ const NOTE_TYPES = [
   { key: "falsetto", label: "裏声" },
   { key: "chest", label: "地声" },
 ] as const;
+const METRIC_TABS = [
+  { key: "range", label: "音域(半音)" },
+  { key: "long_tone", label: "ロングトーン秒数" },
+  { key: "pitch_accuracy", label: "音程正確性" },
+  { key: "volume_stability", label: "音量安定性" },
+] as const;
 
 function formatDateSlash(iso: string | null): string {
   if (!iso) return "—";
@@ -29,6 +35,7 @@ export default function InsightsNotesPage() {
   const { me, isLoading: authLoading } = useAuth();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
   const [noteType, setNoteType] = useState<(typeof NOTE_TYPES)[number]["key"]>("falsetto");
+  const [metricTab, setMetricTab] = useState<(typeof METRIC_TABS)[number]["key"]>("range");
   const [state, setState] = useState<LoadState>({ kind: "loading" });
 
   const guestMode = !authLoading && !me;
@@ -60,6 +67,18 @@ export default function InsightsNotesPage() {
   }, [authLoading, days, guestMode]);
 
   const data = guestData ?? (state.kind === "ready" ? state.data : null);
+  const metricPoints = (data?.measurement_series?.[metricTab] ?? []) as MeasurementPoint[];
+  const metricLatest = useMemo(() => {
+    for (let i = metricPoints.length - 1; i >= 0; i -= 1) {
+      if (metricPoints[i].value != null) return metricPoints[i].value;
+    }
+    return null;
+  }, [metricPoints]);
+  const metricBest = useMemo(() => {
+    const values = metricPoints.map((p) => p.value).filter((v): v is number => v != null);
+    if (values.length === 0) return null;
+    return Math.max(...values);
+  }, [metricPoints]);
 
   return (
     <div className="page insightsPage">
@@ -138,6 +157,32 @@ export default function InsightsNotesPage() {
 
           <section className="insightsCard">
             <div className="insightsCard__head">
+              <div className="insightsCard__title">測定成長（トレーニングページ測定）</div>
+            </div>
+            <div className="insightsSegment" style={{ marginBottom: 10 }}>
+              {METRIC_TABS.map((tab) => {
+                const active = tab.key === metricTab;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setMetricTab(tab.key)}
+                    className={`insightsSegment__btn${active ? " is-active" : ""}`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+            <SimpleTrendChart points={metricPoints} />
+            <div className="insightsSummaryRow" style={{ marginTop: 10 }}>
+              <div className="insightsBadge">最新: {formatMetricValue(metricLatest, metricTab)}</div>
+              <div className="insightsBadge">最高: {formatMetricValue(metricBest, metricTab)}</div>
+            </div>
+          </section>
+
+          <section className="insightsCard">
+            <div className="insightsCard__head">
               <div className="insightsCard__title">全期間の最高到達音</div>
             </div>
             <div className="insightsKeyValue">
@@ -157,6 +202,42 @@ export default function InsightsNotesPage() {
           </section>
         </div>
       )}
+    </div>
+  );
+}
+
+function formatMetricValue(v: number | null, key: (typeof METRIC_TABS)[number]["key"]) {
+  if (v == null) return "—";
+  if (key === "range") return `${Math.round(v)}半音`;
+  if (key === "long_tone") return `${Number(v).toFixed(1)}秒`;
+  return `${Math.round(v)}点`;
+}
+
+function SimpleTrendChart({ points }: { points: MeasurementPoint[] }) {
+  const width = 760;
+  const height = 180;
+  const pad = 18;
+  const values = points.map((p) => p.value).filter((v): v is number => v != null);
+  const max = values.length ? Math.max(...values) : 1;
+  const min = values.length ? Math.min(...values) : 0;
+  const range = Math.max(1, max - min);
+  const step = points.length > 1 ? (width - pad * 2) / (points.length - 1) : 0;
+
+  let d = "";
+  points.forEach((p, i) => {
+    if (p.value == null) return;
+    const x = pad + step * i;
+    const y = height - pad - ((p.value - min) / range) * (height - pad * 2);
+    d += d.length === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
+  });
+
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", minWidth: 520, height: 190 }} aria-hidden="true">
+        <line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke="rgba(0,0,0,0.2)" />
+        <line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke="rgba(0,0,0,0.2)" />
+        <path d={d} fill="none" stroke="color-mix(in srgb, var(--accent) 42%, #121212)" strokeWidth="3" />
+      </svg>
     </div>
   );
 }

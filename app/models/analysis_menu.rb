@@ -8,11 +8,15 @@ class AnalysisMenu < ApplicationRecord
   scope :active, -> { where(archived: false) }
 
   before_validation :normalize_name
+  before_validation :normalize_system_key
   before_validation :normalize_focus_points
   before_validation :normalize_selected_metrics
 
   validates :name, presence: true
   validates :name, uniqueness: { scope: :user_id, case_sensitive: false }
+  validates :system_key, presence: true
+  validates :system_key, uniqueness: { scope: :user_id, case_sensitive: false }
+  validates :system_key, format: { with: /\A[a-z0-9_]+\z/ }
   validates :focus_points, length: { maximum: 500 }, allow_nil: true
   validates :fixed_tempo, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validate :selected_metrics_must_be_known
@@ -21,6 +25,10 @@ class AnalysisMenu < ApplicationRecord
 
   def normalize_name
     self.name = name.to_s.strip
+  end
+
+  def normalize_system_key
+    self.system_key = system_key.to_s.strip.downcase
   end
 
   def normalize_focus_points

@@ -23,7 +23,7 @@ class User < ApplicationRecord
   has_many :community_post_favorites, dependent: :destroy
   has_many :favorite_community_posts, through: :community_post_favorites, source: :community_post
   has_many :ai_contribution_events, dependent: :destroy
-  has_many :weekly_logs, dependent: :destroy
+  has_many :monthly_logs, dependent: :destroy
   has_many :xp_events, dependent: :destroy
   has_many :user_badges, dependent: :destroy
 

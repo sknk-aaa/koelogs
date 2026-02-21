@@ -1,9 +1,72 @@
 module Api
   class AnalysisMenusController < ApplicationController
     before_action :require_login!
-    before_action :set_menu, only: [ :update ]
+
+    SYSTEM_PRESETS = [
+      {
+        system_key: "falsetto_peak",
+        name: "裏声最高音測定",
+        focus_points: "裏声で無理なく最高音を測定する",
+        compare_by_scale: true,
+        compare_by_tempo: true,
+        fixed_scale_type: nil,
+        fixed_tempo: nil,
+        selected_metrics: %w[peak_note pitch_accuracy pitch_stability]
+      },
+      {
+        system_key: "chest_peak",
+        name: "地声最高音測定",
+        focus_points: "地声で無理なく最高音を測定する",
+        compare_by_scale: true,
+        compare_by_tempo: true,
+        fixed_scale_type: nil,
+        fixed_tempo: nil,
+        selected_metrics: %w[peak_note pitch_accuracy pitch_stability]
+      },
+      {
+        system_key: "range",
+        name: "音域測定",
+        focus_points: "最低音から最高音までの到達幅を測る",
+        compare_by_scale: true,
+        compare_by_tempo: true,
+        fixed_scale_type: nil,
+        fixed_tempo: nil,
+        selected_metrics: %w[peak_note pitch_stability]
+      },
+      {
+        system_key: "long_tone",
+        name: "ロングトーン測定",
+        focus_points: "一定音量・一定音程を維持して発声時間を測る",
+        compare_by_scale: true,
+        compare_by_tempo: true,
+        fixed_scale_type: nil,
+        fixed_tempo: nil,
+        selected_metrics: %w[phonation_duration volume_stability pitch_stability]
+      },
+      {
+        system_key: "pitch_accuracy",
+        name: "音程正確性測定（固定）",
+        focus_points: "選択した音源条件で半音中心への一致度を測る",
+        compare_by_scale: true,
+        compare_by_tempo: true,
+        fixed_scale_type: nil,
+        fixed_tempo: nil,
+        selected_metrics: %w[pitch_accuracy pitch_stability]
+      },
+      {
+        system_key: "volume_stability",
+        name: "音量安定性測定（固定）",
+        focus_points: "選択した音源条件で音量のばらつきを測る",
+        compare_by_scale: true,
+        compare_by_tempo: true,
+        fixed_scale_type: nil,
+        fixed_tempo: nil,
+        selected_metrics: %w[volume_stability avg_loudness]
+      }
+    ].freeze
 
     def index
+      ensure_system_presets!
       menus = current_user.analysis_menus
       unless ActiveModel::Type::Boolean.new.cast(params[:include_archived])
         menus = menus.active
@@ -13,77 +76,34 @@ module Api
     end
 
     def create
-      name = create_params[:name].to_s.strip
-      focus_points = create_params[:focus_points]
-      compare_by_scale = create_params[:compare_by_scale]
-      compare_by_tempo = create_params[:compare_by_tempo]
-      fixed_scale_type = create_params[:fixed_scale_type]
-      fixed_tempo = create_params[:fixed_tempo]
-      selected_metrics = create_params[:selected_metrics]
-
-      existing =
-        if name.present?
-          current_user.analysis_menus.where("lower(name) = lower(?)", name).first
-        end
-
-      if existing
-        if existing.archived
-          existing.assign_attributes(
-            name: name,
-            archived: false,
-            focus_points: focus_points.presence || existing.focus_points,
-            compare_by_scale: compare_by_scale.nil? ? existing.compare_by_scale : compare_by_scale,
-            compare_by_tempo: compare_by_tempo.nil? ? existing.compare_by_tempo : compare_by_tempo,
-            fixed_scale_type: fixed_scale_type.nil? ? existing.fixed_scale_type : fixed_scale_type,
-            fixed_tempo: fixed_tempo.nil? ? existing.fixed_tempo : fixed_tempo,
-            selected_metrics: selected_metrics.nil? ? existing.selected_metrics : selected_metrics
-          )
-
-          if existing.save
-            render json: { data: serialize(existing) }, status: :ok
-          else
-            render json: { errors: existing.errors.full_messages }, status: :unprocessable_entity
-          end
-          return
-        end
-
-        render json: { errors: [ "Name has already been taken" ] }, status: :unprocessable_entity
-        return
-      end
-
-      menu = current_user.analysis_menus.new(create_params)
-      if menu.save
-        render json: { data: serialize(menu) }, status: :created
-      else
-        render json: { errors: menu.errors.full_messages }, status: :unprocessable_entity
-      end
+      render json: { errors: [ "analysis menu customization has been removed" ] }, status: :forbidden
     end
 
     def update
-      if @menu.update(update_params)
-        render json: { data: serialize(@menu) }
-      else
-        render json: { errors: @menu.errors.full_messages }, status: :unprocessable_entity
-      end
+      render json: { errors: [ "analysis menu customization has been removed" ] }, status: :forbidden
     end
 
     private
 
-    def set_menu
-      @menu = current_user.analysis_menus.find(params[:id])
-    end
+    def ensure_system_presets!
+      preset_keys = SYSTEM_PRESETS.map { |p| p[:system_key] }
+      current_user.analysis_menus.where.not(system_key: preset_keys).destroy_all
 
-    def create_params
-      params.permit(:name, :focus_points, :compare_by_scale, :compare_by_tempo, :fixed_scale_type, :fixed_tempo, selected_metrics: [])
-    end
+      SYSTEM_PRESETS.each do |preset|
+        existing = current_user.analysis_menus.find_by(system_key: preset[:system_key])
+        if existing
+          existing.update!(preset.merge(archived: false))
+          next
+        end
 
-    def update_params
-      params.permit(:name, :focus_points, :compare_by_scale, :compare_by_tempo, :fixed_scale_type, :fixed_tempo, :archived, selected_metrics: [])
+        current_user.analysis_menus.create!(preset)
+      end
     end
 
     def serialize(menu)
       {
         id: menu.id,
+        system_key: menu.system_key,
         name: menu.name,
         focus_points: menu.focus_points,
         compare_by_scale: menu.compare_by_scale,

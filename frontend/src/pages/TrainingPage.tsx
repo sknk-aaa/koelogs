@@ -10,7 +10,7 @@ import AudioPlayer from "../features/training/components/AudioPlayer";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import type { AnalysisMenu } from "../types/analysisMenu";
-import { createAnalysisMenu, fetchAnalysisMenus, updateAnalysisMenu } from "../api/analysisMenus";
+import { fetchAnalysisMenus } from "../api/analysisMenus";
 import type { AnalysisSession } from "../types/analysisSession";
 import { createAnalysisSession, fetchAnalysisSessions, uploadAnalysisSessionAudio } from "../api/analysisSessions";
 import AnalysisFeedbackPanel from "../features/analysis/components/AnalysisFeedbackPanel";
@@ -78,82 +78,58 @@ const METRIC_OPTIONS: Array<{
   },
 ];
 const DEFAULT_SELECTED_METRICS: MetricKey[] = ["pitch_stability", "pitch_accuracy", "volume_stability"];
-type AnalysisPreset = {
-  key: "long_tone" | "high_note" | "loudness_control" | "pitch_stability_base";
-  name: string;
+const MEASUREMENT_SHORTCUTS: Array<{
+  title: string;
+  systemKey: string;
+  note: string;
+}> = [
+  { title: "裏声最高音", systemKey: "falsetto_peak", note: "裏声の最高到達音を確認" },
+  { title: "地声最高音", systemKey: "chest_peak", note: "地声の最高到達音を確認" },
+  { title: "音域", systemKey: "range", note: "最低音〜最高音の幅を確認" },
+  { title: "ロングトーン秒数", systemKey: "long_tone", note: "発声持続の推移を確認" },
+  { title: "音程正確性", systemKey: "pitch_accuracy", note: "固定条件で半音中心へのズレを確認" },
+  { title: "音量安定性", systemKey: "volume_stability", note: "固定条件で音量のばらつきを確認" },
+];
+const PRESET_INFO: Array<{
+  title: string;
   description: string;
-  target: string;
-  howToUse: string;
-  readPoint: string;
-  focusPoints: string;
-  compareByScale: boolean;
-  fixedScaleType: string | null;
-  compareByTempo: boolean;
-  fixedTempo: number | null;
-  selectedMetrics: MetricKey[];
-};
-
-const ANALYSIS_PRESETS: AnalysisPreset[] = [
+  metrics: string;
+  condition?: string;
+}> = [
   {
-    key: "long_tone",
-    name: "ロングトーン安定",
-    description: "息のコントロールと持続を確認するプリセットです。",
-    target: "ロングトーンの最後で音程や音量が崩れやすいと感じるとき",
-    howToUse: "同じ母音で一定の強さを保ちながら、できるだけ一定の長さで発声します。",
-    readPoint: "発声時間の伸びと、音量安定・ピッチ安定度をセットで確認してください。",
-    focusPoints: "一定音量・一定音程で、最後まで息の支えを保つ",
-    compareByScale: true,
-    fixedScaleType: "5tone",
-    compareByTempo: true,
-    fixedTempo: 100,
-    selectedMetrics: ["phonation_duration", "volume_stability", "pitch_stability"],
+    title: "裏声最高音",
+    description: "裏声で無理なく最高音を測定します。",
+    metrics: "最高音 / 音程精度 / ピッチ安定度",
   },
   {
-    key: "high_note",
-    name: "高音チャレンジ",
-    description: "高音到達と、高音域での精度を確認するプリセットです。",
-    target: "高音の到達点を更新したい、または高音域の当たりを安定させたいとき",
-    howToUse: "喉で押し上げず、無理のない範囲で段階的に高音へアプローチします。",
-    readPoint: "最高音だけでなく、音程精度とピッチ安定度が維持できているかを確認してください。",
-    focusPoints: "無理に押し上げず、声が細くならない範囲で最高音を更新する",
-    compareByScale: true,
-    fixedScaleType: "octave",
-    compareByTempo: true,
-    fixedTempo: 100,
-    selectedMetrics: ["peak_note", "pitch_accuracy", "pitch_stability"],
+    title: "地声最高音",
+    description: "地声で無理なく最高音を測定します。",
+    metrics: "最高音 / 音程精度 / ピッチ安定度",
   },
   {
-    key: "loudness_control",
-    name: "声量コントロール",
-    description: "声量の平均とバラつきを確認するプリセットです。",
-    target: "声量を上げても声が暴れない状態を作りたいとき",
-    howToUse: "一定のフレーズで、声量を落としすぎず安定して発声します。",
-    readPoint: "平均音量と音量安定を同時に見て、声量と安定性のバランスを確認してください。",
-    focusPoints: "声量を上げても音量の波を抑え、一定の鳴りを保つ",
-    compareByScale: true,
-    fixedScaleType: "5tone",
-    compareByTempo: true,
-    fixedTempo: 100,
-    selectedMetrics: ["avg_loudness", "volume_stability", "pitch_stability"],
+    title: "音域（最高音−最低音）",
+    description: "最低音から最高音までの到達幅を測定します。",
+    metrics: "最高音 / ピッチ安定度",
   },
   {
-    key: "pitch_stability_base",
-    name: "音程安定ベース",
-    description: "5tone など通常の練習の中で、音程のブレ・狙い音への一致・音量の乱れを総合的に確認するプリセットです。",
-    target: "普段の練習全体の安定度を定点観測したいとき",
-    howToUse: "毎回ほぼ同じテンポ・同じ姿勢で録音し、継続的に比較できる状態を作ります。",
-    readPoint: "単発の上下よりも、複数回の推移で改善傾向を見るのがおすすめです。",
-    focusPoints: "音程の揺れを抑え、狙った音を安定して再現する",
-    compareByScale: false,
-    fixedScaleType: null,
-    compareByTempo: false,
-    fixedTempo: null,
-    selectedMetrics: ["pitch_stability", "pitch_accuracy", "volume_stability"],
+    title: "ロングトーン",
+    description: "一定音量・一定音程で発声を維持できる秒数を測定します。",
+    metrics: "発声時間 / 音量安定 / ピッチ安定度",
+  },
+  {
+    title: "音程正確性",
+    description: "半音中心からのズレを評価します。",
+    metrics: "音程精度 / ピッチ安定度",
+    condition: "固定条件: トレーニング音源から選択したスケール/テンポ",
+  },
+  {
+    title: "音量安定性",
+    description: "発声中の音量のばらつきを評価します。",
+    metrics: "音量安定 / 発声の大きさの平均",
+    condition: "固定条件: トレーニング音源から選択したスケール/テンポ",
   },
 ];
-
-const ANALYSIS_PRESET_LIST_OPEN_STORAGE_KEY = "training_page.analysis_preset_list_open";
-const ANALYSIS_MANAGE_SECTION_OPEN_STORAGE_KEY = "training_page.analysis_manage_section_open";
+const ALLOWED_ANALYSIS_SYSTEM_KEYS = new Set(MEASUREMENT_SHORTCUTS.map((v) => v.systemKey));
 
 export default function TrainingPage() {
   const navigate = useNavigate();
@@ -164,40 +140,9 @@ export default function TrainingPage() {
   const [scaleType, setScaleType] = useState<ScaleType>("5tone");
   const [tempo, setTempo] = useState<Tempo>(120);
   const [analysisMenus, setAnalysisMenus] = useState<AnalysisMenu[]>([]);
-  const [analysisName, setAnalysisName] = useState("");
-  const [analysisFocus, setAnalysisFocus] = useState("");
-  const [analysisCompareByScale, setAnalysisCompareByScale] = useState(false);
-  const [analysisCompareByTempo, setAnalysisCompareByTempo] = useState(false);
-  const [analysisScaleText, setAnalysisScaleText] = useState("");
-  const [analysisTempoText, setAnalysisTempoText] = useState("");
-  const [analysisSelectedMetrics, setAnalysisSelectedMetrics] = useState<MetricKey[]>(DEFAULT_SELECTED_METRICS);
-  const [analysisDetailEnabled, setAnalysisDetailEnabled] = useState(false);
   const [activeAnalysisMenuId, setActiveAnalysisMenuId] = useState<number | null>(null);
-  const [editingAnalysisMenuId, setEditingAnalysisMenuId] = useState<number | null>(null);
-  const [editingAnalysisName, setEditingAnalysisName] = useState("");
-  const [editingAnalysisFocus, setEditingAnalysisFocus] = useState("");
-  const [editingAnalysisCompareByScale, setEditingAnalysisCompareByScale] = useState(false);
-  const [editingAnalysisCompareByTempo, setEditingAnalysisCompareByTempo] = useState(false);
-  const [editingAnalysisScaleText, setEditingAnalysisScaleText] = useState("");
-  const [editingAnalysisTempoText, setEditingAnalysisTempoText] = useState("");
-  const [editingAnalysisSelectedMetrics, setEditingAnalysisSelectedMetrics] = useState<MetricKey[]>(DEFAULT_SELECTED_METRICS);
-  const [editingAnalysisDetailEnabled, setEditingAnalysisDetailEnabled] = useState(false);
   const [analysisMetricInfoOpen, setAnalysisMetricInfoOpen] = useState(false);
-  const [analysisPresetInfoOpen, setAnalysisPresetInfoOpen] = useState(false);
-  const [analysisPresetListOpen, setAnalysisPresetListOpen] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    const saved = window.localStorage.getItem(ANALYSIS_PRESET_LIST_OPEN_STORAGE_KEY);
-    if (saved === "0") return false;
-    return true;
-  });
-  const [analysisManageSectionOpen, setAnalysisManageSectionOpen] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    const saved = window.localStorage.getItem(ANALYSIS_MANAGE_SECTION_OPEN_STORAGE_KEY);
-    if (saved === "0") return false;
-    return true;
-  });
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [analysisSaving, setAnalysisSaving] = useState(false);
   const [analysisSessionSaving, setAnalysisSessionSaving] = useState(false);
   const [analysisFileAnalyzing, setAnalysisFileAnalyzing] = useState(false);
   const [analysisUseTrainingTrack, setAnalysisUseTrainingTrack] = useState(false);
@@ -206,7 +151,6 @@ export default function TrainingPage() {
   const [analysisRecording, setAnalysisRecording] = useState(false);
   const [analysisCurrentNote, setAnalysisCurrentNote] = useState<string | null>(null);
   const [analysisLastResult, setAnalysisLastResult] = useState<AnalysisSession | null>(null);
-  const [manageMenuListOpen, setManageMenuListOpen] = useState(false);
 
   const analysisAudioContextRef = useStateRef<AudioContext | null>(null);
   const analysisAnalyserRef = useStateRef<AnalyserNode | null>(null);
@@ -216,6 +160,7 @@ export default function TrainingPage() {
   const analysisStartedAtRef = useStateRef<number>(0);
   const analysisMidiSamplesRef = useStateRef<number[]>([]);
   const analysisLoudnessSamplesRef = useStateRef<number[]>([]);
+  const analysisRmsSamplesRef = useStateRef<number[]>([]);
   const analysisVoicedFramesRef = useStateRef<number>(0);
   const analysisFramesRef = useStateRef<number>(0);
   const analysisTrackEndHandlerRef = useStateRef<(() => void) | null>(null);
@@ -231,8 +176,6 @@ export default function TrainingPage() {
     () => analysisMenus.find((m) => m.id === activeAnalysisMenuId) ?? null,
     [analysisMenus, activeAnalysisMenuId]
   );
-  const menuCompareScale = activeAnalysisMenu?.fixed_scale_type ?? null;
-  const menuCompareTempo = activeAnalysisMenu?.fixed_tempo ?? null;
   const activeSelectedMetrics = normalizeMetricSelection(activeAnalysisMenu?.selected_metrics);
 
   const { audioRef, isPlaying, togglePlay, onPlay, onPause, onEnded } = useAudioPlayer(
@@ -257,7 +200,8 @@ export default function TrainingPage() {
     let cancelled = false;
     (async () => {
       try {
-        const menus = await fetchAnalysisMenus(false);
+        const fetched = await fetchAnalysisMenus(false);
+        const menus = fetched.filter((m) => ALLOWED_ANALYSIS_SYSTEM_KEYS.has(m.system_key));
         if (!cancelled) {
           setAnalysisMenus(menus);
           setActiveAnalysisMenuId((prev) => {
@@ -302,128 +246,6 @@ export default function TrainingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onCreateAnalysisMenu = async () => {
-    if (!analysisName.trim()) return;
-    setAnalysisSaving(true);
-    setAnalysisError(null);
-    try {
-      const created = await createAnalysisMenu({
-        name: analysisName.trim(),
-        focus_points: analysisFocus.trim() || null,
-        compare_by_scale: analysisCompareByScale,
-        compare_by_tempo: analysisCompareByTempo,
-        fixed_scale_type: analysisCompareByScale ? toScaleOrNull(analysisScaleText) : null,
-        fixed_tempo: analysisCompareByTempo ? toTempoOrNull(analysisTempoText) : null,
-        selected_metrics: analysisDetailEnabled ? analysisSelectedMetrics : DEFAULT_SELECTED_METRICS,
-      });
-      setAnalysisMenus((prev) => [...prev, created]);
-      setActiveAnalysisMenuId(created.id);
-      setAnalysisName("");
-      setAnalysisFocus("");
-      setAnalysisCompareByScale(false);
-      setAnalysisCompareByTempo(false);
-      setAnalysisScaleText("");
-      setAnalysisTempoText("");
-      setAnalysisSelectedMetrics(DEFAULT_SELECTED_METRICS);
-      setAnalysisDetailEnabled(false);
-    } catch (e) {
-      setAnalysisError(errorMessage(e, "分析メニューの保存に失敗しました"));
-    } finally {
-      setAnalysisSaving(false);
-    }
-  };
-
-  const onCreatePresetMenu = async (preset: AnalysisPreset) => {
-    setAnalysisSaving(true);
-    setAnalysisError(null);
-    try {
-      const created = await createAnalysisMenu({
-        name: preset.name,
-        focus_points: preset.focusPoints,
-        compare_by_scale: preset.compareByScale,
-        compare_by_tempo: preset.compareByTempo,
-        fixed_scale_type: preset.fixedScaleType,
-        fixed_tempo: preset.fixedTempo,
-        selected_metrics: preset.selectedMetrics,
-      });
-      setAnalysisMenus((prev) => {
-        const replaced = prev.some((m) => m.id === created.id);
-        return replaced ? prev.map((m) => (m.id === created.id ? created : m)) : [...prev, created];
-      });
-      setActiveAnalysisMenuId(created.id);
-    } catch (e) {
-      setAnalysisError(errorMessage(e, "プリセットメニューの保存に失敗しました"));
-    } finally {
-      setAnalysisSaving(false);
-    }
-  };
-
-  const onArchiveAnalysisMenu = async (menu: AnalysisMenu) => {
-    setAnalysisError(null);
-    try {
-      await updateAnalysisMenu(menu.id, { archived: true });
-      setAnalysisMenus((prev) => {
-        const next = prev.filter((m) => m.id !== menu.id);
-        if (activeAnalysisMenuId === menu.id) {
-          setActiveAnalysisMenuId(next[0]?.id ?? null);
-        }
-        return next;
-      });
-    } catch (e) {
-      setAnalysisError(errorMessage(e, "分析メニューの削除に失敗しました"));
-    }
-  };
-
-  const startEditAnalysisMenu = (menu: AnalysisMenu) => {
-    setEditingAnalysisMenuId(menu.id);
-    setEditingAnalysisName(menu.name);
-    setEditingAnalysisFocus(menu.focus_points ?? "");
-    setEditingAnalysisCompareByScale(Boolean(menu.compare_by_scale));
-    setEditingAnalysisCompareByTempo(Boolean(menu.compare_by_tempo));
-    setEditingAnalysisScaleText(menu.fixed_scale_type ?? "");
-    setEditingAnalysisTempoText(menu.fixed_tempo ? String(menu.fixed_tempo) : "");
-    const selected = normalizeMetricSelection(menu.selected_metrics);
-    setEditingAnalysisSelectedMetrics(selected);
-    setEditingAnalysisDetailEnabled(
-      !isDefaultMetricSelection(selected) || Boolean(menu.compare_by_scale) || Boolean(menu.compare_by_tempo)
-    );
-  };
-
-  const cancelEditAnalysisMenu = () => {
-    setEditingAnalysisMenuId(null);
-    setEditingAnalysisName("");
-    setEditingAnalysisFocus("");
-    setEditingAnalysisCompareByScale(false);
-    setEditingAnalysisCompareByTempo(false);
-    setEditingAnalysisScaleText("");
-    setEditingAnalysisTempoText("");
-    setEditingAnalysisSelectedMetrics(DEFAULT_SELECTED_METRICS);
-    setEditingAnalysisDetailEnabled(false);
-  };
-
-  const saveEditAnalysisMenu = async (menu: AnalysisMenu) => {
-    if (!editingAnalysisName.trim()) {
-      setAnalysisError("メニュー名は必須です");
-      return;
-    }
-    setAnalysisError(null);
-    try {
-      const updated = await updateAnalysisMenu(menu.id, {
-        name: editingAnalysisName.trim(),
-        focus_points: editingAnalysisFocus.trim() || null,
-        compare_by_scale: editingAnalysisCompareByScale,
-        compare_by_tempo: editingAnalysisCompareByTempo,
-        fixed_scale_type: editingAnalysisCompareByScale ? toScaleOrNull(editingAnalysisScaleText) : null,
-        fixed_tempo: editingAnalysisCompareByTempo ? toTempoOrNull(editingAnalysisTempoText) : null,
-        selected_metrics: editingAnalysisDetailEnabled ? editingAnalysisSelectedMetrics : DEFAULT_SELECTED_METRICS,
-      });
-      setAnalysisMenus((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
-      cancelEditAnalysisMenu();
-    } catch (e) {
-      setAnalysisError(errorMessage(e, "分析メニューの更新に失敗しました"));
-    }
-  };
-
   const stopAndCollectRecordingBlob = async () => {
     const recorder = analysisMediaRecorderRef.current;
     if (!recorder) return null;
@@ -466,17 +288,6 @@ export default function TrainingPage() {
     }
     setAnalysisError(null);
     setAnalysisLastResult(null);
-    if (activeAnalysisMenu?.compare_by_scale && menuCompareScale) {
-      const ok = matchesScaleCondition(menuCompareScale, scaleType);
-      if (!ok) {
-        setAnalysisError(`このメニューの比較スケールは「${menuCompareScale}」です。現在のスケールを合わせてください。`);
-        return;
-      }
-    }
-    if (activeAnalysisMenu?.compare_by_tempo && menuCompareTempo && tempo !== menuCompareTempo) {
-      setAnalysisError(`このメニューの比較テンポは ${menuCompareTempo} bpm です。現在のテンポを合わせてください。`);
-      return;
-    }
     if (analysisUseTrainingTrack && (!selected?.file_path || !audioRef.current)) {
       setAnalysisError("同時再生モードには再生可能なトレーニング音源が必要です");
       return;
@@ -507,6 +318,7 @@ export default function TrainingPage() {
       analysisStartedAtRef.current = performance.now();
       analysisMidiSamplesRef.current = [];
       analysisLoudnessSamplesRef.current = [];
+      analysisRmsSamplesRef.current = [];
       analysisVoicedFramesRef.current = 0;
       analysisFramesRef.current = 0;
       analysisMediaChunksRef.current = [];
@@ -562,6 +374,7 @@ export default function TrainingPage() {
           analysisVoicedFramesRef.current += 1;
           const midi = 69 + 12 * Math.log2(freq / 440);
           analysisMidiSamplesRef.current.push(midi);
+          analysisRmsSamplesRef.current.push(frameRms);
           analysisLoudnessSamplesRef.current.push(frameDb);
           setAnalysisCurrentNote(midiToNote(Math.round(midi)));
         }
@@ -625,10 +438,12 @@ export default function TrainingPage() {
 
     const mids = analysisMidiSamplesRef.current;
     const loudnessDbSamples = analysisLoudnessSamplesRef.current;
+    const rmsSamples = analysisRmsSamplesRef.current;
     const elapsedSec = Math.max(1, Math.round((performance.now() - analysisStartedAtRef.current) / 1000));
     const created = await saveAnalysisSessionFromMetrics({
       mids,
       loudnessDbSamples,
+      rmsSamples,
       elapsedSec,
       voicedFrames: analysisVoicedFramesRef.current,
       frames: analysisFramesRef.current,
@@ -672,6 +487,7 @@ export default function TrainingPage() {
       const hopSize = 1024;
       const mids: number[] = [];
       const loudnessDbSamples: number[] = [];
+      const rmsSamples: number[] = [];
       let frames = 0;
       let voicedFrames = 0;
 
@@ -684,12 +500,14 @@ export default function TrainingPage() {
         if (!freq) continue;
         voicedFrames += 1;
         mids.push(69 + 12 * Math.log2(freq / 440));
+        rmsSamples.push(frameRms);
         loudnessDbSamples.push(frameDb);
       }
 
       await saveAnalysisSessionFromMetrics({
         mids,
         loudnessDbSamples,
+        rmsSamples,
         elapsedSec: Math.max(1, Math.round(audio.duration)),
         voicedFrames,
         frames,
@@ -710,6 +528,7 @@ export default function TrainingPage() {
   const saveAnalysisSessionFromMetrics = async ({
     mids,
     loudnessDbSamples,
+    rmsSamples,
     elapsedSec,
     voicedFrames,
     frames,
@@ -717,6 +536,7 @@ export default function TrainingPage() {
   }: {
     mids: number[];
     loudnessDbSamples: number[];
+    rmsSamples: number[];
     elapsedSec: number;
     voicedFrames: number;
     frames: number;
@@ -730,6 +550,8 @@ export default function TrainingPage() {
     const minMidi = mids.length ? Math.min(...mids) : 0;
     const maxMidi = mids.length ? Math.max(...mids) : 0;
     const peakNote = mids.length ? midiToNote(Math.round(maxMidi)) : null;
+    const lowestNote = mids.length ? midiToNote(Math.round(minMidi)) : null;
+    const rangeSemitones = mids.length ? Math.max(0, Math.round(maxMidi - minMidi)) : null;
     const pitchStability = mids.length ? clampScore(100 - std * 22) : 0;
     const centsFromSemitone = mids.length
       ? mids.map((m) => Math.abs(m - Math.round(m)) * 100)
@@ -738,8 +560,10 @@ export default function TrainingPage() {
       ? centsFromSemitone.reduce((acc, v) => acc + v, 0) / centsFromSemitone.length
       : 100;
     const pitchAccuracy = clampScore(100 - meanCentsError);
+    const centsStdDev = centsFromSemitone.length ? stdDev(centsFromSemitone) : 0;
 
     const loudnessStd = loudnessDbSamples.length ? stdDev(loudnessDbSamples) : 99;
+    const rmsStdDev = rmsSamples.length ? stdDev(rmsSamples) : null;
     const avgLoudnessDb = loudnessDbSamples.length
       ? loudnessDbSamples.reduce((acc, v) => acc + v, 0) / loudnessDbSamples.length
       : -99;
@@ -756,19 +580,24 @@ export default function TrainingPage() {
       setAnalysisSessionSaving(true);
       const created = await createAnalysisSession({
         analysis_menu_id: activeAnalysisMenuId,
+        measurement_kind: detectMeasurementKind(activeAnalysisMenu?.system_key),
         duration_sec: elapsedSec,
         peak_note: usePeakNote ? peakNote : null,
+        lowest_note: rangeSemitones != null ? lowestNote : null,
         pitch_stability_score: usePitchStability ? pitchStability : null,
         voice_consistency_score: null,
-        range_semitones: null,
-        recorded_scale_type: activeAnalysisMenu?.compare_by_scale && menuCompareScale ? menuCompareScale : scaleType,
+        range_semitones: rangeSemitones,
+        recorded_scale_type: scaleType,
         recorded_tempo: tempo,
         raw_metrics: {
           samples: mids.length,
           voiced_ratio: Number(voicedRatio.toFixed(3)),
           std_semitones: Number(std.toFixed(3)),
           pitch_accuracy_score: usePitchAccuracy ? pitchAccuracy : null,
+          pitch_accuracy_cents_mean: usePitchAccuracy ? Number(meanCentsError.toFixed(2)) : null,
+          pitch_accuracy_cents_stddev: usePitchAccuracy ? Number(centsStdDev.toFixed(2)) : null,
           volume_stability_score: useVolumeStability ? volumeStability : null,
+          volume_stability_rms_stddev: useVolumeStability && rmsStdDev != null ? Number(rmsStdDev.toFixed(6)) : null,
           phonation_duration_sec: usePhonationDuration ? phonationDurationSec : null,
           avg_loudness_db: useAvgLoudness ? Number(avgLoudnessDb.toFixed(1)) : null,
           peak_note_enabled: usePeakNote,
@@ -796,9 +625,18 @@ export default function TrainingPage() {
     0,
     Boolean(activeAnalysisMenu?.compare_by_scale),
     Boolean(activeAnalysisMenu?.compare_by_tempo),
-    activeAnalysisMenu?.fixed_scale_type ?? null,
-    activeAnalysisMenu?.fixed_tempo ?? null
+    null,
+    null
   );
+  const onSelectMeasurementShortcut = (systemKey: string) => {
+    const found = analysisMenus.find((m) => m.system_key === systemKey);
+    if (!found) {
+      setAnalysisError(`固定メニュー（${systemKey}）が見つかりませんでした。再読み込みしてください。`);
+      return;
+    }
+    setAnalysisError(null);
+    setActiveAnalysisMenuId(found.id);
+  };
 
   return (
     <div className="page trainingPage">
@@ -883,7 +721,7 @@ export default function TrainingPage() {
 
         {guestMode ? (
           <div className="trainingPage__analysisGuest">
-            ログインすると、分析用メニュー（メニュー名 / 意識すること）を保存して継続利用できます。
+            ログインすると、固定の測定メニューで録音分析を継続利用できます。
           </div>
         ) : (
           <>
@@ -891,373 +729,38 @@ export default function TrainingPage() {
               <div className="trainingPage__analysisStepHead">
                 <div className="trainingPage__analysisStepBadge">1</div>
                 <div className="trainingPage__analysisStepHeadText">
-                  <div className="trainingPage__analysisStepTitle">メニュー追加・編集</div>
-                  <div className="trainingPage__analysisStepDesc">分析の基準となるメニューを作成します。</div>
+                  <div className="trainingPage__analysisStepTitle">測定項目を選ぶ（測定メニュー確認）</div>
+                  <div className="trainingPage__analysisStepDesc">選んだ項目に対応する固定メニューで録音分析します。</div>
                 </div>
                 <button
                   type="button"
-                  className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost trainingPage__analysisStepToggleBtn"
-                  onClick={() =>
-                    setAnalysisManageSectionOpen((prev) => {
-                      const next = !prev;
-                      if (typeof window !== "undefined") {
-                        window.localStorage.setItem(ANALYSIS_MANAGE_SECTION_OPEN_STORAGE_KEY, next ? "1" : "0");
-                      }
-                      return next;
-                    })
-                  }
+                  className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
+                  onClick={() => setAnalysisMetricInfoOpen(true)}
                 >
-                  {analysisManageSectionOpen ? "閉じる" : "開く"}
+                  判定項目について
                 </button>
               </div>
-
-              {analysisManageSectionOpen && (
-              <>
-              <div className="trainingPage__analysisForm">
-              <div className="trainingPage__analysisPresetBox">
-                <div className="trainingPage__analysisRuleHead">
-                  <div className="trainingPage__analysisRuleTitle">おすすめプリセット</div>
-                  <div className="trainingPage__analysisPresetActions">
-                    <button
-                      type="button"
-                      className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
-                      onClick={() =>
-                        setAnalysisPresetListOpen((prev) => {
-                          const next = !prev;
-                          if (typeof window !== "undefined") {
-                            window.localStorage.setItem(ANALYSIS_PRESET_LIST_OPEN_STORAGE_KEY, next ? "1" : "0");
-                          }
-                          return next;
-                        })
-                      }
-                    >
-                      {analysisPresetListOpen ? "閉じる" : "開く"}
-                    </button>
-                    <button
-                      type="button"
-                      className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
-                      onClick={() => setAnalysisPresetInfoOpen(true)}
-                    >
-                      プリセット説明
-                    </button>
-                  </div>
-                </div>
-                {analysisPresetListOpen && (
-                  <div className="trainingPage__analysisPresetGrid">
-                    {ANALYSIS_PRESETS.map((preset) => (
-                      <div key={preset.key} className="trainingPage__analysisPresetItem">
-                        <div className="trainingPage__analysisPresetName">{preset.name}</div>
-                        <div className="trainingPage__analysisPresetDesc">{preset.description}</div>
-                        <div className="trainingPage__analysisPresetMeta">
-                          判定項目: {preset.selectedMetrics.map((key) => metricLabel(key)).join(" / ")}
-                        </div>
-                        <button
-                          type="button"
-                          className="trainingPage__analysisMiniBtn"
-                          disabled={analysisSaving}
-                          onClick={() => void onCreatePresetMenu(preset)}
-                        >
-                          {analysisSaving ? (
-                            <span className="trainingPage__busyInline">
-                              保存中…
-                              <MetronomeLoader compact label="" className="trainingPage__busyLoader" />
-                            </span>
-                          ) : (
-                            "このプリセットを保存"
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div className="trainingPage__analysisPresetGrid">
+                {MEASUREMENT_SHORTCUTS.map((shortcut) => {
+                  const selectedNow = activeAnalysisMenu?.system_key === shortcut.systemKey;
+                  return (
+                    <div key={shortcut.systemKey} className="trainingPage__analysisPresetItem">
+                      <div className="trainingPage__analysisPresetName">{shortcut.title}</div>
+                      <div className="trainingPage__analysisPresetDesc">{shortcut.note}</div>
+                      <button
+                        type="button"
+                        className="trainingPage__analysisMiniBtn"
+                        onClick={() => onSelectMeasurementShortcut(shortcut.systemKey)}
+                        disabled={analysisMenus.length === 0}
+                      >
+                        {selectedNow ? "選択中" : "この測定を使う"}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
-
-              <div className="trainingPage__field">
-                <label className="trainingPage__label" htmlFor="analysis-menu-name">メニュー名</label>
-                <input
-                  id="analysis-menu-name"
-                  value={analysisName}
-                  onChange={(e) => setAnalysisName(e.target.value)}
-                  placeholder="例: Nay 5tone"
-                  className="trainingPage__input"
-                />
-              </div>
-
-              <div className="trainingPage__field">
-                <label className="trainingPage__label" htmlFor="analysis-menu-focus">意識すること</label>
-                <textarea
-                  id="analysis-menu-focus"
-                  value={analysisFocus}
-                  onChange={(e) => setAnalysisFocus(e.target.value)}
-                  placeholder="例: 音量を一定にし、低音から高音まで滑らかにつなぐ"
-                  rows={3}
-                  className="trainingPage__textarea"
-                />
-              </div>
-
-              <div className="trainingPage__analysisDetail">
-                <div className="trainingPage__analysisRuleBox">
-                  <label className="trainingPage__analysisModeToggle">
-                    <input
-                      type="checkbox"
-                      checked={analysisDetailEnabled}
-                      onChange={(e) => setAnalysisDetailEnabled(e.target.checked)}
-                    />
-                    詳細設定
-                  </label>
-                  {analysisDetailEnabled && (
-                    <>
-                      <div className="trainingPage__analysisRuleTitle">比較条件</div>
-                      <label className="trainingPage__analysisModeToggle">
-                        <input
-                          type="checkbox"
-                          checked={analysisCompareByScale}
-                          onChange={(e) => {
-                            setAnalysisCompareByScale(e.target.checked);
-                            if (!e.target.checked) setAnalysisScaleText("");
-                          }}
-                        />
-                        スケールを比較条件として記録する
-                      </label>
-                      {analysisCompareByScale && (
-                        <input
-                          className="trainingPage__input"
-                          placeholder="比較スケールを入力（例: 5tone）"
-                          value={analysisScaleText}
-                          onChange={(e) => setAnalysisScaleText(e.target.value)}
-                        />
-                      )}
-                      <label className="trainingPage__analysisModeToggle">
-                        <input
-                          type="checkbox"
-                          checked={analysisCompareByTempo}
-                          onChange={(e) => {
-                            setAnalysisCompareByTempo(e.target.checked);
-                            if (!e.target.checked) setAnalysisTempoText("");
-                          }}
-                        />
-                        テンポを比較条件として記録する
-                      </label>
-                      {analysisCompareByTempo && (
-                        <input
-                          className="trainingPage__input"
-                          placeholder="比較テンポを入力（例: 138）"
-                          value={analysisTempoText}
-                          onChange={(e) => setAnalysisTempoText(e.target.value)}
-                          inputMode="numeric"
-                        />
-                      )}
-                      <div className="trainingPage__analysisRuleHead">
-                        <div className="trainingPage__analysisRuleTitle">判定項目</div>
-                        <button
-                          type="button"
-                          className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
-                          onClick={() => setAnalysisMetricInfoOpen(true)}
-                        >
-                          項目について
-                        </button>
-                      </div>
-                      <div className="trainingPage__analysisMetricGrid">
-                        {METRIC_OPTIONS.map((opt) => (
-                          <label key={opt.key} className="trainingPage__analysisModeToggle">
-                            <input
-                              type="checkbox"
-                              checked={analysisSelectedMetrics.includes(opt.key)}
-                              onChange={() =>
-                                setAnalysisSelectedMetrics((prev) => toggleMetricSelection(prev, opt.key))
-                              }
-                            />
-                            {opt.label}
-                          </label>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div className="trainingPage__analysisActions">
-                <button
-                  type="button"
-                  className="trainingPage__saveBtn"
-                  disabled={!analysisName.trim() || analysisSaving}
-                  onClick={() => void onCreateAnalysisMenu()}
-                >
-                  {analysisSaving ? (
-                    <span className="trainingPage__busyInline">
-                      保存中…
-                      <MetronomeLoader compact label="" className="trainingPage__busyLoader" />
-                    </span>
-                  ) : (
-                    "保存"
-                  )}
-                </button>
-              </div>
-              </div>
-
-              <div className="trainingPage__analysisRuleBox">
-                <div className="trainingPage__analysisRuleHead">
-                  <div className="trainingPage__analysisRuleTitle">保存済みメニュー一覧（編集）</div>
-                  <button
-                    type="button"
-                    className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
-                    onClick={() => setManageMenuListOpen((prev) => !prev)}
-                  >
-                    {manageMenuListOpen ? "閉じる" : "開く"}
-                  </button>
-                </div>
-                {manageMenuListOpen && (
-                  <div className="trainingPage__analysisList">
-                    {analysisMenus.map((menu) => {
-                      const isEditing = editingAnalysisMenuId === menu.id;
-                      const isActive = activeAnalysisMenuId === menu.id;
-                      return (
-                        <div key={menu.id} className={`trainingPage__analysisItem ${isActive ? "is-active" : ""}`}>
-                          {isEditing ? (
-                            <div className="trainingPage__analysisEdit">
-                              <input
-                                value={editingAnalysisName}
-                                onChange={(e) => setEditingAnalysisName(e.target.value)}
-                                className="trainingPage__input"
-                                placeholder="メニュー名"
-                              />
-                              <textarea
-                                value={editingAnalysisFocus}
-                                onChange={(e) => setEditingAnalysisFocus(e.target.value)}
-                                rows={3}
-                                className="trainingPage__textarea"
-                                placeholder="意識すること"
-                              />
-                              <div className="trainingPage__analysisDetail">
-                                <div className="trainingPage__analysisRuleBox">
-                                  <label className="trainingPage__analysisModeToggle">
-                                    <input
-                                      type="checkbox"
-                                      checked={editingAnalysisDetailEnabled}
-                                      onChange={(e) => setEditingAnalysisDetailEnabled(e.target.checked)}
-                                    />
-                                    詳細設定
-                                  </label>
-                                  {editingAnalysisDetailEnabled && (
-                                    <>
-                                      <div className="trainingPage__analysisRuleTitle">比較条件</div>
-                                      <label className="trainingPage__analysisModeToggle">
-                                        <input
-                                          type="checkbox"
-                                          checked={editingAnalysisCompareByScale}
-                                          onChange={(e) => {
-                                            setEditingAnalysisCompareByScale(e.target.checked);
-                                            if (!e.target.checked) setEditingAnalysisScaleText("");
-                                          }}
-                                        />
-                                        スケールを比較条件として記録する
-                                      </label>
-                                      {editingAnalysisCompareByScale && (
-                                        <input
-                                          className="trainingPage__input"
-                                          placeholder="比較スケールを入力（例: 5tone）"
-                                          value={editingAnalysisScaleText}
-                                          onChange={(e) => setEditingAnalysisScaleText(e.target.value)}
-                                        />
-                                      )}
-                                      <label className="trainingPage__analysisModeToggle">
-                                        <input
-                                          type="checkbox"
-                                          checked={editingAnalysisCompareByTempo}
-                                          onChange={(e) => {
-                                            setEditingAnalysisCompareByTempo(e.target.checked);
-                                            if (!e.target.checked) setEditingAnalysisTempoText("");
-                                          }}
-                                        />
-                                        テンポを比較条件として記録する
-                                      </label>
-                                      {editingAnalysisCompareByTempo && (
-                                        <input
-                                          className="trainingPage__input"
-                                          placeholder="比較テンポを入力（例: 138）"
-                                          value={editingAnalysisTempoText}
-                                          onChange={(e) => setEditingAnalysisTempoText(e.target.value)}
-                                          inputMode="numeric"
-                                        />
-                                      )}
-                                      <div className="trainingPage__analysisRuleHead">
-                                        <div className="trainingPage__analysisRuleTitle">判定項目</div>
-                                        <button
-                                          type="button"
-                                          className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
-                                          onClick={() => setAnalysisMetricInfoOpen(true)}
-                                        >
-                                          項目について
-                                        </button>
-                                      </div>
-                                      <div className="trainingPage__analysisMetricGrid">
-                                        {METRIC_OPTIONS.map((opt) => (
-                                          <label key={opt.key} className="trainingPage__analysisModeToggle">
-                                            <input
-                                              type="checkbox"
-                                              checked={editingAnalysisSelectedMetrics.includes(opt.key)}
-                                              onChange={() =>
-                                                setEditingAnalysisSelectedMetrics((prev) => toggleMetricSelection(prev, opt.key))
-                                              }
-                                            />
-                                            {opt.label}
-                                          </label>
-                                        ))}
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="trainingPage__analysisActions trainingPage__analysisActions--between">
-                                <button type="button" className="trainingPage__analysisMiniBtn" onClick={() => void saveEditAnalysisMenu(menu)}>
-                                  更新
-                                </button>
-                                <button type="button" className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost" onClick={cancelEditAnalysisMenu}>
-                                  キャンセル
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="trainingPage__analysisName">{menu.name}</div>
-                              <div className="trainingPage__analysisFocus">{menu.focus_points || "意識ポイント未設定"}</div>
-                              <div className="trainingPage__analysisFixed">
-                                判定項目: {metricLabels(menu.selected_metrics).join(" / ")}
-                              </div>
-                              {(menu.compare_by_scale || menu.compare_by_tempo) && (
-                                <div className="trainingPage__analysisFixed">
-                                  比較条件:
-                                  {menu.compare_by_scale ? ` スケール${menu.fixed_scale_type ? `(${menu.fixed_scale_type})` : ""}` : ""}
-                                  {menu.compare_by_tempo ? ` テンポ${menu.fixed_tempo ? `(${menu.fixed_tempo}bpm)` : ""}` : ""}
-                                </div>
-                              )}
-                              <div className="trainingPage__analysisActions trainingPage__analysisActions--between">
-                                {isActive && <span className="trainingPage__analysisSelected">現在選択中</span>}
-                                <button
-                                  type="button"
-                                  className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
-                                  onClick={() => startEditAnalysisMenu(menu)}
-                                >
-                                  編集
-                                </button>
-                                <button
-                                  type="button"
-                                  className="trainingPage__analysisDelete"
-                                  onClick={() => void onArchiveAnalysisMenu(menu)}
-                                >
-                                  削除
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {analysisMenus.length === 0 && <div className="trainingPage__analysisEmpty">まだ保存された分析メニューはありません。</div>}
-                  </div>
-                )}
-              </div>
-              </>
+              {analysisMenus.length === 0 && (
+                <div className="trainingPage__analysisEmpty">固定メニューを読み込み中です。再読み込みしてください。</div>
               )}
             </section>
 
@@ -1309,7 +812,7 @@ export default function TrainingPage() {
                 </div>
               ) : (
                 <div className="trainingPage__analysisGuide">
-                  先に「1. メニュー追加・編集」で分析メニューを保存してください。
+                  固定プリセットの取得に失敗しました。ページを再読み込みしてください。
                 </div>
               )}
 
@@ -1449,94 +952,14 @@ export default function TrainingPage() {
                     </button>
                   </div>
                   <div className="trainingPage__modalBody">
-                    <div className="trainingPage__metricInfoItem">
-                      <div className="trainingPage__metricInfoLabel">詳細設定で変更できる項目</div>
-                      <div className="trainingPage__metricInfoText">
-                        1) 比較条件（スケール）: ONにすると、同じスケール条件で履歴比較しやすくなります。
-                      </div>
-                      <div className="trainingPage__metricInfoText">
-                        2) 比較条件（テンポ）: ONにすると、同じテンポ条件で履歴比較しやすくなります。
-                      </div>
-                      <div className="trainingPage__metricInfoText">
-                        3) 判定項目: 目的に合わせて評価する軸を選択できます。迷う場合はデフォルト3項目がおすすめです。
-                      </div>
-                    </div>
-                    {METRIC_OPTIONS.map((opt) => (
-                      <div key={opt.key} className="trainingPage__metricInfoItem">
-                        <div className="trainingPage__metricInfoLabel">{opt.label}</div>
-                        <div className="trainingPage__metricInfoText">{opt.description}</div>
-                        <div className="trainingPage__metricInfoText">{opt.detail}</div>
-                        <div className="trainingPage__metricInfoText">{opt.caution}</div>
-                      </div>
-                    ))}
-                    <div className="trainingPage__metricInfoItem trainingPage__metricInfoItem--method">
-                      <div className="trainingPage__metricInfoLabel">判定方法（点数算出の考え方）</div>
-                      <div className="trainingPage__metricInfoText">
-                        ・ピッチ安定度: 検出ピッチのばらつき（標準偏差）を使い、ばらつきが小さいほど高得点になります。
-                      </div>
-                      <div className="trainingPage__metricInfoText">
-                        ・音程精度: 半音中心からの平均ズレ（cent）を使い、ズレが小さいほど高得点になります。
-                      </div>
-                      <div className="trainingPage__metricInfoText">
-                        ・音量安定: 発声区間の音量ばらつき（dBの標準偏差）を使い、ばらつきが小さいほど高得点になります。
-                      </div>
-                      <div className="trainingPage__metricInfoText">
-                        ・発声時間: 録音時間のうち、実際に有効発声と判定された時間（秒）を表示します。
-                      </div>
-                      <div className="trainingPage__metricInfoText">
-                        ・最高音: 録音中に検出された最も高い音名を表示します。
-                      </div>
-                      <div className="trainingPage__metricInfoText">
-                        ・発声の大きさ平均: 発声区間の平均音量（dBFS）を表示します。
-                      </div>
-                      <div className="trainingPage__metricInfoText">
-                        ※ マイク感度・距離・部屋の反響で数値は変動します。公平な比較のため、できるだけ同じ環境で録音してください。
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {analysisPresetInfoOpen && (
-              <div
-                className="trainingPage__modalOverlay"
-                role="button"
-                tabIndex={0}
-                onClick={() => setAnalysisPresetInfoOpen(false)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") setAnalysisPresetInfoOpen(false);
-                }}
-              >
-                <div
-                  className="trainingPage__modalCard"
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label="プリセットメニューの説明"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                >
-                  <div className="trainingPage__modalHead">
-                    <div className="trainingPage__modalTitle">プリセットメニューについて</div>
-                    <button
-                      type="button"
-                      className="trainingPage__analysisMiniBtn trainingPage__analysisMiniBtn--ghost"
-                      onClick={() => setAnalysisPresetInfoOpen(false)}
-                    >
-                      閉じる
-                    </button>
-                  </div>
-                  <div className="trainingPage__modalBody">
-                    {ANALYSIS_PRESETS.map((preset) => (
-                        <div key={`preset-info-${preset.key}`} className="trainingPage__metricInfoItem">
-                        <div className="trainingPage__metricInfoLabel">{preset.name}</div>
+                    {PRESET_INFO.map((preset) => (
+                      <div key={preset.title} className="trainingPage__metricInfoItem">
+                        <div className="trainingPage__metricInfoLabel">{preset.title}</div>
                         <div className="trainingPage__metricInfoText">{preset.description}</div>
-                        <div className="trainingPage__metricInfoText">向いている目的: {preset.target}</div>
-                        <div className="trainingPage__metricInfoText">実施のコツ: {preset.howToUse}</div>
-                        <div className="trainingPage__metricInfoText">結果の見方: {preset.readPoint}</div>
-                        <div className="trainingPage__metricInfoText">
-                          判定項目: {preset.selectedMetrics.map((key) => metricLabel(key)).join(" / ")}
-                        </div>
+                        <div className="trainingPage__metricInfoText">{preset.metrics}</div>
+                        {preset.condition && (
+                          <div className="trainingPage__metricInfoText">{preset.condition}</div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1570,19 +993,6 @@ function normalizeMetricSelection(input?: string[] | null): MetricKey[] {
         .filter((v): v is MetricKey => known.has(v as MetricKey))
     : [];
   return list.length > 0 ? Array.from(new Set(list)) : DEFAULT_SELECTED_METRICS;
-}
-
-function isDefaultMetricSelection(selected: MetricKey[]) {
-  if (selected.length !== DEFAULT_SELECTED_METRICS.length) return false;
-  return DEFAULT_SELECTED_METRICS.every((key) => selected.includes(key));
-}
-
-function toggleMetricSelection(current: MetricKey[], key: MetricKey): MetricKey[] {
-  if (current.includes(key)) {
-    const next = current.filter((k) => k !== key);
-    return next.length > 0 ? next : current;
-  }
-  return [...current, key];
 }
 
 function metricLabels(selected?: string[] | null) {
@@ -1803,17 +1213,6 @@ function findPreviousComparableSession(
   return undefined;
 }
 
-function toTempoOrNull(v: string): number | null {
-  const n = Number.parseInt(v.trim(), 10);
-  if (!Number.isFinite(n) || Number.isNaN(n) || n <= 0) return null;
-  return n;
-}
-
-function toScaleOrNull(v: string): string | null {
-  const normalized = v.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
 function sameScaleToken(a?: string | null, b?: string | null) {
   return normalizeScaleToken(a) === normalizeScaleToken(b);
 }
@@ -1822,9 +1221,8 @@ function normalizeScaleToken(v?: string | null) {
   return (v ?? "").toLowerCase().replace(/\s+/g, "");
 }
 
-function matchesScaleCondition(expected: string, currentScaleType: ScaleType) {
-  const raw = normalizeScaleToken(currentScaleType);
-  const label = normalizeScaleToken(scaleTypeLabel(currentScaleType));
-  const cond = normalizeScaleToken(expected);
-  return cond === raw || cond === label;
+function detectMeasurementKind(systemKey?: string | null) {
+  const key = (systemKey ?? "").trim();
+  if (!key) return "generic";
+  return key;
 }

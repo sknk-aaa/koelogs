@@ -17,7 +17,7 @@ module Api
       practice_days_count = base_scope.count
 
       logs = base_scope
-             .select(:id, :practiced_on, :duration_min, :falsetto_top_note, :chest_top_note)
+             .select(:id, :practiced_on, :duration_min)
              .order(:practiced_on)
 
       # --- daily durations (missing days => 0) ---
@@ -31,53 +31,9 @@ module Api
         { date: d.iso8601, duration_min: duration_by_date[d] || 0 }
       end
 
-      # --- daily top note series (missing days => nil) ---
-      falsetto_midi_by_date = {}
-      chest_midi_by_date = {}
-      logs.each do |l|
-        falsetto_midi_by_date[l.practiced_on] = note_to_midi(l.falsetto_top_note)
-        chest_midi_by_date[l.practiced_on] = note_to_midi(l.chest_top_note)
-      end
-
-      falsetto_series = (0...days).map do |i|
-        d = from + i
-        { date: d.iso8601, midi: falsetto_midi_by_date[d] }
-      end
-
-      chest_series = (0...days).map do |i|
-        d = from + i
-        { date: d.iso8601, midi: chest_midi_by_date[d] }
-      end
-
-      # --- menu ranking (menu_id based) ---
-      ranking_rows =
-        TrainingLogMenu
-          .joins(:training_log)
-          .joins(:training_menu)
-          .where(training_log_menus: { user_id: current_user.id })
-          .where(training_logs: { practiced_on: from..to })
-          .group("training_log_menus.training_menu_id", "training_menus.name", "training_menus.color")
-          .select(
-            "training_log_menus.training_menu_id AS menu_id",
-            "training_menus.name AS name",
-            "training_menus.color AS color",
-            "COUNT(*) AS count"
-          )
-          .order(Arel.sql("COUNT(*) DESC"))
-
-      menu_ranking = ranking_rows.map do |r|
-        { menu_id: r.menu_id.to_i, name: r.name.to_s, color: r.color.to_s, count: r.count.to_i }
-      end
-
-      # --- top notes (ALL TIME) + achieved date ---
       all_time_scope = current_user.training_logs
       total_practice_days_count = all_time_scope.count
-      all_time_logs = all_time_scope
-                      .select(:practiced_on, :falsetto_top_note, :chest_top_note)
-                      .order(:practiced_on)
-
-      top_fal = best_note_with_date(all_time_logs, :falsetto_top_note)
-      top_ch  = best_note_with_date(all_time_logs, :chest_top_note)
+      measurement_data = build_measurement_data(from: from, to: to, days: days)
       gamification_summary = Gamification::Progress.summary_for(current_user)
       streaks = {
         current_days: gamification_summary[:streak_current_days],
@@ -90,50 +46,22 @@ module Api
           daily_durations: daily_durations,
           practice_days_count: practice_days_count,
           total_practice_days_count: total_practice_days_count,
-          menu_ranking: menu_ranking,
           note_series: {
-            falsetto: falsetto_series,
-            chest: chest_series
+            falsetto: measurement_data[:note_series][:falsetto],
+            chest: measurement_data[:note_series][:chest]
           },
+          measurement_series: measurement_data[:measurement_series],
           streaks: streaks,
-          top_notes: { falsetto: top_fal, chest: top_ch },
+          top_notes: {
+            falsetto: measurement_data[:top_notes][:falsetto],
+            chest: measurement_data[:top_notes][:chest]
+          },
           gamification: gamification_summary
         }
       }, status: :ok
     end
 
     private
-
-    # 最大音 + 達成日（同点の場合は最新日を採用）
-    # 戻り: { note: "A4", midi: 69, date: "2026-02-10" } or { note: nil, midi: nil, date: nil }
-    def best_note_with_date(logs, note_attr)
-      best_note = nil
-      best_midi = nil
-      best_date = nil
-
-      logs.each do |log|
-        n = log.public_send(note_attr)
-        next if n.nil?
-
-        midi = note_to_midi(n)
-        next if midi.nil?
-
-        d = log.practiced_on
-        next if d.nil?
-
-        if best_midi.nil? || midi > best_midi || (midi == best_midi && d > best_date)
-          best_midi = midi
-          best_note = n.to_s.strip
-          best_date = d
-        end
-      end
-
-      {
-        note: best_note,
-        midi: best_midi,
-        date: best_date&.iso8601
-      }
-    end
 
     def note_to_midi(note)
       s = note.to_s.strip
@@ -167,6 +95,104 @@ module Api
       (octave + 1) * 12 + semitone
     rescue
       nil
+    end
+
+    def build_measurement_data(from:, to:, days:)
+      kinds = %w[falsetto_peak chest_peak range long_tone pitch_accuracy volume_stability]
+      value_by_kind_and_date = {}
+      kinds.each { |kind| value_by_kind_and_date[kind] = {} }
+      top_notes = {
+        falsetto: { note: nil, midi: nil, date: nil },
+        chest: { note: nil, midi: nil, date: nil }
+      }
+
+      sessions = current_user.analysis_sessions.where(created_at: from.beginning_of_day..to.end_of_day).order(:created_at)
+      sessions.each do |session|
+        kind = session.measurement_kind.to_s
+        next unless kinds.include?(kind)
+
+        date = session.created_at.in_time_zone.to_date
+        next if date < from || date > to
+
+        value = measurement_value_for(session, kind)
+        next if value.nil?
+
+        value_by_kind_and_date[kind][date] = value
+      end
+
+      note_sessions = current_user.analysis_sessions.where(measurement_kind: %w[falsetto_peak chest_peak]).order(:created_at)
+      falsetto_daily_midi = {}
+      chest_daily_midi = {}
+      note_sessions.each do |session|
+        midi = note_to_midi(session.peak_note)
+        next if midi.nil?
+
+        date = session.created_at.in_time_zone.to_date
+        kind = session.measurement_kind.to_s
+        note = session.peak_note.to_s.strip
+
+        if kind == "falsetto_peak"
+          falsetto_daily_midi[date] = midi
+          update_top_note!(top_notes[:falsetto], note: note, midi: midi, date: date)
+        elsif kind == "chest_peak"
+          chest_daily_midi[date] = midi
+          update_top_note!(top_notes[:chest], note: note, midi: midi, date: date)
+        end
+      end
+
+      measurement_series = kinds.to_h do |kind|
+        points = (0...days).map do |i|
+          d = from + i
+          {
+            date: d.iso8601,
+            value: value_by_kind_and_date[kind][d]
+          }
+        end
+        [ kind, points ]
+      end
+
+      note_series = {
+        falsetto: (0...days).map { |i| d = from + i; { date: d.iso8601, midi: falsetto_daily_midi[d] } },
+        chest: (0...days).map { |i| d = from + i; { date: d.iso8601, midi: chest_daily_midi[d] } }
+      }
+
+      {
+        measurement_series: measurement_series,
+        note_series: note_series,
+        top_notes: top_notes
+      }
+    end
+
+    def update_top_note!(current, note:, midi:, date:)
+      current_midi = current[:midi]
+      current_date = begin
+        Date.iso8601(current[:date].to_s)
+      rescue ArgumentError
+        nil
+      end
+      return if current_midi.present? && (midi < current_midi || (midi == current_midi && current_date.present? && date <= current_date))
+
+      current[:note] = note
+      current[:midi] = midi
+      current[:date] = date.iso8601
+    end
+
+    def measurement_value_for(session, kind)
+      raw = session.raw_metrics.is_a?(Hash) ? session.raw_metrics : {}
+      case kind
+      when "falsetto_peak", "chest_peak"
+        note_to_midi(session.peak_note)
+      when "range"
+        session.range_semitones
+      when "long_tone"
+        raw["phonation_duration_sec"] || session.duration_sec
+      when "pitch_accuracy"
+        raw["pitch_accuracy_score"]
+      when "volume_stability"
+        raw["volume_stability_score"]
+      else
+        nil
+      end
     end
   end
 end

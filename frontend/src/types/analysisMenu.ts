@@ -1,5 +1,6 @@
 export type AnalysisMenu = {
   id: number;
+  system_key: string;
   name: string;
   focus_points?: string | null;
   compare_by_scale?: boolean;

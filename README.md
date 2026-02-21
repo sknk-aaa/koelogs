@@ -43,11 +43,21 @@
 
 ## ルーティング（要点）
 
+- コア固定導線:
+  - `/`（`/log` にリダイレクト）
+  - `/log`
+  - `/log/new`
+  - `/training`
+  - `/insights`
+- 主要追加導線:
+  - `/community`
+  - `/community/rankings`
+  - `/community/profile/:userId`
+  - `/mypage`
 - レイアウト外（公開）:
   - `/login`
   - `/signup`
 - レイアウト内（公開）:
-  - `/`（`/log` にリダイレクト）
   - `/log`
   - `/training`
   - `/insights`, `/insights/time`, `/insights/menus`, `/insights/notes`
@@ -183,11 +193,11 @@ npm --prefix frontend run dev
 - ログ
   - `GET /api/training_logs`
   - `POST /api/training_logs`
-  - `GET /api/weekly_logs`
-  - `POST /api/weekly_logs`
+  - `GET /api/monthly_logs`
+  - `POST /api/monthly_logs`
 - メニュー
   - `GET/POST/PATCH /api/training_menus`
-  - `GET/POST/PATCH /api/analysis_menus`
+  - `GET /api/analysis_menus`（固定プリセットのみ）
 - AI録音分析セッション
   - `GET/POST/DELETE /api/analysis_sessions`
   - `POST /api/analysis_sessions/:id/upload_audio`
@@ -206,7 +216,7 @@ npm --prefix frontend run dev
 
 ## DB設計（現行）
 
-`db/schema.rb`（version: `2026_02_20_131732`）時点のテーブル一覧です。
+`db/schema.rb`（version: `2026_02_21_122000`）時点のテーブル一覧です。
 
 ### users
 - 用途: ユーザー情報/認証/公開設定
@@ -226,7 +236,6 @@ npm --prefix frontend run dev
 - 主なカラム:
   - `user_id`, `practiced_on`
   - `duration_min`, `notes`
-  - `falsetto_top_note`, `chest_top_note`
 - 制約:
   - `index_training_logs_on_user_id_and_practiced_on`（unique）
 
@@ -247,14 +256,13 @@ npm --prefix frontend run dev
 - 制約:
   - `training_log_id` unique（1ログ1件）
 
-### weekly_logs
-- 用途: 週次振り返り
+### monthly_logs
+- 用途: 月次振り返り
 - 主なカラム:
-  - `user_id`, `week_start`
-  - `notes`, `effect_feedbacks`（jsonb）
-  - `falsetto_top_note`, `chest_top_note`
+  - `user_id`, `month_start`
+  - `notes`
 - 制約:
-  - `index_weekly_logs_on_user_id_and_week_start`（unique）
+  - `index_monthly_logs_on_user_id_and_month_start`（unique）
 
 ### training_menus
 - 用途: ユーザー定義の練習メニュー
@@ -275,19 +283,20 @@ npm --prefix frontend run dev
 ### analysis_menus
 - 用途: AI録音分析用メニュー
 - 主なカラム:
-  - `user_id`, `name`, `focus_points`
+  - `user_id`, `name`, `system_key`, `focus_points`
   - `compare_mode`, `compare_by_scale`, `fixed_scale_type`
   - `compare_by_tempo`, `fixed_tempo`
   - `selected_metrics`（jsonb）
   - `archived`
 - 制約:
   - `index_analysis_menus_on_user_id_and_name`（unique）
+  - `index_analysis_menus_on_user_id_and_system_key`（unique）
 
 ### analysis_sessions
 - 用途: AI録音分析の実行結果
 - 主なカラム:
   - `user_id`, `analysis_menu_id`
-  - `duration_sec`, `peak_note`
+  - `duration_sec`, `measurement_kind`, `peak_note`, `lowest_note`
   - `pitch_stability_score`, `voice_consistency_score`, `range_semitones`
   - `recorded_scale_type`, `recorded_tempo`
   - `feedback_text`, `raw_metrics`（jsonb）

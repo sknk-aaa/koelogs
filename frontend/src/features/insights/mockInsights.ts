@@ -1,4 +1,4 @@
-import type { DailyDurationPoint, DailyNotePoint, InsightsData, MenuRankingItem } from "../../types/insights";
+import type { DailyDurationPoint, DailyNotePoint, InsightsData, MeasurementPoint } from "../../types/insights";
 
 function toISO(d: Date): string {
   const y = d.getFullYear();
@@ -32,17 +32,6 @@ function buildDailyDurations(days: number, endDate: Date): DailyDurationPoint[] 
   return out;
 }
 
-function buildMenuRanking(days: number): MenuRankingItem[] {
-  const scale = Math.max(1, Math.round(days / 30));
-  return [
-    { menu_id: 101, name: "リップロール", color: "#F59E0B", count: 12 * scale },
-    { menu_id: 102, name: "ハミング", color: "#34D399", count: 10 * scale },
-    { menu_id: 103, name: "ミックス練習", color: "#60A5FA", count: 8 * scale },
-    { menu_id: 104, name: "母音トレーニング", color: "#F472B6", count: 7 * scale },
-    { menu_id: 105, name: "地声強化", color: "#A78BFA", count: 5 * scale },
-  ];
-}
-
 function buildNoteSeries(days: number, endDate: Date, baseMidi: number): DailyNotePoint[] {
   const pattern = [0, 1, -1, 0, 2, 0, -2, 1];
   const out: DailyNotePoint[] = [];
@@ -56,6 +45,19 @@ function buildNoteSeries(days: number, endDate: Date, baseMidi: number): DailyNo
     });
   }
 
+  return out;
+}
+
+function buildMeasurementSeries(days: number, endDate: Date, base: number, wave = 3): MeasurementPoint[] {
+  const out: MeasurementPoint[] = [];
+  for (let i = 0; i < days; i += 1) {
+    const date = addDays(endDate, -(days - 1 - i));
+    const miss = i % 7 === 0;
+    out.push({
+      date: toISO(date),
+      value: miss ? null : base + ((i % 6) - 2) * wave,
+    });
+  }
   return out;
 }
 
@@ -76,10 +78,17 @@ export function makeMockInsights(days: number): InsightsData {
     daily_durations: dailyDurations,
     practice_days_count: practiceDaysCount,
     total_practice_days_count: practiceDaysCount,
-    menu_ranking: buildMenuRanking(safeDays),
     note_series: {
       falsetto: buildNoteSeries(safeDays, toDate, 69),
       chest: buildNoteSeries(safeDays, toDate, 64),
+    },
+    measurement_series: {
+      falsetto_peak: buildMeasurementSeries(safeDays, toDate, 70, 1),
+      chest_peak: buildMeasurementSeries(safeDays, toDate, 64, 1),
+      range: buildMeasurementSeries(safeDays, toDate, 11, 1),
+      long_tone: buildMeasurementSeries(safeDays, toDate, 14, 0.6),
+      pitch_accuracy: buildMeasurementSeries(safeDays, toDate, 74, 1.2),
+      volume_stability: buildMeasurementSeries(safeDays, toDate, 78, 1.4),
     },
     streaks: {
       current_days: 3,
@@ -108,7 +117,7 @@ export function makeMockInsights(days: number): InsightsData {
       analysis_sessions_count: 0,
       ai_recommendations_count: 1,
       badge_unlocked_count: 2,
-      badge_total_count: 6,
+      badge_total_count: 5,
       next_badge: {
         key: "streak_7",
         name: "7-Day Streak",
@@ -159,16 +168,6 @@ export function makeMockInsights(days: number): InsightsData {
           unlocked_at: null,
           progress_current: 11,
           progress_required: 30,
-        },
-        {
-          key: "weekly_3",
-          name: "Weekly Reflector",
-          description: "週振り返りを3回保存",
-          icon_path: "/badges/weekly_3.svg",
-          unlocked: false,
-          unlocked_at: null,
-          progress_current: 1,
-          progress_required: 3,
         },
         {
           key: "xp_500",

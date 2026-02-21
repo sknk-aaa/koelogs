@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
-import { fetchWeeklyLogByWeekStart, upsertWeeklyLog } from "../api/weeklyLogs";
+import { fetchMonthlyLog, upsertMonthlyLog } from "../api/monthlyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
 import { fetchInsights } from "../api/insights";
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
-import type { WeeklyLog, WeeklyLogSummary } from "../types/weeklyLog";
+import type { MonthlyLogData } from "../types/monthlyLog";
 import type { SaveRewards } from "../types/gamification";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
@@ -18,12 +18,12 @@ import "./LogPage.css";
 
 import LogHeader from "../features/log/components/LogHeader";
 import SummaryCard from "../features/log/components/SummaryCard";
-import WeeklySummaryCard from "../features/log/components/WeeklySummaryCard";
 import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
 import WelcomeGuideModal from "../features/log/components/WelcomeGuideModal";
 import { setLastLogPath } from "../features/log/logNavigation";
 
 import { fetchMe, updateMeGoalText, type Me } from "../api/auth";
+import ColoredTag from "../components/ColoredTag";
 
 function pad(v: number): string {
   return String(v).padStart(2, "0");
@@ -50,32 +50,39 @@ function parseISODate(value: string): Date | null {
   return out;
 }
 
-function weekStartISO(value: string): string {
-  const d = parseISODate(value) ?? new Date();
-  const dayMon0 = (d.getDay() + 6) % 7;
-  const start = new Date(d);
-  start.setDate(start.getDate() - dayMon0);
-  return toISODate(start);
+function monthStartISO(month: string): string {
+  const m = month.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return `${todayISO().slice(0, 7)}-01`;
+  return `${m[1]}-${m[2]}-01`;
 }
 
-function addDaysISO(value: string, diffDays: number): string {
-  const d = parseISODate(value) ?? new Date();
-  d.setDate(d.getDate() + diffDays);
-  return toISODate(d);
+function addMonths(month: string, diff: number): string {
+  const base = monthStartISO(month);
+  const d = parseISODate(base) ?? new Date();
+  d.setMonth(d.getMonth() + diff);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
 }
 
-function weekLabel(startISO: string): string {
-  const start = parseISODate(startISO) ?? new Date();
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  return `${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}`;
+function monthLabel(month: string): string {
+  const m = month.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return month;
+  return `${m[1]}年${m[2]}月`;
+}
+
+function minutesToHoursText(minutes: number): string {
+  return (minutes / 60).toFixed(1);
+}
+
+function toPercentText(count: number, total: number): string {
+  if (total <= 0) return "0.0%";
+  return `${((count / total) * 100).toFixed(1)}%`;
 }
 
 const AI_PREVIEW_CHARS = 100;
 const GOAL_MAX = 50;
 const FIRST_LOGIN_GUIDE_KEY_PREFIX = "voice_app_log_first_guide_seen_user_";
 
-type LogMode = "day" | "week";
+type LogMode = "day" | "month";
 type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
 
 function shouldCollapseText(text: string, previewChars: number) {
@@ -104,44 +111,42 @@ export default function LogPage() {
   const today = useMemo(() => todayISO(), []);
   const rawMode = params.get("mode");
   const selectedDate = useMemo(() => params.get("date") || today, [params, today]);
-  const selectedWeekStart = useMemo(
-    () => weekStartISO(params.get("week_start") || selectedDate),
+  const selectedMonth = useMemo(
+    () => params.get("month") || selectedDate.slice(0, 7),
     [params, selectedDate]
   );
-
-  const monthKey = useMemo(() => selectedDate.slice(0, 7), [selectedDate]);
+  const monthKey = useMemo(() => selectedMonth, [selectedMonth]);
   const { settings } = useSettings();
   const { me: authMe, isLoading: authLoading } = useAuth();
   const guestMode = !authLoading && !authMe;
 
-  const mode: LogMode = guestMode ? "day" : rawMode === "week" ? "week" : "day";
+  const mode: LogMode = guestMode ? "day" : rawMode === "month" ? "month" : "day";
   const isDayMode = mode === "day";
-  const isWeekMode = mode === "week";
-  const currentLogPath = isWeekMode
-    ? `/log?mode=week&week_start=${encodeURIComponent(selectedWeekStart)}`
+  const isMonthMode = mode === "month";
+  const currentLogPath = isMonthMode
+    ? `/log?mode=month&month=${encodeURIComponent(selectedMonth)}`
     : `/log?mode=day&date=${encodeURIComponent(selectedDate)}`;
 
   const isToday = selectedDate === today;
-  const currentWeekStart = useMemo(() => weekStartISO(today), [today]);
-  const isCurrentWeek = selectedWeekStart === currentWeekStart;
-  const canGoNextWeek = selectedWeekStart < currentWeekStart;
+  const currentMonth = useMemo(() => today.slice(0, 7), [today]);
+  const canGoNextMonth = selectedMonth < currentMonth;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<TrainingLog | null>(null);
   const [currentStreakDays, setCurrentStreakDays] = useState<number | null>(null);
+  const [longestStreakDays, setLongestStreakDays] = useState<number | null>(null);
   const [totalPracticeDaysCount, setTotalPracticeDaysCount] = useState<number | null>(null);
   const [saveToast, setSaveToast] = useState<SaveRewards | null>(null);
   const [firstGuideOpen, setFirstGuideOpen] = useState(false);
   const [showGuideHintBanner, setShowGuideHintBanner] = useState(false);
 
-  const [weekLoading, setWeekLoading] = useState(false);
-  const [weekError, setWeekError] = useState<string | null>(null);
-  const [weekLog, setWeekLog] = useState<WeeklyLog | null>(null);
-  const [weekSummary, setWeekSummary] = useState<WeeklyLogSummary | null>(null);
-  const [weekSaveLoading, setWeekSaveLoading] = useState(false);
-  const [weekSaveError, setWeekSaveError] = useState<string | null>(null);
-  const [weekHasUnsavedChanges, setWeekHasUnsavedChanges] = useState(false);
+  const [monthLoading, setMonthLoading] = useState(false);
+  const [monthError, setMonthError] = useState<string | null>(null);
+  const [monthData, setMonthData] = useState<MonthlyLogData | null>(null);
+  const [monthNotesDraft, setMonthNotesDraft] = useState("");
+  const [monthSaveLoading, setMonthSaveLoading] = useState(false);
+  const [monthSaveError, setMonthSaveError] = useState<string | null>(null);
 
   // ===== Me / Goal =====
   const [me, setMe] = useState<Me | null>(null);
@@ -212,7 +217,7 @@ export default function LogPage() {
   const [monthModalOpen, setMonthModalOpen] = useState(false);
 
   const [aiExpandedByKey, setAiExpandedByKey] = useState<Record<string, boolean>>({});
-  const aiKey = isDayMode ? `day:${selectedDate}` : `week:${selectedWeekStart}`;
+  const aiKey = isDayMode ? `day:${selectedDate}` : `month:${selectedMonth}`;
   const aiExpanded = !!aiExpandedByKey[aiKey];
   const setAiExpanded = (v: boolean | ((prev: boolean) => boolean)) => {
     setAiExpandedByKey((prev) => {
@@ -253,40 +258,38 @@ export default function LogPage() {
     };
   }, [selectedDate, authMe, isDayMode]);
 
-  // Weekly log fetch
+  // Monthly log fetch
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!authMe || !isWeekMode) {
-        setWeekLoading(false);
-        setWeekError(null);
-        setWeekLog(null);
-        setWeekSummary(null);
+      if (!authMe || !isMonthMode) {
+        setMonthLoading(false);
+        setMonthError(null);
+        setMonthData(null);
         return;
       }
 
-      setWeekLoading(true);
-      setWeekError(null);
-      setWeekSaveError(null);
+      setMonthLoading(true);
+      setMonthError(null);
+      setMonthSaveError(null);
 
-      const res = await fetchWeeklyLogByWeekStart(selectedWeekStart);
+      const res = await fetchMonthlyLog(selectedMonth);
       if (cancelled) return;
 
       if ("error" in res && res.error) {
-        setWeekLog(null);
-        setWeekSummary(null);
-        setWeekError(res.error);
+        setMonthData(null);
+        setMonthError(res.error);
       } else {
-        setWeekLog(res.data ?? null);
-        setWeekSummary(res.summary);
+        setMonthData(res.data);
+        setMonthNotesDraft(res.data?.notes ?? "");
       }
-      setWeekLoading(false);
+      setMonthLoading(false);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [selectedWeekStart, authMe, isWeekMode]);
+  }, [selectedMonth, authMe, isMonthMode]);
 
   // streak fetch
   useEffect(() => {
@@ -294,6 +297,7 @@ export default function LogPage() {
     (async () => {
       if (!authMe) {
         setCurrentStreakDays(null);
+        setLongestStreakDays(null);
         setTotalPracticeDaysCount(null);
         return;
       }
@@ -301,10 +305,12 @@ export default function LogPage() {
       if (cancelled) return;
       if ("error" in res && res.error) {
         setCurrentStreakDays(null);
+        setLongestStreakDays(null);
         setTotalPracticeDaysCount(null);
         return;
       }
       setCurrentStreakDays(res.data?.streaks.current_days ?? null);
+      setLongestStreakDays(res.data?.streaks.longest_days ?? null);
       setTotalPracticeDaysCount(res.data?.total_practice_days_count ?? 0);
     })();
 
@@ -383,13 +389,8 @@ export default function LogPage() {
   const goLogin = () => {
     const fromPath = isDayMode
       ? `/log?mode=day&date=${encodeURIComponent(selectedDate)}`
-      : `/log?mode=week&week_start=${encodeURIComponent(selectedWeekStart)}`;
+      : `/log?mode=month&month=${encodeURIComponent(selectedMonth)}`;
     navigate(`/login`, { state: { fromPath } });
-  };
-
-  const confirmDiscardWeeklyChanges = () => {
-    if (!isWeekMode || !weekHasUnsavedChanges) return true;
-    return window.confirm("週メモに未保存の変更があります。破棄して移動しますか？");
   };
 
   const scrollToGuestPreview = () => {
@@ -406,32 +407,29 @@ export default function LogPage() {
     navigate(`/log/new?date=${encodeURIComponent(selectedDate)}`);
   };
 
-  const onSaveWeeklyLog = async (payload: { notes: string | null }) => {
+  const onSaveMonthlyLog = async (payload: { notes: string | null }) => {
     if (!authMe) {
       goLogin();
       return;
     }
-    if (weekSaveLoading) return;
+    if (monthSaveLoading) return;
 
-    setWeekSaveLoading(true);
-    setWeekSaveError(null);
+    setMonthSaveLoading(true);
+    setMonthSaveError(null);
 
-    const result = await upsertWeeklyLog({
-      week_start: selectedWeekStart,
+    const result = await upsertMonthlyLog({
+      month: selectedMonth,
       notes: payload.notes,
-      effect_feedbacks: [],
     });
 
     if (!result.ok) {
-      setWeekSaveError(result.errors.join("\n"));
-      setWeekSaveLoading(false);
+      setMonthSaveError(result.errors.join("\n"));
+      setMonthSaveLoading(false);
       return;
     }
 
-    setWeekLog(result.data);
-    setWeekSummary(result.summary);
-    setWeekHasUnsavedChanges(false);
-    setWeekSaveLoading(false);
+    setMonthData((prev) => (prev ? { ...prev, notes: result.data.notes ?? null } : prev));
+    setMonthSaveLoading(false);
   };
 
   const onAskAi = async () => {
@@ -483,8 +481,6 @@ export default function LogPage() {
       { id: -13, name: "ミックス練習", color: "#60A5FA", archived: false },
     ],
     notes: "高音で喉が締まりやすい。息の量を少し減らすと当たりが安定した。",
-    falsetto_top_note: "A4",
-    chest_top_note: "E4",
   };
   const previewAiRec: AiRecommendation = {
     id: -1,
@@ -511,7 +507,11 @@ export default function LogPage() {
   const emptyHint = isToday
     ? "最初は1項目だけでもOKです。入力した分だけ反映されます。"
     : "この日付で入力すると、今日の結果と同じ形式で表示されます。";
-  const weeklyEmptyHint = "この週のメモと効果的だったメニューを記録できます。";
+  const monthTotalDuration = monthData?.summary.total_duration_min ?? 0;
+  const monthTotalDurationHourText = minutesToHoursText(monthTotalDuration);
+  const monthTotalMenuCount = monthData?.summary.total_menu_count ?? 0;
+  const monthMenuCounts = monthData?.summary.menu_counts ?? [];
+  const monthPracticeDays = monthData?.daily_logs?.length ?? 0;
 
   const goalText = me?.goal_text ?? null;
   const isWithinInitial7Days = isWithinFirst7Days(me?.created_at);
@@ -534,20 +534,6 @@ export default function LogPage() {
     setLastLogPath(currentLogPath);
   }, [currentLogPath]);
 
-  useEffect(() => {
-    if (!isWeekMode || !weekHasUnsavedChanges) return;
-
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", onBeforeUnload);
-    };
-  }, [isWeekMode, weekHasUnsavedChanges]);
-
   return (
     <div className="page logPage">
       <ProcessingOverlay
@@ -560,19 +546,16 @@ export default function LogPage() {
           <button
             type="button"
             className={`logPage__modeBtn ${isDayMode ? "is-active" : ""}`}
-            onClick={() => {
-              if (!confirmDiscardWeeklyChanges()) return;
-              setParams({ mode: "day", date: isWeekMode ? selectedWeekStart : selectedDate });
-            }}
+            onClick={() => setParams({ mode: "day", date: selectedDate })}
           >
             日ログ
           </button>
           <button
             type="button"
-            className={`logPage__modeBtn ${isWeekMode ? "is-active" : ""}`}
-            onClick={() => setParams({ mode: "week", week_start: selectedWeekStart })}
+            className={`logPage__modeBtn ${isMonthMode ? "is-active" : ""}`}
+            onClick={() => setParams({ mode: "month", month: selectedMonth })}
           >
-            週ログ
+            月ログ
           </button>
         </div>
       )}
@@ -581,56 +564,47 @@ export default function LogPage() {
         <LogHeader
           date={selectedDate}
           onChangeDate={onChangeDate}
-          onOpenMonthly={() => {
-            if (!authMe) {
-              navigate(`/login`, { state: { fromPath: `/log?mode=day&date=${encodeURIComponent(selectedDate)}` } });
-              return;
-            }
-            setMonthModalOpen(true);
-          }}
         />
       ) : (
         <div className="logPage__weekHeader">
           <div className="logPage__weekHeaderLeft">
             <div className="logPage__title">ログ</div>
-            <div className="logPage__muted">週の振り返りを記録</div>
+            <div className="logPage__muted">月の振り返りを記録</div>
           </div>
 
           <div className="logPage__weekNav">
             <button
               type="button"
               className="logPage__btn logPage__weekNavBtn"
-              onClick={() => {
-                if (!confirmDiscardWeeklyChanges()) return;
-                setParams({ mode: "week", week_start: addDaysISO(selectedWeekStart, -7) });
-              }}
+              onClick={() => setParams({ mode: "month", month: addMonths(selectedMonth, -1) })}
             >
-              前の週
+              前の月
             </button>
-            <div className="logPage__weekLabel">{weekLabel(selectedWeekStart)}</div>
+            <div className="logPage__weekLabel">{monthLabel(selectedMonth)}</div>
             <button
               type="button"
               className="logPage__btn logPage__weekNavBtn"
-              onClick={() => {
-                if (!confirmDiscardWeeklyChanges()) return;
-                setParams({ mode: "week", week_start: addDaysISO(selectedWeekStart, 7) });
-              }}
-              disabled={!canGoNextWeek}
+              onClick={() => setParams({ mode: "month", month: addMonths(selectedMonth, 1) })}
+              disabled={!canGoNextMonth}
             >
-              次の週
+              次の月
             </button>
-            {!isCurrentWeek && (
+            {selectedMonth !== currentMonth && (
               <button
                 type="button"
                 className="logPage__btn logPage__weekNowBtn"
-                onClick={() => {
-                  if (!confirmDiscardWeeklyChanges()) return;
-                  setParams({ mode: "week", week_start: currentWeekStart });
-                }}
+                onClick={() => setParams({ mode: "month", month: currentMonth })}
               >
-                今週へ
+                今月へ
               </button>
             )}
+            <button
+              type="button"
+              className="logPage__btn logPage__monthBtn"
+              onClick={() => setMonthModalOpen(true)}
+            >
+              月のログ一覧
+            </button>
           </div>
         </div>
       )}
@@ -753,7 +727,7 @@ export default function LogPage() {
         </div>
       )}
 
-      {isDayMode && (
+      {isMonthMode && (
         <MonthlyLogsModal
           open={monthModalOpen}
           month={monthKey}
@@ -783,9 +757,9 @@ export default function LogPage() {
             <div className="logPage__guestPreviewTitle">サンプルデータ表示中（保存されません）</div>
             <div className="logPage__guestPreviewGrid">
               <article className="logPage__guestPreviewCard">
-                <div className="logPage__guestPreviewCardTitle">最高音の変化が見える</div>
-                <div className="logPage__guestPreviewCardValue">裏声 A4 / 地声 E4</div>
-                <div className="logPage__guestPreviewCardText">裏声・地声の推移を日次で確認</div>
+                <div className="logPage__guestPreviewCardTitle">月ごとの積み上げが見える</div>
+                <div className="logPage__guestPreviewCardValue">合計 420 分 / 37 回</div>
+                <div className="logPage__guestPreviewCardText">今月の日ログ・実施数・合計時間を確認</div>
               </article>
 
               <article className="logPage__guestPreviewCard">
@@ -829,27 +803,96 @@ export default function LogPage() {
             currentStreakDays={guestMode ? 3 : currentStreakDays}
           />
         ) : (
-          <WeeklySummaryCard
-            key={`weekly-card-${selectedWeekStart}-${weekLog?.id ?? "none"}-${weekLog?.updated_at ?? "none"}`}
-            loading={weekLoading}
-            error={weekError}
-            log={weekLog}
-            summary={weekSummary}
-            emptyHint={weeklyEmptyHint}
-            saving={weekSaveLoading}
-            saveError={weekSaveError}
-            onSave={onSaveWeeklyLog}
-            onDirtyChange={setWeekHasUnsavedChanges}
-          />
+          <section className="card logPage__card">
+            <div className="logPage__cardHead">
+              <div className="logPage__cardTitle">{monthLabel(selectedMonth)}の月ログ</div>
+            </div>
+            {monthLoading && <div className="logPage__muted">読み込み中…</div>}
+            {!monthLoading && monthError && <div className="logPage__error">取得に失敗しました: {monthError}</div>}
+            {!monthLoading && !monthError && (
+              <>
+                <div className="logPage__kpiRow">
+                  <div className="logPage__kpi">
+                    <div className="logPage__kpiLabel">練習した日</div>
+                    <div className="logPage__kpiValue">
+                      <span className="logPage__kpiNumber">{monthPracticeDays}</span>
+                      <span className="logPage__kpiUnit">日</span>
+                    </div>
+                  </div>
+                  <div className="logPage__kpi">
+                    <div className="logPage__kpiLabel">累計練習時間</div>
+                    <div className="logPage__kpiValue">
+                      <span className="logPage__kpiNumber">{monthTotalDurationHourText}</span>
+                      <span className="logPage__kpiUnit">時間</span>
+                    </div>
+                  </div>
+                  <div className="logPage__kpi">
+                    <div className="logPage__kpiLabel">合計実施メニュー</div>
+                    <div className="logPage__kpiValue">
+                      <span className="logPage__kpiNumber">{monthTotalMenuCount}</span>
+                      <span className="logPage__kpiUnit">回</span>
+                    </div>
+                  </div>
+                  <div className="logPage__kpi">
+                    <div className="logPage__kpiLabel">最長継続日数</div>
+                    <div className="logPage__kpiValue">
+                      <span className="logPage__kpiNumber">{longestStreakDays ?? 0}</span>
+                      <span className="logPage__kpiUnit">日</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="logPage__section">
+                  <div className="logPage__sectionTitle">メニュー実施数（今月）</div>
+                  {monthMenuCounts.length === 0 ? (
+                    <div className="logPage__muted">この月のメニュー記録はまだありません。</div>
+                  ) : (
+                    <div className="logPage__monthList">
+                      {monthMenuCounts.map((entry) => (
+                        <div key={`month-menu-count-${entry.menu_id}`} className="logPage__monthRow">
+                          <div className="logPage__monthRowTop">
+                            <ColoredTag text={entry.name} color={entry.color ?? "#E5E7EB"} />
+                            <span>
+                              {entry.count}回（{toPercentText(entry.count, monthTotalMenuCount)}）
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="logPage__section">
+                  <div className="logPage__sectionTitle">月の振り返りメモ</div>
+                  <textarea
+                    className="logPage__monthMemo"
+                    rows={4}
+                    value={monthNotesDraft}
+                    onChange={(e) => setMonthNotesDraft(e.target.value)}
+                    placeholder="例: 今月の良かった点 / 来月に改善したい点"
+                  />
+                  <div className="logPage__actions">
+                    <button
+                      type="button"
+                      className="logPage__btn"
+                      onClick={() => void onSaveMonthlyLog({ notes: monthNotesDraft.trim() || null })}
+                      disabled={monthSaveLoading}
+                    >
+                      {monthSaveLoading ? "保存中…" : "月メモを保存"}
+                    </button>
+                    {monthSaveError && <div className="logPage__error">保存に失敗しました: {monthSaveError}</div>}
+                  </div>
+                </div>
+              </>
+            )}
+          </section>
         )}
 
         {showAiArea && (
           <AiRecommendationCard
-            title={isDayMode ? "今日のおすすめメニュー" : "今週のおすすめメニュー"}
+            title="今日のおすすめメニュー"
             meta={
-              isDayMode
-                ? `今日を含めて直近 ${settings.aiRangeDays} 日を参考`
-                : "先週と先々週の記録を参考"
+              `今日を含めて直近 ${settings.aiRangeDays} 日を参考`
             }
             aiLoading={aiLoading}
             aiError={guestMode && isDayMode ? null : aiError}

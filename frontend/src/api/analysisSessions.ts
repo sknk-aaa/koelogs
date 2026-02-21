@@ -69,7 +69,9 @@ export async function fetchAnalysisSessionsPage(query: AnalysisSessionsQuery): P
 export async function createAnalysisSession(input: {
   analysis_menu_id: number;
   duration_sec: number;
+  measurement_kind: string;
   peak_note?: string | null;
+  lowest_note?: string | null;
   pitch_stability_score?: number | null;
   voice_consistency_score?: number | null;
   range_semitones?: number | null;

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_21_122000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -48,11 +48,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
     t.text "focus_points"
     t.string "name", null: false
     t.jsonb "selected_metrics", default: [], null: false
+    t.string "system_key", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["selected_metrics"], name: "index_analysis_menus_on_selected_metrics", using: :gin
     t.index ["user_id", "archived"], name: "index_analysis_menus_on_user_id_and_archived"
     t.index ["user_id", "name"], name: "index_analysis_menus_on_user_id_and_name", unique: true
+    t.index ["user_id", "system_key"], name: "index_analysis_menus_on_user_id_and_system_key", unique: true
     t.index ["user_id"], name: "index_analysis_menus_on_user_id"
   end
 
@@ -64,6 +66,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
     t.datetime "created_at", null: false
     t.integer "duration_sec", default: 0, null: false
     t.text "feedback_text"
+    t.string "lowest_note"
+    t.string "measurement_kind", null: false
     t.string "peak_note"
     t.integer "pitch_stability_score"
     t.integer "range_semitones"
@@ -76,6 +80,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
     t.index ["analysis_menu_id", "recorded_scale_type", "recorded_tempo", "created_at"], name: "idx_analysis_sessions_compare_key"
     t.index ["analysis_menu_id"], name: "index_analysis_sessions_on_analysis_menu_id"
     t.index ["user_id", "analysis_menu_id", "created_at"], name: "idx_on_user_id_analysis_menu_id_created_at_09a97c749f"
+    t.index ["user_id", "measurement_kind", "created_at"], name: "idx_analysis_sessions_measurement_kind"
     t.index ["user_id"], name: "index_analysis_sessions_on_user_id"
   end
 
@@ -121,6 +126,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
     t.index ["normalized_name"], name: "index_menu_aliases_on_normalized_name", unique: true
   end
 
+  create_table "monthly_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "month_start", null: false
+    t.text "notes"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "month_start"], name: "index_monthly_logs_on_user_id_and_month_start", unique: true
+    t.index ["user_id"], name: "index_monthly_logs_on_user_id"
+  end
+
   create_table "scale_tracks", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "file_path"
@@ -153,10 +168,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
   end
 
   create_table "training_logs", force: :cascade do |t|
-    t.string "chest_top_note"
     t.datetime "created_at", null: false
     t.integer "duration_min"
-    t.string "falsetto_top_note"
     t.text "notes"
     t.date "practiced_on"
     t.datetime "updated_at", null: false
@@ -219,19 +232,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
     t.index ["password_reset_token_digest"], name: "index_users_on_password_reset_token_digest", unique: true
   end
 
-  create_table "weekly_logs", force: :cascade do |t|
-    t.string "chest_top_note"
-    t.datetime "created_at", null: false
-    t.jsonb "effect_feedbacks", default: [], null: false
-    t.string "falsetto_top_note"
-    t.text "notes"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.date "week_start", null: false
-    t.index ["user_id", "week_start"], name: "index_weekly_logs_on_user_id_and_week_start", unique: true
-    t.index ["user_id"], name: "index_weekly_logs_on_user_id"
-  end
-
   create_table "xp_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "points", null: false
@@ -255,6 +255,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
   add_foreign_key "community_post_favorites", "users"
   add_foreign_key "community_posts", "training_menus"
   add_foreign_key "community_posts", "users"
+  add_foreign_key "monthly_logs", "users"
   add_foreign_key "training_log_feedbacks", "training_logs"
   add_foreign_key "training_log_feedbacks", "users"
   add_foreign_key "training_log_menus", "training_logs", column: ["training_log_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_logs_same_user", on_delete: :cascade
@@ -263,6 +264,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
   add_foreign_key "training_logs", "users"
   add_foreign_key "training_menus", "users"
   add_foreign_key "user_badges", "users"
-  add_foreign_key "weekly_logs", "users"
   add_foreign_key "xp_events", "users"
 end

@@ -59,14 +59,24 @@ module Api
 
     def create
       menu = current_user.analysis_menus.find(create_params[:analysis_menu_id])
+      measurement_kind = create_params[:measurement_kind].presence || menu.system_key.presence || "generic"
+      peak_note = create_params[:peak_note]
+      lowest_note = create_params[:lowest_note]
+      range_semitones = create_params[:range_semitones]
+
+      if measurement_kind == "range" && range_semitones.blank?
+        range_semitones = semitone_distance(peak_note, lowest_note)
+      end
 
       session = current_user.analysis_sessions.new(
         analysis_menu: menu,
+        measurement_kind: measurement_kind,
         duration_sec: create_params[:duration_sec].to_i,
-        peak_note: create_params[:peak_note],
+        peak_note: peak_note,
+        lowest_note: lowest_note,
         pitch_stability_score: create_params[:pitch_stability_score],
         voice_consistency_score: create_params[:voice_consistency_score],
-        range_semitones: create_params[:range_semitones],
+        range_semitones: range_semitones,
         recorded_scale_type: create_params[:recorded_scale_type],
         recorded_tempo: create_params[:recorded_tempo],
         raw_metrics: create_params[:raw_metrics].presence || {}
@@ -121,7 +131,9 @@ module Api
       params.permit(
         :analysis_menu_id,
         :duration_sec,
+        :measurement_kind,
         :peak_note,
+        :lowest_note,
         :pitch_stability_score,
         :voice_consistency_score,
         :range_semitones,
@@ -143,7 +155,9 @@ module Api
         analysis_menu_id: session.analysis_menu_id,
         analysis_menu_name: session.analysis_menu&.name,
         duration_sec: session.duration_sec,
+        measurement_kind: session.measurement_kind,
         peak_note: session.peak_note,
+        lowest_note: session.lowest_note,
         pitch_stability_score: session.pitch_stability_score,
         voice_consistency_score: session.voice_consistency_score,
         range_semitones: session.range_semitones,
@@ -203,6 +217,47 @@ module Api
 
       payload = raw_metrics["ai_feedback"] || raw_metrics[:ai_feedback]
       payload.is_a?(Hash) ? payload : nil
+    end
+
+    def semitone_distance(peak_note, lowest_note)
+      top = note_to_midi(peak_note)
+      low = note_to_midi(lowest_note)
+      return nil if top.nil? || low.nil?
+
+      [ top - low, 0 ].max
+    end
+
+    def note_to_midi(note)
+      s = note.to_s.strip
+      return nil if s.empty?
+
+      m = s.match(/\A([A-Ga-g])([#b]?)(-?\d)\z/)
+      return nil if m.nil?
+
+      letter = m[1].upcase
+      accidental = m[2]
+      octave = m[3].to_i
+
+      semitone_base = {
+        "C" => 0, "D" => 2, "E" => 4, "F" => 5,
+        "G" => 7, "A" => 9, "B" => 11
+      }[letter]
+      return nil if semitone_base.nil?
+
+      semitone = semitone_base
+      semitone += 1 if accidental == "#"
+      semitone -= 1 if accidental == "b"
+      if semitone >= 12
+        semitone -= 12
+        octave += 1
+      elsif semitone < 0
+        semitone += 12
+        octave -= 1
+      end
+
+      (octave + 1) * 12 + semitone
+    rescue
+      nil
     end
   end
 end

@@ -22,11 +22,7 @@ module Api
     #   "practiced_on": "2026-02-13",
     #   "duration_min": 30,
     #   "menu_ids": [1,2,3],
-    #   "notes": "memo...",
-    #   "falsetto_enabled": true,
-    #   "falsetto_top_note": "A4",
-    #   "chest_enabled": false,
-    #   "chest_top_note": null
+    #   "notes": "memo..."
     # }
     def create
       practiced_on =
@@ -40,19 +36,9 @@ module Api
       log_was_new_record = log.new_record?
       had_feedback_before = log.training_log_feedback.present?
 
-      # enabled flags（事故防止のためフロントから送る）
-      falsetto_enabled = ActiveModel::Type::Boolean.new.cast(create_params[:falsetto_enabled])
-      chest_enabled = ActiveModel::Type::Boolean.new.cast(create_params[:chest_enabled])
-      log.falsetto_enabled = falsetto_enabled
-      log.chest_enabled = chest_enabled
-
       # assign
       log.duration_min = create_params[:duration_min]
       log.notes = create_params[:notes]
-
-      # “チェックOFFならNULL”を強制（フロントの送信ミスでも整合する）
-      log.falsetto_top_note = falsetto_enabled ? create_params[:falsetto_top_note] : nil
-      log.chest_top_note = chest_enabled ? create_params[:chest_top_note] : nil
 
       # menu_ids を検証して紐付け
       menu_ids = Array(create_params[:menu_ids]).map(&:to_i).uniq
@@ -183,10 +169,6 @@ module Api
         :practiced_on,
         :duration_min,
         :notes,
-        :falsetto_enabled,
-        :falsetto_top_note,
-        :chest_enabled,
-        :chest_top_note,
         menu_ids: [],
         effect_feedbacks: [ :menu_id, { improvement_tags: [] } ]
       )
@@ -224,8 +206,6 @@ module Api
         menus: ordered_menus,
         menu_ids: ordered_menu_ids, # フロントの state 用（あっても害なし）
         notes: log.notes,
-        falsetto_top_note: log.falsetto_top_note,
-        chest_top_note: log.chest_top_note,
         effect_feedbacks: serialize_effect_feedbacks(log),
         effective_menu_ids: log.training_log_feedback&.effective_menu_ids || [],
         improvement_tags: log.training_log_feedback&.improvement_tags || [],

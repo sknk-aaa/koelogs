@@ -133,8 +133,6 @@ module Ai
           lines << "・日付: #{log.practiced_on.iso8601}"
           lines << "  練習時間(分): #{log.duration_min || 0}"
           lines << "  実施メニュー: #{menu_names.any? ? menu_names.join(' | ') : '(なし)'}"
-          lines << "  裏声の最高音: #{log.falsetto_top_note || '-'}"
-          lines << "  地声の最高音: #{log.chest_top_note || '-'}"
 
           if log.notes.present?
             short = log.notes.to_s.gsub(/\s+/, " ").slice(0, 140)

@@ -6,15 +6,14 @@ Rails.application.routes.draw do
     # training logs
     get "training_logs", to: "training_logs#index"
     post "training_logs", to: "training_logs#create"
-    get "weekly_logs", to: "weekly_logs#show"
-    post "weekly_logs", to: "weekly_logs#create"
+    get "monthly_logs", to: "monthly_logs#show"
+    post "monthly_logs", to: "monthly_logs#create"
 
     # training menus
     resources :training_menus, only: [ :index, :create, :update ]
-    resources :analysis_menus, only: [ :index, :create, :update ]
-    resources :analysis_sessions, only: [ :index, :create, :destroy ] do
-      member do
-        post :upload_audio
+    resources :measurements, only: [ :index, :create ] do
+      collection do
+        get :latest
       end
     end
 

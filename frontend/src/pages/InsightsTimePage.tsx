@@ -15,6 +15,7 @@ type LoadState =
   | { kind: "ready"; data: InsightsData };
 
 const PERIODS = [30, 90] as const;
+const HEATMAP_DAYS = 90;
 
 function formatRange(from: string, to: string) {
   return `${from} 〜 ${to}`;
@@ -34,11 +35,16 @@ export default function InsightsTimePage() {
   const location = useLocation();
   const { me, isLoading: authLoading } = useAuth();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
-  const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [summaryState, setSummaryState] = useState<LoadState>({ kind: "loading" });
+  const [heatmapState, setHeatmapState] = useState<LoadState>({ kind: "loading" });
   const guestMode = !authLoading && !me;
-  const guestData = useMemo(
+  const guestSummaryData = useMemo(
     () => (guestMode ? makeMockInsights(days) : null),
     [guestMode, days]
+  );
+  const guestHeatmapData = useMemo(
+    () => (guestMode ? makeMockInsights(HEATMAP_DAYS) : null),
+    [guestMode]
   );
 
   useEffect(() => {
@@ -46,19 +52,19 @@ export default function InsightsTimePage() {
 
     let cancelled = false;
     (async () => {
-      setState({ kind: "loading" });
+      setSummaryState({ kind: "loading" });
       const res = await fetchInsights(days);
       if (cancelled) return;
 
       if ("error" in res && res.error) {
-        setState({ kind: "error", message: res.error });
+        setSummaryState({ kind: "error", message: res.error });
         return;
       }
       if (!res.data) {
-        setState({ kind: "error", message: "No data" });
+        setSummaryState({ kind: "error", message: "No data" });
         return;
       }
-      setState({ kind: "ready", data: res.data });
+      setSummaryState({ kind: "ready", data: res.data });
     })();
 
     return () => {
@@ -66,17 +72,43 @@ export default function InsightsTimePage() {
     };
   }, [authLoading, days, guestMode]);
 
-  const data = guestData ?? (state.kind === "ready" ? state.data : null);
+  useEffect(() => {
+    if (authLoading || guestMode) return;
+
+    let cancelled = false;
+    (async () => {
+      setHeatmapState({ kind: "loading" });
+      const res = await fetchInsights(HEATMAP_DAYS);
+      if (cancelled) return;
+
+      if ("error" in res && res.error) {
+        setHeatmapState({ kind: "error", message: res.error });
+        return;
+      }
+      if (!res.data) {
+        setHeatmapState({ kind: "error", message: "No data" });
+        return;
+      }
+      setHeatmapState({ kind: "ready", data: res.data });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, guestMode]);
+
+  const summaryData = guestSummaryData ?? (summaryState.kind === "ready" ? summaryState.data : null);
+  const heatmapData = guestHeatmapData ?? (heatmapState.kind === "ready" ? heatmapState.data : null);
   const backTo = ((location.state as { fromPath?: string } | null)?.fromPath) || "/insights";
 
-  const total = useMemo(() => (data ? sumTotalMinutes(data) : 0), [data]);
-  const max = useMemo(() => (data ? maxDailyMinutes(data) : 0), [data]);
+  const total = useMemo(() => (summaryData ? sumTotalMinutes(summaryData) : 0), [summaryData]);
+  const max = useMemo(() => (summaryData ? maxDailyMinutes(summaryData) : 0), [summaryData]);
 
   const avgPerDay = useMemo(() => {
-    if (!data) return 0;
-    const denom = Math.max(1, data.range.days);
+    if (!summaryData) return 0;
+    const denom = Math.max(1, summaryData.range.days);
     return Math.round((total / denom) * 10) / 10;
-  }, [data, total]);
+  }, [summaryData, total]);
 
   return (
     <div className="page insightsPage">
@@ -120,10 +152,17 @@ export default function InsightsTimePage() {
         </section>
       )}
 
-      {!guestData && state.kind === "loading" && <MetronomeLoader label="読み込み中..." />}
-      {!guestData && state.kind === "error" && <div className="insightsError">取得に失敗しました: {state.message}</div>}
+      {!guestSummaryData && (summaryState.kind === "loading" || heatmapState.kind === "loading") && (
+        <MetronomeLoader label="読み込み中..." />
+      )}
+      {!guestSummaryData && summaryState.kind === "error" && (
+        <div className="insightsError">取得に失敗しました: {summaryState.message}</div>
+      )}
+      {!guestSummaryData && heatmapState.kind === "error" && (
+        <div className="insightsError">取得に失敗しました: {heatmapState.message}</div>
+      )}
 
-      {data && (
+      {summaryData && heatmapData && (
         <div className="insightsStack">
           <section className="insightsCard">
             <div className="insightsCard__head">
@@ -134,10 +173,10 @@ export default function InsightsTimePage() {
               <Stat label="合計" value={`${total} 分`} />
               <Stat label="平均（分/日）" value={`${avgPerDay}`} />
               <Stat label="最大" value={`${max} 分`} />
-              <Stat label="練習日数" value={`${data.practice_days_count} 日`} />
+              <Stat label="練習日数" value={`${summaryData.practice_days_count} 日`} />
             </div>
 
-            <div className="insightsMuted">期間: {formatRange(data.range.from, data.range.to)}</div>
+            <div className="insightsMuted">期間: {formatRange(summaryData.range.from, summaryData.range.to)}</div>
           </section>
 
           <section className="insightsCard">
@@ -145,8 +184,8 @@ export default function InsightsTimePage() {
               <div className="insightsCard__title">練習時間の推移</div>
             </div>
 
-            <DurationHeatmapCalendar points={data.daily_durations} />
-            <div className="insightsMuted">日付ごとの練習時間を色の濃さで確認できます</div>
+            <DurationHeatmapCalendar points={heatmapData.daily_durations} />
+            <div className="insightsMuted">色分けカレンダーは直近 {HEATMAP_DAYS} 日固定表示です</div>
           </section>
         </div>
       )}

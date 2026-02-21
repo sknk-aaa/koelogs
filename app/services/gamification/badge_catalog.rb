@@ -36,13 +36,6 @@ module Gamification
         required: 30
       ),
       Badge.new(
-        key: "weekly_3",
-        name: "Weekly Reflector",
-        description: "週振り返りを3回保存",
-        metric_key: :weekly_log_count,
-        required: 3
-      ),
-      Badge.new(
         key: "xp_500",
         name: "XP 500",
         description: "累計XP 500到達",
@@ -54,7 +47,7 @@ module Gamification
     XP_RULE_POINTS = {
       "training_log_saved" => 10,
       "training_log_feedback_added" => 5,
-      "weekly_log_saved" => 20
+      "monthly_log_saved" => 20
     }.freeze
   end
 end

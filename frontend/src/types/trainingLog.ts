@@ -19,8 +19,6 @@ export type TrainingLog = {
   menu_ids?: number[];
 
   notes: string | null;
-  falsetto_top_note: string | null;
-  chest_top_note: string | null;
   effect_feedbacks?: Array<{ menu_id: number; improvement_tags: string[] }>;
   effective_menu_ids?: number[];
   improvement_tags?: string[];

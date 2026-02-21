@@ -84,6 +84,13 @@ export default function ProcessingOverlay({
             loop
             muted
             playsInline
+            onEnded={(e) => {
+              const el = e.currentTarget;
+              el.currentTime = 0;
+              void el.play().catch(() => {
+                // no-op: browser autoplay policy fallback
+              });
+            }}
             onError={() => {
               if (srcIndex < videoSources.length - 1) {
                 setSrcIndex((i) => i + 1);

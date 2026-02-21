@@ -12,13 +12,6 @@ export type DailyDurationPoint = {
   duration_min: number; // 0.. (missing => 0)
 };
 
-export type MenuRankingItem = {
-  menu_id: number;
-  name: string;
-  color: string;
-  count: number;
-};
-
 export type TopNote = {
   note: string | null; // e.g. "A4"
   midi: number | null; // e.g. 69
@@ -30,15 +23,24 @@ export type DailyNotePoint = {
   midi: number | null; // 欠損日は null
 };
 
+export type MeasurementPoint = {
+  date: string;
+  value: number | null;
+};
+
 export type InsightsData = {
   range: InsightsRange;
   daily_durations: DailyDurationPoint[];
   practice_days_count: number; // within range
   total_practice_days_count: number; // all time
-  menu_ranking: MenuRankingItem[];
   note_series: {
     falsetto: DailyNotePoint[];
     chest: DailyNotePoint[];
+  };
+  measurement_series?: {
+    range: MeasurementPoint[];
+    long_tone: MeasurementPoint[];
+    volume_stability: MeasurementPoint[];
   };
   streaks: {
     current_days: number;

@@ -3,7 +3,6 @@ import AppHeader from "./AppHeader";
 import AppFooterTabs from "./AppFooterTabs";
 
 function titleFromPath(pathname: string) {
-  if (pathname.startsWith("/analysis/history")) return "分析履歴";
   if (pathname.startsWith("/training")) return "トレーニング";
   if (pathname.startsWith("/insights")) return "分析";
   if (pathname.startsWith("/community/rankings")) return "ランキング";

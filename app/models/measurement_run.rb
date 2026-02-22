@@ -1,5 +1,5 @@
 class MeasurementRun < ApplicationRecord
-  MEASUREMENT_TYPES = %w[range long_tone volume_stability].freeze
+  MEASUREMENT_TYPES = %w[range long_tone volume_stability pitch_accuracy].freeze
 
   belongs_to :user
 
@@ -13,6 +13,10 @@ class MeasurementRun < ApplicationRecord
           inverse_of: :measurement_run
   has_one :volume_stability_result,
           class_name: "MeasurementVolumeStabilityResult",
+          dependent: :destroy,
+          inverse_of: :measurement_run
+  has_one :pitch_accuracy_result,
+          class_name: "MeasurementPitchAccuracyResult",
           dependent: :destroy,
           inverse_of: :measurement_run
 
@@ -29,6 +33,8 @@ class MeasurementRun < ApplicationRecord
       long_tone_result
     when "volume_stability"
       volume_stability_result
+    when "pitch_accuracy"
+      pitch_accuracy_result
     else
       nil
     end

@@ -1,6 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
-export type MeasurementType = "range" | "long_tone" | "volume_stability";
+export type MeasurementType = "range" | "long_tone" | "volume_stability" | "pitch_accuracy";
 
 export type MeasurementRun = {
   id: number;
@@ -29,6 +29,11 @@ export type MeasurementRun = {
         loudness_range_ratio?: number | null;
         loudness_range_pct?: number | null;
       }
+    | {
+        avg_cents_error?: number | null;
+        accuracy_score?: number | null;
+        note_count?: number | null;
+      }
     | null;
 };
 
@@ -55,6 +60,11 @@ export async function createMeasurement(input: {
     loudness_range_db?: number | null;
     loudness_range_ratio?: number | null;
     loudness_range_pct?: number | null;
+  };
+  pitch_accuracy_result?: {
+    avg_cents_error?: number | null;
+    accuracy_score?: number | null;
+    note_count?: number | null;
   };
 }): Promise<MeasurementRun> {
   const res = await fetch(`${API_BASE}/api/measurements`, {
@@ -84,12 +94,18 @@ export async function fetchLatestMeasurements(): Promise<{
   range: MeasurementRun | null;
   long_tone: MeasurementRun | null;
   volume_stability: MeasurementRun | null;
+  pitch_accuracy: MeasurementRun | null;
 }> {
   const res = await fetch(`${API_BASE}/api/measurements/latest`, {
     credentials: "include",
   });
   const json = (await res.json()) as {
-    data?: { range: MeasurementRun | null; long_tone: MeasurementRun | null; volume_stability: MeasurementRun | null };
+    data?: {
+      range: MeasurementRun | null;
+      long_tone: MeasurementRun | null;
+      volume_stability: MeasurementRun | null;
+      pitch_accuracy: MeasurementRun | null;
+    };
     error?: string;
   };
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch latest measurements");
@@ -98,6 +114,7 @@ export async function fetchLatestMeasurements(): Promise<{
       range: null,
       long_tone: null,
       volume_stability: null,
+      pitch_accuracy: null,
     }
   );
 }

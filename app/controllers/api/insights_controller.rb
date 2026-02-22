@@ -64,7 +64,7 @@ module Api
     private
 
     def build_measurement_data(from:, to:, days:)
-      kinds = %w[range long_tone volume_stability]
+      kinds = %w[range long_tone volume_stability pitch_accuracy]
       value_by_kind_and_date = {}
       kinds.each { |kind| value_by_kind_and_date[kind] = {} }
       top_notes = {
@@ -74,7 +74,7 @@ module Api
 
       runs = current_user.measurement_runs
                         .where(measurement_type: kinds, recorded_at: from.beginning_of_day..to.end_of_day)
-                        .includes(:range_result, :long_tone_result, :volume_stability_result)
+                        .includes(:range_result, :long_tone_result, :volume_stability_result, :pitch_accuracy_result)
                         .order(:recorded_at)
       runs.each do |run|
         kind = run.measurement_type.to_s
@@ -119,7 +119,10 @@ module Api
       when "long_tone"
         run.long_tone_result&.sustain_sec&.to_f
       when "volume_stability"
-        run.volume_stability_result&.loudness_range_pct&.to_f
+        score = run.volume_stability_result&.loudness_range_pct&.to_f
+        score&.clamp(0.0, 100.0)
+      when "pitch_accuracy"
+        run.pitch_accuracy_result&.accuracy_score&.to_f
       else
         nil
       end

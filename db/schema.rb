@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_22_124000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_22_153000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -73,6 +73,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_124000) do
     t.decimal "sustain_sec", precision: 8, scale: 2, null: false
     t.datetime "updated_at", null: false
     t.index ["measurement_run_id"], name: "index_measurement_long_tone_results_on_measurement_run_id", unique: true
+  end
+
+  create_table "measurement_pitch_accuracy_results", force: :cascade do |t|
+    t.decimal "accuracy_score", precision: 8, scale: 3
+    t.decimal "avg_cents_error", precision: 8, scale: 3
+    t.datetime "created_at", null: false
+    t.bigint "measurement_run_id", null: false
+    t.integer "note_count"
+    t.datetime "updated_at", null: false
+    t.index ["measurement_run_id"], name: "index_measurement_pitch_accuracy_results_on_measurement_run_id", unique: true
   end
 
   create_table "measurement_range_results", force: :cascade do |t|
@@ -253,6 +263,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_124000) do
   add_foreign_key "community_posts", "training_menus"
   add_foreign_key "community_posts", "users"
   add_foreign_key "measurement_long_tone_results", "measurement_runs"
+  add_foreign_key "measurement_pitch_accuracy_results", "measurement_runs"
   add_foreign_key "measurement_range_results", "measurement_runs"
   add_foreign_key "measurement_runs", "users"
   add_foreign_key "measurement_volume_stability_results", "measurement_runs"

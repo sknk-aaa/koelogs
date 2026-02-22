@@ -6,4 +6,10 @@ class MeasurementVolumeStabilityResult < ApplicationRecord
             :loudness_range_db, :loudness_range_ratio, :loudness_range_pct,
             numericality: true,
             allow_nil: true
+  validates :loudness_range_pct,
+            numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 },
+            allow_nil: true
+  validates :loudness_range_ratio,
+            numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 1 },
+            allow_nil: true
 end

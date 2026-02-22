@@ -3,7 +3,7 @@ module Api
     before_action :require_login!
 
     def index
-      scope = current_user.measurement_runs.includes(:range_result, :long_tone_result, :volume_stability_result)
+      scope = current_user.measurement_runs.includes(:range_result, :long_tone_result, :volume_stability_result, :pitch_accuracy_result)
       include_in_insights = params[:include_in_insights]
       if include_in_insights.present?
         scope = scope.where(include_in_insights: ActiveModel::Type::Boolean.new.cast(include_in_insights))
@@ -26,7 +26,7 @@ module Api
 
     def latest
       rows = current_user.measurement_runs
-                         .includes(:range_result, :long_tone_result, :volume_stability_result)
+                         .includes(:range_result, :long_tone_result, :volume_stability_result, :pitch_accuracy_result)
                          .where(include_in_insights: true)
                          .latest_first
       latest_map = {}
@@ -38,7 +38,8 @@ module Api
         data: {
           range: latest_map["range"] ? serialize(latest_map["range"]) : nil,
           long_tone: latest_map["long_tone"] ? serialize(latest_map["long_tone"]) : nil,
-          volume_stability: latest_map["volume_stability"] ? serialize(latest_map["volume_stability"]) : nil
+          volume_stability: latest_map["volume_stability"] ? serialize(latest_map["volume_stability"]) : nil,
+          pitch_accuracy: latest_map["pitch_accuracy"] ? serialize(latest_map["pitch_accuracy"]) : nil
         }
       }, status: :ok
     end
@@ -65,6 +66,9 @@ module Api
         when "volume_stability"
           attrs = normalize_volume_result(payload[:volume_stability_result], run)
           run.create_volume_stability_result!(attrs)
+        when "pitch_accuracy"
+          attrs = normalize_pitch_accuracy_result(payload[:pitch_accuracy_result], run)
+          run.create_pitch_accuracy_result!(attrs)
         else
           run.errors.add(:measurement_type, "is invalid")
           raise ActiveRecord::RecordInvalid, run
@@ -116,6 +120,11 @@ module Api
           :loudness_range_db,
           :loudness_range_ratio,
           :loudness_range_pct
+        ],
+        pitch_accuracy_result: [
+          :avg_cents_error,
+          :accuracy_score,
+          :note_count
         ]
       )
     end
@@ -166,8 +175,17 @@ module Api
           min_loudness_db: decimal_or_nil(r.min_loudness_db),
           max_loudness_db: decimal_or_nil(r.max_loudness_db),
           loudness_range_db: decimal_or_nil(r.loudness_range_db),
-          loudness_range_ratio: decimal_or_nil(r.loudness_range_ratio),
-          loudness_range_pct: decimal_or_nil(r.loudness_range_pct)
+          loudness_range_ratio: clamp_ratio_or_nil(decimal_or_nil(r.loudness_range_ratio)),
+          loudness_range_pct: clamp_score_or_nil(decimal_or_nil(r.loudness_range_pct))
+        }
+      when "pitch_accuracy"
+        r = run.pitch_accuracy_result
+        return nil unless r
+
+        {
+          avg_cents_error: decimal_or_nil(r.avg_cents_error),
+          accuracy_score: decimal_or_nil(r.accuracy_score),
+          note_count: r.note_count
         }
       end
     end
@@ -176,6 +194,18 @@ module Api
       return nil if v.nil?
 
       v.to_f
+    end
+
+    def clamp_score_or_nil(v)
+      return nil if v.nil?
+
+      v.to_f.clamp(0.0, 100.0)
+    end
+
+    def clamp_ratio_or_nil(v)
+      return nil if v.nil?
+
+      v.to_f.clamp(0.0, 1.0)
     end
 
     def normalize_range_result(raw, run)
@@ -224,8 +254,6 @@ module Api
       ratio =
         if attrs[:loudness_range_ratio].present?
           attrs[:loudness_range_ratio].to_f
-        elsif avg.abs > 0.0001
-          range_db / avg.abs
         end
 
       pct =
@@ -233,7 +261,14 @@ module Api
           attrs[:loudness_range_pct].to_f
         elsif ratio
           ratio * 100.0
+        else
+          # volume stability score (0..100): 100 - 12 * spread_db
+          # fallback uses provided range_db when score is not explicitly sent.
+          100.0 - (range_db * 12.0)
         end
+
+      pct = pct.clamp(0.0, 100.0) if pct
+      ratio = (pct / 100.0) if ratio.nil? && pct
 
       attrs[:avg_loudness_db] = avg
       attrs[:min_loudness_db] = min
@@ -241,6 +276,23 @@ module Api
       attrs[:loudness_range_db] = range_db
       attrs[:loudness_range_ratio] = ratio
       attrs[:loudness_range_pct] = pct
+      attrs
+    end
+
+    def normalize_pitch_accuracy_result(raw, run)
+      attrs = (raw || {}).to_h.symbolize_keys
+      if attrs[:avg_cents_error].blank? || attrs[:accuracy_score].blank?
+        run.errors.add(:base, "pitch_accuracy_result requires avg_cents_error and accuracy_score")
+        raise ActiveRecord::RecordInvalid, run
+      end
+
+      avg_cents = attrs[:avg_cents_error].to_f
+      score = attrs[:accuracy_score].to_f.clamp(0.0, 100.0)
+      note_count = attrs[:note_count].present? ? attrs[:note_count].to_i : nil
+
+      attrs[:avg_cents_error] = avg_cents
+      attrs[:accuracy_score] = score
+      attrs[:note_count] = note_count
       attrs
     end
   end

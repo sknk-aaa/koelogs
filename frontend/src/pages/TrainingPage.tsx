@@ -1,5 +1,5 @@
 // frontend/src/pages/TrainingPage.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ScaleTrack, ScaleType, Tempo } from "../api/scaleTracks";
 import { SCALE_TYPES, TEMPOS } from "../features/training/constants";
@@ -9,13 +9,13 @@ import TrackFilters from "../features/training/components/TrackFilters";
 import AudioPlayer from "../features/training/components/AudioPlayer";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
-import { createMeasurement, updateMeasurement, type MeasurementRun } from "../api/measurements";
+import { createMeasurement, fetchMeasurements, updateMeasurement, type MeasurementRun } from "../api/measurements";
 import MetronomeLoader from "../components/MetronomeLoader";
 import ProcessingOverlay from "../components/ProcessingOverlay";
 
 import "./TrainingPage.css";
 
-type MeasurementSystemKey = "range" | "long_tone" | "volume_stability";
+type MeasurementSystemKey = "range" | "long_tone" | "volume_stability" | "pitch_accuracy";
 type RangePhase = "chest" | "falsetto";
 type MeasurementInstantResult = {
   runId: number;
@@ -41,6 +41,10 @@ type MeasurementInstantResult = {
   maxLoudnessDb?: number | null;
   loudnessRangeDb?: number | null;
   loudnessRangePct?: number | null;
+  loudnessTimeline?: number[];
+  pitchAccuracyScore?: number | null;
+  pitchAccuracyAvgCents?: number | null;
+  pitchAccuracyNoteCount?: number | null;
 };
 const NOISE_DB_THRESHOLD = -140;
 const MIN_VOICED_STREAK_FRAMES = 1;
@@ -72,6 +76,12 @@ const MEASUREMENT_SHORTCUTS: Array<{
     note: "固定条件で音量のばらつきを確認",
     selectedSummary: "平均音量 / 最小音量 / 最大音量 / 差分比率",
   },
+  {
+    title: "音程精度",
+    systemKey: "pitch_accuracy",
+    note: "発声した音程のズレ量を確認",
+    selectedSummary: "平均ズレ（cent） / 精度スコア / 発声音数",
+  },
 ];
 
 const PRESET_INFO: Array<{
@@ -94,6 +104,12 @@ const PRESET_INFO: Array<{
     title: "音量安定性",
     description: "発声中の音量のばらつきを評価します。",
     savedData: "保存データ: 平均音量 / 最小音量 / 最大音量 / 差分 / 差分比率",
+    condition: "固定条件: トレーニング音源から選択したスケール/テンポ",
+  },
+  {
+    title: "音程精度",
+    description: "発声した音程のズレ（cent）を評価します。",
+    savedData: "保存データ: 平均ズレ（cent） / 精度スコア / 発声音数",
     condition: "固定条件: トレーニング音源から選択したスケール/テンポ",
   },
 ];
@@ -121,6 +137,10 @@ export default function TrainingPage() {
   const [measurementInstantResult, setMeasurementInstantResult] = useState<MeasurementInstantResult | null>(null);
   const [measurementResultModalOpen, setMeasurementResultModalOpen] = useState(false);
   const [measurementResultSaving, setMeasurementResultSaving] = useState(false);
+  const [longToneCompare, setLongToneCompare] = useState<{ previousSec: number | null; bestSec: number | null }>({
+    previousSec: null,
+    bestSec: null,
+  });
   const [rangePhase, setRangePhase] = useState<RangePhase | null>(null);
 
   const measurementAudioContextRef = useStateRef<AudioContext | null>(null);
@@ -143,6 +163,7 @@ export default function TrainingPage() {
   const measurementRangeChestMidiRef = useStateRef<number[]>([]);
   const measurementRangeFalsettoMidiRef = useStateRef<number[]>([]);
   const bodyOverflowBackupRef = useStateRef<string | null>(null);
+  const measurementSaveBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const selected: ScaleTrack | null = useMemo(() => {
     return tracks.find((t) => t.scale_type === scaleType && t.tempo === tempo) ?? null;
@@ -201,6 +222,44 @@ export default function TrainingPage() {
       delete document.body.dataset.hideChrome;
     };
   }, [measurementMetricInfoOpen, measurementRecording, measurementResultModalOpen, bodyOverflowBackupRef]);
+
+  useEffect(() => {
+    if (!measurementResultModalOpen || !measurementInstantResult) return;
+    const raf = requestAnimationFrame(() => {
+      if (!measurementInstantResult.includeInInsights) {
+        measurementSaveBtnRef.current?.focus();
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [measurementResultModalOpen, measurementInstantResult]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!measurementResultModalOpen || !measurementInstantResult || measurementInstantResult.title !== "ロングトーン") {
+      setLongToneCompare({ previousSec: null, bestSec: null });
+      return;
+    }
+    (async () => {
+      try {
+        const runs = await fetchMeasurements({ measurement_type: "long_tone", days: 365, limit: 100 });
+        if (cancelled) return;
+        const normalized = runs
+          .map((run) => ({ run, sec: longToneSecFromResult(run.result) }))
+          .filter((v) => v.sec != null) as Array<{ run: MeasurementRun; sec: number }>;
+        const sorted = normalized.sort((a, b) => b.run.recorded_at.localeCompare(a.run.recorded_at));
+        const currentId = measurementInstantResult.runId;
+        const previous = sorted.find((v) => v.run.id !== currentId) ?? null;
+        const best = sorted.reduce<number | null>((acc, cur) => (acc == null || cur.sec > acc ? cur.sec : acc), null);
+        setLongToneCompare({ previousSec: previous?.sec ?? null, bestSec: best });
+      } catch {
+        if (cancelled) return;
+        setLongToneCompare({ previousSec: null, bestSec: null });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [measurementResultModalOpen, measurementInstantResult]);
 
   const startMeasurementRecording = async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -519,6 +578,14 @@ export default function TrainingPage() {
     const lowestNote = quantizedMids.length ? midiToNote(Math.round(minMidi)) : null;
     const sustainNote = representativeMidi != null ? midiToNote(Math.round(representativeMidi)) : null;
     const rangeSemitones = quantizedMids.length ? Math.max(0, Math.round(maxMidi - minMidi)) : null;
+    const pitchAbsCentsErrors = refinedMids.map((m) => Math.abs(m - Math.round(m)) * 100);
+    const pitchAvgCentsError =
+      pitchAbsCentsErrors.length > 0
+        ? pitchAbsCentsErrors.reduce((acc, v) => acc + v, 0) / pitchAbsCentsErrors.length
+        : null;
+    const pitchScoreRaw = pitchAvgCentsError != null ? 100 - pitchAvgCentsError / 2 : null;
+    const pitchAccuracyScore = pitchScoreRaw != null ? Math.max(0, Math.min(100, pitchScoreRaw)) : null;
+    const pitchNoteCount = refinedMids.length;
     const avgLoudnessDb = loudnessDbSamples.length
       ? loudnessDbSamples.reduce((acc, v) => acc + v, 0) / loudnessDbSamples.length
       : -99;
@@ -568,6 +635,13 @@ export default function TrainingPage() {
       return null;
     }
     if (
+      activeMeasurementKey === "pitch_accuracy" &&
+      (pitchAccuracyScore == null || pitchAvgCentsError == null || pitchNoteCount === 0)
+    ) {
+      setMeasurementError("音程精度を判定できませんでした。発声して再測定してください。");
+      return null;
+    }
+    if (
       activeMeasurementKey === "volume_stability" &&
       (!Number.isFinite(avgLoudnessDb) || loudnessDbSamples.length === 0)
     ) {
@@ -588,6 +662,9 @@ export default function TrainingPage() {
         phonationDurationSec,
         loudnessDbSamples,
         avgLoudnessDb,
+        pitchAccuracyScore,
+        pitchAvgCentsError,
+        pitchNoteCount,
       });
       return buildMeasurementInstantResult({
         runId: savedRun.id,
@@ -607,6 +684,9 @@ export default function TrainingPage() {
         phonationDurationSec,
         loudnessDbSamples,
         avgLoudnessDb,
+        pitchAccuracyScore,
+        pitchAvgCentsError,
+        pitchNoteCount,
       });
     } catch (e) {
       setMeasurementError(errorMessage(e, "測定結果の保存に失敗しました"));
@@ -766,7 +846,7 @@ export default function TrainingPage() {
             className={`trainingPage__resultModalCard${
               measurementInstantResult.title === "音域"
                 ? " is-range"
-                : measurementInstantResult.title === "ロングトーン"
+                : measurementInstantResult.title === "ロングトーン" || measurementInstantResult.title === "音程精度"
                   ? " is-long-tone"
                   : " is-volume"
             }`}
@@ -774,26 +854,50 @@ export default function TrainingPage() {
             aria-modal="true"
             aria-label="測定結果"
             onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.stopPropagation();
+                closeMeasurementResultModal();
+                return;
+              }
+              if ((e.key === "Enter" || e.key === " ") && measurementInstantResult.title === "音域" && !measurementInstantResult.includeInInsights) {
+                e.preventDefault();
+                void saveMeasurementForInsights();
+                return;
+              }
+              e.stopPropagation();
+            }}
           >
-            <div className="trainingPage__resultModalTitle">
-              {measurementInstantResult.source === "file" ? "解析完了" : "測定完了"}
-            </div>
-            {measurementInstantResult.title === "音域" && (
-              <div className="trainingPage__resultModalHero">
-                <div className="trainingPage__resultModalHeroLabel">あなたの音域は</div>
-                <div className="trainingPage__resultModalHeroValue">
-                  {measurementInstantResult.rangeOctaves != null ? measurementInstantResult.rangeOctaves.toFixed(2) : "-"}
-                  <span className="trainingPage__resultModalHeroUnit">オクターブ</span>
+            <div className="trainingPage__resultModalHeader">
+              <div className="trainingPage__resultModalTitle">
+                {measurementInstantResult.source === "file" ? "解析完了" : "測定完了"}
+              </div>
+              {measurementInstantResult.title !== "音域" && (
+                <div className="trainingPage__resultModalMeta">
+                  {measurementInstantResult.title} / {measurementInstantResult.measuredAt}
                 </div>
-              </div>
-            )}
-            {measurementInstantResult.title !== "音域" && (
-              <div className="trainingPage__resultModalMeta">
-                {measurementInstantResult.title} / {measurementInstantResult.measuredAt}
-              </div>
-            )}
-            {measurementInstantResult.title === "音域" && (
+              )}
+            </div>
+
+            <div className="trainingPage__resultModalBody">
+              {measurementInstantResult.title === "音域" && (
+                <div className="trainingPage__resultModalHero">
+                  <div className="trainingPage__resultModalHeroLabel">あなたの音域は</div>
+                  <div className="trainingPage__resultModalHeroValue">
+                    {measurementInstantResult.rangeOctaves != null ? measurementInstantResult.rangeOctaves.toFixed(2) : "-"}
+                    <span className="trainingPage__resultModalHeroUnit">oct</span>
+                  </div>
+                  <div className="trainingPage__resultModalHeroSub">
+                    {measurementInstantResult.rangeSemitones != null ? `(${formatSemitoneLabel(measurementInstantResult.rangeSemitones)})` : "(semitone未算出)"}
+                  </div>
+                  {measurementInstantResult.lowestNote && measurementInstantResult.highestNote && (
+                    <div className="trainingPage__resultModalHeroAssist">
+                      {measurementInstantResult.lowestNote} → {measurementInstantResult.highestNote}
+                    </div>
+                  )}
+                </div>
+              )}
+              {measurementInstantResult.title === "音域" && (
               <RangeResultVisualizer
                 lowestNote={measurementInstantResult.lowestNote ?? null}
                 highestNote={measurementInstantResult.highestNote ?? null}
@@ -801,51 +905,59 @@ export default function TrainingPage() {
                 falsettoTopNote={measurementInstantResult.falsettoTopNote ?? null}
                 chestLowestNote={measurementInstantResult.chestLowestNote ?? null}
                 falsettoLowestNote={measurementInstantResult.falsettoLowestNote ?? null}
-                overlapHighestNote={measurementInstantResult.overlapHighestNote ?? null}
-                overlapLowestNote={measurementInstantResult.overlapLowestNote ?? null}
-              />
-            )}
-            {measurementInstantResult.title === "ロングトーン" && (
-              <div className="trainingPage__resultModalMetric">
-                <div className="trainingPage__resultModalMetricValue">
-                  {measurementInstantResult.longToneSec != null ? measurementInstantResult.longToneSec.toFixed(1) : "-"}
-                  <span>秒</span>
-                </div>
-                <div className="trainingPage__resultModalMetricSub">発声音程: {measurementInstantResult.sustainNote ?? "-"}</div>
-              </div>
-            )}
-            {measurementInstantResult.title === "音量安定性" && (
-              <div className="trainingPage__resultModalMetric">
-                <div className="trainingPage__resultModalMetricValue">
-                  {measurementInstantResult.loudnessRangePct != null ? measurementInstantResult.loudnessRangePct.toFixed(1) : "-"}
-                  <span>%</span>
-                </div>
-                <div className="trainingPage__resultModalMetricSub">
-                  差分: {measurementInstantResult.loudnessRangeDb != null ? `${measurementInstantResult.loudnessRangeDb.toFixed(1)} dB` : "-"}
-                </div>
-                <div className="trainingPage__resultModalStats">
-                  <div>最小 {measurementInstantResult.minLoudnessDb != null ? `${measurementInstantResult.minLoudnessDb.toFixed(1)} dB` : "-"}</div>
-                  <div>平均 {measurementInstantResult.avgLoudnessDb != null ? `${measurementInstantResult.avgLoudnessDb.toFixed(1)} dB` : "-"}</div>
-                  <div>最大 {measurementInstantResult.maxLoudnessDb != null ? `${measurementInstantResult.maxLoudnessDb.toFixed(1)} dB` : "-"}</div>
-                </div>
-              </div>
-            )}
-            {measurementInstantResult.title !== "音域" && (
-              <div className="trainingPage__resultModalLines">
-                {measurementInstantResult.lines.map((line, idx) => (
-                  <div key={`measurement-result-modal-line-${idx}`} className="trainingPage__resultModalLine">
-                    {line}
+                  overlapHighestNote={measurementInstantResult.overlapHighestNote ?? null}
+                  overlapLowestNote={measurementInstantResult.overlapLowestNote ?? null}
+                />
+              )}
+              {measurementInstantResult.title === "ロングトーン" && (
+                <LongToneResultHero
+                  seconds={measurementInstantResult.longToneSec ?? null}
+                  note={measurementInstantResult.sustainNote ?? null}
+                  previousSec={longToneCompare.previousSec}
+                  bestSec={longToneCompare.bestSec}
+                />
+              )}
+              {measurementInstantResult.title === "音程精度" && (
+                <div className="trainingPage__resultModalMetric">
+                  <div className="trainingPage__resultModalMetricValue">
+                    {measurementInstantResult.pitchAccuracyScore != null ? measurementInstantResult.pitchAccuracyScore.toFixed(1) : "-"}
+                    <span>点</span>
                   </div>
-                ))}
-              </div>
-            )}
-            <div className="trainingPage__resultModalActions">
+                  <div className="trainingPage__resultModalMetricSub">
+                    平均ズレ: {measurementInstantResult.pitchAccuracyAvgCents != null ? `${measurementInstantResult.pitchAccuracyAvgCents.toFixed(1)} cent` : "-"}
+                  </div>
+                  <div className="trainingPage__resultModalStats">
+                    <div>発声音数 {measurementInstantResult.pitchAccuracyNoteCount ?? 0}</div>
+                    <div>目安 ±{measurementInstantResult.pitchAccuracyAvgCents != null ? Math.max(0, Math.round(measurementInstantResult.pitchAccuracyAvgCents)).toFixed(0) : "-"} cent</div>
+                    <div>精度 {measurementInstantResult.pitchAccuracyScore != null ? `${measurementInstantResult.pitchAccuracyScore.toFixed(1)} 点` : "-"}</div>
+                  </div>
+                </div>
+              )}
+              {measurementInstantResult.title === "音量安定性" && (
+                <VolumeStabilityResultHero
+                  score={measurementInstantResult.loudnessRangePct ?? null}
+                  rangeDb={measurementInstantResult.loudnessRangeDb ?? null}
+                  minDb={measurementInstantResult.minLoudnessDb ?? null}
+                  avgDb={measurementInstantResult.avgLoudnessDb ?? null}
+                  maxDb={measurementInstantResult.maxLoudnessDb ?? null}
+                  timeline={measurementInstantResult.loudnessTimeline ?? []}
+                />
+              )}
+            </div>
+            <div className="trainingPage__resultModalFooter">
+              <div className="trainingPage__resultModalActions">
               <button
                 type="button"
-                className="trainingPage__resultModalBtn trainingPage__resultModalBtn--close"
-                onClick={closeMeasurementResultModal}
+                className="trainingPage__resultModalBtn trainingPage__resultModalBtn--save"
+                onClick={() => void saveMeasurementForInsights()}
+                disabled={measurementResultSaving || measurementInstantResult.includeInInsights}
+                ref={measurementSaveBtnRef}
               >
-                閉じる
+                {measurementInstantResult.includeInInsights
+                  ? "保存済み"
+                  : measurementResultSaving
+                    ? "保存中..."
+                    : "この結果を保存する"}
               </button>
               <button
                 type="button"
@@ -856,16 +968,12 @@ export default function TrainingPage() {
               </button>
               <button
                 type="button"
-                className="trainingPage__resultModalBtn trainingPage__resultModalBtn--save"
-                onClick={() => void saveMeasurementForInsights()}
-                disabled={measurementResultSaving || measurementInstantResult.includeInInsights}
+                className="trainingPage__resultModalBtn trainingPage__resultModalBtn--close"
+                onClick={closeMeasurementResultModal}
               >
-                {measurementInstantResult.includeInInsights
-                  ? "保存済み"
-                  : measurementResultSaving
-                    ? "保存中..."
-                    : "この結果を保存する"}
+                閉じる
               </button>
+              </div>
             </div>
           </div>
         </div>
@@ -880,7 +988,7 @@ export default function TrainingPage() {
             結果をもとに、成長の推移を確認できます。
           </div>
           <div className="trainingPage__aiIntroExample">
-            例: 音域 2.1 octave / ロングトーン 18.4 秒 / 音量差分比率 12.5%
+            例: 音域 2.1 octave / ロングトーン 18.4 秒 / 音量安定スコア 82.3 点 / 音程精度 76.4 点
           </div>
           <button className="trainingPage__aiIntroBtn" onClick={goLogin}>
             ログインして測定機能を使う
@@ -1269,6 +1377,9 @@ async function persistMeasurement({
   phonationDurationSec,
   loudnessDbSamples,
   avgLoudnessDb,
+  pitchAccuracyScore,
+  pitchAvgCentsError,
+  pitchNoteCount,
 }: {
   systemKey: MeasurementSystemKey;
   peakNote: string | null;
@@ -1280,6 +1391,9 @@ async function persistMeasurement({
   phonationDurationSec: number;
   loudnessDbSamples: number[];
   avgLoudnessDb: number;
+  pitchAccuracyScore: number | null;
+  pitchAvgCentsError: number | null;
+  pitchNoteCount: number;
 }): Promise<MeasurementRun> {
   if (systemKey === "range") {
     return createMeasurement({
@@ -1307,15 +1421,23 @@ async function persistMeasurement({
     });
   }
 
+  if (systemKey === "pitch_accuracy") {
+    return createMeasurement({
+      measurement_type: "pitch_accuracy",
+      include_in_insights: false,
+      pitch_accuracy_result: {
+        avg_cents_error: pitchAvgCentsError != null ? Number(pitchAvgCentsError.toFixed(3)) : null,
+        accuracy_score: pitchAccuracyScore != null ? Number(pitchAccuracyScore.toFixed(3)) : null,
+        note_count: pitchNoteCount,
+      },
+    });
+  }
+
   const minLoudness = loudnessDbSamples.length ? Math.min(...loudnessDbSamples) : null;
   const maxLoudness = loudnessDbSamples.length ? Math.max(...loudnessDbSamples) : null;
-  const rangeDb =
-    minLoudness != null && maxLoudness != null ? Number((maxLoudness - minLoudness).toFixed(3)) : null;
-  const ratioRaw =
-    rangeDb != null && Number.isFinite(avgLoudnessDb) && Math.abs(avgLoudnessDb) > 0.0001
-      ? rangeDb / Math.abs(avgLoudnessDb)
-      : null;
-  const ratio = ratioRaw != null ? Number(ratioRaw.toFixed(6)) : null;
+  const rangeDb = minLoudness != null && maxLoudness != null ? maxLoudness - minLoudness : null;
+  const score = computeWithinBandRatePct(loudnessDbSamples, avgLoudnessDb, 3, 3);
+  const ratio = score != null ? Number((score / 100).toFixed(6)) : null;
   return createMeasurement({
     measurement_type: "volume_stability",
     include_in_insights: false,
@@ -1323,9 +1445,9 @@ async function persistMeasurement({
       avg_loudness_db: Number(avgLoudnessDb.toFixed(3)),
       min_loudness_db: minLoudness != null ? Number(minLoudness.toFixed(3)) : null,
       max_loudness_db: maxLoudness != null ? Number(maxLoudness.toFixed(3)) : null,
-      loudness_range_db: rangeDb,
+      loudness_range_db: rangeDb != null ? Number(rangeDb.toFixed(3)) : null,
       loudness_range_ratio: ratio,
-      loudness_range_pct: ratio != null ? Number((ratio * 100).toFixed(3)) : null,
+      loudness_range_pct: score,
     },
   });
 }
@@ -1420,6 +1542,20 @@ function calcRms(buf: Float32Array) {
 function rmsToDb(rms: number) {
   if (!Number.isFinite(rms) || rms <= 0) return -120;
   return 20 * Math.log10(rms);
+}
+
+function noteToMidi(note: string | null): number | null {
+  if (!note) return null;
+  const m = note.trim().match(/^([A-Ga-g])([#b♯]?)(-?\d)$/);
+  if (!m) return null;
+  const letter = m[1].toUpperCase();
+  const accidental = m[2];
+  const octave = Number(m[3]);
+  const base: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  let semitone = base[letter] ?? 0;
+  if (accidental === "#" || accidental === "♯") semitone += 1;
+  if (accidental === "b") semitone -= 1;
+  return (octave + 1) * 12 + semitone;
 }
 
 
@@ -1558,6 +1694,9 @@ function buildMeasurementInstantResult({
   phonationDurationSec,
   loudnessDbSamples,
   avgLoudnessDb,
+  pitchAccuracyScore,
+  pitchAvgCentsError,
+  pitchNoteCount,
 }: {
   runId: number;
   includeInInsights: boolean;
@@ -1576,6 +1715,9 @@ function buildMeasurementInstantResult({
   phonationDurationSec: number;
   loudnessDbSamples: number[];
   avgLoudnessDb: number;
+  pitchAccuracyScore: number | null;
+  pitchAvgCentsError: number | null;
+  pitchNoteCount: number;
 }): MeasurementInstantResult {
   const measuredAt = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
   if (systemKey === "range") {
@@ -1622,10 +1764,28 @@ function buildMeasurementInstantResult({
     };
   }
 
+  if (systemKey === "pitch_accuracy") {
+    return {
+      runId,
+      includeInInsights,
+      source,
+      title: "音程精度",
+      pitchAccuracyScore: pitchAccuracyScore != null ? Number(pitchAccuracyScore.toFixed(1)) : null,
+      pitchAccuracyAvgCents: pitchAvgCentsError != null ? Number(pitchAvgCentsError.toFixed(1)) : null,
+      pitchAccuracyNoteCount: pitchNoteCount,
+      measuredAt,
+      lines: [
+        `精度スコア: ${pitchAccuracyScore != null ? `${pitchAccuracyScore.toFixed(1)} 点` : "-"}`,
+        `平均ズレ: ${pitchAvgCentsError != null ? `${pitchAvgCentsError.toFixed(1)} cent` : "-"}`,
+        `発声音数: ${pitchNoteCount}`,
+      ],
+    };
+  }
+
   const minLoudness = loudnessDbSamples.length ? Math.min(...loudnessDbSamples) : null;
   const maxLoudness = loudnessDbSamples.length ? Math.max(...loudnessDbSamples) : null;
   const rangeDb = minLoudness != null && maxLoudness != null ? maxLoudness - minLoudness : null;
-  const pct = rangeDb != null && Math.abs(avgLoudnessDb) > 0.0001 ? (rangeDb / Math.abs(avgLoudnessDb)) * 100 : null;
+  const score = computeWithinBandRatePct(loudnessDbSamples, avgLoudnessDb, 3, 1);
   return {
     runId,
     includeInInsights,
@@ -1635,15 +1795,28 @@ function buildMeasurementInstantResult({
     minLoudnessDb: minLoudness != null ? Number(minLoudness.toFixed(1)) : null,
     maxLoudnessDb: maxLoudness != null ? Number(maxLoudness.toFixed(1)) : null,
     loudnessRangeDb: rangeDb != null ? Number(rangeDb.toFixed(1)) : null,
-    loudnessRangePct: pct != null ? Number(pct.toFixed(1)) : null,
+    loudnessRangePct: score != null ? Number(score.toFixed(1)) : null,
+    loudnessTimeline: loudnessDbSamples.slice(-180).map((v) => Number(v.toFixed(3))),
     measuredAt,
     lines: [
-      `スコア (最大-最小)/平均: ${pct != null ? `${pct.toFixed(1)}%` : "-"}`,
+      `許容幅内率 (平均±3dB): ${score != null ? `${score.toFixed(1)} %` : "-"}`,
       `最小: ${minLoudness != null ? `${minLoudness.toFixed(1)} dB` : "-"}`,
       `最大: ${maxLoudness != null ? `${maxLoudness.toFixed(1)} dB` : "-"}`,
       `平均: ${Number.isFinite(avgLoudnessDb) ? `${avgLoudnessDb.toFixed(1)} dB` : "-"}`,
     ],
   };
+}
+
+function computeWithinBandRatePct(
+  samples: number[],
+  avgDb: number,
+  toleranceDb: number,
+  digits: number
+): number | null {
+  if (!Number.isFinite(avgDb) || samples.length === 0) return null;
+  const inBandCount = samples.filter((v) => Number.isFinite(v) && Math.abs(v - avgDb) <= toleranceDb).length;
+  const pct = (inBandCount / samples.length) * 100;
+  return Number(pct.toFixed(digits));
 }
 
 function RangeResultVisualizer({
@@ -1665,42 +1838,283 @@ function RangeResultVisualizer({
   overlapHighestNote: string | null;
   overlapLowestNote: string | null;
 }) {
+  const total = buildRangeInfo("トータル", lowestNote, highestNote, "total");
+  const chest = buildRangeInfo("地声", chestLowestNote, chestTopNote, "chest");
+  const falsetto = buildRangeInfo("裏声", falsettoLowestNote, falsettoTopNote, "falsetto");
+  const overlap = buildRangeInfo("共通音域", overlapLowestNote, overlapHighestNote, "overlap");
+  const overlapStatus: "ok" | "none" | "insufficient" =
+    overlap.minMidi != null && overlap.maxMidi != null
+      ? "ok"
+      : chest.minMidi == null || chest.maxMidi == null || falsetto.minMidi == null || falsetto.maxMidi == null
+        ? "insufficient"
+        : "none";
+  const allRanges = [total, chest, falsetto, overlap].filter((v) => v.minMidi != null && v.maxMidi != null);
+  const globalMin = allRanges.length ? Math.min(...allRanges.map((v) => v.minMidi as number)) : 36;
+  const globalMax = allRanges.length ? Math.max(...allRanges.map((v) => v.maxMidi as number)) : 72;
+  const axisMin = globalMin - 1;
+  const axisMax = globalMax + 1;
+  const ticks = buildRangeTicks(axisMin, axisMax, 7);
+  const byTone = (tone: RangeInfo["tone"]) => [total, chest, falsetto, overlap].find((v) => v.tone === tone) ?? null;
+
   return (
-    <div className="trainingPage__rangeResultBox">
-      <div className="trainingPage__rangeResultBody">
-        <div className="trainingPage__rangeResultMeta">
-          <RangeBand title="トータル" tone="total" high={highestNote} low={lowestNote} />
-          <RangeBand title="地声" tone="chest" high={chestTopNote} low={chestLowestNote} />
-          <RangeBand title="裏声" tone="falsetto" high={falsettoTopNote} low={falsettoLowestNote} />
-          <RangeBand title="共通音域" tone="overlap" high={overlapHighestNote} low={overlapLowestNote} />
+    <div className="trainingPage__rangeResultV2">
+      <div className="trainingPage__rangeChart">
+        <div className="trainingPage__rangeChartGrid" />
+        {ticks.map((tick, idx) => (
+          <div key={`range-tick-${idx}`} className="trainingPage__rangeTick" style={{ left: `${toPercent(tick, axisMin, axisMax)}%` }}>
+            <span>{midiToNote(Math.round(tick))}</span>
+          </div>
+        ))}
+        {(["total", "chest", "falsetto", "overlap"] as const).map((tone) => {
+          const range = byTone(tone);
+          if (!range || range.minMidi == null || range.maxMidi == null) return null;
+          const left = toPercent(range.minMidi, axisMin, axisMax);
+          const right = toPercent(range.maxMidi, axisMin, axisMax);
+          const width = Math.max(1, right - left);
+          return (
+            <div key={`range-track-${tone}`} className={`trainingPage__rangeTrack trainingPage__rangeTrack--${tone}`}>
+              <div className={`trainingPage__rangeTrackFill trainingPage__rangeTrackFill--${tone}`} style={{ left: `${left}%`, width: `${width}%` }} />
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="trainingPage__rangeResultMetaV2">
+        <RangeSummaryLine range={total} />
+        <RangeSummaryLine range={chest} />
+        <RangeSummaryLine range={falsetto} />
+        <RangeSummaryLine range={overlap} />
+      </div>
+
+      <div className="trainingPage__rangeResultOverlapInfo">
+        {overlapStatus === "ok" && "共通音域は地声・裏声の両方で安定して出せるレンジです。"}
+        {overlapStatus === "none" && "共通音域：なし（地声と裏声のレンジが重なっていません）"}
+        {overlapStatus === "insufficient" && "共通音域：未算出（地声/裏声の測定が不足しています）"}
+      </div>
+
+    </div>
+  );
+}
+
+type RangeInfo = {
+  title: string;
+  tone: "total" | "chest" | "falsetto" | "overlap";
+  lowNote: string | null;
+  highNote: string | null;
+  minMidi: number | null;
+  maxMidi: number | null;
+  semitones: number | null;
+  octaves: number | null;
+};
+
+function RangeSummaryLine({ range }: { range: RangeInfo }) {
+  const rangeText = range.lowNote && range.highNote ? `${range.lowNote}〜${range.highNote}` : "未算出";
+  const widthText =
+    range.semitones != null && range.octaves != null
+      ? `${range.octaves.toFixed(2)} oct (${formatSemitoneLabel(range.semitones)})`
+      : "未算出";
+  return (
+    <div className={`trainingPage__rangeSummaryLine trainingPage__rangeSummaryLine--${range.tone}`}>
+      <div className="trainingPage__rangeSummaryHeader">
+        <span className={`trainingPage__rangeSummaryChip trainingPage__rangeSummaryChip--${range.tone}`}>{range.title}</span>
+      </div>
+      <div className="trainingPage__rangeSummaryNotes">
+        <span>レンジ: {rangeText}</span>
+        <span>音域: {widthText}</span>
+      </div>
+    </div>
+  );
+}
+
+function buildRangeInfo(
+  title: string,
+  lowNote: string | null,
+  highNote: string | null,
+  tone: RangeInfo["tone"]
+): RangeInfo {
+  const lowMidi = noteToMidi(lowNote);
+  const highMidi = noteToMidi(highNote);
+  const minMidi = lowMidi != null && highMidi != null ? Math.min(lowMidi, highMidi) : null;
+  const maxMidi = lowMidi != null && highMidi != null ? Math.max(lowMidi, highMidi) : null;
+  const semitones = minMidi != null && maxMidi != null ? Math.max(0, Math.round(maxMidi - minMidi)) : null;
+  const octaves = minMidi != null && maxMidi != null ? (maxMidi - minMidi) / 12 : null;
+  return { title, tone, lowNote, highNote, minMidi, maxMidi, semitones, octaves };
+}
+
+function buildRangeTicks(minMidi: number, maxMidi: number, count: number): number[] {
+  if (count <= 1) return [minMidi];
+  const ticks: number[] = [];
+  const span = maxMidi - minMidi;
+  for (let i = 0; i < count; i += 1) {
+    const ratio = i / (count - 1);
+    ticks.push(minMidi + span * ratio);
+  }
+  return ticks;
+}
+
+function toPercent(v: number, min: number, max: number): number {
+  if (max <= min) return 0;
+  return ((v - min) / (max - min)) * 100;
+}
+
+function formatSemitoneLabel(v: number | null): string {
+  if (v == null) return "-";
+  return v === 1 ? "1 semitone" : `${v} semitones`;
+}
+
+function VolumeStabilityResultHero({
+  score,
+  rangeDb,
+  minDb,
+  avgDb,
+  maxDb,
+  timeline,
+}: {
+  score: number | null;
+  rangeDb: number | null;
+  minDb: number | null;
+  avgDb: number | null;
+  maxDb: number | null;
+  timeline: number[];
+}) {
+  const tone = score == null ? "mid" : score >= 80 ? "good" : score >= 50 ? "mid" : "bad";
+  const comment =
+    score == null ? "測定データが不足しています。" : score >= 80 ? "一定に保てています。" : score >= 50 ? "少しブレがあります。" : "ブレが大きめです。";
+  const scoreClamped = score == null ? 0 : Math.max(0, Math.min(100, score));
+
+  const width = 520;
+  const height = 170;
+  const padTop = 14;
+  const padBottom = 24;
+  const padLeft = 8;
+  const padRight = 8;
+  const chartMin = minDb != null ? Math.floor(minDb - 3) : -90;
+  const chartMax = maxDb != null ? Math.ceil(maxDb + 3) : -40;
+  const yRange = Math.max(1, chartMax - chartMin);
+  const stepX = timeline.length > 1 ? (width - padLeft - padRight) / (timeline.length - 1) : 0;
+
+  let path = "";
+  timeline.forEach((v, idx) => {
+    const x = padLeft + stepX * idx;
+    const y = height - padBottom - ((v - chartMin) / yRange) * (height - padTop - padBottom);
+    path += idx === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
+  });
+
+  const avgY =
+    avgDb != null ? height - padBottom - ((avgDb - chartMin) / yRange) * (height - padTop - padBottom) : null;
+  const avgLabelY = avgY != null ? Math.max(padTop + 12, Math.min(height - padBottom - 6, avgY - 6)) : null;
+
+  const gaugeSize = 144;
+  const gaugeStroke = 10;
+  const gaugeRadius = (gaugeSize - gaugeStroke) / 2;
+  const gaugeArc = 2 * Math.PI * gaugeRadius;
+  const gaugeOffset = gaugeArc * (1 - scoreClamped / 100);
+
+  return (
+    <div className={`trainingPage__volumeResult trainingPage__volumeResult--${tone}`}>
+      <div className="trainingPage__volumeResultHead">
+        <div className="trainingPage__volumeResultLabel">安定性スコア</div>
+        <div className="trainingPage__volumeGauge" role="img" aria-label={score != null ? `安定性スコア ${score.toFixed(1)} 点` : "安定性スコア 未計算"}>
+          <svg viewBox={`0 0 ${gaugeSize} ${gaugeSize}`} aria-hidden="true">
+            <circle cx={gaugeSize / 2} cy={gaugeSize / 2} r={gaugeRadius} className="trainingPage__volumeGaugeTrack" />
+            <circle
+              cx={gaugeSize / 2}
+              cy={gaugeSize / 2}
+              r={gaugeRadius}
+              className="trainingPage__volumeGaugeProgress"
+              strokeDasharray={gaugeArc}
+              strokeDashoffset={gaugeOffset}
+            />
+          </svg>
+          <div className="trainingPage__volumeGaugeCenter">
+            <div className="trainingPage__volumeResultScore">{score != null ? score.toFixed(1) : "-"}</div>
+            <div className="trainingPage__volumeResultScoreUnit">点</div>
+          </div>
+        </div>
+        <div className="trainingPage__volumeResultComment">{comment}</div>
+      </div>
+
+      <div className="trainingPage__volumeResultChart">
+        <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+          {avgY != null && <line x1={padLeft} y1={avgY} x2={width - padRight} y2={avgY} className="trainingPage__volumeAvgLine" />}
+          {avgY != null && avgLabelY != null && (
+            <text x={width - padRight - 2} y={avgLabelY} textAnchor="end" className="trainingPage__volumeAvgLabel">
+              平均 {avgDb?.toFixed(1)} dB
+            </text>
+          )}
+          <path d={path} className="trainingPage__volumeLine" />
+        </svg>
+      </div>
+
+      <div className="trainingPage__volumeResultRangeCard">
+        <div className="trainingPage__volumeResultRangeTitle">音量レンジ（差分）</div>
+        <div className="trainingPage__volumeResultRangeValue">{rangeDb != null ? `${rangeDb.toFixed(1)} dB` : "-"}</div>
+        <div className="trainingPage__volumeResultRangeSub">
+          最小 {minDb != null ? `${minDb.toFixed(1)} dB` : "-"} / 最大 {maxDb != null ? `${maxDb.toFixed(1)} dB` : "-"} / 平均{" "}
+          {avgDb != null ? `${avgDb.toFixed(1)} dB` : "-"}
         </div>
       </div>
     </div>
   );
 }
 
-function RangeBand({
-  title,
-  tone,
-  high,
-  low,
+function LongToneResultHero({
+  seconds,
+  note,
+  previousSec,
+  bestSec,
 }: {
-  title: string;
-  tone: "total" | "chest" | "overlap" | "falsetto";
-  high: string | null;
-  low: string | null;
+  seconds: number | null;
+  note: string | null;
+  previousSec: number | null;
+  bestSec: number | null;
 }) {
+  const value = seconds ?? 0;
+  const goalSec = 10;
+  const progress = Math.max(0, Math.min(1, value / goalSec));
+  const r = 60;
+  const c = 78;
+  const arc = 2 * Math.PI * r;
+  const offset = arc * (1 - progress);
   return (
-    <div className={`trainingPage__rangeBand trainingPage__rangeBand--${tone}`}>
-      <div className={`trainingPage__rangeResultMetaChip trainingPage__rangeResultMetaChip--${tone}`}>{title}</div>
-      <div className={`trainingPage__rangeResultMetaLine trainingPage__rangeResultMetaLine--${tone}`}>
-        <span>最高音</span>
-        <strong>{high ?? "-"}</strong>
+    <div className="trainingPage__longToneHero">
+      <div className="trainingPage__longToneRingWrap">
+        <svg viewBox="0 0 156 156" className="trainingPage__longToneRing" aria-hidden="true">
+          <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="8" />
+          <circle
+            cx={c}
+            cy={c}
+            r={r}
+            fill="none"
+            stroke="#4bc6d7"
+            strokeOpacity="0.92"
+            strokeWidth="11"
+            strokeDasharray={arc}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+          />
+        </svg>
+        <div className="trainingPage__longToneRingCenter">
+          <div className="trainingPage__longToneHeroValue">{seconds != null ? seconds.toFixed(1) : "-"}</div>
+          <div className="trainingPage__longToneHeroUnit">秒</div>
+        </div>
       </div>
-      <div className={`trainingPage__rangeResultMetaLine trainingPage__rangeResultMetaLine--${tone}`}>
-        <span>最低音</span>
-        <strong>{low ?? "-"}</strong>
-      </div>
+      <div className="trainingPage__longToneHeroNote">発声音程: {note ?? "-"}</div>
+      {(previousSec != null || bestSec != null) && (
+        <div className="trainingPage__longToneCompare">
+          {previousSec != null && <div>前回: {previousSec.toFixed(1)} 秒</div>}
+          {bestSec != null && <div>ベスト: {bestSec.toFixed(1)} 秒</div>}
+        </div>
+      )}
+      <div className="trainingPage__longToneHint">ロングトーンは同じ音程を保てた最長時間で判定します。</div>
     </div>
   );
+}
+
+function longToneSecFromResult(result: MeasurementRun["result"] | null): number | null {
+  if (!result || typeof result !== "object") return null;
+  if (!("sustain_sec" in result)) return null;
+  const sec = result.sustain_sec;
+  if (typeof sec !== "number" || !Number.isFinite(sec)) return null;
+  return sec;
 }

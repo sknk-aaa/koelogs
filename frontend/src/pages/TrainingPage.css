@@ -3,6 +3,23 @@
 .trainingPage {
   position: relative;
   isolation: isolate;
+  --va-bg: #070b12;
+  --va-panel: #0b111b;
+  --va-panel-2: #0a0f18;
+  --va-border: rgba(255, 255, 255, 0.1);
+  --va-border-strong: rgba(255, 255, 255, 0.18);
+  --va-text: rgba(255, 255, 255, 0.92);
+  --va-text-muted: rgba(255, 255, 255, 0.7);
+  --va-text-faint: rgba(255, 255, 255, 0.55);
+  --va-accent-yellow: #f4e600;
+  --va-accent-orange: #ff8a1f;
+  --va-accent-red: #ff4a4a;
+  --va-state-good: #f4e600;
+  --va-state-mid: #ff8a1f;
+  --va-state-bad: #ff4a4a;
+  --va-shadow: 0 16px 44px rgba(0, 0, 0, 0.55);
+  --va-glow-yellow: 0 0 24px rgba(244, 230, 0, 0.22);
+  --va-glow-red: 0 0 24px rgba(255, 74, 74, 0.18);
 }
 
 .trainingPage__bg {
@@ -1003,13 +1020,19 @@
 .trainingPage__resultModalCard {
   width: min(640px, 95vw);
   border-radius: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: linear-gradient(180deg, #4b4b4f 0%, #3f3f44 100%);
-  color: #f7f8fc;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.34);
+  border: 1px solid var(--va-border-strong);
+  background: linear-gradient(180deg, #0d131e 0%, #090f19 100%);
+  color: var(--va-text);
+  box-shadow: var(--va-shadow);
   display: grid;
   gap: 14px;
   padding: 18px 16px 14px;
+}
+
+.trainingPage__resultModalHeader,
+.trainingPage__resultModalBody,
+.trainingPage__resultModalFooter {
+  min-width: 0;
 }
 
 .trainingPage__resultModalTitle {
@@ -1120,6 +1143,18 @@
   color: rgba(247, 248, 252, 0.92);
 }
 
+.trainingPage__resultModalHeroSub {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.78;
+}
+
+.trainingPage__resultModalHeroAssist {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.66;
+}
+
 .trainingPage__resultModalMeta {
   font-size: 13px;
   opacity: 0.84;
@@ -1152,6 +1187,251 @@
   font-size: 15px;
   font-weight: 800;
   opacity: 0.9;
+}
+
+.trainingPage__volumeResult {
+  --volumeTone: var(--va-state-mid);
+  --volumeToneSoft: rgba(255, 138, 31, 0.13);
+  display: grid;
+  gap: 10px;
+}
+
+.trainingPage__volumeResult--good {
+  --volumeTone: var(--va-state-good);
+  --volumeToneSoft: rgba(244, 230, 0, 0.12);
+}
+
+.trainingPage__volumeResult--mid {
+  --volumeTone: var(--va-state-mid);
+  --volumeToneSoft: rgba(255, 138, 31, 0.13);
+}
+
+.trainingPage__volumeResult--bad {
+  --volumeTone: var(--va-state-bad);
+  --volumeToneSoft: rgba(255, 74, 74, 0.13);
+}
+
+.trainingPage__volumeResultHead {
+  border-radius: 16px;
+  border: 1px solid var(--va-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  padding: 12px 12px 12px;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+}
+
+.trainingPage__volumeResultLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--va-text-muted);
+}
+
+.trainingPage__volumeGauge {
+  position: relative;
+  width: 144px;
+  height: 144px;
+  display: grid;
+  place-items: center;
+}
+
+.trainingPage__volumeGauge svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.trainingPage__volumeGaugeTrack {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 10;
+}
+
+.trainingPage__volumeGaugeProgress {
+  fill: none;
+  stroke: var(--volumeTone);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.trainingPage__volumeGaugeCenter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 1px;
+}
+
+.trainingPage__volumeResultScore {
+  font-size: clamp(42px, 9vw, 56px);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 0.01em;
+  color: var(--va-text);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.trainingPage__volumeResultScoreUnit {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--va-text-muted);
+}
+
+.trainingPage__volumeResultComment {
+  margin-top: 24px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--va-text-muted);
+}
+
+.trainingPage__volumeResultChart {
+  border-radius: 14px;
+  border: 1px solid var(--va-border);
+  background: var(--va-panel-2);
+  padding: 6px 8px;
+}
+
+.trainingPage__volumeResultChart svg {
+  width: 100%;
+  height: 170px;
+  display: block;
+}
+
+.trainingPage__volumeAvgLine {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.trainingPage__volumeAvgLabel {
+  fill: var(--va-text-faint);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trainingPage__volumeLine {
+  fill: none;
+  stroke: var(--va-accent-orange);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trainingPage__volumeResultRangeCard {
+  border-radius: 14px;
+  border: 1px solid var(--va-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.trainingPage__volumeResultRangeTitle {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--va-text-muted);
+}
+
+.trainingPage__volumeResultRangeValue {
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 900;
+  color: var(--va-text);
+}
+
+.trainingPage__volumeResultRangeSub {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--va-text-faint);
+}
+
+.trainingPage__volumeResult--good .trainingPage__volumeGaugeProgress {
+  filter: drop-shadow(var(--va-glow-yellow));
+}
+
+.trainingPage__volumeResult--bad .trainingPage__volumeGaugeProgress {
+  filter: drop-shadow(var(--va-glow-red));
+}
+
+.trainingPage__longToneHero {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 6px 0 2px;
+}
+
+.trainingPage__longToneRingWrap {
+  position: relative;
+  width: 196px;
+  aspect-ratio: 1 / 1;
+  margin: 18px 0 16px;
+  display: grid;
+  place-items: center;
+}
+
+.trainingPage__longToneRing {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.trainingPage__longToneRingCenter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.trainingPage__longToneHeroValue {
+  font-size: clamp(56px, 11vw, 82px);
+  line-height: 1;
+  font-weight: 950;
+  color: #4bc6d7;
+  font-variant-numeric: tabular-nums;
+}
+
+.trainingPage__longToneHeroUnit {
+  margin-top: 1px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(247, 248, 252, 0.9);
+}
+
+.trainingPage__longToneHeroNote {
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 800;
+  opacity: 0.92;
+}
+
+.trainingPage__longToneCompare {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.trainingPage__longToneCompare > div {
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(247, 248, 252, 0.9);
+}
+
+.trainingPage__longToneHint {
+  font-size: 12px;
+  opacity: 0.78;
+  text-align: center;
 }
 
 .trainingPage__resultModalStats {
@@ -1269,6 +1549,128 @@
   color: rgba(247, 248, 252, 0.95);
 }
 
+.trainingPage__rangeResultV2 {
+  display: grid;
+  gap: 10px;
+}
+
+.trainingPage__rangeChart {
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 22px 8px 20px;
+  display: grid;
+  gap: 5px;
+}
+
+.trainingPage__rangeChartGrid {
+  position: absolute;
+  inset: 16px 8px 14px;
+  border-radius: 10px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 12.5% 50%;
+  pointer-events: none;
+}
+
+.trainingPage__rangeTick {
+  position: absolute;
+  top: 3px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.trainingPage__rangeTrack {
+  position: relative;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.trainingPage__rangeTrackFill {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 999px;
+}
+
+.trainingPage__rangeTrackFill--total { background: linear-gradient(90deg, #3db4c7, #5ad4e5); }
+.trainingPage__rangeTrackFill--chest { background: linear-gradient(90deg, #9c3b45, #b25662); }
+.trainingPage__rangeTrackFill--falsetto { background: linear-gradient(90deg, #c49a2c, #d3ae4e); }
+.trainingPage__rangeTrackFill--overlap { background: linear-gradient(90deg, #2f8f83, #45a698); }
+
+.trainingPage__rangeResultMetaV2 {
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__rangeSummaryLine {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8px 9px;
+  display: grid;
+  gap: 6px;
+}
+
+.trainingPage__rangeSummaryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.trainingPage__rangeSummaryChip {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #f7f8fc;
+}
+
+.trainingPage__rangeSummaryChip--total { background: #42bccf; }
+.trainingPage__rangeSummaryChip--chest { background: #9C3B45; }
+.trainingPage__rangeSummaryChip--falsetto { background: #C49A2C; }
+.trainingPage__rangeSummaryChip--overlap { background: #2F8F83; }
+
+.trainingPage__rangeSummaryNotes {
+  display: grid;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.88;
+}
+
+.trainingPage__rangeSummaryLine--total {
+  background: rgba(72, 196, 213, 0.12);
+  border-color: rgba(78, 204, 222, 0.42);
+  box-shadow: 0 6px 14px rgba(51, 175, 192, 0.18);
+}
+
+.trainingPage__rangeSummaryLine--total .trainingPage__rangeSummaryChip {
+  font-size: 12px;
+  padding: 2px 9px;
+}
+
+.trainingPage__rangeSummaryNotes small {
+  font-size: 0.78em;
+  opacity: 0.68;
+}
+
+.trainingPage__rangeResultOverlapInfo {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: 0.92;
+}
+
 .trainingPage__resultModalLines {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.12);
@@ -1303,18 +1705,21 @@
 }
 
 .trainingPage__resultModalBtn--close {
-  background: #ececec;
-  color: #414247;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.28);
+  color: rgba(247, 248, 252, 0.9);
 }
 
 .trainingPage__resultModalBtn--share {
-  background: #42bccf;
-  color: #f7f8fc;
+  background: transparent;
+  border-color: rgba(80, 194, 210, 0.75);
+  color: #7ad8e5;
 }
 
 .trainingPage__resultModalBtn--save {
-  background: #42bccf;
+  background: linear-gradient(135deg, #39b4c7, #58d0de);
   color: #f7f8fc;
+  box-shadow: 0 6px 18px rgba(47, 187, 206, 0.28);
 }
 
 .trainingPage__resultModalBtn:disabled {
@@ -1381,6 +1786,45 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
     height: 36px;
     font-size: 13px;
   }
+
+  .trainingPage__longToneRingWrap {
+    width: 168px;
+    margin: 14px 0 12px;
+  }
+
+  .trainingPage__longToneHeroUnit {
+    margin-top: 0;
+    font-size: 18px;
+  }
+
+  .trainingPage__longToneHeroValue {
+    font-size: clamp(48px, 13.5vw, 66px);
+  }
+
+  .trainingPage__longToneHeroNote {
+    font-size: 14px;
+  }
+
+  .trainingPage__volumeResultScore {
+    font-size: clamp(38px, 12.4vw, 52px);
+  }
+
+  .trainingPage__volumeGauge {
+    width: 132px;
+    height: 132px;
+  }
+
+  .trainingPage__volumeResultScoreUnit {
+    font-size: 15px;
+  }
+
+  .trainingPage__volumeResultComment {
+    margin-top: 20px;
+  }
+
+  .trainingPage__volumeResultChart svg {
+    height: 150px;
+  }
 }
 
 .trainingPage__modalHead {
@@ -1432,11 +1876,39 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
 
 /* Desktop final override: placed last to win cascade */
 @media (min-width: 900px) {
+  .trainingPage__modalOverlay {
+    padding: 20px;
+  }
+
   .trainingPage__resultModalCard {
     width: min(560px, 90vw);
-    padding: 16px 16px 14px;
-    gap: 10px;
+    max-height: 92vh;
+    padding: 12px 14px 12px;
+    gap: 0;
     font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .trainingPage__resultModalHeader {
+    flex: 0 0 auto;
+    padding: 4px 0 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .trainingPage__resultModalBody {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 10px 2px 8px;
+  }
+
+  .trainingPage__resultModalFooter {
+    flex: 0 0 auto;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .trainingPage__resultModalTitle {
@@ -1499,6 +1971,34 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
   }
 
   .trainingPage__rangeBand--overlap {
+    grid-area: overlap;
+  }
+
+  .trainingPage__rangeResultMetaV2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "total chest"
+      "falsetto overlap";
+    gap: 8px 10px;
+  }
+
+  .trainingPage__rangeSummaryLine {
+    min-height: 96px;
+  }
+
+  .trainingPage__rangeSummaryLine--total {
+    grid-area: total;
+  }
+
+  .trainingPage__rangeSummaryLine--chest {
+    grid-area: chest;
+  }
+
+  .trainingPage__rangeSummaryLine--falsetto {
+    grid-area: falsetto;
+  }
+
+  .trainingPage__rangeSummaryLine--overlap {
     grid-area: overlap;
   }
 

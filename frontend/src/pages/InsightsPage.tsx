@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import {
   fetchLatestMeasurements,
+  fetchMeasurements,
   type MeasurementRun,
 } from "../api/measurements";
 import MetronomeLoader from "../components/MetronomeLoader";
@@ -18,13 +19,18 @@ type LoadState =
         range: MeasurementRun | null;
         long_tone: MeasurementRun | null;
         volume_stability: MeasurementRun | null;
+        pitch_accuracy: MeasurementRun | null;
       };
+      longToneRuns: MeasurementRun[];
+      rangeRuns: MeasurementRun[];
+      pitchAccuracyRuns: MeasurementRun[];
     };
 
 const GUEST_LATEST: {
   range: MeasurementRun | null;
   long_tone: MeasurementRun | null;
   volume_stability: MeasurementRun | null;
+  pitch_accuracy: MeasurementRun | null;
 } = {
   range: {
     id: -1,
@@ -57,24 +63,247 @@ const GUEST_LATEST: {
       loudness_range_pct: 17.7,
     },
   },
+  pitch_accuracy: {
+    id: -4,
+    measurement_type: "pitch_accuracy",
+    include_in_insights: true,
+    recorded_at: "2026-02-20T08:00:00+09:00",
+    created_at: "2026-02-20T08:00:00+09:00",
+    result: {
+      avg_cents_error: 22.4,
+      accuracy_score: 77.6,
+      note_count: 96,
+    },
+  },
 };
+
+const GUEST_LONG_TONE_RUNS: MeasurementRun[] = [
+  {
+    id: -29,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2025-12-22T08:00:00+09:00",
+    created_at: "2025-12-22T08:00:00+09:00",
+    result: { sustain_sec: 6.1, sustain_note: "F#3" },
+  },
+  {
+    id: -28,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2025-12-29T08:00:00+09:00",
+    created_at: "2025-12-29T08:00:00+09:00",
+    result: { sustain_sec: 6.8, sustain_note: "G3" },
+  },
+  {
+    id: -27,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-01-04T08:00:00+09:00",
+    created_at: "2026-01-04T08:00:00+09:00",
+    result: { sustain_sec: 6.4, sustain_note: "F#3" },
+  },
+  {
+    id: -26,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-01-10T08:00:00+09:00",
+    created_at: "2026-01-10T08:00:00+09:00",
+    result: { sustain_sec: 6.9, sustain_note: "G3" },
+  },
+  {
+    id: -25,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-01-18T08:00:00+09:00",
+    created_at: "2026-01-18T08:00:00+09:00",
+    result: { sustain_sec: 7.5, sustain_note: "A3" },
+  },
+  {
+    id: -24,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-01-22T08:00:00+09:00",
+    created_at: "2026-01-22T08:00:00+09:00",
+    result: { sustain_sec: 8.0, sustain_note: "A3" },
+  },
+  {
+    id: -233,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-01-28T08:00:00+09:00",
+    created_at: "2026-01-28T08:00:00+09:00",
+    result: { sustain_sec: 7.7, sustain_note: "A3" },
+  },
+  {
+    id: -23,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-01-25T08:00:00+09:00",
+    created_at: "2026-01-25T08:00:00+09:00",
+    result: { sustain_sec: 8.2, sustain_note: "A3" },
+  },
+  {
+    id: -22,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-02-08T08:00:00+09:00",
+    created_at: "2026-02-08T08:00:00+09:00",
+    result: { sustain_sec: 9.6, sustain_note: "B3" },
+  },
+  {
+    id: -221,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-02-11T08:00:00+09:00",
+    created_at: "2026-02-11T08:00:00+09:00",
+    result: { sustain_sec: 9.1, sustain_note: "A#3" },
+  },
+  {
+    id: -21,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-02-13T08:00:00+09:00",
+    created_at: "2026-02-13T08:00:00+09:00",
+    result: { sustain_sec: 11.1, sustain_note: "B3" },
+  },
+  GUEST_LATEST.long_tone!,
+];
+
+const GUEST_RANGE_RUNS: MeasurementRun[] = [
+  {
+    id: -31,
+    measurement_type: "range",
+    include_in_insights: true,
+    recorded_at: "2026-01-20T08:00:00+09:00",
+    created_at: "2026-01-20T08:00:00+09:00",
+    result: { lowest_note: "B1", highest_note: "G#5", chest_top_note: "A#4", falsetto_top_note: "G#5", range_semitones: 45, range_octaves: 3.75 },
+  },
+  GUEST_LATEST.range!,
+];
+
+const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
+  {
+    id: -47,
+    measurement_type: "pitch_accuracy",
+    include_in_insights: true,
+    recorded_at: "2025-12-24T08:00:00+09:00",
+    created_at: "2025-12-24T08:00:00+09:00",
+    result: {
+      avg_cents_error: 39.2,
+      accuracy_score: 60.8,
+      note_count: 78,
+    },
+  },
+  {
+    id: -46,
+    measurement_type: "pitch_accuracy",
+    include_in_insights: true,
+    recorded_at: "2026-01-02T08:00:00+09:00",
+    created_at: "2026-01-02T08:00:00+09:00",
+    result: {
+      avg_cents_error: 36.7,
+      accuracy_score: 63.3,
+      note_count: 80,
+    },
+  },
+  {
+    id: -45,
+    measurement_type: "pitch_accuracy",
+    include_in_insights: true,
+    recorded_at: "2026-01-05T08:00:00+09:00",
+    created_at: "2026-01-05T08:00:00+09:00",
+    result: {
+      avg_cents_error: 37.5,
+      accuracy_score: 62.5,
+      note_count: 79,
+    },
+  },
+  {
+    id: -44,
+    measurement_type: "pitch_accuracy",
+    include_in_insights: true,
+    recorded_at: "2026-01-07T08:00:00+09:00",
+    created_at: "2026-01-07T08:00:00+09:00",
+    result: {
+      avg_cents_error: 35.8,
+      accuracy_score: 64.2,
+      note_count: 81,
+    },
+  },
+  {
+    id: -43,
+    measurement_type: "pitch_accuracy",
+    include_in_insights: true,
+    recorded_at: "2026-01-14T08:00:00+09:00",
+    created_at: "2026-01-14T08:00:00+09:00",
+    result: {
+      avg_cents_error: 30.4,
+      accuracy_score: 69.6,
+      note_count: 86,
+    },
+  },
+  {
+    id: -42,
+    measurement_type: "pitch_accuracy",
+    include_in_insights: true,
+    recorded_at: "2026-01-19T08:00:00+09:00",
+    created_at: "2026-01-19T08:00:00+09:00",
+    result: {
+      avg_cents_error: 27.9,
+      accuracy_score: 72.1,
+      note_count: 89,
+    },
+  },
+  {
+    id: -411,
+    measurement_type: "pitch_accuracy",
+    include_in_insights: true,
+    recorded_at: "2026-01-26T08:00:00+09:00",
+    created_at: "2026-01-26T08:00:00+09:00",
+    result: {
+      avg_cents_error: 29.1,
+      accuracy_score: 70.9,
+      note_count: 87,
+    },
+  },
+  {
+    id: -41,
+    measurement_type: "pitch_accuracy",
+    include_in_insights: true,
+    recorded_at: "2026-01-23T08:00:00+09:00",
+    created_at: "2026-01-23T08:00:00+09:00",
+    result: {
+      avg_cents_error: 20.7,
+      accuracy_score: 73.1,
+      note_count: 92,
+    },
+  },
+  GUEST_LATEST.pitch_accuracy!,
+];
 
 function ClickableCard({
   title,
   to,
+  hintSub,
+  className,
   children,
 }: {
   title: string;
   to: string;
+  hintSub?: string;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <Link to={to} className="insightsCard insightsCard--link">
+    <Link to={to} className={`insightsCard insightsCard--link${className ? ` ${className}` : ""}`}>
       <div className="insightsCard__head">
         <div className="insightsCard__title">{title}</div>
-        <div className="insightsCard__hint">
-          <span className="insightsCard__hintText">詳細を見る</span>
-          <ChevronRight />
+        <div className="insightsCard__hintBlock">
+          <div className="insightsCard__hint">
+            <span className="insightsCard__hintText">詳細を見る</span>
+            <ChevronRight />
+          </div>
+          {hintSub && <div className="insightsCard__hintSub">{hintSub}</div>}
         </div>
       </div>
       {children}
@@ -108,6 +337,9 @@ export default function InsightsPage() {
       setState({
         kind: "ready",
         latest: GUEST_LATEST,
+        longToneRuns: GUEST_LONG_TONE_RUNS,
+        rangeRuns: GUEST_RANGE_RUNS,
+        pitchAccuracyRuns: GUEST_PITCH_ACCURACY_RUNS,
       });
       return;
     }
@@ -116,9 +348,14 @@ export default function InsightsPage() {
     (async () => {
       setState({ kind: "loading" });
       try {
-        const latest = await fetchLatestMeasurements();
+        const [latest, longToneRuns, rangeRuns, pitchAccuracyRuns] = await Promise.all([
+          fetchLatestMeasurements(),
+          fetchMeasurements({ measurement_type: "long_tone", days: 365, limit: 100, include_in_insights: true }),
+          fetchMeasurements({ measurement_type: "range", days: 365, limit: 200, include_in_insights: true }),
+          fetchMeasurements({ measurement_type: "pitch_accuracy", days: 365, limit: 200, include_in_insights: true }),
+        ]);
         if (cancelled) return;
-        setState({ kind: "ready", latest });
+        setState({ kind: "ready", latest, longToneRuns, rangeRuns, pitchAccuracyRuns });
       } catch (e) {
         if (cancelled) return;
         setState({ kind: "error", message: errorMessage(e, "取得に失敗しました") });
@@ -134,11 +371,7 @@ export default function InsightsPage() {
     return (
       <div className="page insightsPage">
         <div className="insightsPage__bg" aria-hidden="true" />
-        <section className="card insightsHero">
-          <div className="insightsHero__kicker">Insights</div>
-          <h1 className="insightsHero__title">測定分析</h1>
-          <MetronomeLoader label="読み込み中..." />
-        </section>
+        <MetronomeLoader label="読み込み中..." />
       </div>
     );
   }
@@ -147,33 +380,34 @@ export default function InsightsPage() {
     return (
       <div className="page insightsPage">
         <div className="insightsPage__bg" aria-hidden="true" />
-        <section className="card insightsHero">
-          <div className="insightsHero__kicker">Insights</div>
-          <h1 className="insightsHero__title">測定分析</h1>
-          <div className="insightsError">取得に失敗しました: {state.message}</div>
-        </section>
+        <div className="insightsError">取得に失敗しました: {state.message}</div>
       </div>
     );
   }
 
   const latest = state.latest;
+  const longToneBest = buildLongToneBest(state.longToneRuns);
   const range = asRangeResult(latest.range?.result);
   const longTone = asLongToneResult(latest.long_tone?.result);
+  const longToneSeconds = longTone?.sustain_sec ?? null;
+  const longToneProgress = longToneSeconds != null ? Math.max(0, Math.min(1, longToneSeconds / 60)) : 0;
   const volume = asVolumeResult(latest.volume_stability?.result);
+  const pitchAccuracy = asPitchAccuracyResult(latest.pitch_accuracy?.result);
+  const pitchScore = pitchAccuracy?.accuracy_score ?? null;
+  const pitchSemitoneDrift = pitchAccuracy?.avg_cents_error != null ? Math.max(0, pitchAccuracy.avg_cents_error / 100) : null;
+  const pitchDriftForBar = pitchSemitoneDrift != null ? Math.min(1, pitchSemitoneDrift) : null;
+  const pitchStabilityLabel =
+    pitchSemitoneDrift == null
+      ? "—"
+      : pitchSemitoneDrift <= 0.2
+        ? "非常に安定"
+        : pitchSemitoneDrift <= 0.5
+          ? "安定"
+          : "要改善";
 
   return (
     <div className="page insightsPage">
       <div className="insightsPage__bg" aria-hidden="true" />
-
-      <section className="card insightsHero">
-        <div className="insightsHero__head">
-          <div>
-            <div className="insightsHero__kicker">Insights</div>
-            <h1 className="insightsHero__title">測定分析</h1>
-            <p className="insightsHero__sub">音域・ロングトーン・音量安定性を項目別に確認できます。</p>
-          </div>
-        </div>
-      </section>
 
       {guestMode && (
         <section className="card insightsGuest">
@@ -184,27 +418,82 @@ export default function InsightsPage() {
         </section>
       )}
 
+      <section className="card insightsHighlightsCard">
+        <div className="insightsMuted">最新の測定結果を表示しています。</div>
+      </section>
+
       <div className="insightsGrid">
-        <ClickableCard title="音域" to="/insights/notes?metric=range">
+        <ClickableCard title="音域" to="/insights/notes?metric=range" className="insightsRangeMainCard">
           <RangeLikeCard range={range} compact />
         </ClickableCard>
 
-        <ClickableCard title="ロングトーン" to="/insights/notes?metric=long_tone">
-          <LongToneDial seconds={longTone?.sustain_sec ?? null} note={longTone?.sustain_note ?? null} />
-        </ClickableCard>
-
-        <ClickableCard title="音量安定性" to="/insights/notes?metric=volume_stability">
-          <div className="insightsKeyValue">
-            <div className="insightsKeyValue__k">スコア</div>
-            <div className="insightsKeyValue__v">
-              {volume?.loudness_range_pct != null ? `${volume.loudness_range_pct.toFixed(1)}%` : "-"}
+        <div className="insightsTwinGrid">
+          <ClickableCard title="音量安定性" to="/insights/notes?metric=volume_stability" className="insightsGaugeCard">
+            <div className="insightsGaugePanel">
+              <CircleGauge
+                label="許容幅内率（±3dB）"
+                value={volume?.loudness_range_pct ?? null}
+                unit="%"
+                progress={volume?.loudness_range_pct != null ? Math.max(0, Math.min(1, volume.loudness_range_pct / 100)) : 0}
+                color="#f4e600"
+              />
+              <div className="insightsGaugeMeta">
+                <span>平均 {formatDb(volume?.avg_loudness_db ?? null)}</span>
+                <span>範囲 {volume?.loudness_range_db != null ? `${volume.loudness_range_db.toFixed(1)} dB` : "-"}</span>
+              </div>
             </div>
-          </div>
-          <div className="insightsMuted" style={{ marginTop: 6 }}>
-            (最大-最小)/平均
-          </div>
-          <div className="insightsMuted">
-            最小: {formatDb(volume?.min_loudness_db ?? null)} / 最大: {formatDb(volume?.max_loudness_db ?? null)} / 平均: {formatDb(volume?.avg_loudness_db ?? null)}
+          </ClickableCard>
+
+          <ClickableCard title="ロングトーン" to="/insights/notes?metric=long_tone" className="insightsGaugeCard">
+            <div className="insightsGaugePanel">
+              <CircleGauge
+                label="ロングトーン"
+                value={longToneSeconds}
+                unit="sec"
+                progress={longToneProgress}
+                color="#3a76af"
+              />
+              <div className="insightsGaugeMeta">
+                <span>ベスト {longToneBest != null ? `${longToneBest.toFixed(1)}s` : "—"}</span>
+                <span>音程 {longTone?.sustain_note ?? "-"}</span>
+              </div>
+            </div>
+          </ClickableCard>
+        </div>
+
+        <ClickableCard title="音程精度" to="/insights/notes?metric=pitch_accuracy" className="insightsPitchSemitoneCard">
+          <div className="insightsPitchSemitone">
+            <div className="insightsPitchSemitone__main">
+              {pitchSemitoneDrift != null ? `${pitchSemitoneDrift.toFixed(2)} 半音` : "-"}
+            </div>
+            <div
+              className={`insightsPitchSemitone__status${
+                pitchStabilityLabel === "要改善" ? " is-bad" : pitchStabilityLabel === "安定" ? " is-mid" : ""
+              }`}
+            >
+              {pitchStabilityLabel}
+            </div>
+            <div className="insightsPitchSemitone__bar">
+              <div className="insightsPitchSemitone__barZone insightsPitchSemitone__barZone--good" />
+              <div className="insightsPitchSemitone__barZone insightsPitchSemitone__barZone--mid" />
+              <div className="insightsPitchSemitone__barZone insightsPitchSemitone__barZone--bad" />
+              <div className="insightsPitchSemitone__barArrow" aria-hidden="true" />
+              {pitchDriftForBar != null && (
+                <span
+                  className="insightsPitchSemitone__barMarker"
+                  style={{ left: `${pitchDriftForBar * 100}%` }}
+                />
+              )}
+            </div>
+            <div className="insightsPitchSemitone__legend">
+              <span>0</span>
+              <span className="insightsPitchSemitone__legendArrow" aria-hidden="true" />
+              <span>1半音</span>
+            </div>
+            <div className="insightsPitchSemitone__meta">
+              <span>分析ノート数: {pitchAccuracy?.note_count ?? "-"}</span>
+              {pitchScore != null && <span>スコア {pitchScore.toFixed(1)}点</span>}
+            </div>
           </div>
         </ClickableCard>
       </div>
@@ -212,40 +501,61 @@ export default function InsightsPage() {
   );
 }
 
-function LongToneDial({ seconds, note }: { seconds: number | null; note: string | null }) {
-  const safeSec = seconds == null ? 0 : Math.max(0, seconds);
-  const progress = (safeSec % 60) / 60;
-  const r = 34;
-  const c = 44;
+function CircleGauge({
+  label,
+  value,
+  unit,
+  progress,
+  color,
+}: {
+  label: string;
+  value: number | null;
+  unit: string;
+  progress: number;
+  color: string;
+}) {
+  const p = Math.max(0, Math.min(1, progress));
+  const r = 66;
+  const c = 78;
   const arc = 2 * Math.PI * r;
-  const offset = arc * (1 - progress);
-
+  const offset = arc * (1 - p);
   return (
-    <div style={{ display: "grid", justifyItems: "center", gap: 4 }}>
-      <svg viewBox="0 0 88 88" width="88" height="88" aria-hidden="true">
-        <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(0,0,0,0.14)" strokeWidth="8" />
-        <circle
-          cx={c}
-          cy={c}
-          r={r}
-          fill="none"
-          stroke="color-mix(in srgb, var(--accent) 55%, #111)"
-          strokeWidth="8"
-          strokeDasharray={arc}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          transform="rotate(-90 44 44)"
-        />
-        <text x="44" y="40" textAnchor="middle" style={{ fontSize: 14, fontWeight: 900 }}>
-          {seconds != null ? seconds.toFixed(1) : "-"}
-        </text>
-        <text x="44" y="56" textAnchor="middle" style={{ fontSize: 10, opacity: 0.78 }}>
-          {note ?? "-"}
-        </text>
-      </svg>
-      <div className="insightsMuted">1周=60秒</div>
+    <div className="insightsCircleGauge">
+      <div className="insightsCircleGauge__label">{label}</div>
+      <div className="insightsCircleGauge__wrap">
+        <svg viewBox="0 0 156 156" className="insightsCircleGauge__svg" aria-hidden="true">
+          <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(46, 61, 85, 0.22)" strokeWidth="12" />
+          <circle
+            cx={c}
+            cy={c}
+            r={r}
+            fill="none"
+            stroke={color}
+            strokeWidth="12"
+            strokeDasharray={arc}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            transform="rotate(-90 78 78)"
+          />
+        </svg>
+        <div className="insightsCircleGauge__center">
+          <div className="insightsCircleGauge__value">{value != null ? value.toFixed(1) : "-"}</div>
+          <div className="insightsCircleGauge__unit">{unit}</div>
+        </div>
+      </div>
     </div>
   );
+}
+
+function buildLongToneBest(runs: MeasurementRun[]) {
+  const parsed = runs
+    .map((run) => {
+      const result = asLongToneResult(run.result);
+      return { run, sec: result?.sustain_sec ?? null };
+    })
+    .filter((v): v is { run: MeasurementRun; sec: number } => v.sec != null)
+    .sort((a, b) => b.run.recorded_at.localeCompare(a.run.recorded_at));
+  return parsed.reduce<number | null>((acc, cur) => (acc == null || cur.sec > acc ? cur.sec : acc), null);
 }
 
 function RangeLikeCard({
@@ -350,6 +660,12 @@ function asLongToneResult(result: MeasurementRun["result"] | undefined) {
 function asVolumeResult(result: MeasurementRun["result"] | undefined) {
   if (!result || typeof result !== "object") return null;
   if (!("loudness_range_pct" in result)) return null;
+  return result;
+}
+
+function asPitchAccuracyResult(result: MeasurementRun["result"] | undefined) {
+  if (!result || typeof result !== "object") return null;
+  if (!("accuracy_score" in result)) return null;
   return result;
 }
 

@@ -21,6 +21,44 @@ type LoadState =
       };
     };
 
+const GUEST_LATEST: {
+  range: MeasurementRun | null;
+  long_tone: MeasurementRun | null;
+  volume_stability: MeasurementRun | null;
+} = {
+  range: {
+    id: -1,
+    measurement_type: "range",
+    include_in_insights: true,
+    recorded_at: "2026-04-29T08:00:00+09:00",
+    created_at: "2026-04-29T08:00:00+09:00",
+    result: { lowest_note: "A#1", highest_note: "A5", chest_top_note: "B4", falsetto_top_note: "A5", range_semitones: 47, range_octaves: 3.92 },
+  },
+  long_tone: {
+    id: -2,
+    measurement_type: "long_tone",
+    include_in_insights: true,
+    recorded_at: "2026-02-18T08:00:00+09:00",
+    created_at: "2026-02-18T08:00:00+09:00",
+    result: { sustain_sec: 12.8, sustain_note: "B3" },
+  },
+  volume_stability: {
+    id: -3,
+    measurement_type: "volume_stability",
+    include_in_insights: true,
+    recorded_at: "2026-02-19T08:00:00+09:00",
+    created_at: "2026-02-19T08:00:00+09:00",
+    result: {
+      avg_loudness_db: -68.4,
+      min_loudness_db: -74.2,
+      max_loudness_db: -62.1,
+      loudness_range_db: 12.1,
+      loudness_range_ratio: 0.177,
+      loudness_range_pct: 17.7,
+    },
+  },
+};
+
 function ClickableCard({
   title,
   to,
@@ -69,7 +107,7 @@ export default function InsightsPage() {
     if (guestMode) {
       setState({
         kind: "ready",
-        latest: { range: null, long_tone: null, volume_stability: null },
+        latest: GUEST_LATEST,
       });
       return;
     }
@@ -148,13 +186,7 @@ export default function InsightsPage() {
 
       <div className="insightsGrid">
         <ClickableCard title="音域" to="/insights/notes?metric=range">
-          <div className="insightsMeasureValue">
-            <span className="insightsMeasureNumber">{range?.range_octaves != null ? range.range_octaves.toFixed(2) : "-"}</span>
-            <span className="insightsMeasureUnit">oct</span>
-          </div>
-          <div className="insightsMuted" style={{ marginTop: 6 }}>
-            最低音: {range?.lowest_note ?? "-"} / 最高音: {range?.highest_note ?? "-"}
-          </div>
+          <RangeLikeCard range={range} compact />
         </ClickableCard>
 
         <ClickableCard title="ロングトーン" to="/insights/notes?metric=long_tone">
@@ -216,10 +248,97 @@ function LongToneDial({ seconds, note }: { seconds: number | null; note: string 
   );
 }
 
+function RangeLikeCard({
+  range,
+  compact = false,
+}: {
+  range: ReturnType<typeof asRangeResult> | null;
+  compact?: boolean;
+}) {
+  const totalHigh = range?.highest_note ?? "-";
+  const totalLow = range?.lowest_note ?? "-";
+  const chestHigh = range?.chest_top_note ?? "-";
+  const falsettoHigh = range?.falsetto_top_note ?? "-";
+  const falsettoLow = transposeNote(range?.lowest_note ?? null, 10) ?? "-";
+  const chestHighMidi = noteToMidi(range?.chest_top_note ?? null);
+  const falsettoHighMidi = noteToMidi(range?.falsetto_top_note ?? null);
+  const overlapHighMidi =
+    chestHighMidi != null && falsettoHighMidi != null ? Math.min(chestHighMidi, falsettoHighMidi) : null;
+  const overlapHigh = overlapHighMidi != null ? midiToNote(Math.round(overlapHighMidi)) : "-";
+
+  return (
+    <div className={`insightsRangeCard${compact ? " is-compact" : ""}`}>
+      <div className="insightsRangeCard__hero">
+        <span className="insightsRangeCard__heroValue">{range?.range_octaves != null ? range.range_octaves.toFixed(2) : "-"}</span>
+        <span className="insightsRangeCard__heroUnit">オクターブ</span>
+      </div>
+      <div className="insightsRangeCard__grid">
+        <RangeCardSection title="トータル" tone="total" high={totalHigh} low={totalLow} />
+        <RangeCardSection title="地声" tone="chest" high={chestHigh} low="-" />
+        <RangeCardSection title="共通音域" tone="overlap" high={overlapHigh} low="-" />
+        <RangeCardSection title="裏声" tone="falsetto" high={falsettoHigh} low={falsettoLow} />
+      </div>
+    </div>
+  );
+}
+
+function RangeCardSection({
+  title,
+  tone,
+  high,
+  low,
+}: {
+  title: string;
+  tone: "total" | "chest" | "overlap" | "falsetto";
+  high: string;
+  low: string;
+}) {
+  return (
+    <div className={`insightsRangeCard__section insightsRangeCard__section--${tone}`}>
+      <div className={`insightsRangeCard__chip insightsRangeCard__chip--${tone}`}>{title}</div>
+      <div className="insightsRangeCard__line">
+        <span>最高音</span>
+        <strong>{high}</strong>
+      </div>
+      <div className="insightsRangeCard__line">
+        <span>最低音</span>
+        <strong>{low}</strong>
+      </div>
+    </div>
+  );
+}
+
 function asRangeResult(result: MeasurementRun["result"] | undefined) {
   if (!result || typeof result !== "object") return null;
   if (!("range_semitones" in result)) return null;
   return result;
+}
+
+function noteToMidi(note: string | null) {
+  if (!note) return null;
+  const m = note.trim().match(/^([A-Ga-g])([#b]?)(-?\d)$/);
+  if (!m) return null;
+  const letter = m[1].toUpperCase();
+  const accidental = m[2];
+  const octave = Number(m[3]);
+  const base: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  let semitone = base[letter] ?? 0;
+  if (accidental === "#") semitone += 1;
+  if (accidental === "b") semitone -= 1;
+  return (octave + 1) * 12 + semitone;
+}
+
+function midiToNote(midi: number) {
+  const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
+  const name = NOTE_NAMES[((midi % 12) + 12) % 12];
+  const octave = Math.floor(midi / 12) - 1;
+  return `${name}${octave}`;
+}
+
+function transposeNote(note: string | null, semitones: number): string | null {
+  const midi = noteToMidi(note);
+  if (midi == null) return null;
+  return midiToNote(midi + semitones);
 }
 
 function asLongToneResult(result: MeasurementRun["result"] | undefined) {

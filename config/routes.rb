@@ -11,7 +11,7 @@ Rails.application.routes.draw do
 
     # training menus
     resources :training_menus, only: [ :index, :create, :update ]
-    resources :measurements, only: [ :index, :create ] do
+    resources :measurements, only: [ :index, :create, :update ] do
       collection do
         get :latest
       end

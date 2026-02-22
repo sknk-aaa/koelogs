@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import MetronomeLoader from "./MetronomeLoader";
 import "./ProcessingOverlay.css";
@@ -19,6 +19,7 @@ export default function ProcessingOverlay({
   const [visible, setVisible] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
   const [srcIndex, setSrcIndex] = useState(0);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -70,6 +71,24 @@ export default function ProcessingOverlay({
     }
   }, [open]);
 
+  useEffect(() => {
+    if (!open || videoFailed) return;
+    const timer = window.setInterval(() => {
+      const el = videoRef.current;
+      if (!el) return;
+      const duration = Number.isFinite(el.duration) ? el.duration : 0;
+      if (duration > 0 && el.currentTime >= duration - 0.03) {
+        el.currentTime = 0;
+      }
+      if (el.paused) {
+        void el.play().catch(() => {
+          // no-op: autoplay policy fallback
+        });
+      }
+    }, 500);
+    return () => window.clearInterval(timer);
+  }, [open, videoFailed, srcIndex]);
+
   if (!visible) return null;
 
   return (
@@ -78,12 +97,27 @@ export default function ProcessingOverlay({
       <div className="processingOverlay__card">
         {!videoFailed ? (
           <video
+            ref={videoRef}
             className="processingOverlay__video"
             src={videoSrc}
             autoPlay
             loop
+            preload="auto"
             muted
             playsInline
+            onLoadedData={(e) => {
+              const el = e.currentTarget;
+              void el.play().catch(() => {
+                // no-op: autoplay policy fallback
+              });
+            }}
+            onPause={(e) => {
+              if (!open) return;
+              const el = e.currentTarget;
+              void el.play().catch(() => {
+                // no-op: autoplay policy fallback
+              });
+            }}
             onEnded={(e) => {
               const el = e.currentTarget;
               el.currentTime = 0;

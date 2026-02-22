@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_22_004000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_22_124000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -76,7 +76,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_004000) do
   end
 
   create_table "measurement_range_results", force: :cascade do |t|
+    t.string "chest_top_note"
     t.datetime "created_at", null: false
+    t.string "falsetto_top_note"
     t.string "highest_note"
     t.string "lowest_note"
     t.bigint "measurement_run_id", null: false
@@ -88,10 +90,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_004000) do
 
   create_table "measurement_runs", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.boolean "include_in_insights", default: true, null: false
     t.string "measurement_type", null: false
     t.datetime "recorded_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["user_id", "include_in_insights", "measurement_type", "recorded_at"], name: "idx_measurement_runs_insights_filter"
     t.index ["user_id", "measurement_type", "recorded_at"], name: "idx_measurement_runs_user_type_recorded"
     t.index ["user_id"], name: "index_measurement_runs_on_user_id"
   end

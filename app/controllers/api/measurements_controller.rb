@@ -4,6 +4,10 @@ module Api
 
     def index
       scope = current_user.measurement_runs.includes(:range_result, :long_tone_result, :volume_stability_result)
+      include_in_insights = params[:include_in_insights]
+      if include_in_insights.present?
+        scope = scope.where(include_in_insights: ActiveModel::Type::Boolean.new.cast(include_in_insights))
+      end
       if params[:measurement_type].present?
         scope = scope.where(measurement_type: params[:measurement_type].to_s)
       end
@@ -23,6 +27,7 @@ module Api
     def latest
       rows = current_user.measurement_runs
                          .includes(:range_result, :long_tone_result, :volume_stability_result)
+                         .where(include_in_insights: true)
                          .latest_first
       latest_map = {}
       MeasurementRun::MEASUREMENT_TYPES.each do |kind|
@@ -43,7 +48,8 @@ module Api
 
       run = current_user.measurement_runs.new(
         measurement_type: payload[:measurement_type],
-        recorded_at: payload[:recorded_at].presence || Time.current
+        recorded_at: payload[:recorded_at].presence || Time.current,
+        include_in_insights: payload.key?(:include_in_insights) ? ActiveModel::Type::Boolean.new.cast(payload[:include_in_insights]) : true
       )
 
       ActiveRecord::Base.transaction do
@@ -72,15 +78,30 @@ module Api
       render json: { errors: msg }, status: :unprocessable_entity
     end
 
+    def update
+      run = current_user.measurement_runs.find(params[:id])
+      payload = update_params
+      run.include_in_insights = ActiveModel::Type::Boolean.new.cast(payload[:include_in_insights]) if payload.key?(:include_in_insights)
+      run.save!
+      render json: { data: serialize(run) }, status: :ok
+    rescue ActiveRecord::RecordNotFound
+      render json: { error: "not found" }, status: :not_found
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { errors: e.record.errors.full_messages.presence || [ "invalid payload" ] }, status: :unprocessable_entity
+    end
+
     private
 
     def create_params
       params.permit(
         :measurement_type,
         :recorded_at,
+        :include_in_insights,
         range_result: [
           :lowest_note,
           :highest_note,
+          :chest_top_note,
+          :falsetto_top_note,
           :range_semitones,
           :range_octaves
         ],
@@ -99,10 +120,15 @@ module Api
       )
     end
 
+    def update_params
+      params.permit(:include_in_insights)
+    end
+
     def serialize(run)
       {
         id: run.id,
         measurement_type: run.measurement_type,
+        include_in_insights: run.include_in_insights,
         recorded_at: run.recorded_at&.iso8601,
         created_at: run.created_at&.iso8601,
         result: serialize_result(run)
@@ -118,6 +144,8 @@ module Api
         {
           lowest_note: r.lowest_note,
           highest_note: r.highest_note,
+          chest_top_note: r.chest_top_note,
+          falsetto_top_note: r.falsetto_top_note,
           range_semitones: r.range_semitones,
           range_octaves: decimal_or_nil(r.range_octaves)
         }

@@ -420,6 +420,34 @@
   color: #e8edf8;
 }
 
+.trainingPage__rangePhaseActions {
+  display: grid;
+  gap: 10px;
+}
+
+.trainingPage__rangePhaseBanner {
+  border-radius: 10px;
+  border: 1px solid #355a8a;
+  background: rgba(40, 80, 132, 0.26);
+  color: #dce9ff;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.trainingPage__rangePhaseBtnRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.trainingPage__rangePhaseBtnRow .trainingPage__measurementMiniBtn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+}
+
 .trainingPage__measurementResult {
   margin-top: 6px;
   border-radius: 12px;
@@ -516,6 +544,100 @@
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
+  }
+}
+
+@media (min-width: 900px) {
+  .trainingPage__resultModalCard {
+    width: min(560px, 90vw);
+    padding: 16px 16px 14px;
+    gap: 10px;
+    font-size: 20px;
+  }
+
+  .trainingPage__resultModalTitle {
+    font-size: 18px;
+  }
+
+  .trainingPage__resultModalHeroLabel {
+    font-size: 24px;
+  }
+
+  .trainingPage__resultModalHeroValue {
+    font-size: 75px;
+    margin-bottom: 4px;
+  }
+
+  .trainingPage__resultModalHeroUnit {
+    font-size: 27px;
+  }
+
+  .trainingPage__resultModalMeta {
+    font-size: 20px;
+  }
+
+  .trainingPage__resultModalLine {
+    font-size: 20px;
+  }
+
+  .trainingPage__resultModalMetricSub {
+    font-size: 21px;
+  }
+
+  .trainingPage__resultModalMetricValue {
+    font-size: 69px;
+  }
+
+  .trainingPage__resultModalStats > div {
+    font-size: 18px;
+  }
+
+  .trainingPage__rangeResultBody {
+    gap: 8px;
+  }
+
+  .trainingPage__rangeResultMeta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "total chest"
+      "overlap falsetto";
+    column-gap: 12px;
+    row-gap: 10px;
+  }
+
+  .trainingPage__rangeBand--total {
+    grid-area: total;
+  }
+
+  .trainingPage__rangeBand--chest {
+    grid-area: chest;
+  }
+
+  .trainingPage__rangeBand--falsetto {
+    grid-area: falsetto;
+  }
+
+  .trainingPage__rangeBand--overlap {
+    grid-area: overlap;
+  }
+
+  .trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaChip {
+    font-size: 20px;
+    padding: 4px 10px;
+  }
+
+  .trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaLine {
+    font-size: 24px;
+  }
+
+  .trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaLine span {
+    font-size: 17px;
+  }
+
+  .trainingPage__resultModalBtn {
+    height: 52px;
+    font-size: 20px;
   }
 }
 
@@ -878,6 +1000,389 @@
   padding: 14px;
 }
 
+.trainingPage__resultModalCard {
+  width: min(640px, 95vw);
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, #4b4b4f 0%, #3f3f44 100%);
+  color: #f7f8fc;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.34);
+  display: grid;
+  gap: 14px;
+  padding: 18px 16px 14px;
+}
+
+.trainingPage__resultModalTitle {
+  font-size: 13px;
+  font-weight: 900;
+  opacity: 0.94;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.trainingPage__resultModalHero {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.trainingPage__resultModalHeroLabel {
+  font-size: clamp(16px, 2.5vw, 24px);
+  font-weight: 500;
+  opacity: 0.96;
+}
+
+.trainingPage__resultModalHeroValue {
+  font-size: clamp(50px, 11vw, 76px);
+  line-height: 0.95;
+  font-weight: 950;
+  color: #40bfce;
+  letter-spacing: 0.01em;
+  margin-bottom: 6px;
+}
+
+.trainingPage__resultModalHeroUnit {
+  font-size: clamp(20px, 4.4vw, 30px);
+  font-weight: 900;
+  margin-left: 8px;
+}
+
+.trainingPage__resultModalHeroNotes {
+  font-size: clamp(20px, 4.2vw, 36px);
+  line-height: 1.2;
+  color: #40bfce;
+  font-weight: 950;
+  letter-spacing: 0.01em;
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__resultModalHeroNotes {
+  margin-top: 2px;
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__resultModalHeroNotes::before {
+  content: "";
+  display: block;
+  margin-bottom: 8px;
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__resultModalHeroNotes {
+  font-size: 0;
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__resultModalHeroNotes {
+  display: none;
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__resultModalHero {
+  gap: 4px;
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__resultModalHeroValue + .trainingPage__resultModalHeroHint {
+  margin-top: 2px;
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaLine strong {
+  color: #42c6d5;
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaLine {
+  font-size: clamp(24px, 4.8vw, 34px);
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaLine span {
+  font-size: clamp(14px, 2.8vw, 18px);
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaChip {
+  font-size: clamp(16px, 2.6vw, 20px);
+  padding: 5px 11px;
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__rangeResultFoot {
+  font-size: clamp(17px, 2.9vw, 24px);
+}
+
+.trainingPage__resultModalCard.is-range .trainingPage__resultModalLines {
+  display: none;
+}
+
+.trainingPage__resultModalHeroNotes {
+  font-size: 16px;
+  font-weight: 800;
+  opacity: 0.88;
+}
+
+.trainingPage__resultModalHeroHint {
+  font-size: clamp(11px, 1.8vw, 13px);
+  opacity: 0.92;
+  color: rgba(247, 248, 252, 0.92);
+}
+
+.trainingPage__resultModalMeta {
+  font-size: 13px;
+  opacity: 0.84;
+  text-align: center;
+}
+
+.trainingPage__resultModalMetric {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.trainingPage__resultModalMetricValue {
+  font-size: clamp(42px, 10vw, 64px);
+  line-height: 1;
+  font-weight: 950;
+  color: #4bc6d7;
+}
+
+.trainingPage__resultModalMetricValue span {
+  margin-left: 6px;
+  font-size: 0.46em;
+  color: rgba(247, 248, 252, 0.88);
+}
+
+.trainingPage__resultModalMetricSub {
+  font-size: 15px;
+  font-weight: 800;
+  opacity: 0.9;
+}
+
+.trainingPage__resultModalStats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.trainingPage__resultModalStats > div {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8px 6px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.trainingPage__rangeResultBox {
+  display: grid;
+  gap: 14px;
+}
+
+.trainingPage__rangeResultMessage {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 12px;
+  font-size: clamp(12px, 1.8vw, 14px);
+  line-height: 1.6;
+  color: rgba(247, 248, 252, 0.95);
+}
+
+.trainingPage__rangeResultBody {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.trainingPage__rangeResultMeta {
+  display: grid;
+  gap: 10px;
+}
+
+.trainingPage__rangeResultMetaChip {
+  border-radius: 999px;
+  background: #42bccf;
+  color: #f7f8fc;
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
+  padding: 3px 9px;
+}
+
+.trainingPage__rangeBand {
+  display: grid;
+  gap: 5px;
+}
+
+.trainingPage__rangeResultMetaLine {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.trainingPage__rangeResultMetaLine span {
+  font-size: 13px;
+  font-weight: 800;
+  opacity: 0.88;
+}
+
+.trainingPage__rangeResultMetaLine strong {
+  color: #48c4d5;
+}
+
+.trainingPage__rangeResultMetaChip--total {
+  background: #42bccf;
+}
+
+.trainingPage__rangeResultMetaLine--total strong {
+  color: #42c6d5;
+}
+
+.trainingPage__rangeResultMetaChip--chest {
+  background: #8f82b4;
+}
+
+.trainingPage__rangeResultMetaLine--chest strong {
+  color: #a390cf;
+}
+
+.trainingPage__rangeResultMetaChip--overlap {
+  background: #a7b86f;
+}
+
+.trainingPage__rangeResultMetaLine--overlap strong {
+  color: #b8c97c;
+}
+
+.trainingPage__rangeResultMetaChip--falsetto {
+  background: #e4a84e;
+}
+
+.trainingPage__rangeResultMetaLine--falsetto strong {
+  color: #efb258;
+}
+
+.trainingPage__rangeResultFoot {
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(247, 248, 252, 0.95);
+}
+
+.trainingPage__resultModalLines {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.trainingPage__resultModalLine {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.trainingPage__resultModalActions {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.trainingPage__resultModalBtn {
+  flex: 1 1 160px;
+  min-width: 0;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: clamp(14px, 2.6vw, 20px);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.trainingPage__resultModalBtn--close {
+  background: #ececec;
+  color: #414247;
+}
+
+.trainingPage__resultModalBtn--share {
+  background: #42bccf;
+  color: #f7f8fc;
+}
+
+.trainingPage__resultModalBtn--save {
+  background: #42bccf;
+  color: #f7f8fc;
+}
+
+.trainingPage__resultModalBtn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.trainingPage__resultModalBtn:hover:not(:disabled) {
+  filter: brightness(1.03);
+}
+
+.trainingPage__resultModalBtn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.78);
+  outline-offset: 2px;
+}
+
+body[data-hide-chrome="true"] header,
+body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .trainingPage__resultModalCard {
+    width: min(96vw, 540px);
+    padding: 12px 9px 9px;
+    gap: 8px;
+  }
+
+  .trainingPage__resultModalTitle {
+    font-size: 12px;
+  }
+
+  .trainingPage__resultModalHeroLabel {
+    font-size: 14px;
+  }
+
+  .trainingPage__resultModalHeroValue {
+    font-size: clamp(38px, 13vw, 54px);
+  }
+
+  .trainingPage__resultModalHeroUnit {
+    font-size: clamp(16px, 5.5vw, 22px);
+  }
+
+  .trainingPage__rangeResultBody {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .trainingPage__rangeResultMetaLine {
+    font-size: 18px;
+  }
+
+  .trainingPage__rangeResultMetaLine span {
+    font-size: 12px;
+  }
+
+  .trainingPage__rangeResultFoot {
+    font-size: 12px;
+  }
+
+  .trainingPage__resultModalBtn {
+    height: 36px;
+    font-size: 13px;
+  }
+}
+
 .trainingPage__modalHead {
   display: flex;
   justify-content: space-between;
@@ -922,5 +1427,100 @@
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     align-items: start;
+  }
+}
+
+/* Desktop final override: placed last to win cascade */
+@media (min-width: 900px) {
+  .trainingPage__resultModalCard {
+    width: min(560px, 90vw);
+    padding: 16px 16px 14px;
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  .trainingPage__resultModalTitle {
+    font-size: 12px;
+  }
+
+  .trainingPage__resultModalHeroLabel {
+    font-size: 16px;
+  }
+
+  .trainingPage__resultModalHeroValue {
+    font-size: 52px;
+    margin-bottom: 4px;
+  }
+
+  .trainingPage__resultModalHeroUnit {
+    font-size: 18px;
+  }
+
+  .trainingPage__resultModalMeta {
+    font-size: 12px;
+  }
+
+  .trainingPage__resultModalLine {
+    font-size: 13px;
+  }
+
+  .trainingPage__resultModalMetricSub {
+    font-size: 15px;
+  }
+
+  .trainingPage__resultModalMetricValue {
+    font-size: 48px;
+  }
+
+  .trainingPage__resultModalStats > div {
+    font-size: 11px;
+  }
+
+  .trainingPage__rangeResultMeta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "total chest"
+      "overlap falsetto";
+    column-gap: 12px;
+    row-gap: 9px;
+  }
+
+  .trainingPage__rangeBand--total {
+    grid-area: total;
+  }
+
+  .trainingPage__rangeBand--chest {
+    grid-area: chest;
+  }
+
+  .trainingPage__rangeBand--falsetto {
+    grid-area: falsetto;
+  }
+
+  .trainingPage__rangeBand--overlap {
+    grid-area: overlap;
+  }
+
+  .trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaChip {
+    font-size: 17px;
+    padding: 4px 10px;
+  }
+
+  .trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaLine {
+    font-size: 19px;
+  }
+
+  .trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaLine span {
+    font-size: 14px;
+  }
+
+  .trainingPage__resultModalCard.is-range .trainingPage__rangeResultMetaLine strong {
+    font-size: 24px;
+  }
+
+  .trainingPage__resultModalBtn {
+    height: 40px;
+    font-size: 13px;
   }
 }

@@ -1,0 +1,137 @@
+.trackFilters {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.trackFilters__block {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.trackFilters__labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.trackFilters__label {
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(8, 14, 26, 0.76);
+}
+
+.trackFilters__selectWrap {
+  min-width: 0;
+}
+
+.trackFilters__selectSurface {
+  position: relative;
+  min-width: 0;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: rgba(255, 255, 255, 0.94);
+  overflow: hidden;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.trackFilters__selectSurface.is-focused {
+  border-color: rgba(19, 34, 58, 0.32);
+  box-shadow: 0 8px 16px rgba(12, 28, 54, 0.08);
+}
+
+.trackFilters__selectSurface.is-disabled {
+  opacity: 0.56;
+}
+
+.trackFilters__select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0 48px 0 14px;
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(8, 14, 26, 0.9);
+  cursor: pointer;
+}
+
+.trackFilters__select:focus {
+  outline: none;
+}
+
+.trackFilters__select:disabled {
+  cursor: not-allowed;
+}
+
+.trackFilters__selectChevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.64;
+}
+
+.trackFilters__grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.trackFilters__tempoBtn {
+  appearance: none;
+  border: 1px solid rgba(20, 30, 44, 0.26);
+  background: #fff;
+  border-radius: 12px;
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(8, 14, 26, 0.82);
+  cursor: pointer;
+  transition: transform 100ms ease, box-shadow 120ms ease, background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.trackFilters__tempoBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(12, 28, 54, 0.1);
+}
+
+.trackFilters__tempoBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.trackFilters__tempoBtn.is-active {
+  background: #1f2b3f;
+  color: #fff;
+  border-color: #1f2b3f;
+  box-shadow: 0 10px 18px rgba(11, 24, 43, 0.2);
+}
+
+.trackFilters__tempoBtn:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .trackFilters {
+    gap: 16px;
+  }
+
+  .trackFilters__grid3 {
+    gap: 8px;
+  }
+
+  .trackFilters__tempoBtn {
+    font-size: 12px;
+  }
+}

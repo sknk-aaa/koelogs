@@ -1,0 +1,51 @@
+.scalePattern {
+  width: 100%;
+  min-width: 0;
+}
+
+.scalePattern--sm {
+  max-width: 148px;
+}
+
+.scalePattern--md {
+  max-width: 176px;
+}
+
+.scalePattern--lg {
+  max-width: 212px;
+}
+
+.scalePattern__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.scalePattern__bg {
+  fill: #1f2a44;
+}
+
+.scalePattern__guide {
+  stroke: rgba(210, 223, 255, 0.28);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.scalePattern__note {
+  fill: #ffea22;
+}
+
+.scalePattern.is-active .scalePattern__note {
+  animation: scalePatternPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes scalePatternPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+

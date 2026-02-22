@@ -1,5 +1,5 @@
 // frontend/src/pages/TrainingPage.tsx
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { ScaleTrack, ScaleType, Tempo } from "../api/scaleTracks";
 import { SCALE_TYPES, TEMPOS } from "../features/training/constants";
@@ -1560,24 +1560,30 @@ async function persistMeasurement({
 }
 
 function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia(query).matches : false
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      if (typeof window === "undefined") return () => {};
+
+      const media = window.matchMedia(query);
+      const onChange = () => onStoreChange();
+
+      if (typeof media.addEventListener === "function") {
+        media.addEventListener("change", onChange);
+        return () => media.removeEventListener("change", onChange);
+      }
+
+      media.addListener(onChange);
+      return () => media.removeListener(onChange);
+    },
+    [query]
   );
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const media = window.matchMedia(query);
-    const onChange = (event: MediaQueryListEvent) => setMatches(event.matches);
-    setMatches(media.matches);
-    if (typeof media.addEventListener === "function") {
-      media.addEventListener("change", onChange);
-      return () => media.removeEventListener("change", onChange);
-    }
-    media.addListener(onChange);
-    return () => media.removeListener(onChange);
-  }, [query]);
+  const getSnapshot = useCallback(
+    () => (typeof window !== "undefined" ? window.matchMedia(query).matches : false),
+    [query]
+  );
 
-  return matches;
+  return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
 
 type SessionStepHeadProps = {

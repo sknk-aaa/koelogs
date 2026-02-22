@@ -837,7 +837,7 @@ export default function InsightsNotesPage() {
                 ) : metricTab === "volume_stability" ? (
                   <ScoreTrendChart
                     points={metricPoints}
-                    color="#2f7b63"
+                    color="#f0c419"
                     unit="%"
                     min={0}
                     max={100}
@@ -847,7 +847,7 @@ export default function InsightsNotesPage() {
                 ) : metricTab === "pitch_accuracy" ? (
                   <ScoreTrendChart
                     points={metricPoints}
-                    color="#3a68a3"
+                    color="#2563eb"
                     unit="半音"
                     min={0}
                     max={1}
@@ -983,7 +983,7 @@ export default function InsightsNotesPage() {
                 ) : metricTab === "volume_stability" ? (
                   <ScoreTrendChart
                     points={metricPoints}
-                    color="#2f7b63"
+                    color="#f0c419"
                     unit="%"
                     min={0}
                     max={100}
@@ -993,7 +993,7 @@ export default function InsightsNotesPage() {
                 ) : metricTab === "pitch_accuracy" ? (
                   <ScoreTrendChart
                     points={metricPoints}
-                    color="#3a68a3"
+                    color="#2563eb"
                     unit="半音"
                     min={0}
                     max={1}
@@ -1236,7 +1236,7 @@ function VolumeStabilityGaugeCard({ volume }: { volume: ReturnType<typeof asVolu
         value={volume?.loudness_range_pct ?? null}
         unit="%"
         progress={volume?.loudness_range_pct != null ? Math.max(0, Math.min(1, volume.loudness_range_pct / 100)) : 0}
-        color="#f4e600"
+        color="#ffe06a"
       />
       <div className="insightsGaugeMeta">
         <span>平均 {formatDb(volume?.avg_loudness_db ?? null)}</span>
@@ -1314,7 +1314,7 @@ function SimpleCircleGauge({
       <div className="insightsCircleGauge__label">{label}</div>
       <div className="insightsCircleGauge__wrap">
         <svg viewBox="0 0 156 156" className="insightsCircleGauge__svg" aria-hidden="true">
-          <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(46, 61, 85, 0.22)" strokeWidth="12" />
+          <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(45, 102, 184, 0.24)" strokeWidth="12" />
           <circle
             cx={c}
             cy={c}
@@ -1419,7 +1419,7 @@ function LongToneDial({
   const progress = bestRatio / 100;
   const isBest = seconds != null && bestSeconds != null && seconds >= bestSeconds;
   const diffFromLatest = seconds != null && latestSeconds != null ? seconds - latestSeconds : null;
-  const progressColor = "#8d9aab";
+  const progressColor = "#3b82f6";
   const r = 42;
   const c = 52;
   const arc = 2 * Math.PI * r;
@@ -1430,7 +1430,7 @@ function LongToneDial({
       <div className="insightsLongTone__main">
         <div className="insightsLongTone__ringWrap">
           <svg viewBox="0 0 104 104" className="insightsLongTone__ring" aria-hidden="true">
-            <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(15, 30, 54, 0.14)" strokeWidth="8" />
+            <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(59, 130, 246, 0.22)" strokeWidth="8" />
             <circle
               cx={c}
               cy={c}
@@ -1519,8 +1519,8 @@ function SimpleTrendChart({ points, yMode = "number" }: { points: MeasurementPoi
   return (
     <div style={{ overflowX: "auto" }}>
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", minWidth: 520, height: 220 }} aria-hidden="true">
-        <line x1={padLeft} y1={height - padBottom} x2={width - padRight} y2={height - padBottom} stroke="rgba(0,0,0,0.2)" />
-        <line x1={padLeft} y1={padTop} x2={padLeft} y2={height - padBottom} stroke="rgba(0,0,0,0.2)" />
+        <line x1={padLeft} y1={height - padBottom} x2={width - padRight} y2={height - padBottom} stroke="rgba(40,79,130,0.36)" />
+        <line x1={padLeft} y1={padTop} x2={padLeft} y2={height - padBottom} stroke="rgba(40,79,130,0.36)" />
         {yMode === "note" &&
           Array.from({ length: 7 }).map((_, idx) => {
             const r = idx / 6;
@@ -1528,7 +1528,7 @@ function SimpleTrendChart({ points, yMode = "number" }: { points: MeasurementPoi
             const y = padTop + (height - padTop - padBottom) * r;
             return (
               <g key={`note-tick-${idx}`}>
-                <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(0,0,0,0.14)" />
+                <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(54,110,182,0.2)" />
                 <text x={padLeft - 8} y={y + 4} textAnchor="end" style={{ fontSize: 12, opacity: 0.82, fontWeight: 800 }}>
                   {midiToNote(midi)}
                 </text>
@@ -1541,14 +1541,14 @@ function SimpleTrendChart({ points, yMode = "number" }: { points: MeasurementPoi
           const dateLabel = point?.date ? point.date.slice(5) : "";
           return (
             <g key={`x-tick-${idx}`}>
-              <line x1={x} y1={height - padBottom} x2={x} y2={height - padBottom + 4} stroke="rgba(0,0,0,0.24)" />
+              <line x1={x} y1={height - padBottom} x2={x} y2={height - padBottom + 4} stroke="rgba(42,89,155,0.38)" />
               <text x={x} y={height - 8} textAnchor="middle" style={{ fontSize: 11, opacity: 0.76 }}>
                 {dateLabel}
               </text>
             </g>
           );
         })}
-        <path d={d} fill="none" stroke="color-mix(in srgb, var(--accent) 42%, #121212)" strokeWidth="3" />
+        <path d={d} fill="none" stroke="color-mix(in srgb, var(--accent) 72%, #0b3f77)" strokeWidth="3" />
       </svg>
     </div>
   );
@@ -1557,9 +1557,10 @@ function SimpleTrendChart({ points, yMode = "number" }: { points: MeasurementPoi
 function LongToneTrendChart({ points }: { points: MeasurementPoint[] }) {
   const width = 760;
   const height = 260;
+  const axisWidth = 40;
   const padTop = 18;
   const padBottom = 36;
-  const padLeft = 46;
+  const padLeft = 18;
   const padRight = 18;
   const values = points.map((p) => p.value).filter((v): v is number => v != null);
   const dataMax = values.length ? Math.max(...values) : 0;
@@ -1598,86 +1599,104 @@ function LongToneTrendChart({ points }: { points: MeasurementPoint[] }) {
   const xTicks = Array.from(
     new Set(points.length <= 1 ? [0] : [0, Math.floor((points.length - 1) * 0.33), Math.floor((points.length - 1) * 0.66), points.length - 1])
   );
+  const xAxisY = height - padBottom;
 
   return (
-    <div style={{ overflowX: "auto" }}>
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", minWidth: 520, height: 260 }} aria-hidden="true">
-        <defs>
-          <linearGradient id="longtoneGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#1f5f4f" stopOpacity={0.35} />
-            <stop offset="95%" stopColor="#1f5f4f" stopOpacity={0.05} />
-          </linearGradient>
-          <filter id="longtoneDotShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="1.8" floodColor="rgba(31,95,79,0.28)" />
-          </filter>
-        </defs>
+    <div className="insightsFixedTrend">
+      <div className="insightsFixedTrend__frame">
+        <div className="insightsFixedTrend__axis" style={{ width: `${axisWidth}px`, minWidth: `${axisWidth}px`, maxWidth: `${axisWidth}px` }}>
+          <svg viewBox={`0 0 ${axisWidth} ${height}`} className="insightsFixedTrend__axisSvg" aria-hidden="true">
+            <line x1={axisWidth - 1} y1={padTop} x2={axisWidth - 1} y2={xAxisY} stroke="#9fc2ea" />
+            {yTicks.map((v) => {
+              const y = padTop + (1 - (v - min) / range) * plotH;
+              return (
+                <g key={`lt-axis-y-${v}`}>
+                  <line x1={axisWidth - 5} y1={y} x2={axisWidth - 1} y2={y} stroke="#8eb7e8" strokeWidth="1.1" />
+                  <text x={axisWidth - 7} y={y + 4} textAnchor="end" className="insightsFixedTrend__yLabel">
+                    {v}s
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+        <div className="insightsFixedTrend__scroll">
+          <div className="insightsFixedTrend__plotInner" style={{ minWidth: `${width}px` }}>
+            <svg viewBox={`0 0 ${width} ${height}`} className="insightsFixedTrend__svg" style={{ width: `${width}px` }} aria-hidden="true">
+              <defs>
+                <linearGradient id="longtoneGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.34} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.06} />
+                </linearGradient>
+                <filter id="longtoneDotShadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="1.8" floodColor="rgba(59,130,246,0.3)" />
+                </filter>
+              </defs>
 
-        {yTicks.map((v) => {
-          const y = padTop + (1 - (v - min) / range) * plotH;
-          return (
-            <g key={`lt-y-${v}`}>
-              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(0,0,0,0.08)" strokeDasharray="3 3" />
-              <text x={padLeft - 8} y={y + 4} textAnchor="end" style={{ fontSize: 12, opacity: 0.78, fontWeight: 700 }}>
-                {v}s
-              </text>
-            </g>
-          );
-        })}
+              {yTicks.map((v) => {
+                const y = padTop + (1 - (v - min) / range) * plotH;
+                return (
+                  <line key={`lt-y-${v}`} x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(56,124,205,0.18)" strokeDasharray="3 3" />
+                );
+              })}
 
-        {xTicks.map((idx) => {
-          const p = points[idx];
-          const x = padLeft + step * idx;
-          return (
-            <g key={`lt-x-${idx}`}>
-              <line x1={x} y1={height - padBottom} x2={x} y2={height - padBottom + 4} stroke="rgba(0,0,0,0.24)" />
-              <text x={x} y={height - 8} textAnchor="middle" style={{ fontSize: 11, opacity: 0.76 }}>
-                {p?.date ? p.date.slice(5) : ""}
-              </text>
-            </g>
-          );
-        })}
+              {xTicks.map((idx) => {
+                const p = points[idx];
+                const x = padLeft + step * idx;
+                return (
+                  <g key={`lt-x-${idx}`}>
+                    <line x1={x} y1={xAxisY} x2={x} y2={xAxisY + 4} stroke="rgba(42,89,155,0.38)" />
+                    <text x={x} y={height - 8} textAnchor="middle" style={{ fontSize: 11, opacity: 0.76 }}>
+                      {p?.date ? p.date.slice(5) : ""}
+                    </text>
+                  </g>
+                );
+              })}
 
-        <line x1={padLeft} y1={height - padBottom} x2={width - padRight} y2={height - padBottom} stroke="rgba(0,0,0,0.2)" />
-        <line x1={padLeft} y1={padTop} x2={padLeft} y2={height - padBottom} stroke="rgba(0,0,0,0.2)" />
+              <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="rgba(40,79,130,0.36)" />
+              <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="rgba(40,79,130,0.36)" />
 
-        {areaPath && <path d={areaPath} fill="url(#longtoneGradient)" />}
-        {linePath && <path d={linePath} fill="none" stroke="#1f5f4f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+              {areaPath && <path d={areaPath} fill="url(#longtoneGradient)" />}
+              {linePath && <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
 
-        {plotted.map((p) => {
-          const isLatest = latestPoint != null && latestPoint.index === p.index;
-          return (
-            <g key={`lt-dot-${p.index}`}>
-              {isLatest && (
-                <circle
-                  cx={p.x}
-                  cy={p.y}
-                  r={10}
-                  fill="rgba(31,95,79,0.12)"
-                  stroke="none"
-                  filter="url(#longtoneDotShadow)"
-                />
+              {plotted.map((p) => {
+                const isLatest = latestPoint != null && latestPoint.index === p.index;
+                return (
+                  <g key={`lt-dot-${p.index}`}>
+                    {isLatest && (
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r={10}
+                        fill="rgba(59,130,246,0.16)"
+                        stroke="none"
+                        filter="url(#longtoneDotShadow)"
+                      />
+                    )}
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r={isLatest ? 7.5 : 6}
+                      fill="#fff"
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                    />
+                  </g>
+                );
+              })}
+
+              {bestPoint && (
+                <g transform={`translate(${bestPoint.x}, ${bestPoint.y - 22})`}>
+                  <rect x={-18} y={-14} width={36} height={16} rx={8} fill="rgba(184,137,0,0.95)" />
+                  <text x={0} y={-3} textAnchor="middle" style={{ fontSize: 9, fontWeight: 900, fill: "#fff", letterSpacing: "0.03em" }}>
+                    BEST
+                  </text>
+                </g>
               )}
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r={isLatest ? 7.5 : 6}
-                fill="#fff"
-                stroke="#1f5f4f"
-                strokeWidth={2}
-              />
-            </g>
-          );
-        })}
-
-        {bestPoint && (
-          <g transform={`translate(${bestPoint.x}, ${bestPoint.y - 22})`}>
-            <rect x={-18} y={-14} width={36} height={16} rx={8} fill="rgba(184,137,0,0.95)" />
-            <text x={0} y={-3} textAnchor="middle" style={{ fontSize: 9, fontWeight: 900, fill: "#fff", letterSpacing: "0.03em" }}>
-              BEST
-            </text>
-          </g>
-        )}
-      </svg>
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1703,9 +1722,10 @@ function ScoreTrendChart({
 }) {
   const width = 760;
   const height = 260;
+  const axisWidth = 40;
   const padTop = 18;
   const padBottom = 36;
-  const padLeft = 46;
+  const padLeft = 18;
   const padRight = 18;
   const domainMin = min;
   const domainMax = max;
@@ -1736,73 +1756,104 @@ function ScoreTrendChart({
     new Set(points.length <= 1 ? [0] : [0, Math.floor((points.length - 1) * 0.33), Math.floor((points.length - 1) * 0.66), points.length - 1])
   );
   const yAxisTicks = yTicks ?? [0, 20, 40, 60, 80, 100];
+  const xAxisY = height - padBottom;
+  const isSemitoneAxis = unit === "半音";
+  const formatAxisTick = (value: number) => {
+    if (tickFormatter) {
+      const formatted = tickFormatter(value);
+      return isSemitoneAxis ? formatted.replace(/半音/g, "") : formatted;
+    }
+    return isSemitoneAxis ? `${value}` : `${value}${unit}`;
+  };
 
   return (
-    <div style={{ overflowX: "auto" }}>
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", minWidth: 520, height: 260 }} aria-hidden="true">
-        <defs>
-          <linearGradient id={`scoreGradient-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={color} stopOpacity={0.32} />
-            <stop offset="95%" stopColor={color} stopOpacity={0.05} />
-          </linearGradient>
-        </defs>
-
-        {yAxisTicks.map((v) => {
-          const y = padTop + (1 - (v - domainMin) / range) * plotH;
-          return (
-            <g key={`score-y-${v}`}>
-              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(0,0,0,0.08)" strokeDasharray="3 3" />
-              <text x={padLeft - 8} y={y + 4} textAnchor="end" style={{ fontSize: 12, opacity: 0.78, fontWeight: 700 }}>
-                {tickFormatter ? tickFormatter(v) : `${v}${unit}`}
+    <div className="insightsFixedTrend">
+      <div className="insightsFixedTrend__frame">
+        <div className="insightsFixedTrend__axis" style={{ width: `${axisWidth}px`, minWidth: `${axisWidth}px`, maxWidth: `${axisWidth}px` }}>
+          <svg viewBox={`0 0 ${axisWidth} ${height}`} className="insightsFixedTrend__axisSvg" aria-hidden="true">
+            {isSemitoneAxis && (
+              <text x={axisWidth - 8} y={padTop - 6} textAnchor="end" className="insightsFixedTrend__axisTitle">
+                半音
               </text>
-            </g>
-          );
-        })}
+            )}
+            <line x1={axisWidth - 1} y1={padTop} x2={axisWidth - 1} y2={xAxisY} stroke="#9fc2ea" />
+            {yAxisTicks.map((v) => {
+              const y = padTop + (1 - (v - domainMin) / range) * plotH;
+              return (
+                <g key={`score-axis-y-${v}`}>
+                  <line x1={axisWidth - 5} y1={y} x2={axisWidth - 1} y2={y} stroke="#8eb7e8" strokeWidth="1.1" />
+                  <text x={axisWidth - 7} y={y + 4} textAnchor="end" className="insightsFixedTrend__yLabel">
+                    {formatAxisTick(v)}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+        <div className="insightsFixedTrend__scroll">
+          <div className="insightsFixedTrend__plotInner" style={{ minWidth: `${width}px` }}>
+            <svg viewBox={`0 0 ${width} ${height}`} className="insightsFixedTrend__svg" style={{ width: `${width}px` }} aria-hidden="true">
+              <defs>
+                <linearGradient id={`scoreGradient-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={color} stopOpacity={0.32} />
+                  <stop offset="95%" stopColor={color} stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
 
-        {xTicks.map((idx) => {
-          const p = points[idx];
-          const x = padLeft + step * idx;
-          return (
-            <g key={`score-x-${idx}`}>
-              <line x1={x} y1={height - padBottom} x2={x} y2={height - padBottom + 4} stroke="rgba(0,0,0,0.24)" />
-              <text x={x} y={height - 8} textAnchor="middle" style={{ fontSize: 11, opacity: 0.76 }}>
-                {p?.date ? p.date.slice(5) : ""}
-              </text>
-            </g>
-          );
-        })}
+              {yAxisTicks.map((v) => {
+                const y = padTop + (1 - (v - domainMin) / range) * plotH;
+                return (
+                  <line key={`score-y-${v}`} x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(56,124,205,0.18)" strokeDasharray="3 3" />
+                );
+              })}
 
-        <line x1={padLeft} y1={height - padBottom} x2={width - padRight} y2={height - padBottom} stroke="rgba(0,0,0,0.2)" />
-        <line x1={padLeft} y1={padTop} x2={padLeft} y2={height - padBottom} stroke="rgba(0,0,0,0.2)" />
+              {xTicks.map((idx) => {
+                const p = points[idx];
+                const x = padLeft + step * idx;
+                return (
+                  <g key={`score-x-${idx}`}>
+                    <line x1={x} y1={xAxisY} x2={x} y2={xAxisY + 4} stroke="rgba(42,89,155,0.38)" />
+                    <text x={x} y={height - 8} textAnchor="middle" style={{ fontSize: 11, opacity: 0.76 }}>
+                      {p?.date ? p.date.slice(5) : ""}
+                    </text>
+                  </g>
+                );
+              })}
 
-        {areaPath && <path d={areaPath} fill={`url(#scoreGradient-${color.replace("#", "")})`} />}
-        {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+              <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="rgba(40,79,130,0.36)" />
+              <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="rgba(40,79,130,0.36)" />
 
-        {plotted.map((p) => {
-          const isLatest = latestPoint != null && latestPoint.index === p.index;
-          return (
-            <g key={`score-dot-${p.index}`}>
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r={isLatest ? 7.5 : 6}
-                fill="#fff"
-                stroke={color}
-                strokeWidth={2}
-              />
-            </g>
-          );
-        })}
+              {areaPath && <path d={areaPath} fill={`url(#scoreGradient-${color.replace("#", "")})`} />}
+              {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
 
-        {bestPoint && (
-          <g transform={`translate(${bestPoint.x}, ${bestPoint.y - 22})`}>
-            <rect x={-18} y={-14} width={36} height={16} rx={8} fill="rgba(184,137,0,0.95)" />
-            <text x={0} y={-3} textAnchor="middle" style={{ fontSize: 9, fontWeight: 900, fill: "#fff", letterSpacing: "0.03em" }}>
-              BEST
-            </text>
-          </g>
-        )}
-      </svg>
+              {plotted.map((p) => {
+                const isLatest = latestPoint != null && latestPoint.index === p.index;
+                return (
+                  <g key={`score-dot-${p.index}`}>
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r={isLatest ? 7.5 : 6}
+                      fill="#fff"
+                      stroke={color}
+                      strokeWidth={2}
+                    />
+                  </g>
+                );
+              })}
+
+              {bestPoint && (
+                <g transform={`translate(${bestPoint.x}, ${bestPoint.y - 22})`}>
+                  <rect x={-18} y={-14} width={36} height={16} rx={8} fill="rgba(184,137,0,0.95)" />
+                  <text x={0} y={-3} textAnchor="middle" style={{ fontSize: 9, fontWeight: 900, fill: "#fff", letterSpacing: "0.03em" }}>
+                    BEST
+                  </text>
+                </g>
+              )}
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1829,7 +1880,7 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
         height: 420,
         padTop: 42,
         padBottom: 62,
-        axisWidth: 48,
+        axisWidth: 34,
         plotPadLeft: 16,
         plotPadRight: 26,
         plotEdgeInset: 16,
@@ -1850,7 +1901,7 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
         height: 420,
         padTop: 42,
         padBottom: 64,
-        axisWidth: 76,
+        axisWidth: 44,
         plotPadLeft: 16,
         plotPadRight: 24,
         plotEdgeInset: 0,
@@ -2004,14 +2055,14 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
           style={{ width: `${axisWidth}px`, minWidth: `${axisWidth}px`, maxWidth: `${axisWidth}px` }}
         >
           <svg viewBox={`0 0 ${axisWidth} ${height}`} className="insightsRangeTrend__axisSvg" aria-hidden="true">
-            <line x1={axisWidth - 1} y1={padTop} x2={axisWidth - 1} y2={xAxisY} stroke="#c6d5e5" />
+            <line x1={axisWidth - 1} y1={padTop} x2={axisWidth - 1} y2={xAxisY} stroke="#9fc2ea" />
             {yTicks.map((midi, idx) => {
               const y = yFromMidi(midi);
               const label = midiToNote(midi);
               const isC = midi % 12 === 0;
               return (
                 <g key={`range-axis-y-${midi}-${idx}`}>
-                  <line x1={axisWidth - 5} y1={y} x2={axisWidth - 1} y2={y} stroke={isC ? "#bfd5ea" : "#dbe7f2"} strokeWidth={isC ? 1.2 : 1} />
+                  <line x1={axisWidth - 5} y1={y} x2={axisWidth - 1} y2={y} stroke={isC ? "#8eb7e8" : "#c5daf2"} strokeWidth={isC ? 1.2 : 1} />
                   <text x={axisWidth - 6} y={y + 4} textAnchor="end" className="insightsRangeTrend__yLabel">
                     <NoteLabel note={label} />
                   </text>
@@ -2025,16 +2076,16 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
       <svg viewBox={`0 0 ${width} ${height}`} className="insightsRangeTrend__svg" style={{ width: `${width}px` }} aria-hidden="true">
         <defs>
           <linearGradient id="rangeTrendBg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f7fbff" />
-            <stop offset="100%" stopColor="#edf4fb" />
+            <stop offset="0%" stopColor="#eef6ff" />
+            <stop offset="100%" stopColor="#deeeff" />
           </linearGradient>
           <linearGradient id="rangeTrendBand" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#42a5f5" stopOpacity={isMobile ? 0.23 : 0.34} />
-            <stop offset="100%" stopColor="#90caf9" stopOpacity={isMobile ? 0.14 : 0.2} />
+            <stop offset="0%" stopColor="#38bdf8" stopOpacity={isMobile ? 0.28 : 0.4} />
+            <stop offset="100%" stopColor="#60a5fa" stopOpacity={isMobile ? 0.2 : 0.28} />
           </linearGradient>
           <linearGradient id="rangeTrendHigh" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#1e88e5" />
-            <stop offset="100%" stopColor="#1976d2" />
+            <stop offset="0%" stopColor="#1d4ed8" />
+            <stop offset="100%" stopColor="#2563eb" />
           </linearGradient>
         </defs>
 
@@ -2069,27 +2120,27 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
           const isC = midi % 12 === 0;
           return (
             <g key={`range-y-grid-${midi}-${idx}`}>
-              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke={isC ? "#bfd5ea" : "#dbe7f2"} strokeWidth={isC ? 1.2 : 1} />
+              <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke={isC ? "#8eb7e8" : "#c5daf2"} strokeWidth={isC ? 1.2 : 1} />
             </g>
           );
         })}
 
-        <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="#c6d5e5" />
-        <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="#c6d5e5" />
+        <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="#9fc2ea" />
+        <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="#9fc2ea" />
 
         {bandAreaPath && <path d={bandAreaPath} fill="url(#rangeTrendBand)" stroke="none" />}
 
-        {lowPath && <path d={lowPath} fill="none" stroke="#9ab6d4" strokeWidth="2" strokeDasharray="4 4" />}
+        {lowPath && <path d={lowPath} fill="none" stroke="#60a5fa" strokeWidth="2" strokeDasharray="4 4" />}
         {highPath && <path d={highPath} fill="none" stroke="url(#rangeTrendHigh)" strokeWidth="3.8" />}
 
-        {hovered && <circle cx={hovered.x} cy={hovered.lowY} r={layout.lowDotR} fill="#9ab6d4" stroke="#fff" strokeWidth="1.1" />}
+        {hovered && <circle cx={hovered.x} cy={hovered.lowY} r={layout.lowDotR} fill="#60a5fa" stroke="#fff" strokeWidth="1.1" />}
         {decorated.map((p) => (
           <circle
             key={`range-high-${p.index}`}
             cx={p.x}
             cy={p.highY}
             r={p.improvedFromPrev ? layout.highDotStrongR : layout.highDotR}
-            fill={p.improvedFromPrev ? "#5a8fc2" : "#1e88e5"}
+            fill={p.improvedFromPrev ? "#1d4ed8" : "#2563eb"}
             opacity={p.improvedFromPrev ? layout.highDotStrongOpacity : layout.highDotNormalOpacity}
             stroke="#fff"
             strokeWidth={p.improvedFromPrev ? 1.5 : 0.9}
@@ -2124,7 +2175,7 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
           const dateLabel = point?.date ? point.date.slice(5) : "";
           return (
             <g key={`range-x-${idx}`}>
-              <line x1={x} y1={xAxisY} x2={x} y2={xAxisY + 5} stroke="#a9bfd4" />
+              <line x1={x} y1={xAxisY} x2={x} y2={xAxisY + 5} stroke="#7ea8d8" />
               <text x={x} y={height - 10} textAnchor="middle" className="insightsRangeTrend__xLabel">
                 {dateLabel}
               </text>
@@ -2138,7 +2189,7 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
             y1={padTop}
             x2={hovered.x}
             y2={xAxisY}
-            stroke="#64b5f6"
+            stroke="#38bdf8"
             strokeWidth="1.6"
             strokeDasharray="4 4"
             opacity="0.72"

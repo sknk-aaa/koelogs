@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+import InsightsCardHeader from "../features/insights/components/InsightsCardHeader";
 import "./InsightsPages.css";
 
 function currentMonth() {
@@ -31,9 +32,7 @@ export default function InsightsMenusPage() {
       </section>
 
       <section className="insightsCard">
-        <div className="insightsCard__head">
-          <div className="insightsCard__title">移動先</div>
-        </div>
+        <InsightsCardHeader title="移動先" />
         <p className="insightsMuted">今月の日ログ一覧・合計実施メニュー・累計練習時間は月ログで確認できます。</p>
         <div style={{ marginTop: 10 }}>
           <Link to={to} className="insightsBack">
@@ -44,4 +43,3 @@ export default function InsightsMenusPage() {
     </div>
   );
 }
-

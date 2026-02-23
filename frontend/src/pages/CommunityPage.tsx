@@ -13,11 +13,32 @@ import { useAuth } from "../features/auth/useAuth";
 import { avatarIconPath } from "../features/profile/avatarIcons";
 import type { TrainingMenu } from "../types/trainingMenu";
 import { IMPROVEMENT_TAG_OPTIONS, type CommunityPost } from "../types/community";
+import InfoModal from "../components/InfoModal";
 
 import "./CommunityPage.css";
 
 type ListTab = "posts" | "favorites";
 type BrowseSort = "newest" | "by_tag";
+
+function tagToneClass(tag: string): string {
+  return tag === "high_note_ease"
+    ? "communityPage__tag--purple"
+    : tag === "pitch_stability"
+      ? "communityPage__tag--blue"
+      : tag === "passaggio_smoothness"
+        ? "communityPage__tag--teal"
+        : tag === "less_breathlessness"
+          ? "communityPage__tag--mint"
+          : tag === "volume_stability"
+            ? "communityPage__tag--orange"
+            : tag === "less_throat_tension"
+              ? "communityPage__tag--green"
+              : tag === "resonance_clarity"
+                ? "communityPage__tag--violet"
+                : tag === "long_tone_sustain"
+                  ? "communityPage__tag--sky"
+                  : "communityPage__tag--neutral";
+}
 
 export default function CommunityPage() {
   const navigate = useNavigate();
@@ -195,6 +216,57 @@ export default function CommunityPage() {
 
   return (
     <div className="page communityPage">
+      <section className="card communityPage__introLine">
+        <div className="communityPage__introText">
+          <div className="communityPage__introBadge">コミュニティ</div>
+          <div className="communityPage__introLead">ここでは「練習メニューの効果」を共有・閲覧できます。</div>
+          <div className="communityPage__introSub">
+            投稿はAIの分析にも活用され、「AIおすすめメニュー」の精度向上に反映されます。
+          </div>
+          <div className="communityPage__introNote">あなたの投稿が、みんなの練習をより良くします。</div>
+        </div>
+        <InfoModal
+          title="「コミュニティ」でできること "
+          bodyClassName="communityPage__communityInfo"
+          triggerClassName="communityPage__introInfoBtn"
+        >
+          <section className="communityPage__communityInfoSection">
+            <h3 className="communityPage__communityInfoTitle">みんなの練習</h3>
+            <ul>
+              <li>
+                <span className="communityPage__communityInfoIcon" aria-hidden="true">🔎</span>
+                <span>
+                  <strong>閲覧</strong>：他のユーザーの「メニュー × 効果」を見られます。
+                </span>
+              </li>
+              <li>
+                <span className="communityPage__communityInfoIcon" aria-hidden="true">✍️</span>
+                <span>
+                  <strong>投稿</strong>：あなたの実践結果を共有できます（公開されます）。
+                </span>
+              </li>
+              <li>
+                <span className="communityPage__communityInfoIcon" aria-hidden="true">★</span>
+                <span>
+                  <strong>お気に入り</strong>：参考になった投稿を保存できます（ログインが必要）。
+                </span>
+              </li>
+            </ul>
+          </section>
+
+          <section className="communityPage__communityInfoSection">
+            <h3 className="communityPage__communityInfoTitle">みんなの進捗</h3>
+            <div className="communityPage__communityInfoRank">
+              <span className="communityPage__communityInfoIcon" aria-hidden="true">🏆</span>
+              <span>
+                ランキングでは、継続日数・週間XP・AI貢献度の上位メンバーを確認できます。<br />
+                ほかのユーザーの取り組みを見て、日々の練習の目安にできます。
+              </span>
+            </div>
+          </section>
+        </InfoModal>
+      </section>
+
       <section className="communityPage__rankingGuideWrap">
         <Link className="communityPage__rankingGuide uiCard uiCard--accent2 uiCard--interactive" to="/community/rankings">
           <span className="communityPage__rankingGuideIcon" aria-hidden="true">
@@ -326,24 +398,7 @@ export default function CommunityPage() {
                     <div className="communityPage__tags communityPage__tags--field">
                       {post.improvement_tags.map((tag) => {
                         const label = IMPROVEMENT_TAG_OPTIONS.find((x) => x.key === tag)?.label ?? tag;
-                        const tagClass =
-                          tag === "high_note_ease"
-                            ? "communityPage__tag--purple"
-                            : tag === "pitch_stability"
-                              ? "communityPage__tag--blue"
-                              : tag === "passaggio_smoothness"
-                                ? "communityPage__tag--teal"
-                                : tag === "less_breathlessness"
-                                  ? "communityPage__tag--mint"
-                                  : tag === "volume_stability"
-                                    ? "communityPage__tag--orange"
-                                    : tag === "less_throat_tension"
-                                      ? "communityPage__tag--green"
-                                      : tag === "resonance_clarity"
-                                        ? "communityPage__tag--violet"
-                                        : tag === "long_tone_sustain"
-                                          ? "communityPage__tag--sky"
-                                          : "communityPage__tag--neutral";
+                        const tagClass = tagToneClass(tag);
                         return (
                           <span key={`${post.id}-${tag}`} className={`communityPage__tag ${tagClass}`}>
                             {label}
@@ -418,7 +473,7 @@ export default function CommunityPage() {
             <div className="communityPage__modalBody">
               <section className="communityPage__editorCard">
                 <div className="communityPage__editorTitle">メニュー</div>
-                <div className="communityPage__editorHelper">例: ストローグリッサンド</div>
+                <div className="communityPage__editorHelper">例: 裏声リップロール</div>
                 <select
                   value={menuId}
                   className="communityPage__input"
@@ -442,8 +497,12 @@ export default function CommunityPage() {
                 <div className="communityPage__chipGrid">
                   {IMPROVEMENT_TAG_OPTIONS.map((opt) => {
                     const isOn = tags.includes(opt.key);
+                    const chipToneClass = tagToneClass(opt.key);
                     return (
-                      <label key={opt.key} className={`communityPage__chip ${isOn ? "is-on" : ""}`}>
+                      <label
+                        key={opt.key}
+                        className={`communityPage__chip ${isOn ? `is-on ${chipToneClass}` : ""}`}
+                      >
                         <input
                           type="checkbox"
                           checked={isOn}
@@ -462,13 +521,13 @@ export default function CommunityPage() {
 
               <section className="communityPage__editorCard">
                 <div className="communityPage__editorTitle">コメント</div>
-                <div className="communityPage__editorHelper">短くでOK。感じたことをメモしてね</div>
+                <div className="communityPage__editorHelper">よかったら、メニューのやり方や効果を教えてね。</div>
                 <textarea
                   className="communityPage__textarea"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   maxLength={240}
-                  placeholder="今日はここが良かった、など自由に。"
+                  placeholder="具体的なメニューの内容 / 感じられた効果 など"
                 />
               </section>
             </div>

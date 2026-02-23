@@ -6,6 +6,7 @@ import { useAuth } from "../features/auth/useAuth";
 import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
 import { RANGE_MISSION_FLAG } from "../features/missions/constants";
 import type { InsightsData } from "../types/insights";
+import InfoModal from "../components/InfoModal";
 
 import "./MyPage.css";
 
@@ -37,10 +38,6 @@ export default function MyPage() {
   const [summaryInsights, setSummaryInsights] = useState<InsightsData | null>(null);
   const [heatmapInsights, setHeatmapInsights] = useState<InsightsData | null>(null);
   const [missionModalOpen, setMissionModalOpen] = useState(false);
-  const [rangeMissionOverride, setRangeMissionOverride] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(RANGE_MISSION_FLAG) === "1";
-  });
   const [insightsReloadKey, setInsightsReloadKey] = useState(0);
 
   useEffect(() => {
@@ -89,6 +86,8 @@ export default function MyPage() {
   const hasTopNote = !!summaryInsights?.top_notes.falsetto.note || !!summaryInsights?.top_notes.chest.note;
   const hasDisplayName = !!me?.display_name?.trim();
   const progress = summaryInsights?.gamification ?? null;
+  const rangeMissionOverride =
+    typeof window !== "undefined" && window.localStorage.getItem(RANGE_MISSION_FLAG) === "1";
 
   const missions = useMemo(() => {
     if (!summaryInsights || !progress) return [] as Mission[];
@@ -136,7 +135,6 @@ export default function MyPage() {
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(RANGE_MISSION_FLAG);
     }
-    setRangeMissionOverride(false);
   }, [rangeMissionOverride, hasTopNote]);
 
   useEffect(() => {
@@ -211,7 +209,16 @@ export default function MyPage() {
       </section>
 
       <section className="card myPage__card">
-        <div className="myPage__cardTitle">進捗</div>
+        <div className="myPage__cardTitleRow">
+          <div className="myPage__cardTitle myPage__cardTitle--tight">進捗</div>
+          <InfoModal title="XP（進捗）について">
+            <ul>
+              <li>XPは練習の継続を記録するポイントです。</li>
+              <li>ログ作成や測定、コミュニティ投稿などで増えます。</li>
+              <li>XPは上達を保証するものではなく、継続の見える化です。</li>
+            </ul>
+          </InfoModal>
+        </div>
         <div className="myPage__stats">
           <div className="myPage__stat">
             <div className="myPage__label">Lv</div>

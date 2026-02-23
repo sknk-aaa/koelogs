@@ -24,6 +24,7 @@ import { setLastLogPath } from "../features/log/logNavigation";
 
 import { fetchMe, updateMeGoalText, type Me } from "../api/auth";
 import ColoredTag from "../components/ColoredTag";
+import InfoModal from "../components/InfoModal";
 
 function pad(v: number): string {
   return String(v).padStart(2, "0");
@@ -517,7 +518,7 @@ export default function LogPage() {
   const isWithinInitial7Days = isWithinFirst7Days(me?.created_at);
   const aiCreateButtonText =
     !guestMode && isWithinInitial7Days
-      ? "目標やトレーニングデータから今日のおすすめを作成"
+      ? "今日のおすすめをAIに作成してもらう"
       : "AI提案を作成";
   const toastLines = useMemo(() => {
     if (!saveToast) return [] as string[];
@@ -682,6 +683,7 @@ export default function LogPage() {
                     設定する
                   </button>
                 </div>
+                <div className="goalBar__hint">目標を設定すると「今日のおすすめメニュー」に反映されます。</div>
               </div>
             )
           ) : (
@@ -812,28 +814,28 @@ export default function LogPage() {
             {!monthLoading && !monthError && (
               <>
                 <div className="logPage__kpiRow">
-                  <div className="logPage__kpi">
+                  <div className="logPage__kpi logPage__kpi--days">
                     <div className="logPage__kpiLabel">練習した日</div>
                     <div className="logPage__kpiValue">
                       <span className="logPage__kpiNumber">{monthPracticeDays}</span>
                       <span className="logPage__kpiUnit">日</span>
                     </div>
                   </div>
-                  <div className="logPage__kpi">
+                  <div className="logPage__kpi logPage__kpi--time">
                     <div className="logPage__kpiLabel">累計練習時間</div>
                     <div className="logPage__kpiValue">
                       <span className="logPage__kpiNumber">{monthTotalDurationHourText}</span>
                       <span className="logPage__kpiUnit">時間</span>
                     </div>
                   </div>
-                  <div className="logPage__kpi">
+                  <div className="logPage__kpi logPage__kpi--menus">
                     <div className="logPage__kpiLabel">合計実施メニュー</div>
                     <div className="logPage__kpiValue">
                       <span className="logPage__kpiNumber">{monthTotalMenuCount}</span>
                       <span className="logPage__kpiUnit">回</span>
                     </div>
                   </div>
-                  <div className="logPage__kpi">
+                  <div className="logPage__kpi logPage__kpi--streak">
                     <div className="logPage__kpiLabel">最長継続日数</div>
                     <div className="logPage__kpiValue">
                       <span className="logPage__kpiNumber">{longestStreakDays ?? 0}</span>
@@ -913,16 +915,70 @@ export default function LogPage() {
 
       <div className="logPage__actions">
         {(showAiButton || (guestMode && isDayMode)) && (
-          <>
-            <button onClick={onAskAi} className="logPage__btn">
-              {guestMode && isDayMode
-                ? "ログインしてAI提案を作成"
-                : aiCreateButtonText}
-            </button>
-            {guestMode && isDayMode && (
-              <div className="logPage__muted">ログイン後は、あなたの目標と記録を使って提案します。</div>
-            )}
-          </>
+          <section className="logAi logPage__card logPage__aiCtaCard logAi--empty">
+            <div className="logAi__header">
+              <div>
+                <div className="logAi__title">AIトレーニング提案</div>
+                <div className="logAi__meta">目標と直近ログから、今日のおすすめを作成</div>
+              </div>
+              <div className="logAi__headerRight">
+                <div className="logAi__pill logAi__pill--sample">
+                  {guestMode && isDayMode ? "ゲスト" : goalText ? "作成準備OK" : "目標未設定"}
+                </div>
+                <InfoModal
+                  title="おすすめは何をもとに作られますか？"
+                  bodyClassName="logPage__aiInfoBody"
+                  triggerClassName="logPage__aiInfoBtn"
+                >
+                  <div className="logPage__aiInfoLead">直近の記録と目標から、今日の練習プランをAIが提案します。</div>
+                  <div className="logPage__aiInfoBlocks">
+                    <section className="logPage__aiInfoBlock logPage__aiInfoBlock--primary">
+                      <div className="logPage__aiInfoBlockTitle">
+                        <span className="logPage__aiInfoIcon" aria-hidden="true">🎯</span>
+                        <span>主に使う</span>
+                      </div>
+                      <div className="logPage__aiInfoBlockText">
+                        直近ログ（時間・メニュー・メモ）と目標を参考にします。
+                      </div>
+                    </section>
+                    <section className="logPage__aiInfoBlock">
+                      <div className="logPage__aiInfoBlockTitle">
+                        <span className="logPage__aiInfoIcon" aria-hidden="true">💡</span>
+                        <span>補助</span>
+                      </div>
+                      <div className="logPage__aiInfoBlockText">
+                        コミュニティで投稿されたトレーニング内容を参考にすることがあります。
+                      </div>
+                    </section>
+                    <section className="logPage__aiInfoBlock logPage__aiInfoBlock--save">
+                      <div className="logPage__aiInfoBlockTitle">
+                        <span className="logPage__aiInfoIcon" aria-hidden="true">🧠</span>
+                        <span>保存</span>
+                      </div>
+                      <div className="logPage__aiInfoBlockText">
+                        生成結果は当日分として保存され、後から見返せます。
+                      </div>
+                    </section>
+                  </div>
+                </InfoModal>
+              </div>
+            </div>
+
+            <div className="logAi__content">
+              <div className="logPage__aiCtaActions">
+                <button onClick={onAskAi} className="logPage__btn logPage__aiCtaBtn">
+                  {guestMode && isDayMode
+                    ? "ログインしてAI提案を作成"
+                    : aiCreateButtonText}
+                </button>
+              </div>
+              {guestMode && isDayMode && (
+                <div className="logAi__text logAi__text--muted logPage__aiCtaHint">
+                  ログイン後は、目標と記録を使って提案します。
+                </div>
+              )}
+            </div>
+          </section>
         )}
       </div>
     </div>

@@ -48,6 +48,18 @@
   margin-bottom: 10px;
 }
 
+.myPage__cardTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.myPage__cardTitle--tight {
+  margin-bottom: 0;
+}
+
 .myPage__missionList {
   display: grid;
   gap: 9px;

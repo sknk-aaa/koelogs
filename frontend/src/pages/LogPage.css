@@ -469,6 +469,7 @@
   border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
   background: color-mix(in srgb, var(--accent) 10%, var(--surface-strong));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #06154f;
 }
 
 :root[data-theme-mode="dark"] .logPage__kpi {
@@ -645,6 +646,113 @@
   display: grid;
   gap: 10px;
   margin-top: 14px;
+}
+
+.logPage__aiCtaCard .logAi__content {
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__aiCtaActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logPage__aiCtaBtn {
+  min-height: 40px;
+}
+
+.logPage__aiCtaHint {
+  margin: 0;
+}
+
+.logPage__aiInfoBtn {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.logPage__aiInfoBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
+.logPage__aiInfoBody {
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__aiInfoLead {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+  opacity: 0.8;
+  margin-bottom: 2px;
+}
+
+.logPage__aiInfoBlocks {
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__aiInfoBlock {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
+  padding: 9px 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__aiInfoBlock--primary {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-left-width: 3px;
+  border-left-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+}
+
+.logPage__aiInfoBlockTitle {
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.logPage__aiInfoBlock--primary .logPage__aiInfoBlockTitle {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.logPage__aiInfoBlockText {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.logPage__aiInfoIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 20px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.logPage__aiInfoBlock--save .logPage__aiInfoBlockTitle,
+.logPage__aiInfoBlock--save .logPage__aiInfoBlockText {
+  opacity: 0.66;
+}
+
+.logPage__aiInfoBlock:not(.logPage__aiInfoBlock--primary) .logPage__aiInfoBlockTitle {
+  opacity: 0.86;
 }
 
 .logAi {
@@ -835,6 +943,40 @@
   color: #ffffff;
 }
 
+:root[data-theme-mode="dark"] .logPage__aiInfoBtn {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiInfoBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.2));
+  background: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.08));
+}
+
+:root[data-theme-mode="dark"] .logPage__aiInfoLead {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiInfoBlock {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiInfoBlock--primary {
+  border-color: color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.16));
+  border-left-color: color-mix(in srgb, var(--accent) 68%, rgba(255, 255, 255, 0.18));
+}
+
+:root[data-theme-mode="dark"] .logPage__aiInfoBlockTitle,
+:root[data-theme-mode="dark"] .logPage__aiInfoBlockText {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiInfoIcon {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.07);
+}
+
 .logAi__toggleIcon {
   width: 17px;
   height: 17px;
@@ -877,6 +1019,13 @@
   font-size: 13px;
   font-weight: 900;
   line-height: 1.5;
+}
+
+.goalBar__hint {
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+  opacity: 0.72;
 }
 
 .goalBar__btn {
@@ -1136,6 +1285,10 @@
 }
 
 @media (max-width: 520px) {
+  .logPage__aiCtaActions .logPage__btn {
+    width: 100%;
+  }
+
   .logPage__guideHint {
     display: grid;
   }
@@ -1265,18 +1418,144 @@
 }
 
 /* ---- 色（ほぼ単色）: 発色強め＋少しだけ落ち着かせる ---- */
-:root[data-theme-mode="dark"] .logPage__kpiRow .logPage__kpi:nth-child(1) {
-  background: #fff193; /* muted sand */
+.logPage__kpiRow .logPage__kpi:nth-child(1) {
+  background: #F4D35E;
+}
+.logPage__kpiRow .logPage__kpi:nth-child(2) {
+  background: #F4A261;
+}
+.logPage__kpiRow .logPage__kpi:nth-child(3) {
+  background: #A8E063;
+}
+.logPage__kpiRow .logPage__kpi:nth-child(4) {
+  background: #B392F0;
 }
 
-:root[data-theme-mode="dark"] .logPage__kpiRow .logPage__kpi:nth-child(2) {
-  background: #f7ab7c; /* soft terracotta */
+
+/* =========================
+   KPI / Mini illustrations (mask-image) - Plan A
+   ========================= */
+:root {
+  --kpi-illust-size: 160px;
+  --kpi-illust-opacity: 0.16;
+  --kpi-illust-rotate: 8deg;
+
+  --mini-illust-size: 110px;
+  --mini-illust-opacity: 0.14;
+  --mini-illust-rotate: 10deg;
+
+  --illust-ink: rgba(11, 18, 32, 1);
+  --illust-fade: 0.22;
 }
 
-:root[data-theme-mode="dark"] .logPage__kpiRow .logPage__kpi:nth-child(3) {
-  background: #b29eed; /* dusty violet */
+:root[data-theme-mode="dark"] {
+  --kpi-illust-opacity: 0.14;
+  --mini-illust-opacity: 0.12;
+  --illust-fade: 0.20;
 }
 
-:root[data-theme-mode="dark"] .logPage__kpiRow .logPage__kpi:nth-child(4) {
-  background: #93c9e9; /* muted sky */
+/* Month KPI tiles */
+.logPage__kpi {
+  position: relative;
+  overflow: hidden;
+}
+
+.logPage__kpi::after {
+  content: "";
+  position: absolute;
+  right: -22px;
+  top: -22px;
+  width: var(--kpi-illust-size);
+  height: var(--kpi-illust-size);
+  opacity: var(--kpi-illust-opacity);
+  pointer-events: none;
+  transform: rotate(var(--kpi-illust-rotate));
+  background: var(--illust-ink);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.logPage__kpi::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--illust-fade);
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 46%,
+    rgba(255, 255, 255, 1) 100%
+  );
+}
+
+/* KPI icon mapping */
+.logPage__kpi--days::after {
+  -webkit-mask-image: url("/icons/calendar.svg");
+  mask-image: url("/icons/calendar.svg");
+}
+.logPage__kpi--time::after {
+  -webkit-mask-image: url("/icons/clock.svg");
+  mask-image: url("/icons/clock.svg");
+}
+.logPage__kpi--menus::after {
+  -webkit-mask-image: url("/icons/checklist.svg");
+  mask-image: url("/icons/checklist.svg");
+}
+.logPage__kpi--streak::after {
+  -webkit-mask-image: url("/icons/flame.svg");
+  mask-image: url("/icons/flame.svg");
+}
+
+/* Day summary mini tiles */
+.logPage__mini {
+  position: relative;
+  overflow: hidden;
+}
+
+.logPage__mini::after {
+  content: "";
+  position: absolute;
+  right: -18px;
+  top: -18px;
+  width: var(--mini-illust-size);
+  height: var(--mini-illust-size);
+  opacity: var(--mini-illust-opacity);
+  pointer-events: none;
+  transform: rotate(var(--mini-illust-rotate));
+  background: var(--illust-ink);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.logPage__mini::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: calc(var(--illust-fade) * 0.9);
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 44%,
+    rgba(255, 255, 255, 1) 100%
+  );
+}
+
+/* Mini icon mapping (必要分だけ) */
+.logPage__mini--time::after {
+  -webkit-mask-image: url("/icons/clock.svg");
+  mask-image: url("/icons/clock.svg");
+}
+.logPage__mini--streak::after {
+  -webkit-mask-image: url("/icons/flame.svg");
+  mask-image: url("/icons/flame.svg");
 }

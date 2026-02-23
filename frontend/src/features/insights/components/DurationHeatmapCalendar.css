@@ -5,12 +5,14 @@
   padding: 10px;
   display: grid;
   gap: 8px;
+  color: #000000;
 }
 
 .durationHeatmap__meta {
   font-size: 12px;
   font-weight: 800;
-  opacity: 0.74;
+  opacity: 0.9;
+  color: #000000;
 }
 
 .durationHeatmap__wrap {
@@ -25,7 +27,8 @@
   gap: 4px;
   font-size: 10px;
   font-weight: 800;
-  opacity: 0.62;
+  opacity: 0.82;
+  color: #000000;
   width: 16px;
   flex-shrink: 0;
 }
@@ -62,7 +65,8 @@
   margin-bottom: 6px;
   font-size: 10px;
   font-weight: 900;
-  opacity: 0.66;
+  opacity: 0.82;
+  color: #000000;
 }
 
 .durationHeatmap__month {
@@ -84,22 +88,22 @@
   width: 14px;
   height: 14px;
   border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(38, 94, 170, 0.12);
+  background: rgba(56, 124, 205, 0.08);
 }
 
 .durationHeatmap__cell.is-pad {
   opacity: 0.2;
 }
 
-.durationHeatmap__cell.level-0 { background: rgba(0, 0, 0, 0.03); }
-.durationHeatmap__cell.level-1 { background: color-mix(in srgb, var(--accent) 18%, white); }
-.durationHeatmap__cell.level-2 { background: color-mix(in srgb, var(--accent) 34%, white); }
-.durationHeatmap__cell.level-3 { background: color-mix(in srgb, var(--accent) 52%, white); }
-.durationHeatmap__cell.level-4 { background: color-mix(in srgb, var(--accent) 68%, #111); }
+.durationHeatmap__cell.level-0 { background: rgba(56, 124, 205, 0.08); }
+.durationHeatmap__cell.level-1 { background: color-mix(in srgb, #93c5fd 52%, white); }
+.durationHeatmap__cell.level-2 { background: color-mix(in srgb, #60a5fa 62%, white); }
+.durationHeatmap__cell.level-3 { background: color-mix(in srgb, #3b82f6 72%, white); }
+.durationHeatmap__cell.level-4 { background: color-mix(in srgb, #2563eb 84%, #0b1b3a); }
 
 .durationHeatmap__cell.is-today {
-  outline: 1.5px solid rgba(0, 0, 0, 0.65);
+  outline: 1.5px solid rgba(30, 64, 175, 0.78);
   outline-offset: 1px;
 }
 
@@ -109,10 +113,12 @@
   gap: 6px;
   font-size: 10px;
   font-weight: 800;
-  opacity: 0.7;
+  opacity: 0.9;
+  color: #000000;
 }
 
 .durationHeatmap__empty {
   font-size: 12px;
-  opacity: 0.7;
+  opacity: 0.9;
+  color: #000000;
 }

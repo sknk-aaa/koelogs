@@ -21,7 +21,7 @@ module Gamification
           xp_to_next_level: xp_to_next_level,
           streak_current_days: metrics[:current_streak_days],
           streak_longest_days: metrics[:longest_streak_days],
-          analysis_sessions_count: metrics[:analysis_sessions_count],
+          measurement_runs_count: metrics[:measurement_runs_count],
           ai_recommendations_count: metrics[:ai_recommendations_count],
           badge_unlocked_count: badges.count { |b| b[:unlocked] },
           badge_total_count: badges.size,
@@ -38,9 +38,8 @@ module Gamification
           total_practice_days: practice_dates.size,
           current_streak_days: streaks[:current_days],
           longest_streak_days: streaks[:longest_days],
-          weekly_log_count: user.weekly_logs.count,
           total_xp: user.xp_events.sum(:points).to_i,
-          analysis_sessions_count: user.analysis_sessions.count,
+          measurement_runs_count: user.measurement_runs.count,
           ai_recommendations_count: user.ai_recommendations.count
         }
       end
@@ -111,7 +110,6 @@ module Gamification
         case key
         when :total_practice_days then metrics[:total_practice_days].to_i
         when :longest_streak_days then metrics[:longest_streak_days].to_i
-        when :weekly_log_count then metrics[:weekly_log_count].to_i
         when :total_xp then metrics[:total_xp].to_i
         else 0
         end

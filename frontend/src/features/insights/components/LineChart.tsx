@@ -112,11 +112,11 @@ export default function LineChart({
                   x2={contentW - PAD}
                   y1={t.y}
                   y2={t.y}
-                  stroke="rgba(0,0,0,0.12)"
+                  stroke="rgba(56, 124, 205, 0.2)"
                   strokeDasharray="4 4"
                 />
               ))}
-              <path d={path} fill="none" stroke="color-mix(in srgb, var(--accent) 42%, #121212)" strokeWidth="3" />
+              <path d={path} fill="none" stroke="color-mix(in srgb, var(--accent) 78%, #0b3f77)" strokeWidth="3" />
               {points.map((p, i) => {
                 const x = PAD + ((contentW - PAD * 2) * i) / Math.max(1, points.length - 1);
                 const y =
@@ -129,7 +129,7 @@ export default function LineChart({
                     cx={x}
                     cy={y}
                     r="3.2"
-                    fill="color-mix(in srgb, var(--accent) 34%, #1f1f1f)"
+                    fill="color-mix(in srgb, var(--accent) 72%, #0f4e9f)"
                   />
                 );
               })}

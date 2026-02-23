@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_22_153000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -35,48 +35,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
     t.bigint "user_id", null: false
     t.index ["user_id", "generated_for_date"], name: "index_ai_recommendations_on_user_id_and_generated_for_date", unique: true
     t.index ["user_id"], name: "index_ai_recommendations_on_user_id"
-  end
-
-  create_table "analysis_menus", force: :cascade do |t|
-    t.boolean "archived", default: false, null: false
-    t.boolean "compare_by_scale", default: false, null: false
-    t.boolean "compare_by_tempo", default: false, null: false
-    t.string "compare_mode", default: "flexible", null: false
-    t.datetime "created_at", null: false
-    t.string "fixed_scale_type"
-    t.integer "fixed_tempo"
-    t.text "focus_points"
-    t.string "name", null: false
-    t.jsonb "selected_metrics", default: [], null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["selected_metrics"], name: "index_analysis_menus_on_selected_metrics", using: :gin
-    t.index ["user_id", "archived"], name: "index_analysis_menus_on_user_id_and_archived"
-    t.index ["user_id", "name"], name: "index_analysis_menus_on_user_id_and_name", unique: true
-    t.index ["user_id"], name: "index_analysis_menus_on_user_id"
-  end
-
-  create_table "analysis_sessions", force: :cascade do |t|
-    t.bigint "analysis_menu_id", null: false
-    t.integer "audio_byte_size"
-    t.string "audio_content_type"
-    t.string "audio_path"
-    t.datetime "created_at", null: false
-    t.integer "duration_sec", default: 0, null: false
-    t.text "feedback_text"
-    t.string "peak_note"
-    t.integer "pitch_stability_score"
-    t.integer "range_semitones"
-    t.jsonb "raw_metrics", default: {}, null: false
-    t.string "recorded_scale_type"
-    t.integer "recorded_tempo"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.integer "voice_consistency_score"
-    t.index ["analysis_menu_id", "recorded_scale_type", "recorded_tempo", "created_at"], name: "idx_analysis_sessions_compare_key"
-    t.index ["analysis_menu_id"], name: "index_analysis_sessions_on_analysis_menu_id"
-    t.index ["user_id", "analysis_menu_id", "created_at"], name: "idx_on_user_id_analysis_menu_id_created_at_09a97c749f"
-    t.index ["user_id"], name: "index_analysis_sessions_on_user_id"
   end
 
   create_table "community_post_favorites", force: :cascade do |t|
@@ -108,6 +66,63 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
     t.index ["user_id"], name: "index_community_posts_on_user_id"
   end
 
+  create_table "measurement_long_tone_results", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "measurement_run_id", null: false
+    t.string "sustain_note"
+    t.decimal "sustain_sec", precision: 8, scale: 2, null: false
+    t.datetime "updated_at", null: false
+    t.index ["measurement_run_id"], name: "index_measurement_long_tone_results_on_measurement_run_id", unique: true
+  end
+
+  create_table "measurement_pitch_accuracy_results", force: :cascade do |t|
+    t.decimal "accuracy_score", precision: 8, scale: 3
+    t.decimal "avg_cents_error", precision: 8, scale: 3
+    t.datetime "created_at", null: false
+    t.bigint "measurement_run_id", null: false
+    t.integer "note_count"
+    t.datetime "updated_at", null: false
+    t.index ["measurement_run_id"], name: "index_measurement_pitch_accuracy_results_on_measurement_run_id", unique: true
+  end
+
+  create_table "measurement_range_results", force: :cascade do |t|
+    t.string "chest_top_note"
+    t.datetime "created_at", null: false
+    t.string "falsetto_top_note"
+    t.string "highest_note"
+    t.string "lowest_note"
+    t.bigint "measurement_run_id", null: false
+    t.decimal "range_octaves", precision: 6, scale: 2
+    t.integer "range_semitones"
+    t.datetime "updated_at", null: false
+    t.index ["measurement_run_id"], name: "index_measurement_range_results_on_measurement_run_id", unique: true
+  end
+
+  create_table "measurement_runs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "include_in_insights", default: true, null: false
+    t.string "measurement_type", null: false
+    t.datetime "recorded_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "include_in_insights", "measurement_type", "recorded_at"], name: "idx_measurement_runs_insights_filter"
+    t.index ["user_id", "measurement_type", "recorded_at"], name: "idx_measurement_runs_user_type_recorded"
+    t.index ["user_id"], name: "index_measurement_runs_on_user_id"
+  end
+
+  create_table "measurement_volume_stability_results", force: :cascade do |t|
+    t.decimal "avg_loudness_db", precision: 8, scale: 3
+    t.datetime "created_at", null: false
+    t.decimal "loudness_range_db", precision: 8, scale: 3
+    t.decimal "loudness_range_pct", precision: 8, scale: 3
+    t.decimal "loudness_range_ratio", precision: 10, scale: 6
+    t.decimal "max_loudness_db", precision: 8, scale: 3
+    t.bigint "measurement_run_id", null: false
+    t.decimal "min_loudness_db", precision: 8, scale: 3
+    t.datetime "updated_at", null: false
+    t.index ["measurement_run_id"], name: "idx_on_measurement_run_id_531d0f2840", unique: true
+  end
+
   create_table "menu_aliases", force: :cascade do |t|
     t.string "canonical_key", null: false
     t.decimal "confidence", precision: 4, scale: 3, default: "0.0", null: false
@@ -119,6 +134,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
     t.datetime "updated_at", null: false
     t.index ["canonical_key"], name: "index_menu_aliases_on_canonical_key"
     t.index ["normalized_name"], name: "index_menu_aliases_on_normalized_name", unique: true
+  end
+
+  create_table "monthly_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "month_start", null: false
+    t.text "notes"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "month_start"], name: "index_monthly_logs_on_user_id_and_month_start", unique: true
+    t.index ["user_id"], name: "index_monthly_logs_on_user_id"
   end
 
   create_table "scale_tracks", force: :cascade do |t|
@@ -153,10 +178,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
   end
 
   create_table "training_logs", force: :cascade do |t|
-    t.string "chest_top_note"
     t.datetime "created_at", null: false
     t.integer "duration_min"
-    t.string "falsetto_top_note"
     t.text "notes"
     t.date "practiced_on"
     t.datetime "updated_at", null: false
@@ -219,19 +242,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
     t.index ["password_reset_token_digest"], name: "index_users_on_password_reset_token_digest", unique: true
   end
 
-  create_table "weekly_logs", force: :cascade do |t|
-    t.string "chest_top_note"
-    t.datetime "created_at", null: false
-    t.jsonb "effect_feedbacks", default: [], null: false
-    t.string "falsetto_top_note"
-    t.text "notes"
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.date "week_start", null: false
-    t.index ["user_id", "week_start"], name: "index_weekly_logs_on_user_id_and_week_start", unique: true
-    t.index ["user_id"], name: "index_weekly_logs_on_user_id"
-  end
-
   create_table "xp_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "points", null: false
@@ -248,13 +258,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
   add_foreign_key "ai_contribution_events", "ai_recommendations"
   add_foreign_key "ai_contribution_events", "users"
   add_foreign_key "ai_recommendations", "users"
-  add_foreign_key "analysis_menus", "users"
-  add_foreign_key "analysis_sessions", "analysis_menus"
-  add_foreign_key "analysis_sessions", "users"
   add_foreign_key "community_post_favorites", "community_posts"
   add_foreign_key "community_post_favorites", "users"
   add_foreign_key "community_posts", "training_menus"
   add_foreign_key "community_posts", "users"
+  add_foreign_key "measurement_long_tone_results", "measurement_runs"
+  add_foreign_key "measurement_pitch_accuracy_results", "measurement_runs"
+  add_foreign_key "measurement_range_results", "measurement_runs"
+  add_foreign_key "measurement_runs", "users"
+  add_foreign_key "measurement_volume_stability_results", "measurement_runs"
+  add_foreign_key "monthly_logs", "users"
   add_foreign_key "training_log_feedbacks", "training_logs"
   add_foreign_key "training_log_feedbacks", "users"
   add_foreign_key "training_log_menus", "training_logs", column: ["training_log_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_logs_same_user", on_delete: :cascade
@@ -263,6 +276,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_20_190000) do
   add_foreign_key "training_logs", "users"
   add_foreign_key "training_menus", "users"
   add_foreign_key "user_badges", "users"
-  add_foreign_key "weekly_logs", "users"
   add_foreign_key "xp_events", "users"
 end

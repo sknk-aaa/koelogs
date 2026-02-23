@@ -17,16 +17,16 @@
   font-weight: 900;
   border-radius: 999px;
   padding: 4px 10px;
-  border: 1px solid rgba(36, 110, 202, 0.2);
-  color: #21508f;
+  border: 1px solid rgba(37, 99, 235, 0.26);
+  color: #1e3a8a;
 }
 
 .notePitchChart__chip--fal {
-  background: color-mix(in srgb, #bfe2ff 38%, #fff);
+  background: color-mix(in srgb, #99f6e4 34%, #fff);
 }
 
 .notePitchChart__chip--chest {
-  background: color-mix(in srgb, #7dc0ff 34%, #fff);
+  background: color-mix(in srgb, #93c5fd 34%, #fff);
 }
 
 .notePitchChart__plot {
@@ -48,7 +48,7 @@
   transform: translateY(-50%);
   font-size: 10px;
   font-weight: 800;
-  color: #3a6599;
+  color: #24519b;
   opacity: 0.82;
   line-height: 1;
 }
@@ -61,7 +61,7 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   border-radius: 14px;
-  border: 1px solid rgba(64, 132, 214, 0.18);
+  border: 1px solid rgba(37, 99, 235, 0.24);
   background: #fff;
 }
 

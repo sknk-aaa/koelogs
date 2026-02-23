@@ -30,7 +30,8 @@ type MenuItem = string | MenuObj;
 function fmtDate(dateISO: string) {
   const m = Number(dateISO.slice(5, 7));
   const d = Number(dateISO.slice(8, 10));
-  return `${m}/${d}`;
+  const w = ["日", "月", "火", "水", "木", "金", "土"][new Date(dateISO).getDay()] ?? "";
+  return `${m}/${d}(${w})`;
 }
 
 function isEsc(e: KeyboardEvent) {
@@ -60,7 +61,7 @@ function matchesLog(log: TrainingLog, q: string): boolean {
 
 function renderMenuTags(menuItems: MenuItem[]) {
   if (menuItems.length === 0) {
-    return <ColoredTag text="メニューなし" color="#E5E7EB" />;
+    return <ColoredTag text="メニューなし" color="#E5E7EB" style={{ color: "#000000" }} />;
   }
 
   return (
@@ -86,7 +87,6 @@ function renderMenuTags(menuItems: MenuItem[]) {
 
 export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }: Props) {
   const [state, setState] = useState<LoadState>({ kind: "idle" });
-  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // ✅ セグメント無し：検索だけ
   const [q, setQ] = useState("");
@@ -104,7 +104,6 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
 
     (async () => {
       setState({ kind: "loading" });
-      setSelectedId(null);
 
       const res = await fetchTrainingLogsByMonth(month);
       if (cancelled) return;
@@ -134,17 +133,13 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
 
   // ✅ Hooksは早期return前に全部呼ぶ
   const logsAll = useMemo(() => {
-    return state.kind === "ready" ? state.logs : [];
+    if (state.kind !== "ready") return [];
+    return [...state.logs].sort((a, b) => a.practiced_on.localeCompare(b.practiced_on));
   }, [state]);
 
   const filtered = useMemo(() => {
     return logsAll.filter((log) => matchesLog(log, q));
   }, [logsAll, q]);
-
-  const selected = useMemo(() => {
-    if (state.kind !== "ready" || selectedId == null) return null;
-    return logsAll.find((l) => l.id === selectedId) ?? null;
-  }, [state.kind, selectedId, logsAll]);
 
   if (!open) return null;
 
@@ -173,7 +168,7 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
         </div>
 
         <div className="mlm__body">
-          <div className="mlm__sectionTitle">一覧（新しい日付順）</div>
+          <div className="mlm__sectionTitle">一覧（古い日付順）</div>
 
           {state.kind === "loading" && <div className="mlm__subtle">読み込み中…</div>}
           {state.kind === "error" && (
@@ -191,85 +186,31 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
 
               <div className="mlm__list">
                 {filtered.map((log) => {
-                  const active = selectedId === log.id;
                   const menuItems = ((log.menus ?? []) as unknown) as MenuItem[];
 
                   return (
                     <button
                       key={log.id}
                       type="button"
-                      className={`mlm__row ${active ? "is-active" : ""}`}
+                      className="mlm__row"
                       onClick={() => {
-                        setSelectedId(log.id);
                         onSelectDate?.(log.practiced_on);
                       }}
                     >
                       <div className="mlm__rowTop">
                         <div className="mlm__date">{fmtDate(log.practiced_on)}</div>
-                        <div className="mlm__duration">{log.duration_min ?? 0}分</div>
-                        <div className="mlm__notesHint">{log.notes?.trim() ? "メモ" : ""}</div>
+                        <div className="mlm__duration">練習時間：{log.duration_min ?? 0}分</div>
+                        <div className="mlm__notesHint">{log.notes?.trim() ? "メモあり" : ""}</div>
                       </div>
 
                       <div className="mlm__rowMid">
                         <div className="mlm__tags">{renderMenuTags(menuItems)}</div>
-                      </div>
-
-                      <div className="mlm__rowBottom">
-                        <div>裏声: {log.falsetto_top_note ?? "—"}</div>
-                        <div>地声: {log.chest_top_note ?? "—"}</div>
                       </div>
                     </button>
                   );
                 })}
               </div>
             </>
-          )}
-
-          <div className="mlm__sectionTitle" style={{ marginTop: 18 }}>
-            詳細（閲覧専用）
-          </div>
-
-          {!selected && <div className="mlm__subtle">一覧から日付を選択してください。</div>}
-
-          {selected && (
-            <div className="mlm__detailCard">
-              <div className="mlm__detailGrid">
-                <div className="mlm__detailItem">
-                  <div className="mlm__detailLabel">日付</div>
-                  <div className="mlm__detailValue">{selected.practiced_on}</div>
-                </div>
-                <div className="mlm__detailItem">
-                  <div className="mlm__detailLabel">練習時間</div>
-                  <div className="mlm__detailValue">{selected.duration_min ?? 0} 分</div>
-                </div>
-                <div className="mlm__detailItem">
-                  <div className="mlm__detailLabel">裏声最高音</div>
-                  <div className="mlm__detailValue">{selected.falsetto_top_note ?? "—"}</div>
-                </div>
-                <div className="mlm__detailItem">
-                  <div className="mlm__detailLabel">地声最高音</div>
-                  <div className="mlm__detailValue">{selected.chest_top_note ?? "—"}</div>
-                </div>
-              </div>
-
-              <div className="mlm__detailBlock">
-                <div className="mlm__detailLabel">メニュー</div>
-                <div className="mlm__tags" style={{ marginTop: 6 }}>
-                  {renderMenuTags(((selected.menus ?? []) as unknown) as MenuItem[])}
-                </div>
-              </div>
-
-              <div className="mlm__detailBlock">
-                <div className="mlm__detailLabel">メモ</div>
-                <div className="mlm__memo">{selected.notes?.trim() ? selected.notes : "—"}</div>
-              </div>
-
-              {selected.updated_at && (
-                <div className="mlm__subtle" style={{ marginTop: 10 }}>
-                  更新: {selected.updated_at}
-                </div>
-              )}
-            </div>
           )}
         </div>
 

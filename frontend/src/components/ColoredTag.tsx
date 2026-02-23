@@ -1,11 +1,14 @@
+import type { CSSProperties } from "react";
+
 type Props = {
   text: string;
   color: string; // HEX "#RRGGBB"
   title?: string;
   className?: string;
+  style?: CSSProperties;
 };
 
-export default function ColoredTag({ text, color, title, className }: Props) {
+export default function ColoredTag({ text, color, title, className, style }: Props) {
   return (
     <span
       className={className}
@@ -21,6 +24,8 @@ export default function ColoredTag({ text, color, title, className }: Props) {
         fontSize: 12,
         fontWeight: 800,
         whiteSpace: "nowrap",
+        color: style?.color,
+        ...style,
       }}
     >
       {text}

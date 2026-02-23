@@ -4,10 +4,6 @@ import { useAuth } from "../features/auth/useAuth";
 import HamburgerDrawer, { type DrawerSection } from "./HamburgerDrawer";
 import { getLastLogPath } from "../features/log/logNavigation";
 
-type Props = {
-  title: string;
-};
-
 function buildMailto() {
   const subject = encodeURIComponent("[voice-app] お問い合わせ");
   const body = encodeURIComponent(
@@ -45,7 +41,7 @@ function useIsMobile(breakpointPx = 520) {
   return isMobile;
 }
 
-export default function AppHeader({ title }: Props) {
+export default function AppHeader() {
   const { me, isLoading, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -161,13 +157,13 @@ export default function AppHeader({ title }: Props) {
               aria-label="ログページへ"
               title="ログへ"
             >
-              <img src="/koelog-logo.svg" alt="KoeLog" style={styles.brandLogo} />
+              <img
+                src="/koelog-logo.svg"
+                alt="KoeLog"
+                style={styles.brandLogo}
+                className="appHeader__logo"
+              />
             </button>
-          </div>
-
-          {/* 中央：ページタイトル（左右に影響されず常に中央） */}
-          <div style={styles.center} aria-label="ページタイトル" title={title}>
-            {title}
           </div>
 
           {/* 右：ログイン状態に応じて切り替え */}
@@ -231,46 +227,32 @@ const styles: Record<string, React.CSSProperties> = {
     position: "sticky",
     top: 0,
     zIndex: 80,
-    background: "rgba(255,255,255,0.72)",
+    background: "var(--headerBg)",
     backdropFilter: "blur(10px)",
-    borderBottom: "1px solid rgba(0,0,0,0.06)",
+    borderBottom: "1px solid var(--headerBorder)",
+    color: "var(--pageText, var(--text))",
   },
 
   // ★ sticky の中で absolute 中央を安定させるためのラッパー
   inner: {
     height: "100%",
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: "auto minmax(0, 1fr) auto",
     alignItems: "center",
-    justifyContent: "space-between",
     padding: "0 14px",
     position: "relative",
   },
 
-  left: { display: "flex", alignItems: "center", gap: 10, minWidth: 88 },
+  left: { display: "flex", alignItems: "center", gap: 10 },
 
   right: {
     display: "flex",
     alignItems: "center",
     gap: 8,
-    minWidth: 116,
     justifyContent: "flex-end",
   },
 
   // ★中央タイトル：画面のど真ん中に固定
-  center: {
-    position: "absolute",
-    left: "50%",
-    transform: "translateX(-50%)",
-    fontSize: 16,
-    fontWeight: 900,
-    letterSpacing: 0.2,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    maxWidth: "60vw",
-    pointerEvents: "none",
-  },
-
   // アプリ名ボタン（リンク風）
   brandBtn: {
     letterSpacing: 0.2,
@@ -292,7 +274,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   email: {
-    color: "#111",
+    color: "var(--text)",
     fontSize: 12,
     opacity: 0.7,
     whiteSpace: "nowrap",
@@ -303,8 +285,8 @@ const styles: Record<string, React.CSSProperties> = {
   authBtn: {
     height: 34,
     borderRadius: 10,
-    border: "1px solid rgba(0,0,0,0.10)",
-    background: "rgba(255,255,255,0.85)",
+    border: "1px solid var(--border)",
+    background: "var(--surface)",
     cursor: "pointer",
     fontSize: 12,
     fontWeight: 900,
@@ -313,15 +295,15 @@ const styles: Record<string, React.CSSProperties> = {
   },
   authBtnPrimary: {
     borderColor: "color-mix(in srgb, var(--accent) 44%, rgba(0,0,0,0.1))",
-    background: "color-mix(in srgb, var(--accent) 14%, white)",
+    background: "var(--accent)",
   },
 
   menuBtn: {
     width: 40,
     height: 40,
     borderRadius: 14,
-    border: "1px solid rgba(0,0,0,0.10)",
-    background: "rgba(255,255,255,0.85)",
+    border: "1px solid var(--border)",
+    background: "var(--surface)",
     cursor: "pointer",
     display: "grid",
     placeItems: "center",
@@ -333,7 +315,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 18,
     height: 2,
     borderRadius: 999,
-    background: "rgba(0,0,0,0.78)",
+    background: "var(--menuLine)",
     margin: "2px 0",
   },
 };

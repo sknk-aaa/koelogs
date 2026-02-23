@@ -27,7 +27,15 @@
   border-radius: 18px;
   border: 1px solid rgba(0, 0, 0, 0.14);
   background: rgba(255, 255, 255, 0.96);
+  color: var(--cardText, var(--text));
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme-mode="dark"] .mlm__panel {
+  background: #0f1729;
+  color: #e7eefb;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
 }
 
 .mlm__header {
@@ -38,9 +46,17 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+:root[data-theme-mode="dark"] .mlm__header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
 .mlm__title {
   font-weight: 900;
   font-size: 14px;
+}
+
+:root[data-theme-mode="dark"] .mlm__title {
+  color: #ffffff;
 }
 
 .mlm__close {
@@ -49,9 +65,16 @@
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: #fff;
+  color: var(--cardText, var(--text));
   cursor: pointer;
   font-size: 20px;
   line-height: 0;
+}
+
+:root[data-theme-mode="dark"] .mlm__close {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #182337;
+  color: #e7eefb;
 }
 
 .mlm__body {
@@ -68,15 +91,29 @@
   background: rgba(255, 255, 255, 0.9);
 }
 
+:root[data-theme-mode="dark"] .mlm__footer {
+  border-top-color: rgba(255, 255, 255, 0.08);
+  background: #0f1729;
+}
+
 .mlm__sectionTitle {
   font-weight: 900;
   margin: 6px 0 10px;
   font-size: 13px;
 }
 
+:root[data-theme-mode="dark"] .mlm__sectionTitle {
+  color: #ffffff;
+}
+
 .mlm__subtle {
   font-size: 12px;
   opacity: 0.7;
+}
+
+:root[data-theme-mode="dark"] .mlm__subtle {
+  color: #c7d2f0;
+  opacity: 0.82;
 }
 
 .mlm__error {
@@ -99,8 +136,20 @@
   cursor: pointer;
 }
 
+:root[data-theme-mode="dark"] .mlm__row {
+  background: #111a2b;
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+  color: #e7eefb;
+}
+
 .mlm__row.is-active {
   border-color: rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme-mode="dark"] .mlm__row.is-active {
+  border-color: rgba(98, 155, 255, 0.6);
+  box-shadow: 0 0 0 1px rgba(98, 155, 255, 0.35), 0 12px 30px rgba(0, 0, 0, 0.42);
 }
 
 .mlm__rowTop {
@@ -119,9 +168,19 @@
   opacity: 0.75;
 }
 
+:root[data-theme-mode="dark"] .mlm__duration {
+  color: #c7d2f0;
+  opacity: 0.88;
+}
+
 .mlm__notesHint {
   font-size: 12px;
   opacity: 0.75;
+}
+
+:root[data-theme-mode="dark"] .mlm__notesHint {
+  color: #c7d2f0;
+  opacity: 0.88;
 }
 
 .mlm__rowMid {
@@ -142,6 +201,16 @@
   background: rgba(0, 0, 0, 0.03);
 }
 
+:root[data-theme-mode="dark"] .mlm__tag {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #000000;
+}
+
+:root[data-theme-mode="dark"] .mlm__tags > span > span {
+  color: #000000 !important;
+}
+
 .mlm__tag.is-muted {
   opacity: 0.7;
 }
@@ -155,6 +224,11 @@
   opacity: 0.85;
 }
 
+:root[data-theme-mode="dark"] .mlm__rowBottom {
+  color: #c7d2f0;
+  opacity: 0.9;
+}
+
 .mlm__note {
   white-space: nowrap;
 }
@@ -165,6 +239,12 @@
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: #fff;
   padding: 12px;
+}
+
+:root[data-theme-mode="dark"] .mlm__detailCard {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #111a2b;
+  color: #e7eefb;
 }
 
 .mlm__detailGrid {
@@ -183,9 +263,16 @@
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--card);
-  color: var(--text);
+  color: var(--cardText, var(--text));
   padding: 0 12px;
   font-size: 13px;
+}
+
+:root[data-theme-mode="dark"] .mlm__search {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #0b1220;
+  color: #e7eefb;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 @media (max-width: 520px) {
   .mlm__detailGrid {
@@ -204,8 +291,17 @@
   font-weight: 800;
 }
 
+:root[data-theme-mode="dark"] .mlm__detailLabel {
+  color: #c7d2f0;
+  opacity: 0.86;
+}
+
 .mlm__detailValue {
   font-weight: 900;
+}
+
+:root[data-theme-mode="dark"] .mlm__detailValue {
+  color: #ffffff;
 }
 
 .mlm__detailBlock {
@@ -221,4 +317,10 @@
   white-space: pre-wrap;
   line-height: 1.6;
   font-size: 13px;
+}
+
+:root[data-theme-mode="dark"] .mlm__memo {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e7eefb;
 }

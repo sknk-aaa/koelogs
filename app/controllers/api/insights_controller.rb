@@ -17,7 +17,7 @@ module Api
       practice_days_count = base_scope.count
 
       logs = base_scope
-             .select(:id, :practiced_on, :duration_min, :falsetto_top_note, :chest_top_note)
+             .select(:id, :practiced_on, :duration_min)
              .order(:practiced_on)
 
       # --- daily durations (missing days => 0) ---
@@ -31,53 +31,9 @@ module Api
         { date: d.iso8601, duration_min: duration_by_date[d] || 0 }
       end
 
-      # --- daily top note series (missing days => nil) ---
-      falsetto_midi_by_date = {}
-      chest_midi_by_date = {}
-      logs.each do |l|
-        falsetto_midi_by_date[l.practiced_on] = note_to_midi(l.falsetto_top_note)
-        chest_midi_by_date[l.practiced_on] = note_to_midi(l.chest_top_note)
-      end
-
-      falsetto_series = (0...days).map do |i|
-        d = from + i
-        { date: d.iso8601, midi: falsetto_midi_by_date[d] }
-      end
-
-      chest_series = (0...days).map do |i|
-        d = from + i
-        { date: d.iso8601, midi: chest_midi_by_date[d] }
-      end
-
-      # --- menu ranking (menu_id based) ---
-      ranking_rows =
-        TrainingLogMenu
-          .joins(:training_log)
-          .joins(:training_menu)
-          .where(training_log_menus: { user_id: current_user.id })
-          .where(training_logs: { practiced_on: from..to })
-          .group("training_log_menus.training_menu_id", "training_menus.name", "training_menus.color")
-          .select(
-            "training_log_menus.training_menu_id AS menu_id",
-            "training_menus.name AS name",
-            "training_menus.color AS color",
-            "COUNT(*) AS count"
-          )
-          .order(Arel.sql("COUNT(*) DESC"))
-
-      menu_ranking = ranking_rows.map do |r|
-        { menu_id: r.menu_id.to_i, name: r.name.to_s, color: r.color.to_s, count: r.count.to_i }
-      end
-
-      # --- top notes (ALL TIME) + achieved date ---
       all_time_scope = current_user.training_logs
       total_practice_days_count = all_time_scope.count
-      all_time_logs = all_time_scope
-                      .select(:practiced_on, :falsetto_top_note, :chest_top_note)
-                      .order(:practiced_on)
-
-      top_fal = best_note_with_date(all_time_logs, :falsetto_top_note)
-      top_ch  = best_note_with_date(all_time_logs, :chest_top_note)
+      measurement_data = build_measurement_data(from: from, to: to, days: days)
       gamification_summary = Gamification::Progress.summary_for(current_user)
       streaks = {
         current_days: gamification_summary[:streak_current_days],
@@ -90,13 +46,16 @@ module Api
           daily_durations: daily_durations,
           practice_days_count: practice_days_count,
           total_practice_days_count: total_practice_days_count,
-          menu_ranking: menu_ranking,
           note_series: {
-            falsetto: falsetto_series,
-            chest: chest_series
+            falsetto: measurement_data[:note_series][:falsetto],
+            chest: measurement_data[:note_series][:chest]
           },
+          measurement_series: measurement_data[:measurement_series],
           streaks: streaks,
-          top_notes: { falsetto: top_fal, chest: top_ch },
+          top_notes: {
+            falsetto: measurement_data[:top_notes][:falsetto],
+            chest: measurement_data[:top_notes][:chest]
+          },
           gamification: gamification_summary
         }
       }, status: :ok
@@ -104,69 +63,69 @@ module Api
 
     private
 
-    # 最大音 + 達成日（同点の場合は最新日を採用）
-    # 戻り: { note: "A4", midi: 69, date: "2026-02-10" } or { note: nil, midi: nil, date: nil }
-    def best_note_with_date(logs, note_attr)
-      best_note = nil
-      best_midi = nil
-      best_date = nil
+    def build_measurement_data(from:, to:, days:)
+      kinds = %w[range long_tone volume_stability pitch_accuracy]
+      value_by_kind_and_date = {}
+      kinds.each { |kind| value_by_kind_and_date[kind] = {} }
+      top_notes = {
+        falsetto: { note: nil, midi: nil, date: nil },
+        chest: { note: nil, midi: nil, date: nil }
+      }
 
-      logs.each do |log|
-        n = log.public_send(note_attr)
-        next if n.nil?
+      runs = current_user.measurement_runs
+                        .where(measurement_type: kinds, recorded_at: from.beginning_of_day..to.end_of_day)
+                        .includes(:range_result, :long_tone_result, :volume_stability_result, :pitch_accuracy_result)
+                        .order(:recorded_at)
+      runs.each do |run|
+        kind = run.measurement_type.to_s
+        next unless kinds.include?(kind)
 
-        midi = note_to_midi(n)
-        next if midi.nil?
+        date = run.recorded_at.in_time_zone.to_date
+        next if date < from || date > to
 
-        d = log.practiced_on
-        next if d.nil?
+        value = measurement_value_for(run, kind)
+        next if value.nil?
 
-        if best_midi.nil? || midi > best_midi || (midi == best_midi && d > best_date)
-          best_midi = midi
-          best_note = n.to_s.strip
-          best_date = d
-        end
+        value_by_kind_and_date[kind][date] = value
       end
 
+      measurement_series = kinds.to_h do |kind|
+        points = (0...days).map do |i|
+          d = from + i
+          {
+            date: d.iso8601,
+            value: value_by_kind_and_date[kind][d]
+          }
+        end
+        [ kind, points ]
+      end
+
+      note_series = {
+        falsetto: (0...days).map { |i| d = from + i; { date: d.iso8601, midi: nil } },
+        chest: (0...days).map { |i| d = from + i; { date: d.iso8601, midi: nil } }
+      }
+
       {
-        note: best_note,
-        midi: best_midi,
-        date: best_date&.iso8601
+        measurement_series: measurement_series,
+        note_series: note_series,
+        top_notes: top_notes
       }
     end
 
-    def note_to_midi(note)
-      s = note.to_s.strip
-      return nil if s.empty?
-
-      m = s.match(/\A([A-Ga-g])([#b]?)(-?\d)\z/)
-      return nil if m.nil?
-
-      letter = m[1].upcase
-      accidental = m[2]
-      octave = m[3].to_i
-
-      semitone_base = {
-        "C" => 0, "D" => 2, "E" => 4, "F" => 5,
-        "G" => 7, "A" => 9, "B" => 11
-      }[letter]
-      return nil if semitone_base.nil?
-
-      semitone = semitone_base
-      semitone += 1 if accidental == "#"
-      semitone -= 1 if accidental == "b"
-
-      if semitone >= 12
-        semitone -= 12
-        octave += 1
-      elsif semitone < 0
-        semitone += 12
-        octave -= 1
+    def measurement_value_for(run, kind)
+      case kind
+      when "range"
+        run.range_result&.range_semitones
+      when "long_tone"
+        run.long_tone_result&.sustain_sec&.to_f
+      when "volume_stability"
+        score = run.volume_stability_result&.loudness_range_pct&.to_f
+        score&.clamp(0.0, 100.0)
+      when "pitch_accuracy"
+        run.pitch_accuracy_result&.accuracy_score&.to_f
+      else
+        nil
       end
-
-      (octave + 1) * 12 + semitone
-    rescue
-      nil
     end
   end
 end

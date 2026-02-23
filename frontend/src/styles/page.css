@@ -1,8 +1,8 @@
 .page {
-  padding: 16px 16px 104px;
+  padding: var(--space-4) var(--space-4) 104px;
   max-width: 960px;
   margin: 0 auto;
-  color: var(--text);
+  color: var(--pageText, var(--text));
 }
 
 .h1 {
@@ -20,16 +20,18 @@
 }
 
 .card {
-  background: var(--card);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--card) 92%, var(--card-tint)), var(--card));
   border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  color: var(--cardText, var(--text));
+  box-shadow: var(--shadow-sm);
 }
 
 .hr {
   height: 1px;
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--border);
   margin: 12px 0;
 }
 
@@ -82,4 +84,3 @@ input, textarea, button {
 .btn:active {
   transform: translateY(1px);
 }
-

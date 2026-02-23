@@ -20,6 +20,7 @@
   border-radius: 16px;
   border: 1px solid rgba(96, 150, 214, 0.34);
   background: rgba(255, 255, 255, 0.96);
+  color: var(--cardText, var(--text));
   box-shadow: 0 20px 38px rgba(0, 0, 0, 0.16);
   padding: 14px 14px 12px;
   display: grid;
@@ -40,13 +41,14 @@
   font-size: 18px;
   font-weight: 950;
   letter-spacing: 0.2px;
+  color: var(--cardText, var(--text));
 }
 
 .processingOverlay__desc {
   font-size: 12px;
   line-height: 1.55;
   text-align: center;
-  opacity: 0.76;
+  color: color-mix(in srgb, var(--cardText, var(--text)) 78%, #667);
 }
 
 @media (max-width: 480px) {

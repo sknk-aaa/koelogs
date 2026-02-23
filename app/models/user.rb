@@ -16,14 +16,13 @@ class User < ApplicationRecord
   has_many :training_logs, dependent: :destroy
   has_many :training_log_feedbacks, dependent: :destroy
   has_many :training_menus, dependent: :destroy
-  has_many :analysis_menus, dependent: :destroy
-  has_many :analysis_sessions, dependent: :destroy
+  has_many :measurement_runs, dependent: :destroy
   has_many :ai_recommendations, dependent: :destroy
   has_many :community_posts, dependent: :destroy
   has_many :community_post_favorites, dependent: :destroy
   has_many :favorite_community_posts, through: :community_post_favorites, source: :community_post
   has_many :ai_contribution_events, dependent: :destroy
-  has_many :weekly_logs, dependent: :destroy
+  has_many :monthly_logs, dependent: :destroy
   has_many :xp_events, dependent: :destroy
   has_many :user_badges, dependent: :destroy
 

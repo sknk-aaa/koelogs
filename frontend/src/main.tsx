@@ -3,7 +3,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 
 import "./styles/base.css";
+import "./styles/theme.css";
 import "./styles/page.css";
+import "./styles/drawer.css";
 
 import { ThemeProvider } from "./features/theme/ThemeProvider";
 import { SettingsProvider } from "./features/settings/SettingsProvider";

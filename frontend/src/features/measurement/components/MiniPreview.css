@@ -1,0 +1,151 @@
+.miniPreview {
+  width: 96px;
+  height: 56px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--preview-color, var(--accent)) 40%, var(--border));
+  background: color-mix(in srgb, var(--preview-color, var(--accent)) 10%, rgba(255, 255, 255, 0.88));
+  display: grid;
+  place-items: center;
+  color: var(--preview-color, color-mix(in srgb, var(--accent) 72%, #27405f));
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.miniPreview--sm {
+  width: 90px;
+  height: 52px;
+}
+
+.miniPreview--md {
+  width: 96px;
+  height: 56px;
+}
+
+.miniPreview__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.miniPreview__panel {
+  fill: color-mix(in srgb, currentColor 16%, #ffffff);
+}
+
+.miniPreview__key {
+  fill: color-mix(in srgb, currentColor 34%, #ffffff);
+}
+
+.miniPreview__keyboardBody {
+  fill: color-mix(in srgb, #eaf2ff 85%, #ffffff);
+}
+
+.miniPreview__keyWhite {
+  fill: #ffffff;
+  stroke: #dbe4f0;
+  stroke-width: 0.8;
+}
+
+.miniPreview__blackKey {
+  fill: #16253a;
+  filter: drop-shadow(0 1px 1px rgba(6, 18, 36, 0.32));
+}
+
+.miniPreview__overlayBand {
+  fill: color-mix(in srgb, currentColor 82%, #ffffff);
+  opacity: 0.84;
+}
+
+.miniPreview__ring {
+  fill: color-mix(in srgb, currentColor 12%, #ffffff);
+  stroke: color-mix(in srgb, currentColor 80%, #ffffff);
+  stroke-width: 2.8;
+}
+
+.miniPreview__point {
+  fill: color-mix(in srgb, currentColor 82%, #fff);
+}
+
+.miniPreview__rangeMarker {
+  fill: color-mix(in srgb, currentColor 78%, #ffffff);
+  stroke: #ffffff;
+  stroke-width: 1;
+}
+
+.miniPreview__lineStrong {
+  stroke: color-mix(in srgb, currentColor 88%, #fff);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.miniPreview__lineFaint {
+  stroke: color-mix(in srgb, currentColor 40%, transparent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.miniPreview__path {
+  fill: none;
+  stroke: color-mix(in srgb, currentColor 86%, #fff);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.miniPreview__dbText {
+  font-size: 14px;
+  font-weight: 900;
+  fill: color-mix(in srgb, currentColor 90%, #fff);
+  letter-spacing: 0.02em;
+}
+
+.miniPreview__guideBar {
+  fill: color-mix(in srgb, currentColor 26%, #ffffff);
+}
+
+.miniPreview__guideSeg {
+  fill: color-mix(in srgb, currentColor 44%, #ffffff);
+}
+
+.miniPreview__userBar {
+  fill: color-mix(in srgb, currentColor 78%, #ffffff);
+}
+
+.miniPreview__userSeg {
+  fill: color-mix(in srgb, #ffffff 92%, currentColor);
+}
+
+.miniPreview__pitchPanel {
+  fill: #1f2a44;
+}
+
+.miniPreview__pitchGuideLine {
+  stroke: rgba(241, 201, 113, 0.28);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.miniPreview__pitchPill {
+  fill: #ffbb22;
+  filter: drop-shadow(0 0 1px rgba(255, 183, 33, 0.22));
+}
+
+.miniPreview--range {
+  --preview-color: #2f7ee8;
+}
+
+.miniPreview--sustain {
+  --preview-color: #6b50d9;
+}
+
+.miniPreview--loudness {
+  --preview-color: #17a86b;
+}
+
+.miniPreview--pitch {
+  --preview-color: #d78a20;
+}
+
+.trainingPage__measurementPresetItemBtn.is-selected .miniPreview {
+  filter: saturate(1.08) brightness(1.04);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px color-mix(in srgb, var(--preview-color, var(--accent)) 24%, transparent);
+  border-color: color-mix(in srgb, var(--preview-color, var(--accent)) 64%, var(--border));
+}

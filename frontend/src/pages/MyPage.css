@@ -16,35 +16,48 @@
   font-weight: 900;
   letter-spacing: 1px;
   text-transform: uppercase;
-  opacity: 0.62;
+  color: var(--on-light-3);
 }
 
 .myPage__title {
   margin: 0;
   font-size: 22px;
   font-weight: 950;
+  color: var(--on-light-1);
 }
 
 .myPage__sub {
   margin: 0;
   font-size: 14px;
-  opacity: 0.76;
+  color: var(--on-light-3);
 }
 
 .myPage__missionCard,
 .myPage__card {
   border-radius: 16px;
   border: 1px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(130deg, rgba(255, 255, 255, 0.94), rgba(0, 0, 0, 0.1)) border-box;
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  color: #0b1220;
 }
 
 .myPage__cardTitle {
   font-size: 15px;
   font-weight: 950;
   margin-bottom: 10px;
+}
+
+.myPage__cardTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.myPage__cardTitle--tight {
+  margin-bottom: 0;
 }
 
 .myPage__missionList {
@@ -73,11 +86,12 @@
 .myPage__missionTitle {
   font-size: 13px;
   font-weight: 950;
+  color: var(--on-light-1);
 }
 
 .myPage__missionText {
   font-size: 12px;
-  opacity: 0.74;
+  color: var(--on-light-3);
   line-height: 1.5;
 }
 
@@ -90,7 +104,7 @@
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
   background: color-mix(in srgb, var(--accent) 12%, white);
-  color: inherit;
+  color: var(--accentTextSoft);
   text-decoration: none;
   font-size: 12px;
   font-weight: 900;
@@ -102,9 +116,15 @@
   border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.85);
+  color: var(--on-light-2);
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
+}
+
+.myPage__missionListBtn:disabled {
+  color: color-mix(in srgb, var(--text) 58%, #a3afc3);
+  background: rgba(255, 255, 255, 0.68);
 }
 
 .myPage__allClear {
@@ -117,12 +137,13 @@
 .myPage__allClearTitle {
   font-size: 14px;
   font-weight: 950;
+  color: var(--on-light-1);
 }
 
 .myPage__allClearText {
   margin-top: 3px;
   font-size: 12px;
-  opacity: 0.74;
+  color: var(--on-light-3);
 }
 
 .myPage__stats {
@@ -144,12 +165,13 @@
 .myPage__label {
   font-size: 11px;
   font-weight: 900;
-  opacity: 0.68;
+  color: var(--on-light-3);
 }
 
 .myPage__value {
   font-size: 18px;
   font-weight: 950;
+  color: var(--on-light-1);
 }
 
 .myPage__xpRail {
@@ -205,18 +227,19 @@
 .myPage__badgeName {
   font-size: 12px;
   font-weight: 900;
+  color: var(--on-light-1);
 }
 
 .myPage__badgeMeta {
   font-size: 11px;
   font-weight: 900;
-  opacity: 0.74;
+  color: var(--on-light-3);
 }
 
 .myPage__hint {
   margin-top: 8px;
   font-size: 12px;
-  opacity: 0.72;
+  color: var(--on-light-3);
 }
 
 .myPage__trendHead {
@@ -225,6 +248,28 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.myPage__summarySwitch {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.myPage__summaryBtn {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--on-light-2);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.myPage__summaryBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
 }
 
 .myPage__linkBtn {
@@ -236,14 +281,14 @@
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  color: inherit;
+  color: var(--accentTextSoft);
   font-size: 12px;
   font-weight: 900;
 }
 
 .myPage__daysGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -298,6 +343,7 @@
 .myPage__modalTitle {
   font-size: 16px;
   font-weight: 950;
+  color: var(--on-light-1);
 }
 
 .myPage__modalClose {
@@ -306,6 +352,7 @@
   border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.9);
+  color: var(--text);
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
@@ -365,4 +412,134 @@
   .myPage__badgeGrid {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+:root[data-theme-mode="dark"] .myPage__cardTitle {
+  color: var(--on-dark-1);
+}
+/* =========================
+   MyPage: Dark mode overrides
+   ========================= */
+:root[data-theme-mode="dark"] .myPage {
+  /* ページ全体の文字基準（カード内も含めて読みやすく） */
+  color: var(--on-dark-1);
+}
+
+/* カード共通：白カードをやめて、ダークの面に寄せる */
+:root[data-theme-mode="dark"] .myPage__missionCard,
+:root[data-theme-mode="dark"] .myPage__card {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+  color: var(--on-dark-1);
+}
+
+/* 見出し */
+:root[data-theme-mode="dark"] .myPage__cardTitle {
+  color: var(--on-dark-1);
+}
+
+/* kicker / sub は暗色向けに */
+:root[data-theme-mode="dark"] .myPage__kicker {
+  color: color-mix(in srgb, var(--on-dark-1) 65%, transparent);
+}
+:root[data-theme-mode="dark"] .myPage__title {
+  color: var(--on-dark-1);
+}
+:root[data-theme-mode="dark"] .myPage__sub {
+  color: color-mix(in srgb, var(--on-dark-1) 70%, transparent);
+}
+
+/* ミッション枠・統計枠などの“内側カード” */
+:root[data-theme-mode="dark"] .myPage__missionPrimary,
+:root[data-theme-mode="dark"] .myPage__mission,
+:root[data-theme-mode="dark"] .myPage__stat,
+:root[data-theme-mode="dark"] .myPage__dayItem,
+:root[data-theme-mode="dark"] .myPage__badge,
+:root[data-theme-mode="dark"] .myPage__modalMission {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* テキスト階層 */
+:root[data-theme-mode="dark"] .myPage__label,
+:root[data-theme-mode="dark"] .myPage__hint,
+:root[data-theme-mode="dark"] .myPage__missionText,
+:root[data-theme-mode="dark"] .myPage__badgeMeta {
+  color: color-mix(in srgb, var(--on-dark-1) 70%, transparent);
+}
+:root[data-theme-mode="dark"] .myPage__value,
+:root[data-theme-mode="dark"] .myPage__missionTitle,
+:root[data-theme-mode="dark"] .myPage__badgeName,
+:root[data-theme-mode="dark"] .myPage__allClearTitle,
+:root[data-theme-mode="dark"] .myPage__modalTitle {
+  color: var(--on-dark-1);
+}
+
+/* 進捗バー：レールは暗く、塗りは既存のグラデを活かす */
+:root[data-theme-mode="dark"] .myPage__xpRail {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* ボタン類（タブ / リンク / 一覧ボタン） */
+:root[data-theme-mode="dark"] .myPage__summaryBtn,
+:root[data-theme-mode="dark"] .myPage__linkBtn,
+:root[data-theme-mode="dark"] .myPage__missionListBtn,
+:root[data-theme-mode="dark"] .myPage__modalClose {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: color-mix(in srgb, var(--on-dark-1) 85%, transparent);
+}
+
+/* 期間タブのアクティブ感をダークでも明確に */
+:root[data-theme-mode="dark"] .myPage__summaryBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.18));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.05));
+  color: var(--on-dark-1);
+}
+
+/* “挑戦する”ボタン：ダークでも押せそうに見える面を作る */
+:root[data-theme-mode="dark"] .myPage__missionBtn {
+  border-color: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.18));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.04));
+  color: var(--on-dark-1);
+}
+
+/* “全部クリア”枠 */
+:root[data-theme-mode="dark"] .myPage__allClear {
+  border-color: color-mix(in srgb, var(--accent) 45%, rgba(255, 255, 255, 0.18));
+  background: color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.04));
+}
+:root[data-theme-mode="dark"] .myPage__allClearText {
+  color: color-mix(in srgb, var(--on-dark-1) 70%, transparent);
+}
+
+/* バッジ（ロック時の視認性を落としすぎない） */
+:root[data-theme-mode="dark"] .myPage__badge.is-locked {
+  opacity: 0.62;
+}
+:root[data-theme-mode="dark"] .myPage__badge.is-locked .myPage__badgeIcon {
+  filter: grayscale(1) brightness(0.9);
+}
+
+/* モーダル：背景を暗め、カードは“面”として浮かせる */
+:root[data-theme-mode="dark"] .myPage__modalOverlay {
+  background: rgba(0, 0, 0, 0.58);
+}
+:root[data-theme-mode="dark"] .myPage__modalCard {
+  background: rgba(18, 20, 28, 0.96);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
+}
+
+/* ミッションのステータス */
+:root[data-theme-mode="dark"] .myPage__missionStatus.is-pending {
+  border-color: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.18));
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.04));
+  color: var(--on-dark-1);
+}
+:root[data-theme-mode="dark"] .myPage__missionStatus.is-done {
+  border-color: rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.16);
+  color: var(--on-dark-1);
 }

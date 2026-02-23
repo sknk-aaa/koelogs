@@ -4,11 +4,15 @@ import { Link } from "react-router-dom";
 import { fetchInsights } from "../api/insights";
 import { useAuth } from "../features/auth/useAuth";
 import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
+import { RANGE_MISSION_FLAG } from "../features/missions/constants";
 import type { InsightsData } from "../types/insights";
+import InfoModal from "../components/InfoModal";
 
 import "./MyPage.css";
 
-const DAYS = 30;
+const HEATMAP_DAYS = 90;
+const SUMMARY_DAYS_OPTIONS = [30, 90] as const;
+type SummaryDays = (typeof SUMMARY_DAYS_OPTIONS)[number];
 
 type Mission = {
   key: string;
@@ -26,24 +30,22 @@ function toISODate(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function dateChip(iso: string): string {
-  const [y, m, d] = iso.split("-").map((v) => Number.parseInt(v, 10));
-  if (!y || !m || !d) return iso;
-  return `${m}/${d}`;
-}
-
 export default function MyPage() {
   const { me } = useAuth();
+  const [summaryDays, setSummaryDays] = useState<SummaryDays>(30);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [insights, setInsights] = useState<InsightsData | null>(null);
+  const [summaryInsights, setSummaryInsights] = useState<InsightsData | null>(null);
+  const [heatmapInsights, setHeatmapInsights] = useState<InsightsData | null>(null);
   const [missionModalOpen, setMissionModalOpen] = useState(false);
+  const [insightsReloadKey, setInsightsReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!me) {
-        setInsights(null);
+        setSummaryInsights(null);
+        setHeatmapInsights(null);
         setLoading(false);
         return;
       }
@@ -51,40 +53,51 @@ export default function MyPage() {
       setLoading(true);
       setError(null);
 
-      const insightsRes = await fetchInsights(DAYS);
+      const [summaryRes, heatmapRes] = await Promise.all([
+        fetchInsights(summaryDays),
+        fetchInsights(HEATMAP_DAYS),
+      ]);
       if (cancelled) return;
 
-      if ("error" in insightsRes && insightsRes.error) {
-        setError(insightsRes.error);
-        setInsights(null);
+      const summaryError = "error" in summaryRes ? summaryRes.error : null;
+      const heatmapError = "error" in heatmapRes ? heatmapRes.error : null;
+      if (summaryError || heatmapError) {
+        setError(summaryError || heatmapError || "データを取得できませんでした。");
+        setSummaryInsights(null);
+        setHeatmapInsights(null);
         setLoading(false);
         return;
       }
 
-      setInsights(insightsRes.data ?? null);
-      setLoading(false);
+      if (!cancelled) {
+        setSummaryInsights(summaryRes.data ?? null);
+        setHeatmapInsights(heatmapRes.data ?? null);
+        setLoading(false);
+      }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [me]);
+  }, [me, summaryDays, insightsReloadKey]);
 
-  const today = insights?.range.to ?? toISODate(new Date());
-  const hasDailyLog = (insights?.total_practice_days_count ?? 0) > 0;
-  const hasTopNote = !!insights?.top_notes.falsetto.note || !!insights?.top_notes.chest.note;
+  const today = summaryInsights?.range.to ?? toISODate(new Date());
+  const hasDailyLog = (summaryInsights?.total_practice_days_count ?? 0) > 0;
+  const hasTopNote = !!summaryInsights?.top_notes.falsetto.note || !!summaryInsights?.top_notes.chest.note;
   const hasDisplayName = !!me?.display_name?.trim();
-  const progress = insights?.gamification ?? null;
+  const progress = summaryInsights?.gamification ?? null;
+  const rangeMissionOverride =
+    typeof window !== "undefined" && window.localStorage.getItem(RANGE_MISSION_FLAG) === "1";
 
   const missions = useMemo(() => {
-    if (!insights || !progress) return [] as Mission[];
+    if (!summaryInsights || !progress) return [] as Mission[];
     return [
       {
         key: "range",
         title: "音域を測定しよう",
         description: "裏声または地声の最高音を1つ記録してみましょう。",
-        to: `/log/new?date=${encodeURIComponent(today)}`,
-        done: hasTopNote,
+        to: `/training?mission=range`,
+        done: hasTopNote || rangeMissionOverride,
       },
       {
         key: "daily_log",
@@ -101,11 +114,11 @@ export default function MyPage() {
         done: hasDisplayName,
       },
       {
-        key: "ai_analysis",
-        title: "AI録音分析をやってみよう",
-        description: "トレーニング画面から1回分析を実行してみましょう。",
+        key: "measurement",
+        title: "測定をやってみよう",
+        description: "トレーニング画面から1回測定を実行してみましょう。",
         to: "/training",
-        done: progress.analysis_sessions_count > 0,
+        done: progress.measurement_runs_count > 0,
       },
       {
         key: "ai_recommendation",
@@ -115,7 +128,23 @@ export default function MyPage() {
         done: progress.ai_recommendations_count > 0,
       },
     ] satisfies Mission[];
-  }, [hasDailyLog, hasDisplayName, hasTopNote, insights, progress, today]);
+  }, [hasDailyLog, hasDisplayName, hasTopNote, summaryInsights, progress, today, rangeMissionOverride]);
+
+  useEffect(() => {
+    if (!rangeMissionOverride || !hasTopNote) return;
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(RANGE_MISSION_FLAG);
+    }
+  }, [rangeMissionOverride, hasTopNote]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => setInsightsReloadKey((prev) => prev + 1);
+    window.addEventListener("insights:update", handler);
+    return () => {
+      window.removeEventListener("insights:update", handler);
+    };
+  }, []);
 
   const nextMission = missions.find((mission) => !mission.done) ?? null;
   const pendingCount = missions.filter((mission) => !mission.done).length;
@@ -127,13 +156,10 @@ export default function MyPage() {
     return Math.max(0, Math.min(100, (cur / req) * 100));
   }, [progress]);
 
-  const practicedDates = useMemo(() => {
-    if (!insights) return [] as string[];
-    return insights.daily_durations
-      .filter((p) => p.duration_min > 0)
-      .map((p) => p.date)
-      .slice(-14);
-  }, [insights]);
+  const summaryTotalDurationMin = useMemo(
+    () => (summaryInsights?.daily_durations ?? []).reduce((acc, point) => acc + (point.duration_min || 0), 0),
+    [summaryInsights]
+  );
 
   if (loading) {
     return (
@@ -147,7 +173,7 @@ export default function MyPage() {
     );
   }
 
-  if (error || !insights || !progress) {
+  if (error || !summaryInsights || !heatmapInsights || !progress) {
     return (
       <div className="page myPage">
         <section className="card myPage__hero">
@@ -183,7 +209,16 @@ export default function MyPage() {
       </section>
 
       <section className="card myPage__card">
-        <div className="myPage__cardTitle">進捗</div>
+        <div className="myPage__cardTitleRow">
+          <div className="myPage__cardTitle myPage__cardTitle--tight">進捗</div>
+          <InfoModal title="XP（進捗）について">
+            <ul>
+              <li>XPは練習の継続を記録するポイントです。</li>
+              <li>ログ作成や測定、コミュニティ投稿などで増えます。</li>
+              <li>XPは上達を保証するものではなく、継続の見える化です。</li>
+            </ul>
+          </InfoModal>
+        </div>
         <div className="myPage__stats">
           <div className="myPage__stat">
             <div className="myPage__label">Lv</div>
@@ -224,40 +259,36 @@ export default function MyPage() {
       <section className="card myPage__card">
         <div className="myPage__cardTitle">練習時間の推移</div>
         <div className="myPage__trendHead">
-          <div className="myPage__hint">日数を切り替える詳細表示に移動できます</div>
+          <div className="myPage__summarySwitch" role="tablist" aria-label="サマリー期間">
+            {SUMMARY_DAYS_OPTIONS.map((days) => (
+              <button
+                key={`summary-days-${days}`}
+                type="button"
+                role="tab"
+                aria-selected={summaryDays === days}
+                className={`myPage__summaryBtn${summaryDays === days ? " is-active" : ""}`}
+                onClick={() => setSummaryDays(days)}
+              >
+                {days}日
+              </button>
+            ))}
+          </div>
           <Link className="myPage__linkBtn" to="/insights/time" state={{ fromPath: "/mypage" }}>
             詳細を見る
           </Link>
         </div>
-        <DurationHeatmapCalendar points={insights.daily_durations} />
-        <div className="myPage__hint">直近 {insights.range.days} 日の練習時間を表示</div>
-      </section>
-
-      <section className="card myPage__card">
-        <div className="myPage__cardTitle">練習日数（直近期間）</div>
         <div className="myPage__daysGrid">
           <div className="myPage__dayItem">
             <div className="myPage__label">練習した日</div>
-            <div className="myPage__value">{insights.practice_days_count} / {insights.range.days} 日</div>
+            <div className="myPage__value">{summaryInsights.practice_days_count} / {summaryInsights.range.days} 日</div>
           </div>
           <div className="myPage__dayItem">
-            <div className="myPage__label">現在連続日数</div>
-            <div className="myPage__value">{progress.streak_current_days} 日</div>
-          </div>
-          <div className="myPage__dayItem">
-            <div className="myPage__label">最長継続日数</div>
-            <div className="myPage__value">{progress.streak_longest_days} 日</div>
+            <div className="myPage__label">累計練習時間</div>
+            <div className="myPage__value">{(summaryTotalDurationMin / 60).toFixed(1)} 時間</div>
           </div>
         </div>
-        <div className="myPage__chips">
-          {practicedDates.length > 0 ? (
-            practicedDates.map((d) => (
-              <span key={d} className="myPage__chip">{dateChip(d)}</span>
-            ))
-          ) : (
-            <div className="myPage__hint">まだ練習記録がありません。</div>
-          )}
-        </div>
+        <DurationHeatmapCalendar points={heatmapInsights.daily_durations} />
+        <div className="myPage__hint">色分けカレンダーは直近 {HEATMAP_DAYS} 日固定表示です</div>
       </section>
 
       {missionModalOpen && (

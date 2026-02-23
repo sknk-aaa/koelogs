@@ -44,7 +44,6 @@ export async function fetchFavoriteCommunityPosts(opts?: { limit?: number }): Pr
 export async function createCommunityPost(input: {
   training_menu_id: number;
   improvement_tags: string[];
-  effect_level: number;
   comment?: string;
   published?: boolean;
 }): Promise<CommunityPost> {

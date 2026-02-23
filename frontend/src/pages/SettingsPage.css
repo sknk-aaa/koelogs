@@ -242,3 +242,100 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+/* ===============================
+   SettingsPage: Dark mode overrides
+================================= */
+:root[data-theme-mode="dark"] .settingsPage {
+  --settings-panel-bg: rgba(255, 255, 255, 0.07);
+  --settings-panel-border: rgba(255, 255, 255, 0.12);
+  --settings-text-1: #ffffff;
+  --settings-text-2: rgba(255, 255, 255, 0.88);
+  --settings-text-3: rgba(255, 255, 255, 0.72);
+}
+
+/* 背景の白い光を弱める（残しても自然な程度に） */
+:root[data-theme-mode="dark"] .settingsPage__bg {
+  background:
+    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 64%),
+    radial-gradient(420px 160px at 92% 0%, rgba(255, 255, 255, 0.18), transparent 68%);
+}
+
+/* 区切り線 */
+:root[data-theme-mode="dark"] .settingsPage__hr {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* pill radio（白背景をやめる） */
+:root[data-theme-mode="dark"] .settingsPage__pillRadio {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--settings-panel-border);
+  color: var(--settings-text-2);
+  backdrop-filter: blur(6px);
+}
+
+:root[data-theme-mode="dark"] .settingsPage__pillRadio.isSelected {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.20);
+  color: #ffffff;
+}
+
+/* テーマ選択ボタン（白タイルをやめる） */
+:root[data-theme-mode="dark"] .settingsPage__themeBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--settings-panel-border);
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+}
+
+:root[data-theme-mode="dark"] .settingsPage__themeBtn.isSelected {
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10);
+}
+
+/* 音量Row（白箱をやめる） */
+:root[data-theme-mode="dark"] .settingsPage__volumeRow {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--settings-panel-border);
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+}
+
+:root[data-theme-mode="dark"] .settingsPage__volumeIcon,
+:root[data-theme-mode="dark"] .settingsPage__volumeValue {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* トグル（白トラック/白つまみをやめる） */
+:root[data-theme-mode="dark"] .settingsPage__toggleTrack {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--settings-panel-border);
+}
+
+:root[data-theme-mode="dark"] .settingsPage__toggleThumb {
+  background: rgba(255, 255, 255, 0.92); /* “つまみ”は白寄りでOK。真っ白固定より柔らかい */
+  border-color: rgba(0, 0, 0, 0.20);    /* 明るいつまみなので境界は少し濃く */
+}
+
+/* checked時：白mixをやめて、アクセント寄りの暗背景に */
+:root[data-theme-mode="dark"] .settingsPage__toggle input:checked + .settingsPage__toggleTrack {
+  background: color-mix(in srgb, var(--accent) 35%, rgba(255, 255, 255, 0.10));
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .settingsPage__toggle input:checked + .settingsPage__toggleTrack .settingsPage__toggleThumb {
+  border-color: rgba(0, 0, 0, 0.22);
+}
+
+/* テキストの可読性 */
+:root[data-theme-mode="dark"] .settingsPage__label {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+:root[data-theme-mode="dark"] .settingsPage__hint,
+:root[data-theme-mode="dark"] .settingsPage__kicker,
+:root[data-theme-mode="dark"] .settingsPage__sub {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.72);
+}

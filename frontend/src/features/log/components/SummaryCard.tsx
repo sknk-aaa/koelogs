@@ -1,5 +1,6 @@
 import type { TrainingLog } from "../../../types/trainingLog";
 import ColoredTag from "../../../components/ColoredTag";
+import { Card } from "../../ui";
 
 type MenuItem = { id: number; name: string; color?: string | null; archived?: boolean | null };
 
@@ -29,7 +30,7 @@ export default function SummaryCard({
   onClickRecord,
 }: Props) {
   return (
-    <div className="card logPage__card">
+    <Card className="logPage__card">
       <div className="logPage__cardHead">
         <div className="logPage__cardTitle">サマリー</div>
 
@@ -57,11 +58,18 @@ export default function SummaryCard({
         <div className="logPage__empty">
           <div className="logPage__emptyTitle">記録すると、ここに今日の結果が表示されます</div>
           <div className="logPage__kpiRow" aria-label="記録後の表示イメージ">
-            <div className="logPage__kpi">
+            <div className="logPage__kpi logPage__mini logPage__mini--time">
               <div className="logPage__kpiLabel">練習時間</div>
               <div className="logPage__kpiValue">
                 <span className="logPage__kpiNumber">-</span>
                 <span className="logPage__kpiUnit">分</span>
+              </div>
+            </div>
+            <div className="logPage__kpi logPage__mini logPage__mini--streak">
+              <div className="logPage__kpiLabel">連続日数</div>
+              <div className="logPage__kpiValue">
+                <span className="logPage__kpiNumber">-</span>
+                <span className="logPage__kpiUnit">日</span>
               </div>
             </div>
           </div>
@@ -83,14 +91,18 @@ export default function SummaryCard({
       {!loading && !error && log && (
         <>
           <div className="logPage__kpiRow">
-            <div className="logPage__kpi">
+            <div className="logPage__kpi logPage__kpi--primary logPage__mini logPage__mini--time">
               <div className="logPage__kpiLabel">練習時間</div>
               <div className="logPage__kpiValue">
                 <span className="logPage__kpiNumber">{log.duration_min ?? 0}</span>
                 <span className="logPage__kpiUnit">分</span>
               </div>
-              <div className="logPage__kpiSub">
-                連続日数: {currentStreakDays ?? 0} 日
+            </div>
+            <div className="logPage__kpi logPage__mini logPage__mini--streak">
+              <div className="logPage__kpiLabel">連続日数</div>
+              <div className="logPage__kpiValue">
+                <span className="logPage__kpiNumber">{currentStreakDays ?? 0}</span>
+                <span className="logPage__kpiUnit">日</span>
               </div>
             </div>
           </div>
@@ -124,6 +136,6 @@ export default function SummaryCard({
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 }

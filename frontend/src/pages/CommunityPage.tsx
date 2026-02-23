@@ -13,11 +13,32 @@ import { useAuth } from "../features/auth/useAuth";
 import { avatarIconPath } from "../features/profile/avatarIcons";
 import type { TrainingMenu } from "../types/trainingMenu";
 import { IMPROVEMENT_TAG_OPTIONS, type CommunityPost } from "../types/community";
+import InfoModal from "../components/InfoModal";
 
 import "./CommunityPage.css";
 
 type ListTab = "posts" | "favorites";
 type BrowseSort = "newest" | "by_tag";
+
+function tagToneClass(tag: string): string {
+  return tag === "high_note_ease"
+    ? "communityPage__tag--purple"
+    : tag === "pitch_stability"
+      ? "communityPage__tag--blue"
+      : tag === "passaggio_smoothness"
+        ? "communityPage__tag--teal"
+        : tag === "less_breathlessness"
+          ? "communityPage__tag--mint"
+          : tag === "volume_stability"
+            ? "communityPage__tag--orange"
+            : tag === "less_throat_tension"
+              ? "communityPage__tag--green"
+              : tag === "resonance_clarity"
+                ? "communityPage__tag--violet"
+                : tag === "long_tone_sustain"
+                  ? "communityPage__tag--sky"
+                  : "communityPage__tag--neutral";
+}
 
 export default function CommunityPage() {
   const navigate = useNavigate();
@@ -34,11 +55,11 @@ export default function CommunityPage() {
   const [postModalOpen, setPostModalOpen] = useState(false);
   const [menus, setMenus] = useState<TrainingMenu[]>([]);
   const [menuId, setMenuId] = useState<number | "">("");
-  const [effectLevel, setEffectLevel] = useState<number>(3);
   const [tags, setTags] = useState<string[]>([]);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFavoriting, setIsFavoriting] = useState<number | null>(null);
+  const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
 
   const loadPosts = async () => {
     const data = await fetchCommunityPosts({ mineFirst: true, limit: 50 });
@@ -122,8 +143,8 @@ export default function CommunityPage() {
   }, [me, postModalOpen]);
 
   const canSubmit = useMemo(() => {
-    return typeof menuId === "number" && effectLevel >= 1 && effectLevel <= 5 && tags.length > 0;
-  }, [effectLevel, menuId, tags.length]);
+    return typeof menuId === "number" && tags.length > 0;
+  }, [menuId, tags.length]);
 
   const visiblePosts = useMemo(() => {
     const source = listTab === "posts" ? posts : favoritePosts;
@@ -157,7 +178,6 @@ export default function CommunityPage() {
       const created = await createCommunityPost({
         training_menu_id: menuId,
         improvement_tags: tags,
-        effect_level: effectLevel,
         comment: comment.trim() || undefined,
       });
       await loadPosts();
@@ -166,7 +186,6 @@ export default function CommunityPage() {
       setListTab("posts");
       setComment("");
       setTags([]);
-      setEffectLevel(3);
       closePostModal();
       setTimeout(() => setHighlightPostId(null), 5000);
     } catch (e) {
@@ -197,82 +216,138 @@ export default function CommunityPage() {
 
   return (
     <div className="page communityPage">
-      <section className="card communityPage__rankHero">
-        <div className="communityPage__rankHeroBand">
-          <div className="communityPage__rankHeroCopy">
-            <div className="communityPage__rankHeroTitle">みんなの進捗ランキングをチェックしてみましょう！</div>
+      <section className="card communityPage__introLine">
+        <div className="communityPage__introText">
+          <div className="communityPage__introBadge">コミュニティ</div>
+          <div className="communityPage__introLead">ここでは「練習メニューの効果」を共有・閲覧できます。</div>
+          <div className="communityPage__introSub">
+            投稿はAIの分析にも活用され、「AIおすすめメニュー」の精度向上に反映されます。
           </div>
-          <div className="communityPage__rankHeroPills" aria-hidden="true">
-            <span className="communityPage__rankHeroChip">AI貢献</span>
-            <span className="communityPage__rankHeroChip">連続日数</span>
-            <span className="communityPage__rankHeroChip">7日練習</span>
-          </div>
-          <button
-            type="button"
-            className="communityPage__rankHeroBtn"
-            onClick={() => navigate("/community/rankings")}
-          >
-            ランキングを見る
-          </button>
+          <div className="communityPage__introNote">あなたの投稿が、みんなの練習をより良くします。</div>
         </div>
+        <InfoModal
+          title="「コミュニティ」でできること "
+          bodyClassName="communityPage__communityInfo"
+          triggerClassName="communityPage__introInfoBtn"
+        >
+          <section className="communityPage__communityInfoSection">
+            <h3 className="communityPage__communityInfoTitle">みんなの練習</h3>
+            <ul>
+              <li>
+                <span className="communityPage__communityInfoIcon" aria-hidden="true">🔎</span>
+                <span>
+                  <strong>閲覧</strong>：他のユーザーの「メニュー × 効果」を見られます。
+                </span>
+              </li>
+              <li>
+                <span className="communityPage__communityInfoIcon" aria-hidden="true">✍️</span>
+                <span>
+                  <strong>投稿</strong>：あなたの実践結果を共有できます（公開されます）。
+                </span>
+              </li>
+              <li>
+                <span className="communityPage__communityInfoIcon" aria-hidden="true">★</span>
+                <span>
+                  <strong>お気に入り</strong>：参考になった投稿を保存できます（ログインが必要）。
+                </span>
+              </li>
+            </ul>
+          </section>
+
+          <section className="communityPage__communityInfoSection">
+            <h3 className="communityPage__communityInfoTitle">みんなの進捗</h3>
+            <div className="communityPage__communityInfoRank">
+              <span className="communityPage__communityInfoIcon" aria-hidden="true">🏆</span>
+              <span>
+                ランキングでは、継続日数・週間XP・AI貢献度の上位メンバーを確認できます。<br />
+                ほかのユーザーの取り組みを見て、日々の練習の目安にできます。
+              </span>
+            </div>
+          </section>
+        </InfoModal>
       </section>
 
-      <section className="card communityPage__tabs communityPage__tabs--attached">
-        <button
-          type="button"
-          className={`communityPage__tabBtn ${listTab === "posts" ? "is-active" : ""}`}
-          onClick={() => setListTab("posts")}
-        >
-          投稿一覧
-        </button>
-        <button
-          type="button"
-          className={`communityPage__tabBtn ${listTab === "favorites" ? "is-active" : ""}`}
-          onClick={() => setListTab("favorites")}
-        >
-          お気に入り
-        </button>
+      <section className="communityPage__rankingGuideWrap">
+        <Link className="communityPage__rankingGuide uiCard uiCard--accent2 uiCard--interactive" to="/community/rankings">
+          <span className="communityPage__rankingGuideIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M4 19h16" />
+              <path d="M7 19v-4.5" />
+              <path d="M12 19v-7.5" />
+              <path d="M17 19v-10" />
+              <path d="m6.5 10.5 4-2.8 3.2 1.9 3.8-3.2" />
+            </svg>
+          </span>
+          <span className="communityPage__rankingGuideBody">
+            <span className="communityPage__rankingGuideTitle">ランキングを見る</span>
+            <span className="communityPage__rankingGuideDesc">みんなの進捗をチェックして刺激をもらう</span>
+          </span>
+          <span className="communityPage__rankingGuideArrow" aria-hidden="true">→</span>
+        </Link>
+      </section>
+
+      <section className="card communityPage__controls">
+        <div className="communityPage__segmentGroup" role="tablist" aria-label="投稿一覧切替">
+          <button
+            type="button"
+            className={`communityPage__segmentBtn ${listTab === "posts" ? "is-active" : ""}`}
+            onClick={() => setListTab("posts")}
+            role="tab"
+            aria-selected={listTab === "posts"}
+          >
+            投稿一覧
+          </button>
+          <button
+            type="button"
+            className={`communityPage__segmentBtn ${listTab === "favorites" ? "is-active" : ""}`}
+            onClick={() => setListTab("favorites")}
+            role="tab"
+            aria-selected={listTab === "favorites"}
+          >
+            お気に入り
+          </button>
+        </div>
+        <div className="communityPage__subTabs" role="tablist" aria-label="表示順切替">
+          <button
+            type="button"
+            className={`communityPage__subTab ${browseSort === "newest" ? "is-active" : ""}`}
+            onClick={() => setBrowseSort("newest")}
+            role="tab"
+            aria-selected={browseSort === "newest"}
+          >
+            新着一覧
+          </button>
+          <button
+            type="button"
+            className={`communityPage__subTab ${browseSort === "by_tag" ? "is-active" : ""}`}
+            onClick={() => setBrowseSort("by_tag")}
+            role="tab"
+            aria-selected={browseSort === "by_tag"}
+          >
+            タグ別
+          </button>
+        </div>
+        {browseSort === "by_tag" && (
+          <div className="communityPage__tagFilter">
+            <select
+              className="communityPage__input"
+              value={selectedBrowseTag}
+              onChange={(e) => setSelectedBrowseTag(e.target.value)}
+            >
+              <option value="">タグを選択してください</option>
+              {IMPROVEMENT_TAG_OPTIONS.map((opt) => (
+                <option key={opt.key} value={opt.key}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </section>
 
       {error && <section className="card communityPage__error">{error}</section>}
 
       <section className="communityPage__list">
-        <div className="card communityPage__browseControls">
-          <div className="communityPage__sortSwitch">
-            <button
-              type="button"
-              className={`communityPage__sortBtn ${browseSort === "newest" ? "is-active" : ""}`}
-              onClick={() => setBrowseSort("newest")}
-            >
-              新着一覧
-            </button>
-            <button
-              type="button"
-              className={`communityPage__sortBtn ${browseSort === "by_tag" ? "is-active" : ""}`}
-              onClick={() => setBrowseSort("by_tag")}
-            >
-              タグ別
-            </button>
-          </div>
-
-          {browseSort === "by_tag" && (
-            <div className="communityPage__tagFilter">
-              <select
-                className="communityPage__input"
-                value={selectedBrowseTag}
-                onChange={(e) => setSelectedBrowseTag(e.target.value)}
-              >
-                <option value="">タグを選択してください</option>
-                {IMPROVEMENT_TAG_OPTIONS.map((opt) => (
-                  <option key={opt.key} value={opt.key}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-
         {listTab === "favorites" && !me ? (
           <div className="card communityPage__empty">
             お気に入りの閲覧にはログインが必要です。<Link to="/login">ログイン</Link>
@@ -289,7 +364,7 @@ export default function CommunityPage() {
               key={post.id}
               className={`card communityPage__post communityPage__listCard ${highlightPostId === post.id ? "is-highlight" : ""}`}
             >
-              <div className="communityPage__cardTop">
+              <div className="communityPage__cardHeader">
                 {post.user.public && post.user.user_id ? (
                   <Link to={`/community/profile/${post.user.user_id}`} className="communityPage__cardUser">
                     <img
@@ -311,58 +386,69 @@ export default function CommunityPage() {
                     </div>
                   </div>
                 )}
+                <div className="communityPage__cardDate">{new Date(post.created_at).toLocaleDateString("ja-JP")}</div>
               </div>
 
-              <div className="communityPage__cardTitleMain">
-                効果のあったメニュー: {post.menu_name}
-              </div>
-              <div className="communityPage__threadStars" aria-label={`実感度 ${post.effect_level} / 5`}>
-                <span className="communityPage__threadStarsLabel">効果実感度：</span>
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <span
-                    key={`${post.id}-star-${idx + 1}`}
-                    className={`communityPage__threadStar ${idx < post.effect_level ? "is-on" : ""}`}
-                    aria-hidden="true"
-                  >
-                    ★
-                  </span>
-                ))}
+              <div className="communityPage__cardBody">
+                <div className="communityPage__fieldLabel--muted">効果のあったメニュー</div>
+                <div className="communityPage__cardTitleMain">{post.menu_name}</div>
+                {post.improvement_tags.length > 0 ? (
+                  <>
+                    <div className="communityPage__tagsLabel">感じられた効果</div>
+                    <div className="communityPage__tags communityPage__tags--field">
+                      {post.improvement_tags.map((tag) => {
+                        const label = IMPROVEMENT_TAG_OPTIONS.find((x) => x.key === tag)?.label ?? tag;
+                        const tagClass = tagToneClass(tag);
+                        return (
+                          <span key={`${post.id}-${tag}`} className={`communityPage__tag ${tagClass}`}>
+                            {label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : null}
               </div>
 
-              <div className="communityPage__fieldLine">
-                <span className="communityPage__fieldLabel">感じられた効果:</span>
-              </div>
-              <div className="communityPage__tags communityPage__tags--field">
-                {post.improvement_tags.map((tag) => {
-                  const label = IMPROVEMENT_TAG_OPTIONS.find((x) => x.key === tag)?.label ?? tag;
-                  return (
-                    <span key={`${post.id}-${tag}`} className="communityPage__tag">
-                      {label}
-                    </span>
-                  );
-                })}
-              </div>
+              {post.comment?.trim() ? (() => {
+                const trimmedComment = post.comment.trim();
+                const isLong = trimmedComment.length > 140;
+                const isExpanded = expandedComments[post.id] ?? false;
+                const isCollapsed = isLong && !isExpanded;
+                return (
+                  <div className="communityPage__commentSection">
+                    <div className={`communityPage__commentCard ${isCollapsed ? "is-collapsed" : ""}`}>
+                      <p className={`communityPage__comment ${isCollapsed ? "is-collapsed" : ""}`}>{trimmedComment}</p>
+                    </div>
+                    {isLong ? (
+                      <button
+                        type="button"
+                        className="communityPage__commentToggle"
+                        onClick={() =>
+                          setExpandedComments((prev) => ({
+                            ...prev,
+                            [post.id]: !isExpanded,
+                          }))
+                        }
+                      >
+                        {isExpanded ? "閉じる" : "もっと見る"}
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })() : null}
 
               <div className="communityPage__cardDivider" />
 
-              {post.comment?.trim() ? (
-                <div className="communityPage__commentCard">
-                  <p className="communityPage__comment">{post.comment}</p>
-                </div>
-              ) : null}
-
               <div className="communityPage__footerMeta">
-                <span className="communityPage__footerDate">{new Date(post.created_at).toLocaleDateString("ja-JP")}</span>
                 <button
                   type="button"
                   className={`communityPage__favoriteBtn ${post.favorited_by_me ? "is-on" : ""}`}
                   disabled={!me || isFavoriting === post.id}
                   onClick={() => onToggleFavorite(post)}
                 >
+                  <span className="communityPage__favoriteBtnLabel">参考になった</span>
                   <span className="communityPage__favoriteBtnCount">{post.favorite_count}</span>
-                  <span className="communityPage__favoriteBtnStar" aria-hidden="true">
-                    {post.favorited_by_me ? "★" : "☆"}
-                  </span>
                 </button>
               </div>
             </article>
@@ -384,62 +470,73 @@ export default function CommunityPage() {
               </button>
             </div>
 
-            <label className="communityPage__field">
-              <div className="communityPage__label">メニュー（必須）</div>
-              <select
-                value={menuId}
-                className="communityPage__input"
-                onChange={(e) => setMenuId(Number.parseInt(e.target.value, 10) || "")}
-              >
-                {menus.length === 0 && <option value="">メニューがありません</option>}
-                {menus.map((menu) => (
-                  <option key={menu.id} value={menu.id}>
-                    {menu.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="communityPage__modalBody">
+              <section className="communityPage__editorCard">
+                <div className="communityPage__editorTitle">メニュー</div>
+                <div className="communityPage__editorHelper">例: 裏声リップロール</div>
+                <select
+                  value={menuId}
+                  className="communityPage__input"
+                  onChange={(e) => setMenuId(Number.parseInt(e.target.value, 10) || "")}
+                >
+                  {menus.length === 0 && <option value="">メニューがありません</option>}
+                  {menus.map((menu) => (
+                    <option key={menu.id} value={menu.id}>
+                      {menu.name}
+                    </option>
+                  ))}
+                </select>
+                {typeof menuId !== "number" ? (
+                  <div className="communityPage__fieldHint is-error">メニューを選んでね</div>
+                ) : null}
+              </section>
 
-            <div className="communityPage__field">
-              <div className="communityPage__label">効果タグ（必須・複数可）</div>
-              <div className="communityPage__checks">
-                {IMPROVEMENT_TAG_OPTIONS.map((opt) => (
-                  <label key={opt.key} className="communityPage__check">
-                    <input type="checkbox" checked={tags.includes(opt.key)} onChange={() => onToggleTag(opt.key)} />
-                    <span>{opt.label}</span>
-                  </label>
-                ))}
-              </div>
+              <section className="communityPage__editorCard">
+                <div className="communityPage__editorTitle">効果タグ</div>
+                <div className="communityPage__editorHelper">複数選択OK</div>
+                <div className="communityPage__chipGrid">
+                  {IMPROVEMENT_TAG_OPTIONS.map((opt) => {
+                    const isOn = tags.includes(opt.key);
+                    const chipToneClass = tagToneClass(opt.key);
+                    return (
+                      <label
+                        key={opt.key}
+                        className={`communityPage__chip ${isOn ? `is-on ${chipToneClass}` : ""}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isOn}
+                          onChange={() => onToggleTag(opt.key)}
+                          className="communityPage__chipInput"
+                        />
+                        <span>{opt.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {tags.length === 0 ? (
+                  <div className="communityPage__fieldHint is-error">効果タグを1つ以上選んでね</div>
+                ) : null}
+              </section>
+
+              <section className="communityPage__editorCard">
+                <div className="communityPage__editorTitle">コメント</div>
+                <div className="communityPage__editorHelper">よかったら、メニューのやり方や効果を教えてね。</div>
+                <textarea
+                  className="communityPage__textarea"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  maxLength={240}
+                  placeholder="具体的なメニューの内容 / 感じられた効果 など"
+                />
+              </section>
             </div>
 
-            <label className="communityPage__field">
-              <div className="communityPage__label">実感度（必須）</div>
-              <select
-                value={effectLevel}
-                className="communityPage__input"
-                onChange={(e) => setEffectLevel(Number.parseInt(e.target.value, 10) || 3)}
-              >
-                {[ 1, 2, 3, 4, 5 ].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="communityPage__field">
-              <div className="communityPage__label">コメント（任意）</div>
-              <textarea
-                className="communityPage__textarea"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                maxLength={240}
-              />
-            </label>
-
-            <button type="button" className="communityPage__submit" disabled={!canSubmit || isSubmitting} onClick={onSubmit}>
-              {isSubmitting ? "投稿中…" : "投稿する"}
-            </button>
+            <div className="communityPage__modalFooter">
+              <button type="button" className="communityPage__submit" disabled={!canSubmit || isSubmitting} onClick={onSubmit}>
+                {isSubmitting ? "投稿中…" : "投稿する"}
+              </button>
+            </div>
           </section>
         </div>
       )}

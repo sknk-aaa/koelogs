@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { fetchInsights } from "../api/insights";
 import type { InsightsData } from "../types/insights";
 import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
+import InsightsCardHeader from "../features/insights/components/InsightsCardHeader";
 import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
 import { makeMockInsights } from "../features/insights/mockInsights";
@@ -165,9 +166,7 @@ export default function InsightsTimePage() {
       {summaryData && heatmapData && (
         <div className="insightsStack">
           <section className="insightsCard">
-            <div className="insightsCard__head">
-              <div className="insightsCard__title">サマリー</div>
-            </div>
+            <InsightsCardHeader title="サマリー" />
 
             <div className="insightsStats">
               <Stat label="合計" value={`${total} 分`} />
@@ -180,9 +179,7 @@ export default function InsightsTimePage() {
           </section>
 
           <section className="insightsCard">
-            <div className="insightsCard__head">
-              <div className="insightsCard__title">練習時間の推移</div>
-            </div>
+            <InsightsCardHeader title="練習時間の推移" />
 
             <DurationHeatmapCalendar points={heatmapData.daily_durations} />
             <div className="insightsMuted">色分けカレンダーは直近 {HEATMAP_DAYS} 日固定表示です</div>

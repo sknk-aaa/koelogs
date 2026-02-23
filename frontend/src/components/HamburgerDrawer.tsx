@@ -132,6 +132,7 @@ export default function HamburgerDrawer({
       />
 
       <aside
+        className="drawer"
         style={{
           ...styles.sheet,
           transform: visible ? "translateX(0)" : "translateX(18px)",
@@ -140,8 +141,14 @@ export default function HamburgerDrawer({
       >
         <div style={styles.sheetHeader}>
           <div>
-            <div style={styles.sheetTitle}>{headerTitle}</div>
-            {headerSub && <div style={styles.sheetSub}>{headerSub}</div>}
+            <div className="drawer__headerTitle" style={styles.sheetTitle}>
+              {headerTitle}
+            </div>
+            {headerSub && (
+              <div className="drawer__headerSub" style={styles.sheetSub}>
+                {headerSub}
+              </div>
+            )}
           </div>
 
           <button type="button" onClick={onClose} style={styles.closeBtn}>
@@ -151,15 +158,24 @@ export default function HamburgerDrawer({
 
         <div style={styles.content}>
           {sections.map((sec) => (
-            <section key={sec.title} style={styles.section}>
-              <div style={styles.sectionTitle}>{sec.title}</div>
+            <section key={sec.title}>
+              <div className="drawer__sectionTitle">{sec.title}</div>
 
-              <div style={styles.card}>
+              <div className="drawer__group">
                 {sec.items.map((it) => {
                   const active = isActive(it);
+                  const className = [
+                    "drawer__item",
+                    it.variant === "danger" ? "drawer__item--danger" : null,
+                    active ? "drawer__item--active" : null,
+                    it.disabled ? "drawer__item--disabled" : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
 
                   return (
                     <button
+                      className={className}
                       key={it.label}
                       type="button"
                       disabled={it.disabled}
@@ -188,17 +204,21 @@ export default function HamburgerDrawer({
                           ●
                         </span>
                       ) : (
-                        <span style={styles.chev}>›</span>
+                        <span className="drawer__chevron" style={styles.chev}>
+                          ›
+                        </span>
                       )}
                     </button>
                   );
                 })}
               </div>
             </section>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        <div style={styles.bottomHint}>ESC または背景タップで閉じられます</div>
+        <div className="drawer__hint" style={styles.bottomHint}>
+          ESC または背景タップで閉じられます
+        </div>
       </aside>
     </div>
   );
@@ -225,25 +245,32 @@ const styles: Record<string, React.CSSProperties> = {
     right: 0,
     height: "100%",
     width: "min(380px, 92vw)",
-    background: "var(--drawerSheet)",
-    backdropFilter: "blur(12px)",
-    borderLeft: "1px solid var(--drawerBorder)",
-    boxShadow: "-20px 0 60px rgba(0,0,0,0.18)",
     display: "flex",
     flexDirection: "column",
+    backdropFilter: "blur(14px)",
+    boxShadow: "-10px 0 34px rgba(0,0,0,0.22)",
     transition: `transform ${TRANSITION_MS}ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity ${TRANSITION_MS}ms ease`,
     willChange: "transform, opacity",
   },
   sheetHeader: {
     padding: "14px 14px 10px",
-    borderBottom: "1px solid var(--drawerBorder)",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.14)",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
   },
-  sheetTitle: { fontSize: 15, fontWeight: 900, letterSpacing: 0.2 },
-  sheetSub: { fontSize: 12, opacity: 0.65, marginTop: 2 },
+  sheetTitle: {
+    fontSize: 15,
+    fontWeight: 900,
+    letterSpacing: 0.2,
+    color: "rgba(255, 255, 255, 0.95)",
+  },
+  sheetSub: {
+    fontSize: 12,
+    marginTop: 2,
+    color: "rgba(255, 255, 255, 0.6)",
+  },
   closeBtn: {
     width: 40,
     height: 40,
@@ -256,46 +283,32 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: "40px",
   },
   content: { padding: 14, overflow: "auto" },
-  section: { marginBottom: 14 },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: 800,
-    opacity: 0.7,
-    marginBottom: 8,
-    letterSpacing: 0.2,
-  },
-  card: {
-    background: "var(--drawerCard)",
-    border: "1px solid var(--drawerBorder)",
-    borderRadius: 16,
-    overflow: "hidden",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-  },
   item: {
     width: "100%",
+    minHeight: 54,
     textAlign: "left",
-    padding: "12px 12px",
-    background: "transparent",
-    border: "none",
-    borderBottom: "1px solid var(--drawerBorder)",
+    padding: "14px 14px",
     cursor: "pointer",
+    border: "none",
+    background: "transparent",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 10,
-    color: "var(--drawerText)",
   },
   itemLabel: { fontSize: 14, fontWeight: 800 },
   itemLabelActive: { fontWeight: 900 },
-  itemActive: { background: "color-mix(in srgb, var(--accent) 18%, transparent)" },
+  itemActive: {
+    boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.15) inset",
+  },
   activeDot: { fontSize: 10, opacity: 0.8, lineHeight: "1", marginLeft: 8 },
-  chev: { fontSize: 18, opacity: 0.35, marginLeft: 8 },
-  itemDanger: { color: "#d70015" },
+  chev: { fontSize: 18, marginLeft: 8 },
+  itemDanger: { color: "rgba(255, 120, 120, 0.92)" },
   itemDisabled: { opacity: 0.35, cursor: "not-allowed" },
   bottomHint: {
     padding: "10px 14px 14px",
     fontSize: 11,
-    opacity: 0.55,
-    borderTop: "1px solid var(--drawerBorder)",
+    color: "rgba(255, 255, 255, 0.55)",
+    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
   },
 };

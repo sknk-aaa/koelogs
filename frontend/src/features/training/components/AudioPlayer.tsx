@@ -1,5 +1,10 @@
 // frontend/src/features/training/components/AudioPlayer.tsx
-import { useEffect, useMemo, useState } from "react";
+import type { ScaleType, Tempo } from "../../../api/scaleTracks";
+import type { CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import ScalePatternPreview, { scalePatternFromScaleType } from "./ScalePatternPreview";
+import SessionPlayerCard from "./SessionPlayerCard";
+import "./AudioPlayer.css";
 
 type Props = {
   audioRef: React.RefObject<HTMLAudioElement | null>;
@@ -14,6 +19,12 @@ type Props = {
 
   defaultVolume: number; // 0..1
   loopEnabled: boolean;
+  scaleType: ScaleType;
+  tempo: Tempo;
+  scaleTypes: readonly ScaleType[];
+  tempos: readonly Tempo[];
+  onChangeScaleType: (v: ScaleType) => void;
+  onChangeTempo: (v: Tempo) => void;
 };
 
 function clamp(n: number, min: number, max: number) {
@@ -27,6 +38,17 @@ function fmt(sec: number) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+function labelScaleCompact(t: ScaleType) {
+  return t === "5tone" ? "5tone" : "1oct";
+}
+
+function trainingRangeForScale(t: ScaleType) {
+  if (t === "5tone") {
+    return { low: "G3", high: "C5" };
+  }
+  return { low: "D3", high: "C5" };
+}
+
 export default function AudioPlayer({
   audioRef,
   src,
@@ -38,20 +60,24 @@ export default function AudioPlayer({
   onEnded,
   defaultVolume,
   loopEnabled,
+  scaleType,
+  tempo,
+  scaleTypes,
+  tempos,
+  onChangeScaleType,
+  onChangeTempo,
 }: Props) {
-  // 初期値としてのみ使用（props->state同期はしない）
-  const [volume, setVolume] = useState(() => clamp(defaultVolume ?? 1, 0, 1));
   const [loop, setLoop] = useState<boolean>(() => !!loopEnabled);
-
   const [duration, setDuration] = useState<number>(0);
   const [current, setCurrent] = useState<number>(0);
+  const [scaleMenuOpen, setScaleMenuOpen] = useState(false);
+  const scaleMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // audioへ反映（正しいeffect）
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
-    el.volume = clamp(volume, 0, 1);
-  }, [audioRef, volume]);
+    el.volume = clamp(defaultVolume ?? 1, 0, 1);
+  }, [audioRef, defaultVolume]);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -59,12 +85,36 @@ export default function AudioPlayer({
     el.loop = loop;
   }, [audioRef, loop]);
 
+  useEffect(() => {
+    if (!scaleMenuOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!scaleMenuRef.current) return;
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!scaleMenuRef.current.contains(target)) setScaleMenuOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setScaleMenuOpen(false);
+    };
+    window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [scaleMenuOpen]);
+
+  useEffect(() => {
+    if (disabled) setScaleMenuOpen(false);
+  }, [disabled]);
+
   const progress = useMemo(() => {
     if (!duration || duration <= 0) return 0;
     return clamp(current / duration, 0, 1);
   }, [current, duration]);
 
   const canPlay = !disabled && !!src;
+  const rangeGuide = trainingRangeForScale(scaleType);
 
   const handleSeek = (v: number) => {
     const el = audioRef.current;
@@ -75,8 +125,67 @@ export default function AudioPlayer({
   };
 
   return (
-    <div style={styles.wrap}>
-      {/* src変更で自然にリセット */}
+    <div className="audioPlayer">
+      <div className="audioPlayer__settingsBar">
+        <div
+          className={`audioPlayer__scaleSelectWrap trainingPage__fileBtn${disabled ? " is-disabled" : ""}${scaleMenuOpen ? " is-open" : ""}`}
+          ref={scaleMenuRef}
+        >
+          <button
+            type="button"
+            className="audioPlayer__scaleTrigger"
+            disabled={disabled}
+            onClick={() => setScaleMenuOpen((v) => !v)}
+            aria-label="scale type"
+            aria-haspopup="listbox"
+            aria-expanded={scaleMenuOpen}
+          >
+            <span className="audioPlayer__settingsTriggerLabel">Scale:</span>
+            <span className="audioPlayer__scaleValue">{labelScaleCompact(scaleType)}</span>
+            <span className="audioPlayer__settingsTriggerCaret">▼</span>
+          </button>
+          {scaleMenuOpen && (
+            <div className="audioPlayer__scaleMenu" role="listbox" aria-label="scale options">
+              {scaleTypes.map((t) => {
+                const selectedScale = t === scaleType;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    role="option"
+                    aria-selected={selectedScale}
+                    className={`audioPlayer__scaleOption${selectedScale ? " is-selected" : ""}`}
+                    onClick={() => {
+                      onChangeScaleType(t);
+                      setScaleMenuOpen(false);
+                    }}
+                  >
+                    {labelScaleCompact(t)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <div className="audioPlayer__tempoInline">
+          {tempos.map((t) => {
+            const active = tempo === t;
+            return (
+              <button
+                key={t}
+                type="button"
+                disabled={disabled}
+                onClick={() => onChangeTempo(t)}
+                className={`audioPlayer__tempoBtn trainingPage__measurementMiniBtn${active ? " is-active" : ""}`}
+                aria-pressed={active}
+              >
+                {t}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <audio
         key={src ?? "none"}
         ref={audioRef}
@@ -99,81 +208,66 @@ export default function AudioPlayer({
         }}
       />
 
-      <div style={styles.hero}>
-        <button
-          type="button"
-          disabled={!canPlay}
-          onClick={onTogglePlay}
-          style={{
-            ...styles.playBtn,
-            ...(isPlaying ? styles.playBtnPlaying : null),
-            ...(!canPlay ? styles.playBtnDisabled : null),
-          }}
-          aria-label={isPlaying ? "pause" : "play"}
-        >
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-        </button>
-
-        <div style={styles.heroMeta}>
-          <div style={styles.heroTitle}>{canPlay ? "Ready to sing" : "選択してください"}</div>
-
-          <div style={styles.heroSubRow}>
-            <div style={styles.timePill}>
-              <span style={styles.timeMono}>{fmt(current)}</span>
-              <span style={styles.timeSlash}>/</span>
-              <span style={styles.timeMono}>{fmt(duration)}</span>
-            </div>
+      <SessionPlayerCard
+        active={isPlaying}
+        showWave={false}
+        className="audioPlayer__sessionCard"
+        art={
+          <div className="audioPlayer__artPanel audioPlayer__artPanel--preview">
+            <div className="audioPlayer__previewScaleLabel">{labelScaleCompact(scaleType)}</div>
+            <ScalePatternPreview pattern={scalePatternFromScaleType(scaleType)} size="lg" active={isPlaying} />
           </div>
-        </div>
-      </div>
+        }
+        title={undefined}
+        subtitle={<span className="audioPlayer__rangeGuideInline">音域目安 {rangeGuide.low} 〜 {rangeGuide.high}</span>}
+        description={<span className="audioPlayer__timeInlineText">{fmt(current)} / {fmt(duration)}</span>}
+        beforeTransport={
+          <div className="audioPlayer__seekRow">
+            <span className="audioPlayer__time">{fmt(current)}</span>
+            <input
+              type="range"
+              min={0}
+              max={1000}
+              value={Math.round(progress * 1000)}
+              onChange={(e) => handleSeek(Number(e.target.value) / 1000)}
+              disabled={!canPlay}
+              className="audioPlayer__range audioPlayer__range--seek"
+              aria-label="seek"
+              style={{ "--progress": `${Math.round(progress * 100)}%` } as CSSProperties}
+            />
+            <span className="audioPlayer__time">{fmt(duration)}</span>
+          </div>
+        }
+        transport={
+          <>
+            <button
+              type="button"
+              disabled={!canPlay}
+              onClick={onTogglePlay}
+              className={`audioPlayer__playBtn trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary${
+                isPlaying ? " is-playing" : ""
+              }`}
+              aria-label={isPlaying ? "pause" : "play"}
+            >
+              {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            </button>
+            <button
+              type="button"
+              disabled={!canPlay}
+              onClick={() => setLoop((v) => !v)}
+              className={`audioPlayer__loopToggle trainingPage__measurementMiniBtn${loop ? " is-on is-active" : ""}`}
+              aria-pressed={loop}
+              aria-label={loop ? "loop on" : "loop off"}
+              title={loop ? "Loop ON" : "Loop OFF"}
+            >
+              <span className="audioPlayer__loopGlyph" aria-hidden="true">↻</span>
+              <span className={`audioPlayer__loopDot${loop ? " is-on" : ""}`} aria-hidden="true" />
+            </button>
+          </>
+        }
+      />
 
-      <div style={styles.seekBox}>
-        <div style={styles.seekRow}>
-          <input
-            type="range"
-            min={0}
-            max={1000}
-            value={Math.round(progress * 1000)}
-            onChange={(e) => handleSeek(Number(e.target.value) / 1000)}
-            disabled={!canPlay}
-            style={styles.range}
-            aria-label="seek"
-          />
-        </div>
-      </div>
-
-      <div style={styles.bottom}>
-        <div style={styles.ctrl}>
-          <div style={styles.ctrlLabel}>音量</div>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={Math.round(volume * 100)}
-            onChange={(e) => setVolume(clamp(Number(e.target.value) / 100, 0, 1))}
-            disabled={!canPlay}
-            style={styles.range}
-            aria-label="volume"
-          />
-          <div style={styles.ctrlValue}>{Math.round(volume * 100)}%</div>
-        </div>
-
-        <button
-          type="button"
-          disabled={!canPlay}
-          onClick={() => setLoop((v) => !v)}
-          style={{
-            ...styles.loopBtn,
-            ...(loop ? styles.loopBtnOn : null),
-            ...(!canPlay ? styles.loopBtnDisabled : null),
-          }}
-          aria-pressed={loop}
-        >
-          Loop
-        </button>
-      </div>
-
-      {!src && <div style={styles.hint}>上でスケール/テンポを選んでください</div>}
+      {!src && <div className="audioPlayer__hint">スケール/テンポを選ぶと再生できます</div>}
     </div>
   );
 }
@@ -185,6 +279,7 @@ function PlayIcon() {
     </svg>
   );
 }
+
 function PauseIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
@@ -192,140 +287,3 @@ function PauseIcon() {
     </svg>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  wrap: {
-    display: "grid",
-    gap: 12,
-    minWidth: 0,
-  },
-
-  hero: {
-    display: "grid",
-    gridTemplateColumns: "64px 1fr",
-    gap: 14,
-    alignItems: "center",
-    minWidth: 0,
-  },
-
-  playBtn: {
-  width: 64,
-  height: 64,
-  borderRadius: 20,
-  border: "1px solid rgba(0,0,0,0.10)",
-  background: "linear-gradient(180deg, #2b2b2b, #1e1e1e)",
-  color: "#fff",
-  boxShadow: "0 12px 28px rgba(0,0,0,0.15)",
-  cursor: "pointer",
-
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: 0,       
-  lineHeight: 0,     
-},
-  playBtnPlaying: {
-    filter: "brightness(1.02)",
-    transform: "translateY(-1px)",
-    boxShadow: "0 14px 28px rgba(0,0,0,0.14)",
-  },
-  playBtnDisabled: {
-    opacity: 0.55,
-    cursor: "not-allowed",
-    transform: "none",
-    boxShadow: "none",
-  },
-
-  heroMeta: { minWidth: 0, display: "grid", gap: 6 },
-  heroTitle: {
-    fontSize: 14,
-    fontWeight: 900,
-    letterSpacing: 0.2,
-    color: "rgba(0,0,0,0.88)",
-  },
-
-  heroSubRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-    flexWrap: "wrap",
-  },
-
-  timePill: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    borderRadius: 999,
-    padding: "6px 10px",
-    border: "1px solid rgba(0,0,0,0.08)",
-    background: "rgba(255,255,255,0.70)",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.06)",
-  },
-  timeMono: {
-    fontSize: 12,
-    fontWeight: 900,
-    fontFamily:
-      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-    opacity: 0.82,
-  },
-  timeSlash: { opacity: 0.45, fontSize: 12, fontWeight: 900 },
-
-  seekBox: {
-    borderRadius: 16,
-    border: "1px solid rgba(0,0,0,0.08)",
-    background: "rgba(255,255,255,0.75)",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
-    padding: "10px 12px",
-  },
-  seekRow: { minWidth: 0 },
-
-  bottom: {
-    display: "grid",
-    gridTemplateColumns: "1fr auto",
-    gap: 10,
-    alignItems: "center",
-    minWidth: 0,
-  },
-
-  ctrl: {
-    display: "grid",
-    gridTemplateColumns: "44px 1fr 52px",
-    gap: 10,
-    alignItems: "center",
-    minWidth: 0,
-    borderRadius: 16,
-    border: "1px solid rgba(0,0,0,0.08)",
-    background: "rgba(255,255,255,0.75)",
-    padding: "10px 12px",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
-  },
-
-  ctrlLabel: { fontSize: 12, fontWeight: 900, opacity: 0.75 },
-  ctrlValue: { fontSize: 12, fontWeight: 900, opacity: 0.75, textAlign: "right" },
-
-  range: { width: "100%", height: 24 },
-
-  loopBtn: {
-    borderRadius: 16,
-    border: "1px solid rgba(0,0,0,0.10)",
-    background: "rgba(255,255,255,0.80)",
-    padding: "10px 14px",
-    fontSize: 12,
-    fontWeight: 900,
-    cursor: "pointer",
-    minHeight: 44,
-    whiteSpace: "nowrap",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
-    transition: "transform 120ms ease, box-shadow 120ms ease",
-  },
-  loopBtnOn: {
-    background: "rgba(0,0,0,0.90)",
-    color: "#fff",
-    boxShadow: "0 14px 28px rgba(0,0,0,0.12)",
-    transform: "translateY(-1px)",
-  },
-  loopBtnDisabled: { opacity: 0.55, cursor: "not-allowed", boxShadow: "none", transform: "none" },
-
-  hint: { fontSize: 12, opacity: 0.7, lineHeight: 1.6, paddingTop: 2 },
-};

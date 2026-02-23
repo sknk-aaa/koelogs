@@ -32,23 +32,21 @@
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 64%),
-    radial-gradient(420px 160px at 90% 0%, rgba(255, 255, 255, 0.62), transparent 68%);
+    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 64%),
+    radial-gradient(420px 160px at 90% 0%, rgba(255, 255, 255, 0.18), transparent 68%);
   filter: blur(8px);
 }
 
 .trainingPage__grid {
   display: grid;
-  gap: 16px;
+  gap: 24px;
 }
 
 .trainingPage__aiIntroCard {
-  border-radius: 16px;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 36%, transparent), rgba(0, 0, 0, 0.1)) border-box;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  box-shadow: var(--shadow-sm);
   display: grid;
   gap: 8px;
   margin-bottom: 16px;
@@ -79,18 +77,22 @@
   padding: 0 14px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent) 86%, white);
-  color: var(--accentTextSoft);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 86%, #0b1220),
+    color-mix(in srgb, var(--accent) 70%, #0b1220)
+  );
+  color: #eef6ff;
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
 }
 
 .trainingPage__panel {
-  border-radius: 16px;
-  padding: 2px 0;
+  border-radius: 24px;
+  padding: 0;
   display: grid;
-  gap: 14px;
+  gap: 16px;
   width: min(760px, 100%);
   justify-self: center;
 }
@@ -117,7 +119,11 @@
   bottom: 2px;
   width: 3px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 66%, #ffffff);
+  background: color-mix(in srgb, var(--accent) 72%, var(--text));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__panelTitle {
+  color: #ffffff;
 }
 
 .trainingPage__panelMeta {
@@ -127,21 +133,23 @@
 }
 
 .trainingPage__studioCard {
-  border-radius: 16px;
+  border-radius: 24px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--card);
   color: var(--cardText, var(--text));
-  box-shadow: 0 12px 24px rgba(12, 28, 54, 0.08);
-  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  display: grid;
+  gap: 20px;
 }
 
 .trainingPage__studioFilters {
-  padding-bottom: 12px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  padding-bottom: 20px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
 }
 
 .trainingPage__studioPlayer {
-  padding-top: 12px;
+  padding-top: 0;
 }
 
 .trainingPage__loading {
@@ -154,7 +162,7 @@
   height: 12px;
   width: 55%;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.13), rgba(0, 0, 0, 0.06));
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
 }
 
 .trainingPage__skeleton--long {
@@ -163,8 +171,8 @@
 
 .trainingPage__error {
   border-radius: 12px;
-  border: 1px solid rgba(176, 0, 32, 0.22);
-  background: rgba(176, 0, 32, 0.06);
+  border: 1px solid rgba(255, 107, 154, 0.28);
+  background: rgba(255, 107, 154, 0.12);
   padding: 10px 12px;
 }
 
@@ -172,7 +180,7 @@
   font-size: 12px;
   font-weight: 950;
   margin-bottom: 4px;
-  color: #b00020;
+  color: #ff9bb0;
 }
 
 .trainingPage__errorText {
@@ -183,10 +191,68 @@
 }
 
 .trainingPage__measurementPanel {
-  margin-top: 18px;
+  margin-top: 0;
   display: grid;
-  gap: 12px;
-  padding: 2px 0;
+  gap: 16px;
+  padding: 0;
+}
+
+.trainingPage__measurementPanelHead {
+  align-items: center;
+}
+
+.trainingPage__measurementBackBtn {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.trainingPage__measurementLayout {
+  display: grid;
+  gap: 16px;
+}
+
+.trainingPage__measurementLayout.is-desktop {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.trainingPage__measurementPane {
+  min-height: 0;
+}
+
+.trainingPage__measurementLayout.is-desktop.is-balanced {
+  align-items: stretch;
+}
+
+.trainingPage__measurementLayout.is-desktop.is-balanced .trainingPage__measurementPane {
+  min-height: 100%;
+}
+
+.trainingPage__measurementLayout.is-desktop.is-balanced .trainingPage__measurementPane--execute {
+  align-self: stretch;
+}
+
+.trainingPage__measurementPaneSticky {
+  display: grid;
+  gap: 10px;
+}
+
+.trainingPage__measurementPane--execute {
+  position: static;
+  align-self: start;
+}
+
+@media (min-width: 641px) {
+  .trainingPage__measurementPane--execute .trainingPage__measurementPaneSticky {
+    position: sticky;
+    top: 70px;
+  }
 }
 
 .trainingPage__measurementStep {
@@ -195,11 +261,11 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 12px;
-  background: #fff;
+  background: var(--card);
   color: var(--cardText, var(--text));
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 20px rgba(12, 28, 54, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .trainingPage__measurementStep::before {
@@ -213,26 +279,43 @@
 }
 
 .trainingPage__measurementStep--manage {
-  border-color: color-mix(in srgb, #4b9ecf 34%, var(--border));
-  background: color-mix(in srgb, #dff3ff 22%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
 }
 
 .trainingPage__measurementStep--manage::before {
-  background: color-mix(in srgb, #4b9ecf 82%, #fff);
+  background: color-mix(in srgb, var(--accent) 70%, var(--text));
 }
 
 .trainingPage__measurementStep--record {
   border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
   box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 20%, transparent);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, #fff5dc 62%, var(--card)),
-    color-mix(in srgb, var(--accent) 10%, var(--card))
-  );
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+}
+
+.trainingPage__measurementStep--record[data-measurement="range"] {
+  background: color-mix(in srgb, var(--accent-3) 14%, var(--card));
+}
+
+.trainingPage__measurementStep--record[data-measurement="long_tone"] {
+  background: color-mix(in srgb, var(--accent-2) 14%, var(--card));
+}
+
+.trainingPage__measurementStep--record[data-measurement="volume_stability"] {
+  background: color-mix(in srgb, var(--accent-4) 12%, var(--card));
+}
+
+.trainingPage__measurementStep--record[data-measurement="pitch_accuracy"] {
+  background: color-mix(in srgb, var(--accent-1) 12%, var(--card));
 }
 
 .trainingPage__measurementStep--record::before {
-  background: color-mix(in srgb, var(--accent) 86%, #fff);
+  background: color-mix(in srgb, var(--accent) 70%, var(--text));
+}
+
+.trainingPage__measurementStep--record .trainingPage__measurementStepHead {
+  border-bottom: 0;
+  padding-bottom: 2px;
 }
 
 .trainingPage__measurementStepHead {
@@ -241,6 +324,11 @@
   align-items: flex-start;
   padding-bottom: 6px;
   border-bottom: 1px dashed color-mix(in srgb, var(--border) 82%, transparent);
+}
+
+.trainingPage__measurementStepHead--training {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .trainingPage__measurementStepHeadText {
@@ -276,11 +364,19 @@
 }
 
 .trainingPage__measurementStepTitle--record {
-  color: color-mix(in srgb, var(--accent) 78%, #111);
+  color: color-mix(in srgb, var(--accent) 82%, #f8faff);
+  letter-spacing: 0.01em;
+}
+
+.trainingPage__measurementSessionSub {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.901);
 }
 
 .trainingPage__measurementStep--manage .trainingPage__measurementStepTitle {
-  color: color-mix(in srgb, #2f6f95 88%, #111);
+  color: color-mix(in srgb, #2ca4ff 88%, #e9e9e9);
 }
 
 .trainingPage__measurementStepDesc {
@@ -311,42 +407,242 @@
 
 .trainingPage__measurementPresetGrid {
   display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+  grid-template-columns: 1fr;
 }
 
 .trainingPage__measurementPresetItem {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  align-items: stretch;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.78);
-  padding: 8px 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
+  padding: 10px 12px;
+  min-height: 96px;
+}
+
+.trainingPage__measurementPresetItemBtn {
+  appearance: none;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, transform 100ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.trainingPage__measurementPresetItemBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(6, 10, 20, 0.35);
+}
+
+.trainingPage__measurementPresetItemBtn:active {
+  transform: scale(0.99);
+}
+
+.trainingPage__measurementPresetItemBtn.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--card));
+  box-shadow: 0 10px 18px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.trainingPage__measurementPresetItemHead {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.trainingPage__measurementPresetBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.trainingPage__measurementPresetText {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__measurementSelectedBadge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--border));
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .trainingPage__measurementPresetName {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
 }
 
 .trainingPage__measurementPresetDesc {
   font-size: 12px;
-  line-height: 1.55;
+  line-height: 1.45;
   opacity: 0.82;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trainingPage__measurementRecorder {
   display: grid;
-  gap: 8px;
+  gap: 14px;
   border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
   padding: 12px;
 }
 
+.trainingPage__measurementPlayer {
+  display: grid;
+  gap: 12px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
+  padding: 12px;
+}
+
+.trainingPage__measurementRecorderTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.trainingPage__measurementStatusGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .trainingPage__measurementRecorderTitle {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.trainingPage__measurementPlayerArt {
+  width: min(100%, 164px);
+  aspect-ratio: 1 / 1;
+  justify-self: center;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-strong));
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 20px rgba(6, 10, 20, 0.35);
+}
+
+.trainingPage__measurementPlayerArt .miniPreview {
+  width: 118px;
+  height: 70px;
+}
+
+.trainingPage__measurementPlayerMeta {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  text-align: center;
+}
+
+.trainingPage__measurementPlayerName {
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 950;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.trainingPage__measurementPlayerSub {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.trainingPage__measurementPlayerDesc {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.trainingPage__measurementPlayerTransport {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 52px;
+  gap: 10px;
+  align-items: center;
+}
+
+.trainingPage__transportBtn {
+  height: 52px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.trainingPage__transportBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trainingPage__transportBtn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+}
+
+.trainingPage__measurementStatusBadge {
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
+  pointer-events: none;
+}
+
+.trainingPage__measurementStatusBadge.is-idle {
+  color: var(--muted);
+}
+
+.trainingPage__measurementStatusBadge.is-recording {
+  border-color: rgba(176, 0, 32, 0.3);
+  color: #b00020;
+  background: rgba(176, 0, 32, 0.07);
+  animation: trainingPageStatusBlink 1.25s ease-in-out infinite;
+}
+
+.trainingPage__measurementStatusBadge.is-analyzing {
+  border-color: rgba(43, 88, 166, 0.32);
+  color: #204f99;
+  background: rgba(43, 88, 166, 0.08);
+  animation: trainingPageStatusPulse 1.4s ease-in-out infinite;
+}
+
+.trainingPage__measurementStatusBadge.is-saving {
+  border-color: rgba(142, 95, 14, 0.34);
+  color: #7e530c;
+  background: rgba(142, 95, 14, 0.1);
+}
+
+.trainingPage__measurementRecorderMain {
+  display: grid;
+  gap: 8px;
+}
+
+.trainingPage__measurementRecorderSub {
+  display: grid;
+  gap: 10px;
+  align-items: start;
 }
 
 .trainingPage__measurementModeBox {
@@ -364,30 +660,155 @@
   opacity: 0.82;
 }
 
-.trainingPage__measurementModeToggle {
+.trainingPage__measurementToggle {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.trainingPage__measurementModeToggle input {
-  cursor: pointer;
-}
-
-.trainingPage__measurementSelected {
-  font-size: 12px;
-  font-weight: 800;
-  opacity: 0.78;
-}
-
-.trainingPage__measurementRecorderRow {
-  display: flex;
-  flex-wrap: wrap;
   gap: 10px;
-  align-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.trainingPage__measurementToggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.trainingPage__measurementToggleTrack {
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.84);
+  position: relative;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.trainingPage__measurementToggleThumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 120ms ease;
+}
+
+.trainingPage__measurementToggle input:checked + .trainingPage__measurementToggleTrack {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+  background: color-mix(in srgb, var(--accent) 50%, #fff);
+}
+
+.trainingPage__measurementToggle input:checked + .trainingPage__measurementToggleTrack .trainingPage__measurementToggleThumb {
+  transform: translateX(20px);
+}
+
+.trainingPage__measurementToggleText {
+  line-height: 1.45;
+}
+
+.trainingPage__saveBtn.trainingPage__recordPrimaryInline {
+  width: 100%;
+  min-height: 60px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 950;
+  background: linear-gradient(180deg, #ffd94a 0%, #ffba22 100%);
+  color: #182033;
+  border-color: color-mix(in srgb, #ffbe3b 80%, #c28800);
+  box-shadow: 0 10px 20px rgba(255, 183, 42, 0.3);
+}
+
+.trainingPage__saveBtn.trainingPage__recordPrimaryInline:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(255, 183, 42, 0.34);
+}
+
+.trainingPage__saveBtn.trainingPage__recordPrimaryInline:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.trainingPage__saveBtn.trainingPage__recordPrimaryInline.is-recording {
+  animation: trainingPageRecordGlow 1.3s ease-in-out infinite;
+}
+
+.trainingPage__saveBtn.trainingPage__playerPrimary {
+  min-height: 62px;
+}
+
+.trainingPage__measurementModeDetails {
+  border-top: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  padding-top: 8px;
+}
+
+.trainingPage__measurementModeSummary {
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  color: rgba(8, 14, 26, 0.72);
+  list-style: none;
+}
+
+.trainingPage__measurementModeSummary::-webkit-details-marker {
+  display: none;
+}
+
+.trainingPage__measurementModeSummary::after {
+  content: "▼";
+  margin-left: 6px;
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.trainingPage__measurementModeDetails[open] .trainingPage__measurementModeSummary::after {
+  content: "▲";
+}
+
+.trainingPage__measurementModeDetails .trainingPage__measurementModeText {
+  margin-top: 6px;
+}
+
+.trainingPage__measurementModeDetails .trainingPage__measurementToggle {
+  margin-top: 8px;
+}
+
+.trainingPage__sessionWave {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  align-items: end;
+  height: 16px;
+  opacity: 0.6;
+}
+
+.trainingPage__sessionWave span {
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 58%, #ffffff);
+  transform: scaleY(0.72);
+}
+
+.trainingPage__sessionWave.is-active span {
+  animation: trainingPageWave 1.1s ease-in-out infinite;
+}
+
+.trainingPage__sessionWave.is-active span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.trainingPage__sessionWave.is-active span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+.trainingPage__sessionWave.is-active span:nth-child(4) {
+  animation-delay: 0.36s;
+}
+
+.trainingPage__sessionWave.is-active span:nth-child(5) {
+  animation-delay: 0.48s;
 }
 
 .trainingPage__saveBtn.is-recording {
@@ -396,10 +817,80 @@
   color: #fff;
 }
 
+@keyframes trainingPageStatusBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.56;
+  }
+}
+
+@keyframes trainingPageStatusPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes trainingPageRecordGlow {
+  0%,
+  100% {
+    box-shadow: 0 10px 20px rgba(255, 76, 76, 0.26);
+  }
+  50% {
+    box-shadow: 0 14px 28px rgba(255, 76, 76, 0.42);
+  }
+}
+
+@keyframes trainingPageWave {
+  0%,
+  100% {
+    transform: scaleY(0.7);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+
 .trainingPage__measurementNowNote {
   font-size: 13px;
   font-weight: 800;
   opacity: 0.8;
+}
+
+.trainingPage__measurementInfoPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(8, 14, 26, 0.7);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.trainingPage__mobileRecordDock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 95;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95) 44%);
+  backdrop-filter: blur(8px);
+}
+
+.trainingPage__mobileRecordBtn {
+  width: 100%;
+  min-height: 54px;
+  font-size: 15px;
 }
 
 .trainingPage__measurementPitchLive {
@@ -850,6 +1341,22 @@
 }
 
 @media (max-width: 640px) {
+  .trainingPage__measurementPresetItem {
+    min-height: 92px;
+  }
+
+  .trainingPage__measurementPresetBody {
+    gap: 8px;
+  }
+
+  .trainingPage__measurementPresetName {
+    font-size: 12px;
+  }
+
+  .trainingPage__measurementPresetDesc {
+    font-size: 11px;
+  }
+
   .trainingPage__monitor {
     border-radius: 8px 8px 0 0;
     padding: 4px;
@@ -889,16 +1396,35 @@
   }
 }
 
+@media (max-width: 640px) {
+  .trainingPage__measurementPane--execute {
+    position: static;
+    top: auto;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 641px) {
+  .trainingPage__measurementPane--select .trainingPage__measurementPresetGrid {
+    align-content: start;
+  }
+
+  .trainingPage__mobileRecordDock {
+    display: none;
+  }
+}
+
 .trainingPage__fileBtn {
   position: relative;
   display: inline-flex;
   align-items: center;
-  height: 40px;
+  justify-content: center;
+  height: 42px;
   padding: 0 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.78);
-  font-size: 13px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
+  background: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -919,8 +1445,12 @@
   padding: 0 14px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent) 86%, white);
-  color: var(--accentTextSoft);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 86%, #0b1220),
+    color-mix(in srgb, var(--accent) 70%, #0b1220)
+  );
+  color: #eef6ff;
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
@@ -950,14 +1480,14 @@
 .trainingPage__saveBtn:focus-visible,
 .trainingPage__measurementMiniBtn:focus-visible,
 .trainingPage__fileBtn:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 60%, #fff);
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, var(--text));
   outline-offset: 2px;
 }
 
 .trainingPage__measurementError {
   border-radius: 10px;
-  border: 1px solid rgba(176, 0, 32, 0.22);
-  background: rgba(176, 0, 32, 0.06);
+  border: 1px solid rgba(255, 107, 154, 0.28);
+  background: rgba(255, 107, 154, 0.12);
   padding: 8px 10px;
   font-size: 12px;
   font-weight: 700;
@@ -981,6 +1511,7 @@
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .trainingPage__measurementMiniBtn.is-active {
@@ -990,7 +1521,7 @@
 
 .trainingPage__measurementMiniBtn--ghost {
   border-color: var(--border);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface);
 }
 
 .trainingPage__modalOverlay {
@@ -1835,13 +2366,13 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
 }
 
 .trainingPage__modalTitle {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 950;
 }
 
 .trainingPage__modalBody {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
@@ -1849,21 +2380,68 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
 
 .trainingPage__metricInfoItem {
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff;
-  padding: 8px 10px;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
 }
 
 .trainingPage__metricInfoLabel {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 900;
-  margin-bottom: 2px;
+  line-height: 1.35;
+}
+
+:root[data-theme-mode="dark"] .trainingPage__metricInfoLabel {
+  color: #000000;
 }
 
 .trainingPage__metricInfoText {
-  font-size: 12px;
+  font-size: 13px;
   opacity: 0.84;
-  line-height: 1.5;
+  line-height: 1.6;
+}
+
+.trainingPage__metricInfoText--desc {
+  color: rgba(14, 27, 45, 0.86);
+}
+
+.trainingPage__metricInfoMetaHead {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(17, 40, 72, 0.76);
+  letter-spacing: 0.01em;
+  margin-top: 2px;
+}
+
+.trainingPage__metricInfoDataList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.trainingPage__metricInfoDataChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, #fff);
+  color: rgba(16, 34, 60, 0.84);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.trainingPage__metricInfoCondition {
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(18, 41, 74, 0.75);
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px dashed color-mix(in srgb, var(--border) 82%, transparent);
 }
 
 @media (min-width: 980px) {

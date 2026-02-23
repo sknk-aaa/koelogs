@@ -334,3 +334,91 @@
   opacity: 0.72;
   line-height: 1.6;
 }
+/* ===============================
+   ProfilePage: Dark mode overrides
+================================= */
+:root[data-theme-mode="dark"] .profilePage {
+  --profile-panel-bg: rgba(255, 255, 255, 0.07);
+  --profile-panel-border: rgba(255, 255, 255, 0.12);
+  --profile-text-1: #ffffff;
+  --profile-text-2: rgba(255, 255, 255, 0.88);
+  --profile-text-3: rgba(255, 255, 255, 0.72);
+}
+
+/* カード境界/見出し/区切り */
+:root[data-theme-mode="dark"] .profilePage__hr {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* アコーディオン/説明カード/パネル系の白を消す */
+:root[data-theme-mode="dark"] .profilePage__passwordAccordion,
+:root[data-theme-mode="dark"] .profilePage__previewCard {
+  background: var(--profile-panel-bg);
+  border-color: var(--profile-panel-border);
+  color: var(--profile-text-2);
+  backdrop-filter: blur(6px);
+}
+
+/* input */
+:root[data-theme-mode="dark"] .profilePage__input {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--profile-panel-border);
+  color: var(--profile-text-1);
+}
+
+:root[data-theme-mode="dark"] .profilePage__input:focus {
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10);
+}
+
+/* preview link（白ベースをやめる） */
+:root[data-theme-mode="dark"] .profilePage__previewLink {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* 画像ボタン群（白タイルをやめる） */
+:root[data-theme-mode="dark"] .profilePage__avatarFileBtn,
+:root[data-theme-mode="dark"] .profilePage__avatarResetBtn,
+:root[data-theme-mode="dark"] .profilePage__avatarBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--profile-panel-border);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .profilePage__avatarBtn.is-active {
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10);
+}
+
+/* AI貢献カード（ベージュ固定をやめてダーク統一） */
+:root[data-theme-mode="dark"] .profilePage__contribution {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  color: var(--profile-text-2);
+  backdrop-filter: blur(6px);
+}
+
+:root[data-theme-mode="dark"] .profilePage__awardIcon {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+:root[data-theme-mode="dark"] .profilePage__contributionCount {
+  color: #ffffff; /* 金色を残したいならここをmixに変更してOK */
+}
+
+/* 保存ボタン（白/水色ベースをやめる） */
+:root[data-theme-mode="dark"] .profilePage__saveBtn,
+:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .profilePage__saveBtn:hover,
+:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary:hover {
+  background: rgba(255, 255, 255, 0.16);
+}

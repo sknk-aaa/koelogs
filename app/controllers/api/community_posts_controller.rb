@@ -69,10 +69,12 @@ module Api
       menu = current_user.training_menus.find_by(id: create_params[:training_menu_id])
       return render json: { errors: [ "training_menu_id is invalid" ] }, status: :unprocessable_entity if menu.nil?
 
+      effect_level = create_params[:effect_level].presence || 3
+
       post = current_user.community_posts.new(
         training_menu: menu,
         improvement_tags: create_params[:improvement_tags],
-        effect_level: create_params[:effect_level],
+        effect_level: effect_level,
         comment: create_params[:comment],
         published: create_params.key?(:published) ? ActiveModel::Type::Boolean.new.cast(create_params[:published]) : true,
         practiced_on: create_params[:practiced_on]

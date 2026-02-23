@@ -23,6 +23,14 @@
   --drawerText: #111;
   --pageText: #0f1d2e;
   --cardText: #0f1d2e;
+  --on-light-1: #0b2f57;
+  --on-light-2: #2d3f55;
+  --on-light-3: #5f7086;
+  --on-light-link: #1f3550;
+  --on-dark-1: rgba(246, 250, 255, 0.96);
+  --on-dark-2: rgba(246, 250, 255, 0.78);
+  --on-dark-3: rgba(246, 250, 255, 0.58);
+  --on-dark-link: rgba(246, 250, 255, 0.9);
 
   font-family: "Avenir Next", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif;
   --fontScale: 1;
@@ -56,7 +64,7 @@ body {
   --surfaceStrong: #ffffff;
   --headerBg: rgba(22, 28, 36, 0.84);
   --headerBorder: rgba(185, 205, 229, 0.2);
-  --menuLine: rgba(18, 39, 61, 0.9);
+  --menuLine: #ffffff;
   --drawerBackdrop: rgba(7, 12, 18, 0.52);
   --drawerSheet: rgba(248, 251, 255, 0.98);
   --drawerBorder: rgba(21, 45, 73, 0.2);
@@ -77,4 +85,129 @@ textarea {
 
 html {
   scrollbar-gutter: stable;
+}
+
+/* ===============================
+   Global Dark Form System
+================================= */
+:root[data-theme-mode="dark"] input,
+:root[data-theme-mode="dark"] select,
+:root[data-theme-mode="dark"] textarea {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] input::placeholder,
+:root[data-theme-mode="dark"] textarea::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+:root[data-theme-mode="dark"] input:focus,
+:root[data-theme-mode="dark"] select:focus,
+:root[data-theme-mode="dark"] textarea:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+  outline: none;
+}
+
+:root[data-theme-mode="dark"] button {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .btn-primary,
+:root[data-theme-mode="dark"] .primaryButton,
+:root[data-theme-mode="dark"] .authPage__submit,
+:root[data-theme-mode="dark"] .landingBtn--primary {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.85),
+    rgba(37, 99, 235, 0.85)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+/* Header controls */
+:root[data-theme-mode="dark"] header button,
+:root[data-theme-mode="dark"] header a {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .appHeader__logo {
+  filter: invert(1) brightness(1.2);
+}
+
+/* Segments / toggles */
+:root[data-theme-mode="dark"] .segment,
+:root[data-theme-mode="dark"] .insightsSegment,
+:root[data-theme-mode="dark"] .communityPage__segmentGroup {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+:root[data-theme-mode="dark"] .segment button.is-active,
+:root[data-theme-mode="dark"] .insightsSegment__btn.is-active,
+:root[data-theme-mode="dark"] .communityPage__segmentBtn.is-active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* Settings / Profile cards if present */
+:root[data-theme-mode="dark"] .settingsCard,
+:root[data-theme-mode="dark"] .profileCard {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ===== Settings/Profile/Rankings remaining light panels -> dark panels ===== */
+:root[data-theme-mode="dark"] .settingsPage .card,
+:root[data-theme-mode="dark"] .profilePage .card,
+:root[data-theme-mode="dark"] .rankingsPage .card,
+:root[data-theme-mode="dark"] .settingsPage .panel,
+:root[data-theme-mode="dark"] .profilePage .panel,
+:root[data-theme-mode="dark"] .rankingsPage .panel {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+}
+
+:root[data-theme-mode="dark"] .profileIconPicker button,
+:root[data-theme-mode="dark"] .iconPicker button,
+:root[data-theme-mode="dark"] .iconTile {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme-mode="dark"] .helpPanel,
+:root[data-theme-mode="dark"] .infoPanel,
+:root[data-theme-mode="dark"] .explainCard {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+:root[data-theme-mode="dark"] .noticeCard,
+:root[data-theme-mode="dark"] .badgeCard,
+:root[data-theme-mode="dark"] .achievementCard {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+:root[data-theme-mode="dark"] .saveButton,
+:root[data-theme-mode="dark"] .btnSave,
+:root[data-theme-mode="dark"] button[type="submit"] {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme-mode="dark"] .saveButton:hover,
+:root[data-theme-mode="dark"] .btnSave:hover,
+:root[data-theme-mode="dark"] button[type="submit"]:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
 }

@@ -1,5 +1,5 @@
 .page {
-  padding: 16px 16px 104px;
+  padding: var(--space-4) var(--space-4) 104px;
   max-width: 960px;
   margin: 0 auto;
   color: var(--pageText, var(--text));
@@ -20,17 +20,18 @@
 }
 
 .card {
-  background: var(--card);
-  border: 1px solid rgba(26, 56, 92, 0.24);
-  border-radius: 18px;
-  padding:16px;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--card) 92%, var(--card-tint)), var(--card));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
   color: var(--cardText, var(--text));
-  box-shadow: 0 10px 28px rgba(12, 28, 54, 0.12);
+  box-shadow: var(--shadow-sm);
 }
 
 .hr {
   height: 1px;
-  background: rgba(21, 48, 83, 0.15);
+  background: var(--border);
   margin: 12px 0;
 }
 

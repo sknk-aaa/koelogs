@@ -23,6 +23,220 @@
   line-height: 1.6;
 }
 
+.communityPage__rankingGuideWrap {
+  margin-bottom: 12px;
+}
+
+.communityPage__introLine {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, var(--card));
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--cardText, var(--text));
+}
+
+.communityPage__introText {
+  display: grid;
+  gap: 5px;
+  line-height: 1.62;
+  max-width: 760px;
+  min-width: 0;
+}
+
+.communityPage__introBadge {
+  justify-self: start;
+  min-height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.15px;
+  color: color-mix(in srgb, var(--cardText, var(--text)) 88%, var(--accent));
+}
+
+.communityPage__introLead {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.55;
+  color: var(--cardText, var(--text));
+}
+
+.communityPage__introSub {
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.66;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+  color: color-mix(in srgb, var(--cardText, var(--text)) 76%, var(--muted));
+}
+
+.communityPage__introNote {
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.62;
+  color: color-mix(in srgb, var(--cardText, var(--text)) 56%, var(--muted));
+}
+
+.communityPage__introInfoBtn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  width: 26px;
+  height: 26px;
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.communityPage__introInfoBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
+.communityPage__introInfoBtn:active {
+  transform: translateY(1px);
+}
+
+.communityPage__communityInfo ul {
+  gap: 10px;
+}
+
+.communityPage__communityInfoSection {
+  display: grid;
+  gap: 10px;
+}
+
+.communityPage__communityInfoTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 950;
+  color: var(--cardText, var(--text));
+  padding-bottom: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+}
+
+.communityPage__communityInfo li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: start;
+  column-gap: 8px;
+  padding: 10px 12px;
+}
+
+.infoModal__body.communityPage__communityInfo li::before {
+  content: none;
+}
+
+.communityPage__communityInfoIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.communityPage__communityInfo strong {
+  font-weight: 950;
+}
+
+.communityPage__communityInfoRank {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: start;
+  column-gap: 8px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  padding: 10px 12px;
+  line-height: 1.7;
+}
+
+.communityPage__rankingGuide {
+  width: 100%;
+  min-height: 52px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--space-4);
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--cardText, var(--text));
+}
+
+.communityPage__rankingGuide:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-2) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.communityPage__rankingGuideIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent-2) 18%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent-2) 70%, var(--text));
+  flex: 0 0 auto;
+}
+
+.communityPage__rankingGuideIcon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.05;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.communityPage__rankingGuideBody {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.communityPage__rankingGuideTitle {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.communityPage__rankingGuideDesc {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.communityPage__rankingGuideArrow {
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent-2) 70%, var(--text));
+}
+
 .communityPage__rankHero {
   display: grid;
   gap: 8px;
@@ -53,12 +267,7 @@
   position: relative;
   border-radius: 20px;
   border: 1px solid #d8e5fb;
-  background:
-    linear-gradient(130deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08)),
-    url("/community-rank-hero-bg.png");
-  background-repeat: no-repeat, no-repeat;
-  background-position: center center, center center;
-  background-size: cover, cover;
+  background: url("/community-rank-hero-bg.png") center center / cover no-repeat;
   padding: 0;
   display: grid;
   align-items: stretch;
@@ -77,7 +286,7 @@
   bottom: 0;
   height: 48%;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(188, 220, 255, 0), rgba(164, 205, 255, 0.2));
+  background: rgba(164, 205, 255, 0.18);
 }
 
 .communityPage__rankHeroCopy {
@@ -107,7 +316,7 @@
   bottom: 16px;
   z-index: 2;
   border: 2px solid #6da7ea;
-  background: linear-gradient(180deg, #82b8ff 0%, #4a86dd 100%);
+  background: #5aa1f2;
   color: #ffffff;
   border-radius: 999px;
   padding: 10px 18px;
@@ -132,38 +341,46 @@
   color: #335a88;
 }
 
-.communityPage__tabs {
+.communityPage__controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
+  gap: 10px;
+  border-radius: var(--radius-xl);
+  padding: 12px 14px;
+  background: var(--card);
   margin-bottom: 10px;
-  overflow: hidden;
-  padding: 4px;
-}
-
-.communityPage__tabs--attached {
   border: 1px solid var(--border);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-sm);
 }
 
-.communityPage__tabBtn {
+.communityPage__segmentGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  height: 44px;
+}
+
+.communityPage__segmentBtn {
+  flex: 1;
   border: none;
   background: transparent;
-  border-radius: 10px;
-  padding: 12px 10px;
+  border-radius: 999px;
+  height: 36px;
   font-size: 13px;
   font-weight: 800;
-  color: color-mix(in srgb, var(--text) 82%, #7d8898);
+  color: var(--muted);
   cursor: pointer;
-  width: 100%;
-  height: 100%;
+  transition: background 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
 
-.communityPage__tabBtn.is-active {
-  background: color-mix(in srgb, var(--accent) 22%, #fff);
-  border: 1px solid color-mix(in srgb, var(--accent) 42%, #999);
-  color: color-mix(in srgb, var(--accent) 55%, #222);
+.communityPage__segmentBtn.is-active {
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 26%, transparent), 0 6px 12px rgba(6, 10, 20, 0.35);
+  color: var(--text);
+  font-weight: 900;
 }
 
 .communityPage__error {
@@ -177,67 +394,90 @@
   gap: 10px;
 }
 
-.communityPage__browseControls {
-  display: grid;
-  gap: 10px;
-  border-radius: 18px;
-  justify-items: start;
-}
-
-.communityPage__sortSwitch {
-  display: inline-flex;
+.communityPage__subTabs {
+  display: flex;
   align-items: center;
-  gap: 4px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  width: fit-content;
-  padding-right: 2px;
+  gap: 18px;
+  padding: 0 6px 2px;
 }
 
-.communityPage__sortBtn {
+.communityPage__subTab {
   border: none;
   background: transparent;
-  border-radius: 0;
-  padding: 10px 8px;
+  padding: 6px 0;
   font-size: 12px;
   font-weight: 800;
-  color: color-mix(in srgb, var(--text) 80%, #7d8898);
+  color: var(--muted);
   cursor: pointer;
-  text-align: left;
   position: relative;
-  min-width: 88px;
 }
 
-.communityPage__sortBtn.is-active {
-  color: color-mix(in srgb, var(--accent) 58%, #214);
+.communityPage__subTab.is-active {
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
 }
 
-.communityPage__sortBtn.is-active::after {
+.communityPage__subTab.is-active::after {
   content: "";
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: -1px;
-  height: 3px;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 62%, #6fb0e8);
+  background: color-mix(in srgb, var(--accent) 70%, var(--text));
 }
 
 .communityPage__tagFilter {
   display: grid;
+  width: 100%;
+}
+
+.communityPage__tagsLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--accent) 60%, var(--text));
+  margin-top: 2px;
 }
 
 .communityPage__post {
   border: 1px solid #dfe4ea;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.communityPage__post::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--accent-2);
+}
+
+.communityPage__post:nth-of-type(3n + 1)::before {
+  background: var(--accent-2);
+}
+
+.communityPage__post:nth-of-type(3n + 2)::before {
+  background: var(--accent-1);
+}
+
+.communityPage__post:nth-of-type(3n + 3)::before {
+  background: var(--accent-3);
 }
 
 .communityPage__listCard {
   border-radius: 28px;
   padding: 14px 14px 12px;
-  box-shadow: 0 6px 16px rgba(26, 39, 64, 0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .communityPage__post.is-highlight {
-  border-color: color-mix(in srgb, var(--accent) 55%, #88a);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
@@ -259,32 +499,13 @@
   opacity: 0.72;
 }
 
-.communityPage__threadStars {
-  display: inline-flex;
+.communityPage__cardHeader {
+  display: flex;
   align-items: center;
-  gap: 3px;
-  margin-top: 2px;
-}
-
-.communityPage__threadStarsLabel {
-  font-size: 12px;
-  font-weight: 800;
-  color: #444;
-  margin-right: 2px;
-}
-
-.communityPage__threadStar {
-  font-size: 13px;
-  line-height: 1;
-  color: #cfcfd4;
-}
-
-.communityPage__threadStar.is-on {
-  color: #f5b301;
-}
-
-.communityPage__cardTop {
-  margin-bottom: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-left: 10px;
 }
 
 .communityPage__cardUser {
@@ -304,7 +525,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid #d7dde8;
+  border: 1px solid var(--border);
 }
 
 .communityPage__cardUserMeta {
@@ -324,9 +545,25 @@
 
 .communityPage__cardTitleMain {
   margin-top: 2px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 1.3;
+  color: color-mix(in srgb, var(--accent) 62%, #1f2f5f);
+  border-bottom: 2px solid color-mix(in srgb, var(--accent) 22%, #e1e6f3);
+  padding-bottom: 2px;
+  width: fit-content;
+}
+
+.communityPage__cardDate {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--text) 55%, #8b95a7);
+  white-space: nowrap;
+}
+
+.communityPage__cardBody {
+  display: grid;
+  gap: 8px;
+  padding-left: 10px;
 }
 
 .communityPage__threadBody {
@@ -388,17 +625,11 @@
   transform: rotate(45deg);
 }
 
-.communityPage__fieldLine {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-.communityPage__fieldLabel {
-  font-weight: 800;
-  opacity: 0.75;
+.communityPage__fieldLabel--muted {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--accent) 48%, #8b8df7);
+  opacity: 1;
 }
 
 .communityPage__fieldValue {
@@ -406,47 +637,152 @@
 }
 
 .communityPage__tags {
-  margin-top: 6px;
+  margin-top: 4px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .communityPage__tags--field {
-  margin-top: 6px;
+  margin-top: 0;
 }
 
 .communityPage__tag {
   font-size: 12px;
   font-weight: 800;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, #eef2f8);
   border-radius: 999px;
-  padding: 5px 10px;
-  background: #eef1f6;
-  border-color: #dee5ee;
+  padding: 6px 12px;
+  background: #f7f9ff;
+  color: color-mix(in srgb, var(--text) 86%, #3a4b6a);
+}
+
+.communityPage__tag--blue,
+.communityPage__chip.is-on.communityPage__tag--blue {
+  /* 深めのブルー */
+  background: #e9f1ff;
+  border-color: #8fb0ff;
+  color: #1e40af;
+}
+
+.communityPage__tag--sky,
+.communityPage__chip.is-on.communityPage__tag--sky {
+  /* シアン（空色） */
+  background: #e8fbff;
+  border-color: #5fe0ff;
+  color: #006b8f;
+}
+
+.communityPage__tag--purple,
+.communityPage__chip.is-on.communityPage__tag--purple {
+  /* しっかり紫 */
+  background: #f3edff;
+  border-color: #a98bff;
+  color: #5b21b6;
+}
+
+.communityPage__tag--violet,
+.communityPage__chip.is-on.communityPage__tag--violet {
+  /* ピンク寄り（マゼンタ） */
+  background: #fff0f7;
+  border-color: #ff7bb8;
+  color: #9d174d;
+}
+
+.communityPage__tag--green,
+.communityPage__chip.is-on.communityPage__tag--green {
+  /* はっきり緑 */
+  background: #ebfff0;
+  border-color: #55d48a;
+  color: #166534;
+}
+
+.communityPage__tag--mint,
+.communityPage__chip.is-on.communityPage__tag--mint {
+  /* ミント（黄緑寄り） */
+  background: #f3ffe8;
+  border-color: #b6f26a;
+  color: #4a7a0c;
+}
+
+.communityPage__tag--orange,
+.communityPage__chip.is-on.communityPage__tag--orange {
+  /* オレンジ */
+  background: #fff2e0;
+  border-color: #ff9f4a;
+  color: #9a3412;
+}
+
+.communityPage__tag--teal,
+.communityPage__chip.is-on.communityPage__tag--teal {
+  /* ティール（青緑） */
+  background: #e8fff9;
+  border-color: #45e5c1;
+  color: #0f766e;
+}
+
+.communityPage__tag--neutral,
+.communityPage__chip.is-on.communityPage__tag--neutral {
+  background: #f6f8fb;
+  border-color: #d8e0ee;
+  color: #4a5a74;
 }
 
 .communityPage__comment {
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.7;
   white-space: pre-wrap;
   margin: 0;
 }
 
+:root[data-theme-mode="dark"] .communityPage__comment {
+  color: #000000;
+}
+
 .communityPage__commentCard {
-  margin-top: 8px;
   border: 1px solid #dfe4ea;
-  border-radius: 10px;
-  background: #f7f9fc;
-  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fcfefe;
+  padding: 10px 12px;
+}
+
+.communityPage__commentSection {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+  padding-left: 10px;
+}
+
+.communityPage__commentCard.is-collapsed .communityPage__comment {
+  max-height: 8.5em;
+  overflow: hidden;
+}
+
+.communityPage__commentToggle {
+  align-self: flex-start;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, #c9d3ea);
+  background: color-mix(in srgb, var(--accent) 10%, #f6f9ff);
+  color: color-mix(in srgb, var(--accent) 68%, #3f5686);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(38, 55, 98, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.communityPage__commentToggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(38, 55, 98, 0.12);
 }
 
 .communityPage__cardDivider {
-  margin-top: 10px;
+  margin-top: 14px;
   height: 1px;
   background: rgba(0, 0, 0, 0.07);
+  margin-left: 10px;
 }
-
 .communityPage__profileLink {
   color: inherit;
   font-weight: 800;
@@ -508,6 +844,7 @@
   font-size: 14px;
   font-weight: 900;
   cursor: pointer;
+  width: 100%;
 }
 
 .communityPage__submit:disabled {
@@ -522,21 +859,17 @@
 }
 
 .communityPage__footerMeta {
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-}
-
-.communityPage__footerDate {
-  font-size: 11px;
-  opacity: 0.75;
+  padding-left: 10px;
 }
 
 .communityPage__favoriteBtn {
   border: 1px solid #d2dcec;
-  background: #f2f6fd;
+  background: #eef8ff;
   color: var(--text);
   border-radius: 999px;
   padding: 6px 12px;
@@ -550,7 +883,17 @@
 
 .communityPage__favoriteBtn.is-on {
   border-color: color-mix(in srgb, var(--accent) 42%, #9aa6c9);
-  background: color-mix(in srgb, var(--accent) 12%, #f6f9ff);
+  background: color-mix(in srgb, var(--accent) 16%, #f6f9ff);
+}
+
+:root[data-theme-mode="dark"] .communityPage__cardUserName,
+:root[data-theme-mode="dark"] .communityPage__cardTitleMain,
+:root[data-theme-mode="dark"] .communityPage__fieldLabel--muted {
+  color: var(--on-dark-1);
+}
+
+:root[data-theme-mode="dark"] .communityPage__favoriteBtnLabel {
+  color: var(--on-light-1);
 }
 
 .communityPage__favoriteBtn:disabled {
@@ -563,9 +906,10 @@
   font-weight: 900;
 }
 
-.communityPage__favoriteBtnStar {
-  font-size: 16px;
-  line-height: 1;
+.communityPage__favoriteBtnLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--text) 70%, #5f6f8a);
 }
 
 .communityPage__favoriteCount {
@@ -578,15 +922,27 @@
   right: 16px;
   bottom: calc(76px + env(safe-area-inset-bottom));
   z-index: 70;
-  border: 1px solid color-mix(in srgb, var(--accent) 52%, #8ea7c8);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 36%, #fff) 0%, color-mix(in srgb, var(--accent) 15%, #fff) 100%);
+
+  /* サイズUP */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;                 /* ← でかく */
+  padding: 0 22px;              /* ← 横もでかく */
   border-radius: 999px;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 900;
+
+  /* 透明にしない（opacityは使わない） */
+  border: 1px solid color-mix(in srgb, var(--accent) 52%, #8ea7c8);
+  background: color-mix(in srgb, var(--accent) 18%, #ffffff);
   color: var(--accentTextSoft);
+
+  font-size: 16px;              /* ← でかく */
+  font-weight: 950;             /* 少し強め */
+  letter-spacing: 0.2px;
+
   cursor: pointer;
-  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 .communityPage__fab:hover {
@@ -691,8 +1047,9 @@
 .communityPage__modal {
   width: min(640px, 100%);
   max-height: 80vh;
-  overflow: auto;
+  overflow: hidden;
   display: grid;
+  grid-template-rows: auto 1fr auto;
   gap: 12px;
 }
 
@@ -701,6 +1058,86 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.communityPage__modalBody {
+  display: grid;
+  gap: 12px;
+  overflow: auto;
+  padding-bottom: 6px;
+}
+
+.communityPage__editorCard {
+  border: 1px solid #e3e8f0;
+  background: #f7f9fc;
+  border-radius: 16px;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.communityPage__editorTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: #2a3f5f;
+}
+
+.communityPage__editorHelper {
+  font-size: 12px;
+  color: #6a7a94;
+}
+
+.communityPage__chipGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.communityPage__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid #d8e0ee;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  color: #3a4b6a;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(35, 52, 86, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  position: relative;
+}
+
+.communityPage__chip.is-on {
+  background: color-mix(in srgb, var(--accent) 14%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 36%, #b9c6e1);
+  box-shadow: 0 6px 14px rgba(56, 77, 120, 0.12);
+}
+
+.communityPage__chipInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.communityPage__fieldHint {
+  font-size: 12px;
+  color: #6a7a94;
+}
+
+.communityPage__fieldHint.is-error {
+  color: #b42318;
+}
+
+.communityPage__modalFooter {
+  position: sticky;
+  bottom: 0;
+  padding: 8px 0 calc(12px + env(safe-area-inset-bottom));
+  background: var(--card);
+  box-shadow: 0 -10px 18px rgba(18, 28, 54, 0.08);
 }
 
 .communityPage__modalClose {
@@ -714,6 +1151,23 @@
 }
 
 @media (max-width: 520px) {
+  .communityPage__introText {
+    max-width: none;
+    gap: 6px;
+    line-height: 1.58;
+  }
+
+  .communityPage__rankingGuide {
+    min-height: 48px;
+    gap: 8px;
+    padding: 0 12px;
+    background-position: left -14px top -12px, left top;
+  }
+
+  .communityPage__rankingGuideText {
+    font-size: 13px;
+  }
+
   .communityPage__rankHero {
     padding: 0 !important;
     border-radius: 20px;
@@ -789,4 +1243,261 @@
     bottom: calc(72px + env(safe-area-inset-bottom));
     padding: 9px 12px;
   }
+}
+/* =========================
+   Dark mode overrides (Community)
+   目的: 固定の白背景・薄い境界線・黒固定文字を解消
+========================= */
+:root[data-theme-mode="dark"] {
+  /* Community専用のダーク配色（必要なら調整OK） */
+  --community-bg: #0b1220;         /* ページ背景寄り */
+  --community-card: #111a2b;       /* カード背景 */
+  --community-surface: #0e1728;    /* 入力・セグメント土台 */
+  --community-border: rgba(255, 255, 255, 0.10);
+  --community-border-strong: rgba(255, 255, 255, 0.16);
+
+  --community-text: rgba(255, 255, 255, 0.92);
+  --community-muted: rgba(255, 255, 255, 0.68);
+  --community-faint: rgba(255, 255, 255, 0.52);
+
+  --community-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+/* Hero（上部見出し） */
+:root[data-theme-mode="dark"] .communityPage__kicker {
+  opacity: 1;
+  color: var(--community-faint);
+}
+:root[data-theme-mode="dark"] .communityPage__title {
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__sub {
+  opacity: 1;
+  color: var(--community-muted);
+}
+
+/* ランキング導線カード */
+:root[data-theme-mode="dark"] .communityPage__rankingGuide {
+  background: var(--community-card);
+  border: 1px solid var(--community-border);
+  box-shadow: var(--community-shadow);
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__rankingGuideDesc {
+  color: var(--community-muted);
+}
+:root[data-theme-mode="dark"] .communityPage__rankingGuideIcon {
+  border-color: var(--community-border-strong);
+  background: color-mix(in srgb, var(--accent-2) 16%, var(--community-card));
+  color: color-mix(in srgb, var(--accent-2) 78%, var(--community-text));
+}
+:root[data-theme-mode="dark"] .communityPage__rankingGuideArrow {
+  color: color-mix(in srgb, var(--accent-2) 78%, var(--community-text));
+}
+
+/* Rank hero（いま #fff 固定なのでダーク用に差し替え） */
+:root[data-theme-mode="dark"] .communityPage__rankHero {
+  background: var(--community-card);
+  border: 1px solid var(--community-border);
+  box-shadow: var(--community-shadow);
+}
+:root[data-theme-mode="dark"] .communityPage__rankHeroTitle {
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__rankHeroSub {
+  color: var(--community-muted);
+}
+:root[data-theme-mode="dark"] .communityPage__rankHeroBand {
+  border-color: var(--community-border);
+  /* 画像BGはそのままでも良いが、暗い上にさらに読みにくいなら薄い暗幕を足す */
+}
+:root[data-theme-mode="dark"] .communityPage__rankHeroBand::after {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+/* Heroボタン：青が眩しければ少し落とす */
+:root[data-theme-mode="dark"] .communityPage__rankHeroBtn {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--community-border));
+  background: color-mix(in srgb, var(--accent) 40%, #0b1220);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* チップ（pills） */
+:root[data-theme-mode="dark"] .communityPage__rankHeroChip {
+  border-color: var(--community-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--community-text);
+}
+
+/* コントロール（セグメント/フィルタ周り） */
+:root[data-theme-mode="dark"] .communityPage__controls {
+  background: var(--community-card);
+  border: 1px solid var(--community-border);
+  box-shadow: var(--community-shadow);
+}
+:root[data-theme-mode="dark"] .communityPage__introLine {
+  background: color-mix(in srgb, var(--accent) 12%, var(--community-card));
+  border-color: var(--community-border);
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__introLead {
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__introSub {
+  color: color-mix(in srgb, var(--community-text) 78%, var(--community-muted));
+  border-left-color: color-mix(in srgb, var(--accent) 48%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.05));
+}
+:root[data-theme-mode="dark"] .communityPage__introNote {
+  color: color-mix(in srgb, var(--community-text) 64%, var(--community-muted));
+}
+:root[data-theme-mode="dark"] .communityPage__introBadge {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: color-mix(in srgb, var(--community-text) 86%, var(--accent));
+}
+:root[data-theme-mode="dark"] .communityPage__introInfoBtn {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+:root[data-theme-mode="dark"] .communityPage__introInfoBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.2));
+  background: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.08));
+}
+:root[data-theme-mode="dark"] .communityPage__communityInfoIcon {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+}
+:root[data-theme-mode="dark"] .communityPage__communityInfoTitle {
+  border-bottom-color: rgba(255, 255, 255, 0.16);
+}
+:root[data-theme-mode="dark"] .communityPage__communityInfoRank {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}
+:root[data-theme-mode="dark"] .communityPage__segmentGroup {
+  background: var(--community-surface);
+  border-color: var(--community-border);
+}
+:root[data-theme-mode="dark"] .communityPage__segmentBtn {
+  color: var(--community-muted);
+}
+:root[data-theme-mode="dark"] .communityPage__segmentBtn.is-active {
+  background: color-mix(in srgb, var(--accent) 18%, var(--community-card));
+  color: var(--community-text);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 10px 18px rgba(0, 0, 0, 0.40);
+}
+
+/* 投稿カード本体（いま白固定） */
+:root[data-theme-mode="dark"] .communityPage__post {
+  background: var(--community-card);
+  border: 1px solid var(--community-border);
+}
+:root[data-theme-mode="dark"] .communityPage__listCard {
+  box-shadow: var(--community-shadow);
+}
+
+/* 投稿ヘッダ系 */
+:root[data-theme-mode="dark"] .communityPage__menu {
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__score {
+  opacity: 1;
+  color: var(--community-muted);
+}
+:root[data-theme-mode="dark"] .communityPage__cardUserName span {
+  color: var(--community-muted);
+}
+:root[data-theme-mode="dark"] .communityPage__cardDate {
+  color: var(--community-faint);
+}
+
+/* タイトル（いま青系/ライト想定なのでダークで読みやすく） */
+:root[data-theme-mode="dark"] .communityPage__cardTitleMain {
+  color: color-mix(in srgb, var(--accent) 72%, var(--community-text));
+  border-bottom-color: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+/* スレッド吹き出し */
+:root[data-theme-mode="dark"] .communityPage__threadBubble {
+  background: color-mix(in srgb, var(--community-card) 86%, #000);
+  border: 1px solid var(--community-border);
+}
+:root[data-theme-mode="dark"] .communityPage__threadBubble::before {
+  background: color-mix(in srgb, var(--community-card) 86%, #000);
+  border-left: 1px solid var(--community-border);
+  border-bottom: 1px solid var(--community-border);
+}
+
+/* コメント：黒固定を撤廃して白系に */
+:root[data-theme-mode="dark"] .communityPage__comment {
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__commentCard {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--community-border);
+}
+
+/* コメントの開閉ボタン */
+:root[data-theme-mode="dark"] .communityPage__commentToggle {
+  border-color: var(--community-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--community-text);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+/* 区切り線（黒の薄線 → 白の薄線へ） */
+:root[data-theme-mode="dark"] .communityPage__cardDivider {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* 投稿フォーム：入力が白すぎるのを直す */
+:root[data-theme-mode="dark"] .communityPage__editorCard {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--community-border);
+}
+:root[data-theme-mode="dark"] .communityPage__editorTitle {
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__editorHelper,
+:root[data-theme-mode="dark"] .communityPage__fieldHint {
+  color: var(--community-muted);
+}
+:root[data-theme-mode="dark"] .communityPage__input,
+:root[data-theme-mode="dark"] .communityPage__textarea {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--community-border);
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__input::placeholder,
+:root[data-theme-mode="dark"] .communityPage__textarea::placeholder {
+  color: var(--community-faint);
+}
+
+:root[data-theme-mode="dark"] .communityPage__input option,
+:root[data-theme-mode="dark"] .communityPage__input optgroup {
+  background: var(--community-card);
+  color: var(--community-text);
+}
+
+/* モーダル */
+:root[data-theme-mode="dark"] .communityPage__modalOverlay {
+  background: rgba(0, 0, 0, 0.55);
+}
+:root[data-theme-mode="dark"] .communityPage__modalFooter {
+  background: var(--community-card);
+  box-shadow: 0 -14px 24px rgba(0, 0, 0, 0.50);
+}
+:root[data-theme-mode="dark"] .communityPage__modalClose {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--community-text);
+}
+
+/* FAB（投稿ボタン） */
+:root[data-theme-mode="dark"] .communityPage__fab {
+  background: rgb(233, 245, 255);
+  border-color: rgb(3, 0, 99);
+  color: black;
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.55);
 }

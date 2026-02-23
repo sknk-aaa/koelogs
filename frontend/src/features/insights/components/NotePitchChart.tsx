@@ -180,13 +180,13 @@ export default function NotePitchChart({
             <svg viewBox={`0 0 ${width} ${H}`} className="notePitchChart__svg" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="noteChestArea" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(82, 193, 255, 0.52)" />
-                  <stop offset="70%" stopColor="rgba(147, 218, 255, 0.24)" />
+                  <stop offset="0%" stopColor="rgba(37, 99, 235, 0.46)" />
+                  <stop offset="70%" stopColor="rgba(96, 165, 250, 0.24)" />
                   <stop offset="100%" stopColor="rgba(255, 255, 255, 0.95)" />
                 </linearGradient>
                 <linearGradient id="noteFalArea" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(124, 214, 255, 0.54)" />
-                  <stop offset="70%" stopColor="rgba(180, 232, 255, 0.24)" />
+                  <stop offset="0%" stopColor="rgba(20, 184, 166, 0.44)" />
+                  <stop offset="70%" stopColor="rgba(45, 212, 191, 0.22)" />
                   <stop offset="100%" stopColor="rgba(255, 255, 255, 0.95)" />
                 </linearGradient>
               </defs>
@@ -199,7 +199,7 @@ export default function NotePitchChart({
                     x2={p.x}
                     y1={H - PAD}
                     y2={p.y}
-                    stroke="rgba(32, 96, 186, 0.18)"
+                    stroke="rgba(37, 99, 235, 0.24)"
                   />
                 );
               })}
@@ -213,7 +213,7 @@ export default function NotePitchChart({
                     x2={width - PAD}
                     y1={y}
                     y2={y}
-                    stroke="rgba(37, 89, 164, 0.14)"
+                    stroke="rgba(56, 124, 205, 0.2)"
                   />
                 );
               })}
@@ -222,17 +222,17 @@ export default function NotePitchChart({
               {chestAreaPath && <path d={chestAreaPath} fill="url(#noteChestArea)" />}
 
               {falPlot.map((p) => {
-                return <circle key={`f-halo-${p.key}`} cx={p.x} cy={p.y} r="6.2" fill="rgba(124, 214, 255, 0.28)" />;
+                return <circle key={`f-halo-${p.key}`} cx={p.x} cy={p.y} r="6.2" fill="rgba(45, 212, 191, 0.28)" />;
               })}
               {chestPlot.map((p) => {
-                return <circle key={`c-halo-${p.key}`} cx={p.x} cy={p.y} r="6.8" fill="rgba(82, 193, 255, 0.3)" />;
+                return <circle key={`c-halo-${p.key}`} cx={p.x} cy={p.y} r="6.8" fill="rgba(59, 130, 246, 0.3)" />;
               })}
 
               {falPath && (
                 <path
                   d={falPath}
                   fill="none"
-                  stroke="color-mix(in srgb, #7cd6ff 90%, #1f8fcd)"
+                  stroke="color-mix(in srgb, #2dd4bf 88%, #0f766e)"
                   strokeWidth="3.2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -242,7 +242,7 @@ export default function NotePitchChart({
                 <path
                   d={chestPath}
                   fill="none"
-                  stroke="color-mix(in srgb, #52c1ff 92%, #157ec2)"
+                  stroke="color-mix(in srgb, #3b82f6 88%, #1d4ed8)"
                   strokeWidth="3.4"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -256,8 +256,8 @@ export default function NotePitchChart({
                     cx={p.x}
                     cy={p.y}
                     r="3.8"
-                    fill="color-mix(in srgb, #95e2ff 88%, white)"
-                    stroke="color-mix(in srgb, #7cd6ff 90%, #1f8fcd)"
+                    fill="color-mix(in srgb, #67e8f9 78%, white)"
+                    stroke="color-mix(in srgb, #2dd4bf 88%, #0f766e)"
                     strokeWidth="0.8"
                   />
                 );
@@ -270,8 +270,8 @@ export default function NotePitchChart({
                     cx={p.x}
                     cy={p.y}
                     r="4.2"
-                    fill="color-mix(in srgb, #6fd0ff 90%, white)"
-                    stroke="color-mix(in srgb, #52c1ff 92%, #157ec2)"
+                    fill="color-mix(in srgb, #93c5fd 78%, white)"
+                    stroke="color-mix(in srgb, #3b82f6 88%, #1d4ed8)"
                     strokeWidth="0.8"
                   />
                 );

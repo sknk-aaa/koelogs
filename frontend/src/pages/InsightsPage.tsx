@@ -8,6 +8,7 @@ import {
 } from "../api/measurements";
 import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
+import InsightsCardHeader from "../features/insights/components/InsightsCardHeader";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -296,33 +297,9 @@ function ClickableCard({
 }) {
   return (
     <Link to={to} className={`insightsCard insightsCard--link${className ? ` ${className}` : ""}`}>
-      <div className="insightsCard__head">
-        <div className="insightsCard__title">{title}</div>
-        <div className="insightsCard__hintBlock">
-          <div className="insightsCard__hint">
-            <span className="insightsCard__hintText">詳細を見る</span>
-            <ChevronRight />
-          </div>
-          {hintSub && <div className="insightsCard__hintSub">{hintSub}</div>}
-        </div>
-      </div>
+      <InsightsCardHeader title={title} hintText="詳細を見る" hintSub={hintSub} withChevron />
       {children}
     </Link>
-  );
-}
-
-function ChevronRight() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path
-        d="M7.5 4.5L12.8 10L7.5 15.5"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity="0.8"
-      />
-    </svg>
   );
 }
 
@@ -435,7 +412,7 @@ export default function InsightsPage() {
                 value={volume?.loudness_range_pct ?? null}
                 unit="%"
                 progress={volume?.loudness_range_pct != null ? Math.max(0, Math.min(1, volume.loudness_range_pct / 100)) : 0}
-                color="#f4e600"
+                color="#ffe06a"
               />
               <div className="insightsGaugeMeta">
                 <span>平均 {formatDb(volume?.avg_loudness_db ?? null)}</span>
@@ -451,7 +428,7 @@ export default function InsightsPage() {
                 value={longToneSeconds}
                 unit="sec"
                 progress={longToneProgress}
-                color="#3a76af"
+                color="#3b82f6"
               />
               <div className="insightsGaugeMeta">
                 <span>ベスト {longToneBest != null ? `${longToneBest.toFixed(1)}s` : "—"}</span>
@@ -524,7 +501,7 @@ function CircleGauge({
       <div className="insightsCircleGauge__label">{label}</div>
       <div className="insightsCircleGauge__wrap">
         <svg viewBox="0 0 156 156" className="insightsCircleGauge__svg" aria-hidden="true">
-          <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(46, 61, 85, 0.22)" strokeWidth="12" />
+          <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(45, 102, 184, 0.24)" strokeWidth="12" />
           <circle
             cx={c}
             cy={c}

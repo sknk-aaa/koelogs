@@ -61,7 +61,7 @@ function matchesLog(log: TrainingLog, q: string): boolean {
 
 function renderMenuTags(menuItems: MenuItem[]) {
   if (menuItems.length === 0) {
-    return <ColoredTag text="メニューなし" color="#E5E7EB" />;
+    return <ColoredTag text="メニューなし" color="#E5E7EB" style={{ color: "#000000" }} />;
   }
 
   return (

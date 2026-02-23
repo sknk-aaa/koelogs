@@ -214,3 +214,63 @@
   line-height: 1.7;
   opacity: 0.86;
 }
+/* ===============================
+   AuthPage: Dark mode overrides
+================================= */
+:root[data-theme-mode="dark"] .authPage__bg {
+  background:
+    radial-gradient(600px 220px at 14% 8%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 66%),
+    radial-gradient(520px 220px at 92% 0%, rgba(255, 255, 255, 0.18), transparent 70%);
+}
+
+/* chips（#fffベースをやめる） */
+:root[data-theme-mode="dark"] .authPage__chip {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.90);
+}
+
+/* input */
+:root[data-theme-mode="dark"] .authPage__input {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .authPage__input:focus {
+  border-color: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10);
+}
+
+/* submit button（白混ぜをやめる） */
+:root[data-theme-mode="dark"] .authPage__submit {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .authPage__submit:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ghost button（枠・文字をダーク向けに） */
+:root[data-theme-mode="dark"] .authPage__ghostButton {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.90);
+}
+
+/* 任意：ラベル等の可読性 */
+:root[data-theme-mode="dark"] .authPage__label {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme-mode="dark"] .authPage__support,
+:root[data-theme-mode="dark"] .authPage__link {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme-mode="dark"] .authPage__link a {
+  color: #ffffff;
+}

@@ -32,8 +32,8 @@
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 64%),
-    radial-gradient(420px 160px at 90% 0%, rgba(255, 255, 255, 0.62), transparent 68%);
+    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 64%),
+    radial-gradient(420px 160px at 90% 0%, rgba(255, 255, 255, 0.18), transparent 68%);
   filter: blur(8px);
 }
 
@@ -43,12 +43,10 @@
 }
 
 .trainingPage__aiIntroCard {
-  border-radius: 16px;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 36%, transparent), rgba(0, 0, 0, 0.1)) border-box;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  box-shadow: var(--shadow-sm);
   display: grid;
   gap: 8px;
   margin-bottom: 16px;
@@ -79,8 +77,12 @@
   padding: 0 14px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent) 86%, white);
-  color: var(--accentTextSoft);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 86%, #0b1220),
+    color-mix(in srgb, var(--accent) 70%, #0b1220)
+  );
+  color: #eef6ff;
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
@@ -117,7 +119,11 @@
   bottom: 2px;
   width: 3px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 66%, #ffffff);
+  background: color-mix(in srgb, var(--accent) 72%, var(--text));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__panelTitle {
+  color: #ffffff;
 }
 
 .trainingPage__panelMeta {
@@ -128,12 +134,10 @@
 
 .trainingPage__studioCard {
   border-radius: 24px;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(color-mix(in srgb, var(--card) 96%, #f3f8ff), color-mix(in srgb, var(--card) 98%, #fff9ee)) padding-box,
-    linear-gradient(140deg, rgba(255, 255, 255, 0.92), rgba(0, 0, 0, 0.06)) border-box;
+  border: 1px solid var(--border);
+  background: var(--card);
   color: var(--cardText, var(--text));
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  box-shadow: var(--shadow-sm);
   padding: 20px;
   display: grid;
   gap: 20px;
@@ -158,7 +162,7 @@
   height: 12px;
   width: 55%;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.13), rgba(0, 0, 0, 0.06));
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
 }
 
 .trainingPage__skeleton--long {
@@ -167,8 +171,8 @@
 
 .trainingPage__error {
   border-radius: 12px;
-  border: 1px solid rgba(176, 0, 32, 0.22);
-  background: rgba(176, 0, 32, 0.06);
+  border: 1px solid rgba(255, 107, 154, 0.28);
+  background: rgba(255, 107, 154, 0.12);
   padding: 10px 12px;
 }
 
@@ -176,7 +180,7 @@
   font-size: 12px;
   font-weight: 950;
   margin-bottom: 4px;
-  color: #b00020;
+  color: #ff9bb0;
 }
 
 .trainingPage__errorText {
@@ -202,7 +206,7 @@
   padding: 0 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--surface);
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
@@ -257,11 +261,11 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 12px;
-  background: #fff;
+  background: var(--card);
   color: var(--cardText, var(--text));
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 20px rgba(12, 28, 54, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .trainingPage__measurementStep::before {
@@ -275,43 +279,38 @@
 }
 
 .trainingPage__measurementStep--manage {
-  border-color: color-mix(in srgb, #4b9ecf 34%, var(--border));
-  background: color-mix(in srgb, #dff3ff 22%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
 }
 
 .trainingPage__measurementStep--manage::before {
-  background: color-mix(in srgb, #4b9ecf 82%, #fff);
+  background: color-mix(in srgb, var(--accent) 70%, var(--text));
 }
 
 .trainingPage__measurementStep--record {
   border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
   box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 20%, transparent);
-  background: linear-gradient(
-    160deg,
-    color-mix(in srgb, #f2fff8 76%, var(--card)) 0%,
-    color-mix(in srgb, #edf6ff 70%, var(--card)) 56%,
-    color-mix(in srgb, var(--accent) 14%, var(--card)) 100%
-  );
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
 }
 
 .trainingPage__measurementStep--record[data-measurement="range"] {
-  background: linear-gradient(160deg, #eff8ff 0%, #e7f3ff 54%, #fff3dc 100%);
+  background: color-mix(in srgb, var(--accent-3) 14%, var(--card));
 }
 
 .trainingPage__measurementStep--record[data-measurement="long_tone"] {
-  background: linear-gradient(160deg, #f3f1ff 0%, #ecf4ff 56%, #fdf2ff 100%);
+  background: color-mix(in srgb, var(--accent-2) 14%, var(--card));
 }
 
 .trainingPage__measurementStep--record[data-measurement="volume_stability"] {
-  background: linear-gradient(160deg, #ecfff5 0%, #e9f7ff 56%, #eef4ff 100%);
+  background: color-mix(in srgb, var(--accent-4) 12%, var(--card));
 }
 
 .trainingPage__measurementStep--record[data-measurement="pitch_accuracy"] {
-  background: linear-gradient(160deg, #fff7e9 0%, #fff2d8 56%, #f3f0ff 100%);
+  background: color-mix(in srgb, var(--accent-1) 12%, var(--card));
 }
 
 .trainingPage__measurementStep--record::before {
-  background: color-mix(in srgb, var(--accent) 86%, #fff);
+  background: color-mix(in srgb, var(--accent) 70%, var(--text));
 }
 
 .trainingPage__measurementStep--record .trainingPage__measurementStepHead {
@@ -365,7 +364,7 @@
 }
 
 .trainingPage__measurementStepTitle--record {
-  color: color-mix(in srgb, var(--accent) 82%, #1f2531);
+  color: color-mix(in srgb, var(--accent) 82%, #f8faff);
   letter-spacing: 0.01em;
 }
 
@@ -373,11 +372,11 @@
   margin-top: 2px;
   font-size: 12px;
   font-weight: 700;
-  color: rgba(17, 30, 52, 0.7);
+  color: rgba(255, 255, 255, 0.901);
 }
 
 .trainingPage__measurementStep--manage .trainingPage__measurementStepTitle {
-  color: color-mix(in srgb, #2f6f95 88%, #111);
+  color: color-mix(in srgb, #2ca4ff 88%, #e9e9e9);
 }
 
 .trainingPage__measurementStepDesc {
@@ -417,7 +416,7 @@
   align-items: stretch;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.78);
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
   padding: 10px 12px;
   min-height: 96px;
 }
@@ -431,7 +430,7 @@
 
 .trainingPage__measurementPresetItemBtn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(12, 28, 54, 0.08);
+  box-shadow: 0 8px 16px rgba(6, 10, 20, 0.35);
 }
 
 .trainingPage__measurementPresetItemBtn:active {
@@ -440,7 +439,7 @@
 
 .trainingPage__measurementPresetItemBtn.is-selected {
   border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
-  background: color-mix(in srgb, var(--accent) 12%, #fff);
+  background: color-mix(in srgb, var(--accent) 14%, var(--card));
   box-shadow: 0 10px 18px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
@@ -469,7 +468,7 @@
   padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--border));
-  background: color-mix(in srgb, var(--accent) 16%, #fff);
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
   font-size: 11px;
   font-weight: 800;
 }
@@ -493,7 +492,7 @@
   gap: 14px;
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.76));
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
   padding: 12px;
 }
 
@@ -502,7 +501,7 @@
   gap: 12px;
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.78));
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
   padding: 12px;
 }
 
@@ -525,7 +524,7 @@
   font-size: 14px;
   font-weight: 900;
   letter-spacing: 0.03em;
-  color: rgba(18, 28, 44, 0.78);
+  color: var(--muted);
 }
 
 .trainingPage__measurementPlayerArt {
@@ -534,10 +533,10 @@
   justify-self: center;
   border-radius: 18px;
   border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(245, 249, 255, 0.82));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-strong));
   display: grid;
   place-items: center;
-  box-shadow: 0 10px 20px rgba(10, 26, 52, 0.08);
+  box-shadow: 0 10px 20px rgba(6, 10, 20, 0.35);
 }
 
 .trainingPage__measurementPlayerArt .miniPreview {
@@ -557,19 +556,19 @@
   line-height: 1.15;
   font-weight: 950;
   letter-spacing: 0.01em;
-  color: #1a2740;
+  color: var(--text);
 }
 
 .trainingPage__measurementPlayerSub {
   font-size: 13px;
   font-weight: 800;
-  color: rgba(22, 34, 52, 0.76);
+  color: var(--muted);
 }
 
 .trainingPage__measurementPlayerDesc {
   font-size: 12px;
   line-height: 1.45;
-  color: rgba(22, 34, 52, 0.68);
+  color: var(--muted);
 }
 
 .trainingPage__measurementPlayerTransport {
@@ -583,8 +582,8 @@
   height: 52px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
-  background: rgba(255, 255, 255, 0.74);
-  color: #243048;
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
+  color: var(--text);
   font-size: 16px;
   font-weight: 900;
   cursor: pointer;
@@ -607,12 +606,12 @@
   font-weight: 900;
   line-height: 1.2;
   letter-spacing: 0.02em;
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
   pointer-events: none;
 }
 
 .trainingPage__measurementStatusBadge.is-idle {
-  color: rgba(8, 14, 26, 0.72);
+  color: var(--muted);
 }
 
 .trainingPage__measurementStatusBadge.is-recording {
@@ -1446,8 +1445,12 @@
   padding: 0 14px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent) 86%, white);
-  color: var(--accentTextSoft);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 86%, #0b1220),
+    color-mix(in srgb, var(--accent) 70%, #0b1220)
+  );
+  color: #eef6ff;
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
@@ -1477,14 +1480,14 @@
 .trainingPage__saveBtn:focus-visible,
 .trainingPage__measurementMiniBtn:focus-visible,
 .trainingPage__fileBtn:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 60%, #fff);
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, var(--text));
   outline-offset: 2px;
 }
 
 .trainingPage__measurementError {
   border-radius: 10px;
-  border: 1px solid rgba(176, 0, 32, 0.22);
-  background: rgba(176, 0, 32, 0.06);
+  border: 1px solid rgba(255, 107, 154, 0.28);
+  background: rgba(255, 107, 154, 0.12);
   padding: 8px 10px;
   font-size: 12px;
   font-weight: 700;
@@ -1518,7 +1521,7 @@
 
 .trainingPage__measurementMiniBtn--ghost {
   border-color: var(--border);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface);
 }
 
 .trainingPage__modalOverlay {
@@ -2388,6 +2391,10 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
   font-size: 14px;
   font-weight: 900;
   line-height: 1.35;
+}
+
+:root[data-theme-mode="dark"] .trainingPage__metricInfoLabel {
+  color: #000000;
 }
 
 .trainingPage__metricInfoText {

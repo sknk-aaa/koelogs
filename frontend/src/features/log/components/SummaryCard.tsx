@@ -1,5 +1,6 @@
 import type { TrainingLog } from "../../../types/trainingLog";
 import ColoredTag from "../../../components/ColoredTag";
+import { Card } from "../../ui";
 
 type MenuItem = { id: number; name: string; color?: string | null; archived?: boolean | null };
 
@@ -29,7 +30,7 @@ export default function SummaryCard({
   onClickRecord,
 }: Props) {
   return (
-    <div className="card logPage__card">
+    <Card className="logPage__card">
       <div className="logPage__cardHead">
         <div className="logPage__cardTitle">サマリー</div>
 
@@ -83,7 +84,7 @@ export default function SummaryCard({
       {!loading && !error && log && (
         <>
           <div className="logPage__kpiRow">
-            <div className="logPage__kpi">
+            <div className="logPage__kpi logPage__kpi--primary">
               <div className="logPage__kpiLabel">練習時間</div>
               <div className="logPage__kpiValue">
                 <span className="logPage__kpiNumber">{log.duration_min ?? 0}</span>
@@ -124,6 +125,6 @@ export default function SummaryCard({
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 }

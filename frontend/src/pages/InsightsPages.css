@@ -8,8 +8,12 @@
 .insightsPage {
   --ins-card-radius: 24px;
   --ins-card-radius-md: 16px;
-  --ins-card-border: linear-gradient(140deg, rgba(255, 255, 255, 0.92), rgba(0, 0, 0, 0.06)) border-box;
-  --ins-card-bg: linear-gradient(color-mix(in srgb, var(--card) 96%, #f3f8ff), color-mix(in srgb, var(--card) 98%, #fff9ee)) padding-box;
+  --ins-card-border: linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.06)) border-box;
+  --ins-card-bg: linear-gradient(color-mix(in srgb, var(--card) 92%, var(--card-tint)), var(--card)) padding-box;
+  --ins-text-1: var(--on-light-1);
+  --ins-text-2: var(--on-light-2);
+  --ins-text-3: var(--on-light-3);
+  --ins-link: var(--on-light-link);
 }
 
 .insightsHero,
@@ -18,7 +22,7 @@
   border-radius: var(--ins-card-radius);
   border: 1px solid transparent;
   background: var(--ins-card-bg), var(--ins-card-border);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+  box-shadow: var(--shadow-sm);
 }
 
 .insightsHero {
@@ -43,6 +47,7 @@
   font-weight: 950;
   position: relative;
   padding-left: 10px;
+  color: var(--ins-text-1);
 }
 
 .insightsCard__title::before {
@@ -53,16 +58,18 @@
   bottom: 2px;
   width: 3px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 66%, #ffffff);
+  background: color-mix(in srgb, var(--accent) 70%, var(--text));
 }
 
 .insightsCard__hint {
-  opacity: 0.8;
+  color: var(--ins-link);
+  opacity: 1;
 }
 
 .insightsCard__hintText {
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+  color: var(--ins-link);
+  border-bottom: 1px solid color-mix(in srgb, var(--ins-link) 55%, transparent);
 }
 
 .insightsHero__title {
@@ -77,25 +84,70 @@
   height: 36px;
   padding: 0 12px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--surface);
   transition: border-color 120ms ease, background-color 120ms ease;
 }
 
 .insightsBack:hover {
   border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-strong);
 }
 
+:root[data-theme-mode="dark"] .insightsSegment {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .insightsSegment__btn {
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsSegment__btn.is-active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsSegment__btn:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+:root[data-theme-mode="dark"] .insightsInput,
+:root[data-theme-mode="dark"] .insightsSelect {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsSelect option,
+:root[data-theme-mode="dark"] .insightsSelect optgroup {
+  background: rgba(11, 23, 40, 0.95);
+  color: #ffffff;
+}
+:root[data-theme-mode="dark"] .insightsInput::placeholder {
+  color: rgba(255, 255, 255, 0.60);
+}
+
+:root[data-theme-mode="dark"] .insightsBack {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsBack:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.18);
+}
 .insightsChip,
 .insightsBadge,
 .insightsHistoryMeta__item {
   border-color: color-mix(in srgb, var(--accent) 20%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, #fff);
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
 }
 
 .insightsSegment {
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--surface);
 }
 
 .insightsSegment__btn {
@@ -104,13 +156,24 @@
 }
 
 .insightsSegment__btn.is-active {
-  background: color-mix(in srgb, var(--accent) 20%, #fff);
+  background: color-mix(in srgb, var(--accent) 20%, var(--card));
 }
 
 .insightsInput,
 .insightsSelect {
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--surface);
+}
+
+:root[data-theme-mode="dark"] .insightsInput,
+:root[data-theme-mode="dark"] .insightsSelect {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsInput::placeholder {
+  color: rgba(255, 255, 255, 0.60);
 }
 
 .insightsStat,
@@ -121,7 +184,7 @@
 .insightsLongTone__compareItem {
   border-radius: 12px;
   border-color: color-mix(in srgb, var(--accent) 14%, var(--border));
-  background: rgba(255, 255, 255, 0.82);
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
 }
 
 .insightsStat__value {
@@ -139,7 +202,7 @@
 .insightsPitchHeroCard {
   border-radius: 18px;
   border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
-  background: rgba(255, 255, 255, 0.88);
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
 }
 
 .insightsPitchHeroCard__value {
@@ -173,12 +236,12 @@
 .insightsCirclePair__item {
   border-radius: var(--ins-card-radius-md);
   border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(241, 248, 255, 0.9));
-  color: color-mix(in srgb, var(--cardText, var(--text)) 92%, #0f172a);
+  background: color-mix(in srgb, var(--surface) 70%, var(--card));
+  color: var(--cardText, var(--text));
 }
 
 .insightsCirclePair__title {
-  color: color-mix(in srgb, var(--cardText, var(--text)) 92%, #0f172a);
+  color: var(--cardText, var(--text));
 }
 
 .insightsGrid,
@@ -197,8 +260,8 @@
   pointer-events: none;
   z-index: -1;
   background:
-    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 64%),
-    radial-gradient(420px 160px at 92% 0%, rgba(255, 255, 255, 0.58), transparent 68%);
+    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 64%),
+    radial-gradient(420px 160px at 92% 0%, rgba(255, 255, 255, 0.18), transparent 68%);
   filter: blur(8px);
 }
 
@@ -208,7 +271,7 @@
   background:
     linear-gradient(var(--card), var(--card)) padding-box,
     linear-gradient(130deg, color-mix(in srgb, var(--accent) 40%, transparent), rgba(0, 0, 0, 0.08)) border-box;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   color: var(--cardText, var(--text));
   display: grid;
   gap: 10px;
@@ -363,6 +426,7 @@
 .insightsCard__title {
   font-size: 15px;
   font-weight: 900;
+  color: var(--ins-text-1);
 }
 
 .insightsCard__hint {
@@ -371,24 +435,29 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 800;
-  opacity: 0.74;
+  color: var(--ins-link);
+  opacity: 1;
   flex-shrink: 0;
 }
 
 .insightsCard__hintText {
   text-decoration: underline;
   text-underline-offset: 3px;
+  color: var(--ins-link);
+  text-decoration-color: color-mix(in srgb, var(--ins-link) 55%, transparent);
 }
 
 .insightsCard__hintSub {
   font-size: 10px;
-  opacity: 0.58;
+  color: var(--ins-text-3);
+  opacity: 1;
   font-weight: 700;
 }
 
 .insightsMuted {
   font-size: 12px;
-  opacity: 0.72;
+  color: var(--ins-text-3);
+  opacity: 1;
   line-height: 1.5;
 }
 
@@ -410,19 +479,22 @@
 
 .insightsKeyValue__k {
   font-size: 13px;
-  opacity: 0.8;
+  color: var(--ins-text-3);
+  opacity: 1;
   font-weight: 700;
 }
 
 .insightsKeyValue__v {
   font-size: 20px;
   font-weight: 950;
+  color: var(--ins-text-1);
 }
 
 .insightsKeyValue__sub {
   font-size: 12px;
   font-weight: 800;
-  opacity: 0.55;
+  color: var(--ins-text-3);
+  opacity: 1;
   margin-left: 6px;
 }
 
@@ -453,7 +525,8 @@
 .insightsBars__rank {
   font-size: 12px;
   font-weight: 900;
-  opacity: 0.76;
+  color: var(--ins-text-3);
+  opacity: 0.85;
 }
 
 .insightsBars__meta {
@@ -491,9 +564,9 @@
   min-width: 64px;
   font-size: 13px;
   font-weight: 900;
-  color: var(--cardText, var(--text));
+  color: var(--ins-text-2);
   cursor: pointer;
-  opacity: 0.78;
+  opacity: 0.85;
 }
 
 .insightsSegment__btn.is-active {
@@ -786,6 +859,25 @@
   font-size: 11px;
   font-weight: 900;
   color: #4c5d75;
+}
+
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__sec,
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__note {
+  color: #ffffff;
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__ratio,
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__delta {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__delta.is-up {
+  color: #73e3a3;
+}
+
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__delta.is-down {
+  color: #f28b8b;
 }
 
 .insightsLongToneHistoryRow__delta.is-up {
@@ -1378,7 +1470,11 @@
   border: 1px solid var(--border);
   background:
     linear-gradient(160deg, rgba(16, 26, 42, 0.95), rgba(11, 20, 36, 0.95));
-  color: rgba(246, 250, 255, 0.96);
+  --ins-text-1: var(--on-dark-1);
+  --ins-text-2: var(--on-dark-2);
+  --ins-text-3: var(--on-dark-3);
+  --ins-link: var(--on-dark-link);
+  color: var(--ins-text-2);
   padding: 10px;
   display: grid;
   gap: 8px;
@@ -1396,6 +1492,7 @@
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.01em;
+  color: var(--ins-text-1);
 }
 
 .insightsCirclePair__detail {
@@ -1403,7 +1500,8 @@
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  opacity: 0.76;
+  color: var(--ins-text-3);
+  opacity: 1;
   font-weight: 800;
 }
 
@@ -1412,7 +1510,8 @@
   gap: 2px;
   font-size: 11px;
   font-weight: 700;
-  opacity: 0.82;
+  color: var(--ins-text-3);
+  opacity: 1;
 }
 
 .insightsCircleGauge {
@@ -1482,7 +1581,8 @@
 .insightsMeasureLabel {
   font-size: 12px;
   font-weight: 900;
-  opacity: 0.76;
+  color: var(--ins-text-3);
+  opacity: 1;
 }
 
 .insightsMeasureValue {
@@ -1495,12 +1595,14 @@
   font-size: 30px;
   font-weight: 950;
   line-height: 1;
+  color: var(--ins-text-1);
 }
 
 .insightsMeasureUnit {
   font-size: 12px;
   font-weight: 900;
-  opacity: 0.72;
+  color: var(--ins-text-3);
+  opacity: 1;
 }
 
 .insightsPitchHeroCard {
@@ -1616,6 +1718,29 @@
   color: color-mix(in srgb, var(--accent) 48%, #2d3f56);
 }
 
+:root[data-theme-mode="dark"] .insightsLongTone__value,
+:root[data-theme-mode="dark"] .insightsLongTone__unit,
+:root[data-theme-mode="dark"] .insightsLongTone__note {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsLongTone__compareLabel,
+:root[data-theme-mode="dark"] .insightsLongTone__bestRatio,
+:root[data-theme-mode="dark"] .insightsLongTone__delta,
+:root[data-theme-mode="dark"] .insightsLongTone__meta {
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsLongTone__bestBadge {
+  background: rgba(255, 215, 141, 0.18);
+  color: #ffdd7a;
+}
+
+:root[data-theme-mode="dark"] .insightsLongTone__compareItem strong {
+  color: #ffffff;
+}
+
 .insightsLongTone__compareRow {
   width: 132px;
   display: grid;
@@ -1636,6 +1761,16 @@
   gap: 2px;
 }
 
+:root[data-theme-mode="dark"] .insightsLongTone__main {
+  width: 100%;
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(6px);
+}
+
 .insightsLongTone--record .insightsLongTone__compareItem {
   border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 250, 255, 0.9));
@@ -1644,10 +1779,24 @@
   gap: 3px;
 }
 
+:root[data-theme-mode="dark"] .insightsLongTone__compareItem {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsLongTone--record .insightsLongTone__compareItem {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
 .insightsLongTone__compareLabel {
   font-size: 10px;
   font-weight: 800;
-  opacity: 0.66;
+  color: var(--ins-text-3);
+  opacity: 1;
 }
 
 .insightsLongTone__compareItem strong {
@@ -1713,6 +1862,14 @@
   color: color-mix(in srgb, var(--accent) 54%, #333);
 }
 
+:root[data-theme-mode="dark"] .insightsRangeCard__heroValue {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__heroUnit {
+  color: rgba(255, 255, 255, 0.82);
+}
+
 .insightsRangeCard__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1726,6 +1883,13 @@
   padding: 6px;
   display: grid;
   gap: 4px;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__section {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
 }
 
 .insightsRangeCard__chip {
@@ -1770,6 +1934,27 @@
   font-size: 16px;
   font-weight: 900;
   color: color-mix(in srgb, var(--accent) 58%, #222);
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__line span {
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__section--total .insightsRangeCard__line strong {
+  color: color-mix(in srgb, #24abc2 70%, #ffffff 30%);
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__section--chest .insightsRangeCard__line strong {
+  color: color-mix(in srgb, #a78bda 70%, #ffffff 30%);
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__section--overlap .insightsRangeCard__line strong {
+  color: color-mix(in srgb, #84c341 70%, #ffffff 30%);
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__section--falsetto .insightsRangeCard__line strong {
+  color: color-mix(in srgb, #e08d2f 72%, #ffffff 28%);
 }
 
 .insightsRangeCard__section--total .insightsRangeCard__line strong {
@@ -1848,6 +2033,11 @@
   fill: #526578;
 }
 
+:root[data-theme-mode="dark"] .insightsRangeTrend__yLabel,
+:root[data-theme-mode="dark"] .insightsRangeTrend__xLabel {
+  fill: rgba(255, 255, 255, 0.85);
+}
+
 .insightsRangeTrend__tooltip {
   position: absolute;
   transform: translateX(-50%);
@@ -1880,6 +2070,12 @@
   padding-right: 4px;
   background: linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%);
   border-right: 1px solid #d8e3ef;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeTrend__axis,
+:root[data-theme-mode="dark"] .insightsFixedTrend__axis {
+  background: rgba(255, 255, 255, 0.04);
+  border-right-color: rgba(255, 255, 255, 0.1);
 }
 
 .insightsFixedTrend__axisSvg {
@@ -1915,6 +2111,157 @@
   font-size: 10px;
   font-weight: 900;
   fill: #4b6079;
+}
+
+:root[data-theme-mode="dark"] .insightsFixedTrend__yLabel,
+:root[data-theme-mode="dark"] .insightsFixedTrend__axisTitle {
+  fill: rgba(255, 255, 255, 0.85);
+}
+
+:root[data-theme-mode="dark"] .insightsPage {
+  --ins-text-1: var(--on-dark-1);
+  --ins-text-2: var(--on-dark-2);
+  --ins-text-3: var(--on-dark-3);
+  --ins-link: var(--on-dark-link);
+}
+
+:root[data-theme-mode="dark"] .insightsCircleGauge__label {
+  color: var(--on-dark-2);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsCircleGauge__value {
+  color: var(--on-dark-1);
+}
+
+:root[data-theme-mode="dark"] .insightsCircleGauge__unit {
+  color: var(--on-dark-2);
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__line span {
+  color: rgba(255, 255, 255, 0.901);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsGaugeMeta {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .insightsGaugePanel {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsPitchSemitone__main {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsPitchSemitone__status {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+:root[data-theme-mode="dark"] .insightsPitchSemitone__meta {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+:root[data-theme-mode="dark"] .insightsPitchSemitone__legendArrow {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+:root[data-theme-mode="dark"] .insightsPitchSemitone__legendArrow::after {
+  border-left-color: rgba(255, 255, 255, 0.8);
+}
+
+:root[data-theme-mode="dark"] .insightsCard {
+  color: #ffffff;
+  --ins-text-1: #ffffff;
+  --ins-text-2: rgba(255, 255, 255, 0.9);
+  --ins-text-3: rgba(255, 255, 255, 0.78);
+  --ins-link: #ffffff;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ==== Dark-mode final sweep: eliminate remaining light backgrounds on insights detail pages ==== */
+:root[data-theme-mode="dark"] .insightsPage .insightsPitchHeroCard,
+:root[data-theme-mode="dark"] .insightsPage .insightsStopwatchCard,
+:root[data-theme-mode="dark"] .insightsPage .insightsPitchSummaryCard,
+:root[data-theme-mode="dark"] .insightsPage .insightsMeasureCard,
+:root[data-theme-mode="dark"] .insightsPage .insightsLongTone__compareItem,
+:root[data-theme-mode="dark"] .insightsPage .insightsHistoryRow,
+:root[data-theme-mode="dark"] .insightsPage .insightsStat,
+:root[data-theme-mode="dark"] .insightsPage .insightsRangeCard__section {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+}
+
+:root[data-theme-mode="dark"] .insightsPage .insightsHistoryRow__date,
+:root[data-theme-mode="dark"] .insightsPage .insightsHistoryRow__notes,
+:root[data-theme-mode="dark"] .insightsPage .insightsHistoryRow__low,
+:root[data-theme-mode="dark"] .insightsPage .insightsHistoryRow__rangeUnit {
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsPage .insightsHistoryRow__top,
+:root[data-theme-mode="dark"] .insightsPage .insightsHistoryRow__rangeValue {
+  color: #ffffff;
+  opacity: 1;
+}
+
+/* Inline or embedded light backgrounds safety net */
+:root[data-theme-mode="dark"] .insightsPage [style*="background: #fff"],
+:root[data-theme-mode="dark"] .insightsPage [style*="background:#fff"] {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Graph left-axis band */
+:root[data-theme-mode="dark"] .insightsRangeTrend__axis,
+:root[data-theme-mode="dark"] .insightsFixedTrend__axis {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-right-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeTrend__yLabel,
+:root[data-theme-mode="dark"] .insightsRangeTrend__xLabel,
+:root[data-theme-mode="dark"] .insightsFixedTrend__yLabel,
+:root[data-theme-mode="dark"] .insightsFixedTrend__axisTitle {
+  fill: rgba(255, 255, 255, 0.85) !important;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow__date,
+:root[data-theme-mode="dark"] .insightsHistoryRow__notes,
+:root[data-theme-mode="dark"] .insightsHistoryRow__low,
+:root[data-theme-mode="dark"] .insightsHistoryRow__rangeUnit {
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow__top,
+:root[data-theme-mode="dark"] .insightsHistoryRow__rangeValue {
+  color: #ffffff;
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsCard__title,
+:root[data-theme-mode="dark"] .insightsCard__hint,
+:root[data-theme-mode="dark"] .insightsCard__hintText {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsCard__hintSub,
+:root[data-theme-mode="dark"] .insightsMuted,
+:root[data-theme-mode="dark"] .insightsKeyValue__k {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 @media (max-width: 760px) {

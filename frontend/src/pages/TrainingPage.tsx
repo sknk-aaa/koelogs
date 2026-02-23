@@ -12,6 +12,7 @@ import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import { createMeasurement, fetchMeasurements, updateMeasurement, type MeasurementRun } from "../api/measurements";
 import ProcessingOverlay from "../components/ProcessingOverlay";
+import { RANGE_MISSION_FLAG } from "../features/missions/constants";
 
 import "./TrainingPage.css";
 
@@ -142,6 +143,7 @@ export default function TrainingPage() {
     bestSec: null,
   });
   const [rangePhase, setRangePhase] = useState<RangePhase | null>(null);
+  const [missionRangeAutoInclude, setMissionRangeAutoInclude] = useState(false);
 
   const measurementAudioContextRef = useStateRef<AudioContext | null>(null);
   const measurementAnalyserRef = useStateRef<AnalyserNode | null>(null);
@@ -219,6 +221,17 @@ export default function TrainingPage() {
   const goLogin = () => {
     navigate("/login", { state: { fromPath: "/training" } });
   };
+
+  useEffect(() => {
+    const missionParam = searchParams.get("mission");
+    if (missionParam === "range") {
+      setActiveMeasurementKey("range");
+      setMissionRangeAutoInclude(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete("mission");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     return () => {
@@ -684,6 +697,7 @@ export default function TrainingPage() {
 
     try {
       setMeasurementSessionSaving(true);
+      const shouldAutoIncludeRange = missionRangeAutoInclude && activeMeasurementKey === "range";
       const savedRun = await persistMeasurement({
         systemKey: activeMeasurementKey,
         peakNote,
@@ -698,7 +712,15 @@ export default function TrainingPage() {
         pitchAccuracyScore,
         pitchAvgCentsError,
         pitchNoteCount,
+        includeInInsights: shouldAutoIncludeRange,
       });
+      if (shouldAutoIncludeRange) {
+        setMissionRangeAutoInclude(false);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(RANGE_MISSION_FLAG, "1");
+          window.dispatchEvent(new CustomEvent("insights:update"));
+        }
+      }
       return buildMeasurementInstantResult({
         runId: savedRun.id,
         includeInInsights: !!savedRun.include_in_insights,
@@ -1487,6 +1509,7 @@ async function persistMeasurement({
   pitchAccuracyScore,
   pitchAvgCentsError,
   pitchNoteCount,
+  includeInInsights = false,
 }: {
   systemKey: MeasurementSystemKey;
   peakNote: string | null;
@@ -1501,11 +1524,12 @@ async function persistMeasurement({
   pitchAccuracyScore: number | null;
   pitchAvgCentsError: number | null;
   pitchNoteCount: number;
+  includeInInsights?: boolean;
 }): Promise<MeasurementRun> {
   if (systemKey === "range") {
     return createMeasurement({
       measurement_type: "range",
-      include_in_insights: false,
+      include_in_insights: includeInInsights,
       range_result: {
         lowest_note: lowestNote,
         highest_note: peakNote,
@@ -1520,7 +1544,7 @@ async function persistMeasurement({
   if (systemKey === "long_tone") {
     return createMeasurement({
       measurement_type: "long_tone",
-      include_in_insights: false,
+      include_in_insights: includeInInsights,
       long_tone_result: {
         sustain_sec: phonationDurationSec,
         sustain_note: sustainNote,
@@ -1531,7 +1555,7 @@ async function persistMeasurement({
   if (systemKey === "pitch_accuracy") {
     return createMeasurement({
       measurement_type: "pitch_accuracy",
-      include_in_insights: false,
+      include_in_insights: includeInInsights,
       pitch_accuracy_result: {
         avg_cents_error: pitchAvgCentsError != null ? Number(pitchAvgCentsError.toFixed(3)) : null,
         accuracy_score: pitchAccuracyScore != null ? Number(pitchAccuracyScore.toFixed(3)) : null,
@@ -1547,7 +1571,7 @@ async function persistMeasurement({
   const ratio = score != null ? Number((score / 100).toFixed(6)) : null;
   return createMeasurement({
     measurement_type: "volume_stability",
-    include_in_insights: false,
+    include_in_insights: includeInInsights,
     volume_stability_result: {
       avg_loudness_db: Number(avgLoudnessDb.toFixed(3)),
       min_loudness_db: minLoudness != null ? Number(minLoudness.toFixed(3)) : null,

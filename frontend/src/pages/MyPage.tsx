@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { fetchInsights } from "../api/insights";
 import { useAuth } from "../features/auth/useAuth";
 import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
+import { RANGE_MISSION_FLAG } from "../features/missions/constants";
 import type { InsightsData } from "../types/insights";
 
 import "./MyPage.css";
@@ -36,6 +37,11 @@ export default function MyPage() {
   const [summaryInsights, setSummaryInsights] = useState<InsightsData | null>(null);
   const [heatmapInsights, setHeatmapInsights] = useState<InsightsData | null>(null);
   const [missionModalOpen, setMissionModalOpen] = useState(false);
+  const [rangeMissionOverride, setRangeMissionOverride] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(RANGE_MISSION_FLAG) === "1";
+  });
+  const [insightsReloadKey, setInsightsReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,15 +72,17 @@ export default function MyPage() {
         return;
       }
 
-      setSummaryInsights(summaryRes.data ?? null);
-      setHeatmapInsights(heatmapRes.data ?? null);
-      setLoading(false);
+      if (!cancelled) {
+        setSummaryInsights(summaryRes.data ?? null);
+        setHeatmapInsights(heatmapRes.data ?? null);
+        setLoading(false);
+      }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [me, summaryDays]);
+  }, [me, summaryDays, insightsReloadKey]);
 
   const today = summaryInsights?.range.to ?? toISODate(new Date());
   const hasDailyLog = (summaryInsights?.total_practice_days_count ?? 0) > 0;
@@ -89,8 +97,8 @@ export default function MyPage() {
         key: "range",
         title: "音域を測定しよう",
         description: "裏声または地声の最高音を1つ記録してみましょう。",
-        to: `/log/new?date=${encodeURIComponent(today)}`,
-        done: hasTopNote,
+        to: `/training?mission=range`,
+        done: hasTopNote || rangeMissionOverride,
       },
       {
         key: "daily_log",
@@ -121,7 +129,24 @@ export default function MyPage() {
         done: progress.ai_recommendations_count > 0,
       },
     ] satisfies Mission[];
-  }, [hasDailyLog, hasDisplayName, hasTopNote, summaryInsights, progress, today]);
+  }, [hasDailyLog, hasDisplayName, hasTopNote, summaryInsights, progress, today, rangeMissionOverride]);
+
+  useEffect(() => {
+    if (!rangeMissionOverride || !hasTopNote) return;
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(RANGE_MISSION_FLAG);
+    }
+    setRangeMissionOverride(false);
+  }, [rangeMissionOverride, hasTopNote]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => setInsightsReloadKey((prev) => prev + 1);
+    window.addEventListener("insights:update", handler);
+    return () => {
+      window.removeEventListener("insights:update", handler);
+    };
+  }, []);
 
   const nextMission = missions.find((mission) => !mission.done) ?? null;
   const pendingCount = missions.filter((mission) => !mission.done).length;

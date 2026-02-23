@@ -1,4 +1,5 @@
 import MetronomeLoader from "../../../components/MetronomeLoader";
+import { Card } from "../../ui";
 
 type Props = {
   title: string;
@@ -30,7 +31,7 @@ export default function AiRecommendationCard({
   const status = aiLoading ? "loading" : aiError ? "error" : isSaved ? "saved" : "empty";
 
   return (
-    <div className={`logAi card logPage__card logAi--${status}`}>
+    <Card className={`logAi logPage__card logAi--${status}`}>
       {/* ヘッダー */}
       <div className="logAi__header">
         <div>
@@ -97,6 +98,6 @@ export default function AiRecommendationCard({
           </>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

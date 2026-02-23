@@ -25,7 +25,18 @@
   --theme-grad: linear-gradient(135deg, #7c5cff, #4b2fe6);
 
   color: var(--text);
-  background: transparent;
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .communityRanking {
+  --bg: #080c17;
+  --card: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.12);
+  --hairline: rgba(255, 255, 255, 0.08);
+  --text: #f5f7ff;
+  --muted: rgba(255, 255, 255, 0.65);
+  --shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
 
 /* Accent presets (keep: only used as “current tab accent”) */
@@ -56,8 +67,8 @@
   border-radius: 16px;
 
   /* iOS segmented background */
-  background: rgba(17, 24, 39, 0.06);
-  border: 1px solid rgba(17, 24, 39, 0.06);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 
   /* layout */
   max-width: 560px;
@@ -101,6 +112,25 @@
   /* tiny accent hint (Apple-like) */
   outline: 2px solid color-mix(in srgb, var(--theme-500) 28%, transparent);
   outline-offset: 0;
+}
+
+:root[data-theme-mode="dark"] .communityRanking__tabBtn {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme-mode="dark"] .communityRanking__tabBtn.is-active {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.55);
+  outline: 2px solid color-mix(in srgb, var(--theme-500) 40%, rgba(255, 255, 255, 0.05));
+}
+
+:root[data-theme-mode="dark"] .communityRanking__focusCard,
+:root[data-theme-mode="dark"] .communityRanking__listCard,
+:root[data-theme-mode="dark"] .communityRanking__card,
+:root[data-theme-mode="dark"] .communityRanking__rows .communityRanking__row {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-md);
 }
 
 /* =========================

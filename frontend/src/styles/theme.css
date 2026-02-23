@@ -1,39 +1,44 @@
 :root {
-  --bg: #0b1220;
-  --bg-glow-1: rgba(90, 161, 242, 0.14);
-  --bg-glow-2: rgba(155, 123, 255, 0.12);
-  --surface: #111a2c;
-  --surface-strong: #182236;
-  --card: #141f33;
-  --text: #e6edf8;
-  --muted: rgba(230, 237, 248, 0.64);
-  --border: rgba(255, 255, 255, 0.08);
+  --bg-glow-1: rgba(0, 0, 0, 0);
+  --bg-glow-2: rgba(0, 0, 0, 0);
+  --card-tint: #ffffff;
 
-  --radius-lg: 16px;
-  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 10px 22px rgba(8, 12, 24, 0.45);
-  --shadow-md: 0 18px 40px rgba(8, 12, 24, 0.55);
+  --shadow-sm: 0 10px 24px rgba(12, 28, 54, 0.12);
+  --shadow-md: 0 18px 44px rgba(12, 28, 54, 0.2);
 
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
+  --space-2: 10px;
+  --space-3: 14px;
+  --space-4: 18px;
+  --space-5: 22px;
 
   --accent-1: #f9c74f;
   --accent-2: #9b7bff;
   --accent-3: #5aa1f2;
   --accent-4: #5ac87f;
   --accent-5: #ff6b9a;
+}
 
+:root[data-theme-mode="dark"] {
+  --bg: #0a111d;
+  --bg-glow-1: rgba(90, 161, 242, 0.18);
+  --bg-glow-2: rgba(155, 123, 255, 0.16);
+  --surface: #111a2b;
+  --surface-strong: #162238;
+  --card: #141f33;
+  --card-tint: #1d2a45;
+  --text: #e7eefb;
+  --muted: rgba(231, 238, 251, 0.66);
+  --border: rgba(255, 255, 255, 0.08);
   --pageText: var(--text);
   --cardText: var(--text);
-  --surfaceText: var(--text);
 
-  --bgTop: #0f172a;
+  --bgTop: #101a2d;
   --bgMid: #0b1220;
-  --bgBottom: #0a101b;
+  --bgBottom: #0a0f1a;
   --headerBg: rgba(12, 16, 27, 0.82);
   --headerBorder: rgba(255, 255, 255, 0.08);
   --drawerBackdrop: rgba(4, 8, 16, 0.7);
@@ -41,27 +46,10 @@
   --drawerBorder: rgba(255, 255, 255, 0.08);
   --drawerCard: #141f33;
   --drawerText: #e6edf8;
-
-  --accentSoft: rgba(90, 161, 242, 0.18);
-  --accentTextSoft: #0c1424;
+  --log-month-tag-text: #0b1220;
 }
 
-:root[data-theme-mode="dark"] {
-  --bg: #0b1220;
-  --surface: #111a2c;
-  --surface-strong: #182236;
-  --card: #141f33;
-  --text: #e6edf8;
-  --muted: rgba(230, 237, 248, 0.64);
-  --border: rgba(255, 255, 255, 0.08);
-  --pageText: var(--text);
-  --cardText: var(--text);
-  --drawerSheet: #141f33;
-  --drawerCard: #141f33;
-  --drawerText: #e6edf8;
-}
-
-body {
+:root[data-theme-mode="dark"] body {
   background:
     radial-gradient(900px 600px at 15% -10%, var(--bg-glow-2), transparent 60%),
     radial-gradient(700px 500px at 85% 0%, var(--bg-glow-1), transparent 60%),

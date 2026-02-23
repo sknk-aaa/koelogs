@@ -16,6 +16,42 @@
   --ap-line: rgba(58, 186, 194, 0.3);
 }
 
+:root[data-theme-mode="dark"] .audioPlayer__scaleSelectWrap.trainingPage__fileBtn {
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, #0b1220 86%, var(--on-dark-1) 14%);
+  box-shadow: 0 6px 14px rgba(6, 10, 20, 0.45);
+}
+
+:root[data-theme-mode="dark"] .audioPlayer__settingsTriggerLabel,
+:root[data-theme-mode="dark"] .audioPlayer__settingsTriggerCaret,
+:root[data-theme-mode="dark"] .audioPlayer__scaleValue {
+  color: var(--on-dark-1);
+}
+
+:root[data-theme-mode="dark"] .audioPlayer__scaleMenu {
+  background: #0b1220;
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+}
+
+:root[data-theme-mode="dark"] .audioPlayer__scaleOption {
+  color: var(--on-dark-2);
+}
+
+:root[data-theme-mode="dark"] .audioPlayer__scaleOption:hover,
+:root[data-theme-mode="dark"] .audioPlayer__scaleOption.is-selected {
+  background: color-mix(in srgb, var(--accent) 16%, #0b1220);
+}
+
+:root[data-theme-mode="dark"] .audioPlayer__tempoBtn.trainingPage__measurementMiniBtn {
+  background: color-mix(in srgb, #0b1220 86%, var(--on-dark-1) 14%);
+  color: var(--on-dark-2);
+}
+
+:root[data-theme-mode="dark"] .audioPlayer__tempoBtn.trainingPage__measurementMiniBtn.is-active {
+  background: color-mix(in srgb, var(--accent) 26%, #0b1220);
+  color: var(--on-dark-1);
+}
+
 .audioPlayer__settingsBar {
   display: flex;
   gap: 10px;
@@ -115,7 +151,9 @@
   font-weight: 900;
   color: rgba(22, 34, 52, 0.8);
 }
-
+:root[data-theme-mode="dark"] .audioPlayer__rangeGuideInline {
+  color: rgba(255, 255, 255, 0.9);
+}
 .audioPlayer__timeInlineText {
   font-size: 12px;
   font-weight: 800;
@@ -170,12 +208,12 @@
 .audioPlayer__settingsTriggerLabel {
   font-size: 13px;
   font-weight: 900;
-  color: #243048;
+  color: var(--on-light-2);
 }
 
 .audioPlayer__settingsTriggerCaret {
   font-size: 10px;
-  color: #243048;
+  color: var(--on-light-2);
   position: absolute;
   right: 12px;
   top: 50%;
@@ -191,7 +229,7 @@
 .audioPlayer__scaleValue {
   font-size: 16px;
   font-weight: 900;
-  color: #243048;
+  color: var(--on-light-1);
   letter-spacing: 0.01em;
 }
 
@@ -219,7 +257,7 @@
   text-align: left;
   font-size: 14px;
   font-weight: 800;
-  color: #243048;
+  color: var(--on-light-2);
   cursor: pointer;
   transition: background-color 100ms ease, border-color 100ms ease;
 }
@@ -247,7 +285,7 @@
   border-radius: 999px;
   border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
   background: rgba(255, 255, 255, 0.74);
-  color: #243048;
+  color: var(--on-light-2);
   font-size: 14px;
   font-weight: 900;
   padding: 0 14px;
@@ -267,7 +305,7 @@
 .audioPlayer__tempoBtn.trainingPage__measurementMiniBtn.is-active {
   border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
   background: color-mix(in srgb, var(--accent) 22%, var(--card));
-  color: #1f2a42;
+  color: var(--on-light-1);
   box-shadow: none;
 }
 

@@ -196,7 +196,7 @@ export default function CommunityPage() {
   return (
     <div className="page communityPage">
       <section className="communityPage__rankingGuideWrap">
-        <Link className="communityPage__rankingGuide" to="/community/rankings">
+        <Link className="communityPage__rankingGuide uiCard uiCard--accent2 uiCard--interactive" to="/community/rankings">
           <span className="communityPage__rankingGuideIcon" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false">
               <path d="M4 19h16" />
@@ -206,7 +206,11 @@ export default function CommunityPage() {
               <path d="m6.5 10.5 4-2.8 3.2 1.9 3.8-3.2" />
             </svg>
           </span>
-          <span className="communityPage__rankingGuideText">みんなの進捗を見る →</span>
+          <span className="communityPage__rankingGuideBody">
+            <span className="communityPage__rankingGuideTitle">ランキングを見る</span>
+            <span className="communityPage__rankingGuideDesc">みんなの進捗をチェックして刺激をもらう</span>
+          </span>
+          <span className="communityPage__rankingGuideArrow" aria-hidden="true">→</span>
         </Link>
       </section>
 

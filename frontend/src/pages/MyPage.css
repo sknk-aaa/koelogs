@@ -522,6 +522,73 @@
   filter: grayscale(1) brightness(0.9);
 }
 
+.myPage__xpInfoBody {
+  display: grid;
+  gap: 12px;
+}
+
+.myPage__xpInfoLead {
+  font-size: 13px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--on-light-1) 80%, var(--muted));
+}
+
+.myPage__xpInfoBlocks {
+  display: grid;
+  gap: 8px;
+}
+
+.myPage__xpInfoBlock {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.82);
+  padding: 10px 12px;
+}
+
+.myPage__xpInfoTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.myPage__xpInfoIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 18%, white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.myPage__xpInfoBlock ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.myPage__xpInfoNote {
+  font-size: 12px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--muted) 60%, var(--on-light-1));
+  opacity: 0.9;
+}
+
+:root[data-theme-mode="dark"] .myPage__xpInfoBlock {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .myPage__xpInfoIcon {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--on-dark-1);
+}
+
 /* モーダル：背景を暗め、カードは“面”として浮かせる */
 :root[data-theme-mode="dark"] .myPage__modalOverlay {
   background: rgba(0, 0, 0, 0.58);

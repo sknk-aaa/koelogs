@@ -211,12 +211,48 @@ export default function MyPage() {
       <section className="card myPage__card">
         <div className="myPage__cardTitleRow">
           <div className="myPage__cardTitle myPage__cardTitle--tight">進捗</div>
-          <InfoModal title="XP（進捗）について">
-            <ul>
-              <li>XPは練習の継続を記録するポイントです。</li>
-              <li>ログ作成や測定、コミュニティ投稿などで増えます。</li>
-              <li>XPは上達を保証するものではなく、継続の見える化です。</li>
-            </ul>
+          <InfoModal
+            title="XP（進捗）について"
+            bodyClassName="myPage__xpInfoBody"
+          >
+            <div className="myPage__xpInfoLead">
+              XPは「継続の証」として、日々の練習記録を評価します。
+            </div>
+            <div className="myPage__xpInfoBlocks">
+              <section className="myPage__xpInfoBlock">
+                <div className="myPage__xpInfoTitle">
+                  <span className="myPage__xpInfoIcon" aria-hidden="true">📝</span>
+                  <span>ログ記録</span>
+                </div>
+                <ul>
+                  <li>日ログを保存するたびにXPを蓄積</li>
+                  <li>月振り返り（メモ）を更新すると追加ボーナス</li>
+                </ul>
+              </section>
+              <section className="myPage__xpInfoBlock">
+                <div className="myPage__xpInfoTitle">
+                  <span className="myPage__xpInfoIcon" aria-hidden="true">🎚</span>
+                  <span>測定・分析</span>
+                </div>
+                <ul>
+                  <li>Trainingページで測定を完了するとXP付与</li>
+                  <li>Insights上で一定の計測を達成すると累積</li>
+                </ul>
+              </section>
+              <section className="myPage__xpInfoBlock">
+                <div className="myPage__xpInfoTitle">
+                  <span className="myPage__xpInfoIcon" aria-hidden="true">🌐</span>
+                  <span>コミュニティ + AI</span>
+                </div>
+                <ul>
+                  <li>コミュニティ投稿を公開・貢献するとXP</li>
+                  <li>AIおすすめを生成・活用してもXPを獲得</li>
+                </ul>
+              </section>
+            </div>
+            <div className="myPage__xpInfoNote">
+              XPは上達の約束ではなく、継続を実感するための指標です。
+            </div>
           </InfoModal>
         </div>
         <div className="myPage__stats">

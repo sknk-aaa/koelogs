@@ -5,6 +5,7 @@ import { fetchInsights } from "../api/insights";
 import { useAuth } from "../features/auth/useAuth";
 import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
 import { RANGE_MISSION_FLAG } from "../features/missions/constants";
+import type { BadgeProgress } from "../types/gamification";
 import type { InsightsData } from "../types/insights";
 import InfoModal from "../components/InfoModal";
 
@@ -12,6 +13,33 @@ import "./MyPage.css";
 
 const HEATMAP_DAYS = 90;
 const SUMMARY_DAYS_OPTIONS = [30, 90] as const;
+const BADGES_COLLAPSED_COUNT = 9;
+const BADGE_DISPLAY_ORDER: string[] = [
+  "first_log",
+  "streak_3",
+  "streak_7",
+  "streak_30",
+  "measurement_master",
+  "ai_user_5",
+  "ai_user_30",
+  "ai_user_50",
+  "ai_user_100",
+  "community_post_1",
+  "community_post_5",
+  "community_post_20",
+  "monthly_memo_streak_1",
+  "monthly_memo_streak_3",
+  "monthly_memo_streak_6",
+  "monthly_memo_streak_12",
+  "ai_contribution_1",
+  "ai_contribution_5",
+  "ai_contribution_20",
+  "ai_contribution_50",
+  "ai_contribution_100",
+  "xp_500",
+  "xp_1000",
+  "xp_2000",
+];
 type SummaryDays = (typeof SUMMARY_DAYS_OPTIONS)[number];
 
 type Mission = {
@@ -30,6 +58,19 @@ function toISODate(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+function formatDateTime(value: string | null): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleString("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function MyPage() {
   const { me } = useAuth();
   const [summaryDays, setSummaryDays] = useState<SummaryDays>(30);
@@ -38,6 +79,8 @@ export default function MyPage() {
   const [summaryInsights, setSummaryInsights] = useState<InsightsData | null>(null);
   const [heatmapInsights, setHeatmapInsights] = useState<InsightsData | null>(null);
   const [missionModalOpen, setMissionModalOpen] = useState(false);
+  const [badgesExpanded, setBadgesExpanded] = useState(false);
+  const [selectedBadge, setSelectedBadge] = useState<BadgeProgress | null>(null);
   const [insightsReloadKey, setInsightsReloadKey] = useState(0);
 
   useEffect(() => {
@@ -160,6 +203,23 @@ export default function MyPage() {
     () => (summaryInsights?.daily_durations ?? []).reduce((acc, point) => acc + (point.duration_min || 0), 0),
     [summaryInsights]
   );
+  const orderedBadges = useMemo(
+    () => {
+      const orderMap = new Map(BADGE_DISPLAY_ORDER.map((key, index) => [key, index]));
+      return [...(progress?.badges ?? [])].sort((a, b) => {
+        const ai = orderMap.get(a.key) ?? Number.MAX_SAFE_INTEGER;
+        const bi = orderMap.get(b.key) ?? Number.MAX_SAFE_INTEGER;
+        if (ai !== bi) return ai - bi;
+        return a.name.localeCompare(b.name, "ja");
+      });
+    },
+    [progress?.badges]
+  );
+  const visibleBadges = useMemo(
+    () => (badgesExpanded ? orderedBadges : orderedBadges.slice(0, BADGES_COLLAPSED_COUNT)),
+    [badgesExpanded, orderedBadges]
+  );
+  const hasHiddenBadges = orderedBadges.length > BADGES_COLLAPSED_COUNT;
 
   if (loading) {
     return (
@@ -275,21 +335,39 @@ export default function MyPage() {
       </section>
 
       <section className="card myPage__card">
-        <div className="myPage__cardTitle">バッジ</div>
+        <div className="myPage__cardTitleRow">
+          <div className="myPage__cardTitle myPage__cardTitle--tight">バッジ</div>
+          <div className="myPage__badgeSummary">
+            {progress.badge_unlocked_count}/{progress.badge_total_count} 獲得
+          </div>
+        </div>
         <div className="myPage__badgeGrid">
-          {progress.badges.map((badge) => (
-            <article
+          {visibleBadges.map((badge) => (
+            <button
+              type="button"
               key={badge.key}
               className={`myPage__badge ${badge.unlocked ? "is-unlocked" : "is-locked"}`}
+              onClick={() => setSelectedBadge(badge)}
+              aria-label={`${badge.name} の詳細を見る`}
             >
               <img src={badge.icon_path} alt={badge.name} className="myPage__badgeIcon" />
               <div className="myPage__badgeName">{badge.name}</div>
               <div className="myPage__badgeMeta">
                 {badge.unlocked ? "獲得済み" : `${badge.progress_current}/${badge.progress_required}`}
               </div>
-            </article>
+            </button>
           ))}
         </div>
+        {hasHiddenBadges && (
+          <button
+            type="button"
+            className="myPage__badgeToggle"
+            aria-expanded={badgesExpanded}
+            onClick={() => setBadgesExpanded((prev) => !prev)}
+          >
+            {badgesExpanded ? "バッジをたたむ" : `すべてのバッジを見る（${orderedBadges.length}件）`}
+          </button>
+        )}
       </section>
 
       <section className="card myPage__card">
@@ -351,6 +429,46 @@ export default function MyPage() {
                   </Link>
                 </article>
               ))}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {selectedBadge && (
+        <div
+          className="myPage__modalOverlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="バッジ詳細"
+          onClick={() => setSelectedBadge(null)}
+        >
+          <section className="myPage__modalCard myPage__badgeModalCard" onClick={(e) => e.stopPropagation()}>
+            <div className="myPage__modalHead">
+              <div className="myPage__modalTitle">バッジ詳細</div>
+              <button type="button" className="myPage__modalClose" onClick={() => setSelectedBadge(null)}>
+                閉じる
+              </button>
+            </div>
+            <div className="myPage__badgeDetail">
+              <img src={selectedBadge.icon_path} alt={selectedBadge.name} className="myPage__badgeDetailIcon" />
+              <div className="myPage__badgeDetailName">{selectedBadge.name}</div>
+              <div className="myPage__badgeDetailDesc">{selectedBadge.description}</div>
+              <div className="myPage__badgeDetailRow">
+                <span>進捗</span>
+                <strong>
+                  {selectedBadge.progress_current}/{selectedBadge.progress_required}
+                </strong>
+              </div>
+              <div className="myPage__badgeDetailRow">
+                <span>状態</span>
+                <strong>{selectedBadge.unlocked ? "獲得済み" : "挑戦中"}</strong>
+              </div>
+              {selectedBadge.unlocked && (
+                <div className="myPage__badgeDetailRow">
+                  <span>獲得日時</span>
+                  <strong>{formatDateTime(selectedBadge.unlocked_at) ?? "達成済み（同期待ち）"}</strong>
+                </div>
+              )}
             </div>
           </section>
         </div>

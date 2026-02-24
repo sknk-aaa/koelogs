@@ -1,0 +1,30 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg100" x1="8" y1="88" x2="88" y2="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2FA9EA"/>
+      <stop offset="1" stop-color="#674FD3"/>
+    </linearGradient>
+    <linearGradient id="chip100" x1="33" y1="25" x2="63" y2="55" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#CDDEFF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="40" fill="url(#bg100)"/>
+  <circle cx="48" cy="42" r="24" stroke="rgba(255,255,255,0.72)" stroke-width="2.2"/>
+  <circle cx="48" cy="42" r="18" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+  <circle cx="48" cy="42" r="27" stroke="rgba(255,255,255,0.25)" stroke-width="1.6"/>
+
+  <path d="M38 18L42 22L48 18L54 22L58 18V24H38V18Z" fill="rgba(255,255,255,0.9)"/>
+
+  <rect x="34" y="28" width="28" height="28" rx="8" fill="url(#chip100)"/>
+  <rect x="40.5" y="34.5" width="15" height="15" rx="3.5" fill="#4C85E4"/>
+  <path d="M39 21V28M48 18V25M57 21V28M64 38H71M64 47H71M64 56H71M25 38H32M25 47H32M25 56H32M39 57V64M48 61V68M57 57V64" stroke="#F6FAFF" stroke-width="2" stroke-linecap="round"/>
+
+  <path d="M18 33L20.5 38L26 40.5L20.5 43L18 48L15.5 43L10 40.5L15.5 38L18 33Z" fill="rgba(255,255,255,0.92)"/>
+  <path d="M78 29L80 33L84 35L80 37L78 41L76 37L72 35L76 33L78 29Z" fill="rgba(255,255,255,0.9)"/>
+  <path d="M31 66C34 61 37 59 40 58" stroke="rgba(255,255,255,0.88)" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M65 66C62 61 59 59 56 58" stroke="rgba(255,255,255,0.88)" stroke-width="2.4" stroke-linecap="round"/>
+
+  <rect x="18" y="66" width="60" height="14" rx="7" fill="rgba(255,255,255,0.97)"/>
+  <text x="48" y="76" text-anchor="middle" font-size="9" font-weight="900" fill="#25376A">AI HELPER 100</text>
+</svg>

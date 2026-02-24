@@ -81,12 +81,21 @@ module Api
       )
 
       if post.save
+        rewards =
+          if post.published
+            Gamification::Awarder.call(
+              user: current_user,
+              grants: [ { rule_key: "community_post_published", source_type: "community_post", source_id: post.id } ]
+            )
+          end
+
         render json: {
           data: serialize_post(
             post,
             profile_map: { current_user.id => serialize_public_profile(current_user) },
             favorite_meta: { counts: { post.id => 0 }, mine: {} }
-          )
+          ),
+          rewards: rewards
         }, status: :created
       else
         render json: { errors: post.errors.full_messages }, status: :unprocessable_entity

@@ -19,6 +19,10 @@ module Ai
           ai_recommendation_id: @ai_recommendation.id
         )
       end
+
+      User.where(id: contributor_ids).find_each do |user|
+        Gamification::Awarder.call(user: user, grants: [])
+      end
     end
 
     private

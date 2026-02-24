@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 
 import {
   createCommunityPost,
+  deleteCommunityPost,
   favoriteCommunityPost,
   fetchCommunityPosts,
   fetchFavoriteCommunityPosts,
+  updateCommunityPost,
   unfavoriteCommunityPost,
 } from "../api/community";
 import { fetchTrainingMenus } from "../api/trainingMenus";
@@ -18,13 +20,18 @@ import InfoModal from "../components/InfoModal";
 import "./CommunityPage.css";
 
 type ListTab = "posts" | "favorites";
-type BrowseSort = "newest" | "by_tag";
+type BrowseSort = "newest" | "by_tag" | "mine";
+const LEGACY_TAG_LABELS: Record<string, string> = {
+  pitch_stability: "音程精度",
+};
 
 function tagToneClass(tag: string): string {
   return tag === "high_note_ease"
     ? "communityPage__tag--purple"
-    : tag === "pitch_stability"
-      ? "communityPage__tag--blue"
+    : tag === "range_breadth"
+      ? "communityPage__tag--rose"
+      : tag === "pitch_accuracy" || tag === "pitch_stability"
+        ? "communityPage__tag--blue"
       : tag === "passaggio_smoothness"
         ? "communityPage__tag--teal"
         : tag === "less_breathlessness"
@@ -46,8 +53,10 @@ export default function CommunityPage() {
   const [listTab, setListTab] = useState<ListTab>("posts");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [favoritePosts, setFavoritePosts] = useState<CommunityPost[]>([]);
+  const [minePosts, setMinePosts] = useState<CommunityPost[]>([]);
   const [highlightPostId, setHighlightPostId] = useState<number | null>(null);
   const [browseSort, setBrowseSort] = useState<BrowseSort>("newest");
   const [selectedBrowseTag, setSelectedBrowseTag] = useState<string>("");
@@ -60,6 +69,8 @@ export default function CommunityPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFavoriting, setIsFavoriting] = useState<number | null>(null);
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+  const [editingPost, setEditingPost] = useState<CommunityPost | null>(null);
+  const [actionMenuPostId, setActionMenuPostId] = useState<number | null>(null);
 
   const loadPosts = async () => {
     const data = await fetchCommunityPosts({ mineFirst: true, limit: 50 });
@@ -73,6 +84,15 @@ export default function CommunityPage() {
     }
     const data = await fetchFavoriteCommunityPosts({ limit: 50 });
     setFavoritePosts(data);
+  };
+
+  const loadMinePosts = async () => {
+    if (!me) {
+      setMinePosts([]);
+      return;
+    }
+    const data = await fetchCommunityPosts({ mineOnly: true, limit: 50 });
+    setMinePosts(data);
   };
 
   useEffect(() => {
@@ -124,6 +144,35 @@ export default function CommunityPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (listTab !== "posts" || browseSort !== "mine" || !me) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchCommunityPosts({ mineOnly: true, limit: 50 });
+        if (!cancelled) setMinePosts(data);
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "自分の投稿の取得に失敗しました");
+          setMinePosts([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [listTab, browseSort, me]);
+
+  useEffect(() => {
+    if (me || browseSort !== "mine") return;
+    setBrowseSort("newest");
+    setMinePosts([]);
+  }, [me, browseSort]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
       if (!postModalOpen || !me) return;
       try {
         const rows = await fetchTrainingMenus(false);
@@ -146,13 +195,22 @@ export default function CommunityPage() {
     return typeof menuId === "number" && tags.length > 0;
   }, [menuId, tags.length]);
 
+  const isOwnPost = (post: CommunityPost) => me != null && post.user_id === me.id;
+
+  const reloadAllLists = async () => {
+    await loadPosts();
+    if (!me) return;
+    await Promise.all([ loadFavorites(), loadMinePosts() ]);
+  };
+
   const visiblePosts = useMemo(() => {
-    const source = listTab === "posts" ? posts : favoritePosts;
+    const source = listTab === "posts" ? (browseSort === "mine" ? minePosts : posts) : favoritePosts;
     const base = [ ...source ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    if (listTab === "posts" && browseSort === "mine") return base;
     if (browseSort === "newest") return base;
     if (!selectedBrowseTag) return base;
     return base.filter((post) => post.improvement_tags.includes(selectedBrowseTag));
-  }, [listTab, posts, favoritePosts, browseSort, selectedBrowseTag]);
+  }, [listTab, posts, minePosts, favoritePosts, browseSort, selectedBrowseTag]);
 
   const onToggleTag = (tagKey: string) => {
     setTags((prev) => (prev.includes(tagKey) ? prev.filter((v) => v !== tagKey) : [ ...prev, tagKey ]));
@@ -163,33 +221,47 @@ export default function CommunityPage() {
       navigate("/login", { state: { fromPath: "/community" } });
       return;
     }
+    setEditingPost(null);
+    setTags([]);
+    setComment("");
+    setNotice(null);
+    setError(null);
     setPostModalOpen(true);
   };
 
   const closePostModal = () => {
     setPostModalOpen(false);
+    setEditingPost(null);
   };
 
   const onSubmit = async () => {
     if (!canSubmit || typeof menuId !== "number") return;
     setIsSubmitting(true);
     setError(null);
+    setNotice(null);
     try {
-      const created = await createCommunityPost({
-        training_menu_id: menuId,
-        improvement_tags: tags,
-        comment: comment.trim() || undefined,
-      });
-      await loadPosts();
-      if (listTab === "favorites" && me) await loadFavorites();
-      setHighlightPostId(created.id);
-      setListTab("posts");
+      const trimmedComment = comment.trim();
+      const saved = editingPost
+        ? await updateCommunityPost(editingPost.id, {
+            training_menu_id: menuId,
+            improvement_tags: tags,
+            comment: trimmedComment,
+          })
+        : await createCommunityPost({
+            training_menu_id: menuId,
+            improvement_tags: tags,
+            comment: trimmedComment || undefined,
+          });
+      await reloadAllLists();
+      setHighlightPostId(saved.id);
+      if (!editingPost) setListTab("posts");
+      setNotice(editingPost ? "投稿を更新しました。" : "投稿しました。");
       setComment("");
       setTags([]);
       closePostModal();
       setTimeout(() => setHighlightPostId(null), 5000);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "投稿に失敗しました");
+      setError(e instanceof Error ? e.message : editingPost ? "投稿の更新に失敗しました" : "投稿に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -199,20 +271,66 @@ export default function CommunityPage() {
     if (!me || isFavoriting === post.id) return;
     setIsFavoriting(post.id);
     setError(null);
+    setNotice(null);
     try {
       if (post.favorited_by_me) {
         await unfavoriteCommunityPost(post.id);
       } else {
         await favoriteCommunityPost(post.id);
       }
-      await loadPosts();
-      if (listTab === "favorites") await loadFavorites();
+      await reloadAllLists();
     } catch (e) {
       setError(e instanceof Error ? e.message : "お気に入り更新に失敗しました");
     } finally {
       setIsFavoriting(null);
     }
   };
+
+  const onEditPost = (post: CommunityPost) => {
+    if (!isOwnPost(post)) return;
+    setEditingPost(post);
+    setMenuId(post.training_menu_id);
+    setTags([ ...post.improvement_tags ]);
+    setComment(post.comment ?? "");
+    setActionMenuPostId(null);
+    setError(null);
+    setNotice(null);
+    setPostModalOpen(true);
+  };
+
+  const onDeletePost = async (post: CommunityPost) => {
+    if (!isOwnPost(post) || !me) return;
+    const ok = window.confirm("この投稿を削除しますか？この操作は取り消せません。");
+    if (!ok) return;
+    setError(null);
+    setNotice(null);
+    setActionMenuPostId(null);
+    try {
+      await deleteCommunityPost(post.id);
+      await reloadAllLists();
+      setExpandedComments((prev) => {
+        const next = { ...prev };
+        delete next[post.id];
+        return next;
+      });
+      setNotice("投稿を削除しました。");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "投稿の削除に失敗しました");
+    }
+  };
+
+  useEffect(() => {
+    if (actionMenuPostId == null) return;
+    const onDocumentClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      if (event.target.closest(".communityPage__postActions")) return;
+      setActionMenuPostId(null);
+    };
+    document.addEventListener("click", onDocumentClick);
+    return () => {
+      document.removeEventListener("click", onDocumentClick);
+    };
+  }, [actionMenuPostId]);
 
   return (
     <div className="page communityPage">
@@ -300,7 +418,10 @@ export default function CommunityPage() {
           <button
             type="button"
             className={`communityPage__segmentBtn ${listTab === "favorites" ? "is-active" : ""}`}
-            onClick={() => setListTab("favorites")}
+            onClick={() => {
+              setListTab("favorites");
+              if (browseSort === "mine") setBrowseSort("newest");
+            }}
             role="tab"
             aria-selected={listTab === "favorites"}
           >
@@ -326,6 +447,20 @@ export default function CommunityPage() {
           >
             タグ別
           </button>
+          {me && (
+            <button
+              type="button"
+              className={`communityPage__subTab ${browseSort === "mine" ? "is-active" : ""}`}
+              onClick={() => {
+                setListTab("posts");
+                setBrowseSort("mine");
+              }}
+              role="tab"
+              aria-selected={browseSort === "mine"}
+            >
+              自分の投稿
+            </button>
+          )}
         </div>
         {browseSort === "by_tag" && (
           <div className="communityPage__tagFilter">
@@ -345,6 +480,7 @@ export default function CommunityPage() {
         )}
       </section>
 
+      {notice && <section className="card communityPage__notice">{notice}</section>}
       {error && <section className="card communityPage__error">{error}</section>}
 
       <section className="communityPage__list">
@@ -356,7 +492,7 @@ export default function CommunityPage() {
           <div className="card communityPage__empty">読み込み中…</div>
         ) : visiblePosts.length === 0 ? (
           <div className="card communityPage__empty">
-            {listTab === "favorites" ? "お気に入り投稿がありません。" : "まだ投稿がありません。"}
+            {listTab === "favorites" ? "お気に入り投稿がありません。" : browseSort === "mine" ? "自分の投稿がまだありません。" : "まだ投稿がありません。"}
           </div>
         ) : (
           visiblePosts.map((post) => (
@@ -386,7 +522,34 @@ export default function CommunityPage() {
                     </div>
                   </div>
                 )}
-                <div className="communityPage__cardDate">{new Date(post.created_at).toLocaleDateString("ja-JP")}</div>
+                <div className="communityPage__cardHeaderMeta">
+                  <div className="communityPage__cardDate">{new Date(post.created_at).toLocaleDateString("ja-JP")}</div>
+                  {isOwnPost(post) && (
+                    <div className="communityPage__postActions">
+                      <button
+                        type="button"
+                        className="communityPage__postActionTrigger"
+                        aria-label="投稿メニュー"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActionMenuPostId((prev) => (prev === post.id ? null : post.id));
+                        }}
+                      >
+                        ⋯
+                      </button>
+                      {actionMenuPostId === post.id && (
+                        <div className="communityPage__postActionMenu" onClick={(e) => e.stopPropagation()}>
+                          <button type="button" className="communityPage__postActionItem" onClick={() => onEditPost(post)}>
+                            編集
+                          </button>
+                          <button type="button" className="communityPage__postActionItem is-danger" onClick={() => onDeletePost(post)}>
+                            削除
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="communityPage__cardBody">
@@ -397,7 +560,7 @@ export default function CommunityPage() {
                     <div className="communityPage__tagsLabel">感じられた効果</div>
                     <div className="communityPage__tags communityPage__tags--field">
                       {post.improvement_tags.map((tag) => {
-                        const label = IMPROVEMENT_TAG_OPTIONS.find((x) => x.key === tag)?.label ?? tag;
+                        const label = IMPROVEMENT_TAG_OPTIONS.find((x) => x.key === tag)?.label ?? LEGACY_TAG_LABELS[tag] ?? tag;
                         const tagClass = tagToneClass(tag);
                         return (
                           <span key={`${post.id}-${tag}`} className={`communityPage__tag ${tagClass}`}>
@@ -464,7 +627,7 @@ export default function CommunityPage() {
         <div className="communityPage__modalOverlay" role="dialog" aria-modal="true" aria-label="投稿する">
           <section className="card communityPage__modal">
             <div className="communityPage__modalHead">
-              <div className="communityPage__cardTitle">投稿する</div>
+              <div className="communityPage__cardTitle">{editingPost ? "投稿を編集" : "投稿する"}</div>
               <button type="button" className="communityPage__modalClose" onClick={closePostModal}>
                 閉じる
               </button>
@@ -534,7 +697,7 @@ export default function CommunityPage() {
 
             <div className="communityPage__modalFooter">
               <button type="button" className="communityPage__submit" disabled={!canSubmit || isSubmitting} onClick={onSubmit}>
-                {isSubmitting ? "投稿中…" : "投稿する"}
+                {isSubmitting ? (editingPost ? "更新中…" : "投稿中…") : (editingPost ? "更新する" : "投稿する")}
               </button>
             </div>
           </section>

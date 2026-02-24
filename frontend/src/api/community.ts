@@ -6,9 +6,10 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
 }
 
-export async function fetchCommunityPosts(opts?: { mineFirst?: boolean; limit?: number }): Promise<CommunityPost[]> {
+export async function fetchCommunityPosts(opts?: { mineFirst?: boolean; mineOnly?: boolean; limit?: number }): Promise<CommunityPost[]> {
   const qs = new URLSearchParams();
   if (opts?.mineFirst) qs.set("mine_first", "true");
+  if (opts?.mineOnly) qs.set("mine_only", "true");
   if (opts?.limit && opts.limit > 0) qs.set("limit", String(opts.limit));
   const query = qs.toString();
 
@@ -66,6 +67,47 @@ export async function createCommunityPost(input: {
   }
   if (!isRecord(json) || !isRecord(json.data)) throw new Error("Unexpected response");
   return json.data as CommunityPost;
+}
+
+export async function updateCommunityPost(
+  postId: number,
+  input: {
+    training_menu_id: number;
+    improvement_tags: string[];
+    comment?: string;
+    published?: boolean;
+  }
+): Promise<CommunityPost> {
+  const res = await fetch(`${API_BASE}/api/community/posts/${postId}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const errors =
+      (isRecord(json) && Array.isArray(json.errors) && json.errors.filter((v): v is string => typeof v === "string")) ||
+      [];
+    throw new Error(errors.join(", ") || "Failed to update community post");
+  }
+  if (!isRecord(json) || !isRecord(json.data)) throw new Error("Unexpected response");
+  return json.data as CommunityPost;
+}
+
+export async function deleteCommunityPost(postId: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/community/posts/${postId}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { Accept: "application/json" },
+  });
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error((isRecord(json) && typeof json.error === "string" && json.error) || "Failed to delete community post");
+  }
 }
 
 export async function fetchCommunityProfile(userId: number): Promise<CommunityProfileDetail> {

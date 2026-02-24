@@ -4,6 +4,8 @@ module Ai
   class RecommendationGenerator
     GOAL_TAG_KEYWORDS = {
       "high_note_ease" => [ /高音/, /高い音/, /high note/, /hi note/ ],
+      "range_breadth" => [ /音域/, /レンジ/, /range/ ],
+      "pitch_accuracy" => [ /音程精度/, /ピッチ精度/, /pitch accuracy/ ],
       "pitch_stability" => [ /音程/, /ピッチ/, /pitch/ ],
       "passaggio_smoothness" => [ /換声点/, /ミックス/, /地声.*裏声/, /裏声.*地声/ ],
       "less_breathlessness" => [ /息切れ/, /息が続/, /ブレス/, /breath/ ],

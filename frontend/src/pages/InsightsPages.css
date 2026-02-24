@@ -2107,6 +2107,10 @@
   fill: #334a60;
 }
 
+.insightsFixedTrend__xLabel {
+  fill: #526578;
+}
+
 .insightsFixedTrend__axisTitle {
   font-size: 10px;
   font-weight: 900;
@@ -2114,6 +2118,7 @@
 }
 
 :root[data-theme-mode="dark"] .insightsFixedTrend__yLabel,
+:root[data-theme-mode="dark"] .insightsFixedTrend__xLabel,
 :root[data-theme-mode="dark"] .insightsFixedTrend__axisTitle {
   fill: rgba(255, 255, 255, 0.85);
 }
@@ -2228,6 +2233,7 @@
 :root[data-theme-mode="dark"] .insightsRangeTrend__yLabel,
 :root[data-theme-mode="dark"] .insightsRangeTrend__xLabel,
 :root[data-theme-mode="dark"] .insightsFixedTrend__yLabel,
+:root[data-theme-mode="dark"] .insightsFixedTrend__xLabel,
 :root[data-theme-mode="dark"] .insightsFixedTrend__axisTitle {
   fill: rgba(255, 255, 255, 0.85) !important;
 }

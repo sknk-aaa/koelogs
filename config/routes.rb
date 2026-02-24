@@ -27,6 +27,8 @@ Rails.application.routes.draw do
     # community
     get "community/posts", to: "community_posts#index"
     post "community/posts", to: "community_posts#create"
+    patch "community/posts/:id", to: "community_posts#update"
+    delete "community/posts/:id", to: "community_posts#destroy"
     get "community/favorites", to: "community_posts#favorites"
     post "community/posts/:id/favorite", to: "community_posts#favorite"
     delete "community/posts/:id/favorite", to: "community_posts#unfavorite"

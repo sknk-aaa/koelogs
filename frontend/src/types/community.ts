@@ -17,6 +17,7 @@ export type CommunityPublicProfile = {
 
 export type CommunityPost = {
   id: number;
+  user_id: number;
   training_menu_id: number;
   menu_name: string;
   canonical_key: string;
@@ -65,10 +66,11 @@ export type CommunityRankings = {
 
 export const IMPROVEMENT_TAG_OPTIONS: Array<{ key: string; label: string }> = [
   { key: "high_note_ease", label: "高音の出しやすさ" },
-  { key: "pitch_stability", label: "音程の安定" },
+  { key: "range_breadth", label: "音域の広さ" },
+  { key: "pitch_accuracy", label: "音程精度" },
   { key: "passaggio_smoothness", label: "換声点の滑らかさ" },
   { key: "less_breathlessness", label: "息切れしにくさ" },
-  { key: "volume_stability", label: "声量の安定" },
+  { key: "volume_stability", label: "音量安定性" },
   { key: "less_throat_tension", label: "喉の力み軽減" },
   { key: "resonance_clarity", label: "声の抜け・響き" },
   { key: "long_tone_sustain", label: "ロングトーン維持" },

@@ -23,6 +23,7 @@ import CommunityProfilePage from "./pages/CommunityProfilePage";
 import CommunityRankingPage from "./pages/CommunityRankingPage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
+import HelpContactPage from "./pages/HelpContactPage";
 
 export default function App() {
   return (
@@ -59,6 +60,7 @@ export default function App() {
             {/* ヘルプはログイン不要 */}
             <Route path="/help/guide" element={<HelpGuidePage />} />
             <Route path="/help/about" element={<HelpAboutPage />} />
+            <Route path="/help/contact" element={<HelpContactPage />} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />

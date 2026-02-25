@@ -932,6 +932,15 @@
   background: rgba(59, 130, 246, 0.15);
 }
 
+:root[data-theme-mode="dark"] .logAi__loadingInline {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme-mode="dark"] .logAi__text--muted {
+  color: rgba(255, 255, 255, 0.88);
+  opacity: 1;
+}
+
 :root[data-theme-mode="dark"] .logAi__pill--ng {
   border-color: rgba(239, 68, 68, 0.5);
   background: rgba(239, 68, 68, 0.18);

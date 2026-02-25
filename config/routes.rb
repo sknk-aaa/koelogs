@@ -20,6 +20,7 @@ Rails.application.routes.draw do
     # insights
     get "insights", to: "insights#show"
     get "missions", to: "missions#show"
+    post "help/contact", to: "help_contacts#create"
 
     # ✅ AI recommendations
     get "ai_recommendations", to: "ai_recommendations#show"

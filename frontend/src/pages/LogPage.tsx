@@ -4,17 +4,13 @@ import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { fetchMonthlyLog, upsertMonthlyLog } from "../api/monthlyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
 import { fetchInsights } from "../api/insights";
-import { fetchMissions } from "../api/missions";
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
 import type { MonthlyLogData } from "../types/monthlyLog";
-import type { BadgeProgress } from "../types/gamification";
 import type { SaveRewards } from "../types/gamification";
-import type { MissionItem, MissionsResponseData } from "../types/missions";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import { emitGamificationRewards } from "../features/gamification/rewardBus";
-import { loadThemeMode } from "../features/theme/themeStorage";
 
 import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
 import ProcessingOverlay from "../components/ProcessingOverlay";
@@ -87,7 +83,6 @@ function toPercentText(count: number, total: number): string {
 const AI_PREVIEW_CHARS = 100;
 const GOAL_MAX = 50;
 const FIRST_LOGIN_GUIDE_KEY_PREFIX = "voice_app_log_first_guide_seen_user_";
-const DARK_MODE_MISSION_FLAG = "mission_dark_mode_tried";
 
 type LogMode = "day" | "month";
 type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
@@ -145,8 +140,6 @@ export default function LogPage() {
   const [longestStreakDays, setLongestStreakDays] = useState<number | null>(null);
   const [totalPracticeDaysCount, setTotalPracticeDaysCount] = useState<number | null>(null);
   const [saveToast, setSaveToast] = useState<SaveRewards | null>(null);
-  const [missionsData, setMissionsData] = useState<MissionsResponseData | null>(null);
-  const [missionDetailsOpen, setMissionDetailsOpen] = useState(false);
   const [firstGuideOpen, setFirstGuideOpen] = useState(false);
   const [showGuideHintBanner, setShowGuideHintBanner] = useState(false);
 
@@ -327,36 +320,6 @@ export default function LogPage() {
       cancelled = true;
     };
   }, [authMe]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!authMe || !isDayMode) {
-        setMissionsData(null);
-        setMissionDetailsOpen(false);
-        return;
-      }
-      const res = await fetchMissions();
-      if (cancelled) return;
-      if (res.error || !res.data) {
-        setMissionsData(null);
-        return;
-      }
-      setMissionsData(res.data);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [authMe, isDayMode]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const modeFromStorage = loadThemeMode();
-    const modeFromRoot = document.documentElement.dataset.themeMode;
-    if (modeFromStorage === "dark" || modeFromRoot === "dark") {
-      window.localStorage.setItem(DARK_MODE_MISSION_FLAG, "1");
-    }
-  }, []);
 
   // /log/new 保存後のトースト受け取り
   useEffect(() => {
@@ -572,50 +535,6 @@ export default function LogPage() {
     return lines;
   }, [saveToast]);
 
-  const dailyMissionMap = useMemo(() => {
-    const out = new Map<string, MissionItem>();
-    for (const mission of missionsData?.daily ?? []) out.set(mission.key, mission);
-    return out;
-  }, [missionsData?.daily]);
-  const dailyMissions = useMemo(
-    () => [
-      {
-        key: "daily_training_log",
-        shortLabel: "日ログを記録",
-        to: dailyMissionMap.get("daily_training_log")?.to ?? `/log/new?date=${encodeURIComponent(today)}`,
-        done: dailyMissionMap.get("daily_training_log")?.done ?? false,
-      },
-      {
-        key: "daily_measurement",
-        shortLabel: "何かしらの測定",
-        to: dailyMissionMap.get("daily_measurement")?.to ?? "/training",
-        done: dailyMissionMap.get("daily_measurement")?.done ?? false,
-      },
-      {
-        key: "daily_ai_recommendation",
-        shortLabel: "AI生成",
-        to: dailyMissionMap.get("daily_ai_recommendation")?.to ?? `/log?mode=day&date=${encodeURIComponent(today)}`,
-        done: dailyMissionMap.get("daily_ai_recommendation")?.done ?? false,
-      },
-    ],
-    [dailyMissionMap, today]
-  );
-  const dailyDoneCount = dailyMissions.filter((mission) => mission.done).length;
-  const darkModeMissionDone =
-    typeof window !== "undefined" && window.localStorage.getItem(DARK_MODE_MISSION_FLAG) === "1";
-  const beginnerMissions = useMemo(() => {
-    const base = missionsData?.beginner ?? [];
-    const darkModeMission: MissionItem = {
-      key: "beginner_dark_mode",
-      title: "ダークモードを試してみよう",
-      description: "設定画面から表示テーマをダークに切り替えてみましょう。",
-      to: "/settings",
-      done: darkModeMissionDone,
-    };
-    return [...base, darkModeMission];
-  }, [missionsData?.beginner, darkModeMissionDone]);
-  const continuousMissions: BadgeProgress[] = missionsData?.continuous ?? [];
-
   useEffect(() => {
     setLastLogPath(currentLogPath);
   }, [currentLogPath]);
@@ -812,92 +731,6 @@ export default function LogPage() {
             </div>
           )}
         </div>
-      )}
-
-      {!!authMe && isDayMode && (
-        <section className="card logPage__missionCard">
-          <div className="logPage__missionHead">
-            <div className="logPage__missionTitle">🎯 今日のミッション</div>
-            <div className="logPage__missionMeta">{dailyDoneCount}/3 達成</div>
-          </div>
-
-          <div className="logPage__missionDailyList">
-            {dailyMissions.map((mission) =>
-              mission.done ? (
-                <div key={mission.key} className="logPage__missionDailyItem is-done" aria-disabled="true">
-                  <span className="logPage__missionCheck" aria-hidden="true">☑</span>
-                  <span>{mission.shortLabel}</span>
-                </div>
-              ) : (
-                <button
-                  key={mission.key}
-                  type="button"
-                  className="logPage__missionDailyItem"
-                  onClick={() => navigate(mission.to)}
-                >
-                  <span className="logPage__missionCheck" aria-hidden="true">☐</span>
-                  <span>{mission.shortLabel}</span>
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            className="logPage__missionMoreBtn"
-            onClick={() => setMissionDetailsOpen((prev) => !prev)}
-            aria-expanded={missionDetailsOpen}
-          >
-            {missionDetailsOpen ? "たたむ" : "もっと見る"}
-          </button>
-
-          {missionDetailsOpen && (
-            <div className="logPage__missionMoreBody">
-              <div className="logPage__missionSubTitle">初心者ミッション</div>
-              <div className="logPage__missionBeginnerList">
-                {beginnerMissions.map((mission) => (
-                  <article key={mission.key} className={`logPage__missionBeginnerItem ${mission.done ? "is-done" : ""}`}>
-                    <div className="logPage__missionBeginnerTop">
-                      <div className="logPage__missionBeginnerName">{mission.title}</div>
-                      <span className={`logPage__missionPill ${mission.done ? "is-done" : "is-pending"}`}>
-                        {mission.done ? "完了" : "挑戦中"}
-                      </span>
-                    </div>
-                    <div className="logPage__missionBeginnerDesc">{mission.description}</div>
-                    {!mission.done && (
-                      <button
-                        type="button"
-                        className="logPage__missionJumpBtn"
-                        onClick={() => navigate(mission.to)}
-                      >
-                        挑戦する
-                      </button>
-                    )}
-                  </article>
-                ))}
-              </div>
-
-              <div className="logPage__missionSubTitle">継続ミッション</div>
-              <div className="logPage__missionContinuousList">
-                {continuousMissions.length === 0 ? (
-                  <div className="logPage__missionContinuousEmpty">継続ミッションはまだありません。</div>
-                ) : (
-                  continuousMissions.map((badge) => (
-                    <article key={badge.key} className={`logPage__missionContinuousItem ${badge.unlocked ? "is-done" : ""}`}>
-                      <img src={badge.icon_path} alt={badge.name} className="logPage__missionContinuousIcon" />
-                      <div className="logPage__missionContinuousMain">
-                        <div className="logPage__missionContinuousName">{badge.name}</div>
-                        <div className="logPage__missionContinuousMeta">
-                          {badge.unlocked ? "獲得済み" : `${badge.progress_current}/${badge.progress_required}`}
-                        </div>
-                      </div>
-                    </article>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </section>
       )}
 
       {isMonthMode && (

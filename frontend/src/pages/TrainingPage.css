@@ -775,6 +775,35 @@
   margin-top: 8px;
 }
 
+.trainingPage__rangeTips {
+  display: grid;
+  gap: 6px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, var(--card));
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--cardText, var(--text));
+}
+
+.trainingPage__rangeTipsTitle {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.trainingPage__rangeTipsList {
+  margin: 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: 2px;
+}
+
+.trainingPage__rangeTipsList li {
+  font-weight: 700;
+}
+
 .trainingPage__sessionWave {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -1484,6 +1513,25 @@
   outline-offset: 2px;
 }
 
+:root[data-theme-mode="dark"] .trainingPage__measurementStatusBadge.is-analyzing {
+  border-color: rgba(125, 181, 255, 0.55);
+  color: #dcebff;
+  background: rgba(40, 108, 199, 0.32);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__fileBtn {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__fileBtn.is-busy {
+  opacity: 1;
+  border-color: rgba(125, 181, 255, 0.55);
+  background: rgba(40, 108, 199, 0.28);
+  color: #ecf4ff;
+}
+
 .trainingPage__measurementError {
   border-radius: 10px;
   border: 1px solid rgba(255, 107, 154, 0.28);
@@ -1920,7 +1968,7 @@
 }
 
 .trainingPage__longToneHeroValue {
-  font-size: clamp(56px, 11vw, 82px);
+  font-size: clamp(42px, 8.4vw, 60px);
   line-height: 1;
   font-weight: 950;
   color: #4bc6d7;
@@ -2329,7 +2377,7 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
   }
 
   .trainingPage__longToneHeroValue {
-    font-size: clamp(48px, 13.5vw, 66px);
+    font-size: clamp(38px, 11.2vw, 52px);
   }
 
   .trainingPage__longToneHeroNote {

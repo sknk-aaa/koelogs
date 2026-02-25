@@ -1,0 +1,15 @@
+voice-app にお問い合わせが届きました。
+
+種別: <%= @category_label %>
+返信先メール: <%= @from_email %>
+件名: <%= @subject_text %>
+
+本文:
+<%= @message %>
+
+----
+送信者情報
+- ログインユーザーID: <%= @user&.id || "未ログイン" %>
+- ログインユーザーEmail: <%= @user&.email || "未ログイン" %>
+- IP: <%= @ip_address.presence || "不明" %>
+- User-Agent: <%= @user_agent.presence || "不明" %>

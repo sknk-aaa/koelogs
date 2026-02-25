@@ -37,6 +37,10 @@
   - ミッションは「デイリー（常時表示）」+「もっと見る（初心者）」構成
   - 継続ミッション（バッジ）はミッション折りたたみと独立して常時表示
   - バッジ獲得時は専用ポップアップ表示（ミッション達成とは独立）
+- ヘルプ / お問い合わせ
+  - 使い方ガイド（`/help/guide`）
+  - アプリ説明（`/help/about`）
+  - お問い合わせフォーム（`/help/contact`）
 
 ## 技術スタック
 
@@ -65,7 +69,7 @@
   - `/training`
   - `/insights`, `/insights/time`, `/insights/menus`, `/insights/notes`
   - `/community`, `/community/rankings`, `/community/profile/:userId`
-  - `/help/guide`, `/help/about`
+  - `/help/guide`, `/help/about`, `/help/contact`
 - レイアウト内（ログイン必須）:
   - `/log/new`
   - `/analysis/history`
@@ -107,6 +111,7 @@ SMTP_USERNAME=
 SMTP_PASSWORD=
 SMTP_AUTHENTICATION=plain
 SMTP_ENABLE_STARTTLS_AUTO=true
+CONTACT_MAIL_TO=support@example.com
 ```
 
 任意:
@@ -216,6 +221,7 @@ npm --prefix frontend run dev
   - `GET /api/scale_tracks`
   - `GET /api/insights`
   - `GET/POST /api/ai_recommendations`
+  - `POST /api/help/contact`
 
 ## DB設計（現行）
 

@@ -4,28 +4,6 @@ import { useAuth } from "../features/auth/useAuth";
 import HamburgerDrawer, { type DrawerSection } from "./HamburgerDrawer";
 import { getLastLogPath } from "../features/log/logNavigation";
 
-function buildMailto() {
-  const subject = encodeURIComponent("[voice-app] お問い合わせ");
-  const body = encodeURIComponent(
-    [
-      "以下をご記入ください（可能な範囲でOK）",
-      "",
-      "■ 種別（不具合 / 要望 / 質問）:",
-      "■ 内容:",
-      "■ 発生手順（不具合の場合）:",
-      "■ 期待する結果:",
-      "■ 実際の結果:",
-      "■ 環境（OS/ブラウザ）:",
-      "",
-      "※ 個人情報は書かないでください。",
-    ].join("\n")
-  );
-
-  // ★必ず差し替え（公開なら捨てアド推奨）
-  const to = "your-contact@example.com";
-  return `mailto:${to}?subject=${subject}&body=${body}`;
-}
-
 function useIsMobile(breakpointPx = 520) {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -67,11 +45,6 @@ export default function AppHeader() {
     }
   }, [logout, navigate]);
 
-  const onContact = useCallback(() => {
-    const mailto = buildMailto();
-    window.location.href = mailto;
-  }, []);
-
   const sections: DrawerSection[] = useMemo(
     () => {
       const baseHelp: DrawerSection = {
@@ -90,9 +63,10 @@ export default function AppHeader() {
             onClick: () => navigate("/help/about"),
           },
           {
-            label: "お問い合わせ（メール）",
+            label: "お問い合わせ",
+            to: "/help/contact",
             match: "exact",
-            onClick: onContact,
+            onClick: () => navigate("/help/contact"),
           },
         ],
       };
@@ -136,7 +110,7 @@ export default function AppHeader() {
         baseHelp,
       ];
     },
-    [me, navigate, onContact, onLogout]
+    [me, navigate, onLogout]
   );
 
   const onClickBrand = () => {

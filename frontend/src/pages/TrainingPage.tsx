@@ -49,9 +49,9 @@ type MeasurementInstantResult = {
   pitchAccuracyAvgCents?: number | null;
   pitchAccuracyNoteCount?: number | null;
 };
-const NOISE_DB_THRESHOLD = -140;
-const MIN_VOICED_STREAK_FRAMES = 1;
-const PITCH_JUMP_SEMITONE_LIMIT = 18;
+const NOISE_DB_THRESHOLD = -70;
+const MIN_VOICED_STREAK_FRAMES = 3;
+const PITCH_JUMP_SEMITONE_LIMIT = 10;
 const YIN_THRESHOLD = 0.32;
 const YIN_FALLBACK_ACCEPT_MAX = 0.75;
 
@@ -622,10 +622,10 @@ export default function TrainingPage() {
     const minMidi = Math.min(minMidiBase, percentileMin);
     const maxMidi = Math.max(maxMidiBase, percentileMax);
     const representativeMidi = quantizedMids.length ? median(quantizedMids) : null;
-    const peakNote = quantizedMids.length ? midiToNote(Math.round(maxMidi)) : null;
-    const lowestNote = quantizedMids.length ? midiToNote(Math.round(minMidi)) : null;
+    const basePeakNote = quantizedMids.length ? midiToNote(Math.round(maxMidi)) : null;
+    const baseLowestNote = quantizedMids.length ? midiToNote(Math.round(minMidi)) : null;
     const sustainNote = representativeMidi != null ? midiToNote(Math.round(representativeMidi)) : null;
-    const rangeSemitones = quantizedMids.length ? Math.max(0, Math.round(maxMidi - minMidi)) : null;
+    const baseRangeSemitones = quantizedMids.length ? Math.max(0, Math.round(maxMidi - minMidi)) : null;
     const pitchAbsCentsErrors = refinedMids.map((m) => Math.abs(m - Math.round(m)) * 100);
     const pitchAvgCentsError =
       pitchAbsCentsErrors.length > 0
@@ -639,25 +639,27 @@ export default function TrainingPage() {
       : -99;
     const voicedDurationSec = elapsedSec * voicedRatio;
     const defaultPhonationDurationSec = Number(voicedDurationSec.toFixed(1));
-    const longestRun = findLongestSameNoteRun(quantizedMids);
-    const secPerVoicedSample = quantizedMids.length > 0 ? voicedDurationSec / quantizedMids.length : 0;
-    const longToneDurationSec =
-      longestRun && secPerVoicedSample > 0 ? Number((longestRun.run * secPerVoicedSample).toFixed(1)) : 0;
-    const longToneNote = longestRun ? midiToNote(longestRun.noteMidi) : null;
+    const longToneDurationSec = Number(voicedDurationSec.toFixed(1));
+    const longToneNote = sustainNote;
     const phonationDurationSec =
       activeMeasurementKey === "long_tone" ? longToneDurationSec : defaultPhonationDurationSec;
     const resolvedSustainNote =
       activeMeasurementKey === "long_tone" ? longToneNote : sustainNote;
-    const chestQuantized = quantizeMidiSeriesWithHysteresis(refineMidiSamples(rangeChestMids ?? []));
-    const falsettoQuantized = quantizeMidiSeriesWithHysteresis(refineMidiSamples(rangeFalsettoMids ?? []));
-    const chestTopNote = chestQuantized.length ? midiToNote(Math.round(Math.max(...chestQuantized))) : null;
-    const falsettoTopNote = falsettoQuantized.length ? midiToNote(Math.round(Math.max(...falsettoQuantized))) : null;
-    const chestLowestNote = chestQuantized.length ? midiToNote(Math.round(Math.min(...chestQuantized))) : null;
-    const falsettoLowestNote = falsettoQuantized.length ? midiToNote(Math.round(Math.min(...falsettoQuantized))) : null;
-    const chestMinMidi = chestQuantized.length ? Math.min(...chestQuantized) : null;
-    const chestMaxMidi = chestQuantized.length ? Math.max(...chestQuantized) : null;
-    const falsettoMinMidi = falsettoQuantized.length ? Math.min(...falsettoQuantized) : null;
-    const falsettoMaxMidi = falsettoQuantized.length ? Math.max(...falsettoQuantized) : null;
+    const chestRangeBoundsRaw = estimatePhaseRangeBounds(rangeChestMids ?? [], "chest");
+    const falsettoRangeBoundsRaw = estimatePhaseRangeBounds(rangeFalsettoMids ?? [], "falsetto");
+    const chestRangeBounds =
+      chestRangeBoundsRaw && falsettoRangeBoundsRaw && chestRangeBoundsRaw.max > falsettoRangeBoundsRaw.max
+        ? { ...chestRangeBoundsRaw, max: falsettoRangeBoundsRaw.max }
+        : chestRangeBoundsRaw;
+    const falsettoRangeBounds = falsettoRangeBoundsRaw;
+    const chestTopNote = chestRangeBounds ? midiToNote(Math.round(chestRangeBounds.max)) : null;
+    const falsettoTopNote = falsettoRangeBounds ? midiToNote(Math.round(falsettoRangeBounds.max)) : null;
+    const chestLowestNote = chestRangeBounds ? midiToNote(Math.round(chestRangeBounds.min)) : null;
+    const falsettoLowestNote = falsettoRangeBounds ? midiToNote(Math.round(falsettoRangeBounds.min)) : null;
+    const chestMinMidi = chestRangeBounds?.min ?? null;
+    const chestMaxMidi = chestRangeBounds?.max ?? null;
+    const falsettoMinMidi = falsettoRangeBounds?.min ?? null;
+    const falsettoMaxMidi = falsettoRangeBounds?.max ?? null;
     const overlapMinMidi =
       chestMinMidi != null && falsettoMinMidi != null ? Math.max(chestMinMidi, falsettoMinMidi) : null;
     const overlapMaxMidi =
@@ -665,21 +667,30 @@ export default function TrainingPage() {
     const hasOverlap = overlapMinMidi != null && overlapMaxMidi != null && overlapMinMidi <= overlapMaxMidi;
     const overlapLowestNote = hasOverlap ? midiToNote(Math.round(overlapMinMidi)) : null;
     const overlapHighestNote = hasOverlap ? midiToNote(Math.round(overlapMaxMidi)) : null;
+    const phaseMinMidiCandidates = [chestMinMidi, falsettoMinMidi].filter((v): v is number => v != null);
+    const phaseMaxMidiCandidates = [chestMaxMidi, falsettoMaxMidi].filter((v): v is number => v != null);
+    const totalMinMidi = phaseMinMidiCandidates.length > 0 ? Math.min(minMidi, ...phaseMinMidiCandidates) : minMidi;
+    const totalMaxMidi = phaseMaxMidiCandidates.length > 0 ? Math.max(maxMidi, ...phaseMaxMidiCandidates) : maxMidi;
+    const lowestNote = quantizedMids.length ? midiToNote(Math.round(totalMinMidi)) : baseLowestNote;
+    const peakNote = quantizedMids.length ? midiToNote(Math.round(totalMaxMidi)) : basePeakNote;
+    const rangeSemitones = quantizedMids.length
+      ? Math.max(0, Math.round(totalMaxMidi - totalMinMidi))
+      : baseRangeSemitones;
 
     if (activeMeasurementKey === "range" && (!lowestNote || !peakNote || rangeSemitones == null)) {
       setMeasurementError("有効な音程が十分に検出できませんでした。もう少し大きい声で再測定してください。");
       return null;
     }
-    if (activeMeasurementKey === "range" && !chestTopNote) {
+    if (activeMeasurementKey === "range" && source !== "file" && !chestTopNote) {
       setMeasurementError("地声の最高音を検出できませんでした。地声パートを再測定してください。");
       return null;
     }
-    if (activeMeasurementKey === "range" && !falsettoTopNote) {
+    if (activeMeasurementKey === "range" && source !== "file" && !falsettoTopNote) {
       setMeasurementError("裏声の最高音を検出できませんでした。裏声パートを再測定してください。");
       return null;
     }
     if (activeMeasurementKey === "long_tone" && (resolvedSustainNote == null || phonationDurationSec <= 0)) {
-      setMeasurementError("ロングトーンを判定できませんでした。同じ音程を連続で発声して再測定してください。");
+      setMeasurementError("ロングトーンを判定できませんでした。有効な発声が続くように再測定してください。");
       return null;
     }
     if (
@@ -787,6 +798,11 @@ export default function TrainingPage() {
     if (!measurementRecording || activeMeasurementKey !== "range") return;
     setRangePhase("falsetto");
     measurementRangePhaseRef.current = "falsetto";
+    // 地声→裏声の切替直後は音高ジャンプが大きくなるため、前状態をリセットして検出を通しやすくする。
+    measurementPrevMidiRef.current = null;
+    measurementSmoothedMidiRef.current = null;
+    measurementVoicedStreakRef.current = 0;
+    measurementUnvoicedFramesRef.current = 0;
     setMeasurementRealtimeMidiPoints([]);
     setMeasurementCurrentMidi(null);
     setMeasurementCurrentNote(null);
@@ -984,18 +1000,28 @@ export default function TrainingPage() {
               )}
               {measurementInstantResult.title === "音程精度" && (
                 <div className="trainingPage__resultModalMetric">
-                  <div className="trainingPage__resultModalMetricValue">
-                    {measurementInstantResult.pitchAccuracyScore != null ? measurementInstantResult.pitchAccuracyScore.toFixed(1) : "-"}
-                    <span>点</span>
-                  </div>
-                  <div className="trainingPage__resultModalMetricSub">
-                    平均ズレ: {measurementInstantResult.pitchAccuracyAvgCents != null ? `${measurementInstantResult.pitchAccuracyAvgCents.toFixed(1)} cent` : "-"}
-                  </div>
-                  <div className="trainingPage__resultModalStats">
-                    <div>発声音数 {measurementInstantResult.pitchAccuracyNoteCount ?? 0}</div>
-                    <div>目安 ±{measurementInstantResult.pitchAccuracyAvgCents != null ? Math.max(0, Math.round(measurementInstantResult.pitchAccuracyAvgCents)).toFixed(0) : "-"} cent</div>
-                    <div>精度 {measurementInstantResult.pitchAccuracyScore != null ? `${measurementInstantResult.pitchAccuracyScore.toFixed(1)} 点` : "-"}</div>
-                  </div>
+                  {(() => {
+                    const semitoneDrift =
+                      measurementInstantResult.pitchAccuracyAvgCents != null
+                        ? Math.max(0, measurementInstantResult.pitchAccuracyAvgCents / 100)
+                        : null;
+                    return (
+                      <>
+                        <div className="trainingPage__resultModalMetricValue">
+                          {semitoneDrift != null ? semitoneDrift.toFixed(2) : "-"}
+                          <span>半音</span>
+                        </div>
+                        <div className="trainingPage__resultModalMetricSub">
+                          平均ズレ: {measurementInstantResult.pitchAccuracyAvgCents != null ? `${measurementInstantResult.pitchAccuracyAvgCents.toFixed(1)} cent` : "-"}
+                        </div>
+                        <div className="trainingPage__resultModalStats">
+                          <div>発声音数 {measurementInstantResult.pitchAccuracyNoteCount ?? 0}</div>
+                          <div>目安 ±{measurementInstantResult.pitchAccuracyAvgCents != null ? Math.max(0, Math.round(measurementInstantResult.pitchAccuracyAvgCents)).toFixed(0) : "-"} cent</div>
+                          <div>精度 {measurementInstantResult.pitchAccuracyScore != null ? `${measurementInstantResult.pitchAccuracyScore.toFixed(1)} 点` : "-"}</div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
               {measurementInstantResult.title === "音量安定性" && (
@@ -1244,6 +1270,15 @@ export default function TrainingPage() {
                       }
                       footer={
                         <>
+                          {activeMeasurementKey === "range" && (
+                            <div className="trainingPage__rangeTips" role="note" aria-label="音域測定のコツ">
+                              <div className="trainingPage__rangeTipsTitle">正確に測定するために</div>
+                              <ul className="trainingPage__rangeTipsList">
+                                <li>地声の最高音は、少し長めにキープしてみましょう。</li>
+                                <li>音はできるだけつなげて、なめらかに出してみましょう。</li>
+                              </ul>
+                            </div>
+                          )}
                           <label className={`trainingPage__fileBtn ${measurementFileAnalyzing ? "is-busy" : ""}`}>
                             {measurementFileAnalyzing ? "解析中…" : "音声ファイルを解析"}
                             <input
@@ -1694,7 +1729,7 @@ function useStateRef<T>(initial: T) {
 function autoCorrelate(buf: Float32Array, sampleRate: number): number | null {
   const size = buf.length;
   const rms = calcRms(buf);
-  if (rms < 0.0003) return null;
+  if (rms < 0.003) return null;
 
   const minFreq = 55;
   const maxFreq = 1760;
@@ -1831,6 +1866,56 @@ function quantizeMidiSeriesWithHysteresis(mids: number[]) {
   return out;
 }
 
+function estimatePhaseRangeBounds(mids: number[], phase: "chest" | "falsetto") {
+  if (mids.length === 0) return null;
+  const quantized = quantizeMidiSeriesWithHysteresis(mids);
+  if (quantized.length === 0) return null;
+  if (quantized.length < 12) {
+    return {
+      min: Math.min(...quantized),
+      max: Math.max(...quantized),
+    };
+  }
+
+  // Phase別（地声/裏声）は、リアルタイム表示との乖離を抑えるため
+  // percentileで上下端を決めつつ、短い断続ノートだけの極端値は抑える。
+  // 地声は高音側の誤検出が出やすいので、上側だけ少し厳しくする。
+  const minByPercentile = percentile(quantized, 0.02);
+  const maxByPercentile = percentile(quantized, phase === "chest" ? 0.94 : 0.98);
+  const stableRange = estimateStablePhaseExtremes(quantized, phase === "chest" ? 4 : 2);
+  const min = stableRange ? Math.max(minByPercentile, stableRange.min) : minByPercentile;
+  const max = stableRange ? Math.min(maxByPercentile, stableRange.max) : maxByPercentile;
+  return { min, max };
+}
+
+function estimateStablePhaseExtremes(mids: number[], minStableRun: number) {
+  if (mids.length === 0) return null;
+  const maxRunByNote = new Map<number, number>();
+  let cur = mids[0];
+  let run = 1;
+  for (let i = 1; i < mids.length; i += 1) {
+    if (mids[i] === cur) {
+      run += 1;
+      continue;
+    }
+    const prevMax = maxRunByNote.get(cur) ?? 0;
+    if (run > prevMax) maxRunByNote.set(cur, run);
+    cur = mids[i];
+    run = 1;
+  }
+  const lastMax = maxRunByNote.get(cur) ?? 0;
+  if (run > lastMax) maxRunByNote.set(cur, run);
+
+  const stableNotes = [...maxRunByNote.entries()]
+    .filter(([, maxRun]) => maxRun >= minStableRun)
+    .map(([note]) => note);
+  if (stableNotes.length === 0) return null;
+  return {
+    min: Math.min(...stableNotes),
+    max: Math.max(...stableNotes),
+  };
+}
+
 function estimateStableExtremes(mids: number[]) {
   if (mids.length === 0) return null;
   const maxRunByNote = new Map<number, number>();
@@ -1857,31 +1942,6 @@ function estimateStableExtremes(mids: number[]) {
     min: Math.min(...stableNotes),
     max: Math.max(...stableNotes),
   };
-}
-
-function findLongestSameNoteRun(mids: number[]) {
-  if (mids.length === 0) return null;
-  let cur = mids[0];
-  let run = 1;
-  let bestNote = cur;
-  let bestRun = 1;
-  for (let i = 1; i < mids.length; i += 1) {
-    if (mids[i] === cur) {
-      run += 1;
-      continue;
-    }
-    if (run > bestRun) {
-      bestRun = run;
-      bestNote = cur;
-    }
-    cur = mids[i];
-    run = 1;
-  }
-  if (run > bestRun) {
-    bestRun = run;
-    bestNote = cur;
-  }
-  return { noteMidi: bestNote, run: bestRun };
 }
 
 function median(values: number[]) {
@@ -1982,13 +2042,14 @@ function buildMeasurementInstantResult({
       sustainNote,
       measuredAt,
       lines: [
-        `同音程の連続発声秒数: ${phonationDurationSec.toFixed(1)} 秒`,
+        `有効な発声の継続秒数: ${phonationDurationSec.toFixed(1)} 秒`,
         `発声音程: ${sustainNote ?? "-"}`,
       ],
     };
   }
 
   if (systemKey === "pitch_accuracy") {
+    const semitoneDrift = pitchAvgCentsError != null ? Math.max(0, pitchAvgCentsError / 100) : null;
     return {
       runId,
       includeInInsights,
@@ -1999,6 +2060,7 @@ function buildMeasurementInstantResult({
       pitchAccuracyNoteCount: pitchNoteCount,
       measuredAt,
       lines: [
+        `平均ズレ: ${semitoneDrift != null ? `${semitoneDrift.toFixed(2)} 半音` : "-"}`,
         `精度スコア: ${pitchAccuracyScore != null ? `${pitchAccuracyScore.toFixed(1)} 点` : "-"}`,
         `平均ズレ: ${pitchAvgCentsError != null ? `${pitchAvgCentsError.toFixed(1)} cent` : "-"}`,
         `発声音数: ${pitchNoteCount}`,
@@ -2330,7 +2392,7 @@ function LongToneResultHero({
           {bestSec != null && <div>ベスト: {bestSec.toFixed(1)} 秒</div>}
         </div>
       )}
-      <div className="trainingPage__longToneHint">ロングトーンは同じ音程を保てた最長時間で判定します。</div>
+      <div className="trainingPage__longToneHint">ロングトーンは有効な発声が続いた時間で判定します。</div>
     </div>
   );
 }

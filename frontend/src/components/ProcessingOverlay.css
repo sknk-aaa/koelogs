@@ -51,6 +51,31 @@
   color: color-mix(in srgb, var(--cardText, var(--text)) 78%, #667);
 }
 
+:root[data-theme-mode="dark"] .processingOverlay__backdrop {
+  background: rgba(3, 8, 16, 0.56);
+  backdrop-filter: blur(3px);
+}
+
+:root[data-theme-mode="dark"] .processingOverlay__card {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(8, 16, 30, 0.92);
+  color: #f2f8ff;
+  box-shadow: 0 24px 42px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme-mode="dark"] .processingOverlay__video {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .processingOverlay__title {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .processingOverlay__desc {
+  color: rgba(235, 244, 255, 0.86);
+}
+
 @media (max-width: 480px) {
   .processingOverlay__video {
     width: 132px;

@@ -11,6 +11,7 @@ module Api
       permitted = params.fetch(:me, {}).permit(
         :display_name,
         :goal_text,
+        :ai_custom_instructions,
         :public_profile_enabled,
         :public_goal_enabled,
         :ranking_participation_enabled,
@@ -18,7 +19,8 @@ module Api
         :password,
         :password_confirmation,
         :avatar_image_url,
-        :avatar_icon
+        :avatar_icon,
+        ai_improvement_tags: []
       )
 
       current_password = permitted.delete(:current_password).to_s
@@ -50,6 +52,8 @@ module Api
         avatar_icon: user.avatar_icon,
         avatar_image_url: user.avatar_image_url,
         goal_text: user.goal_text,
+        ai_custom_instructions: user.ai_custom_instructions,
+        ai_improvement_tags: Array(user.ai_improvement_tags),
         public_profile_enabled: user.public_profile_enabled,
         public_goal_enabled: user.public_goal_enabled,
         ranking_participation_enabled: user.ranking_participation_enabled,

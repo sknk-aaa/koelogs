@@ -74,8 +74,6 @@ module Gamification
       case rule_key
       when "training_log_saved"
         [ "first_log", "streak_3", "streak_7", "streak_30", "xp_500", "xp_1000", "xp_2000" ]
-      when "training_log_feedback_added"
-        [ "xp_500", "xp_1000", "xp_2000" ]
       when "monthly_log_saved"
         [ "monthly_memo_streak_1", "monthly_memo_streak_3", "monthly_memo_streak_6", "monthly_memo_streak_12", "xp_500", "xp_1000", "xp_2000" ]
       when "measurement_saved"

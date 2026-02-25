@@ -45,7 +45,6 @@ export type UpsertTrainingLogInput = {
   duration_min: number | null;
   menu_ids: number[]; // ✅ menus(string[]) -> menu_ids(number[])
   notes: string | null;
-  effect_feedbacks: Array<{ menu_id: number; improvement_tags: string[] }>;
 };
 
 export type UpsertTrainingLogResult =

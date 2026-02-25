@@ -16,6 +16,7 @@ import InsightsNotesPage from "./pages/InsightsNotesPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import SettingsPage from "./pages/SettingsPage";
+import AiSettingsPage from "./pages/AiSettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import MyPage from "./pages/MyPage";
 import CommunityPage from "./pages/CommunityPage";
@@ -53,6 +54,7 @@ export default function App() {
             <Route element={<RequireAuth />}>
               <Route path="/log/new" element={<LogNewPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/settings/ai" element={<AiSettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/mypage" element={<MyPage />} />
             </Route>

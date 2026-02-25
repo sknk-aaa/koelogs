@@ -41,7 +41,6 @@ const MENU_COLOR_PALETTE: { name: string; color: string }[] = [
   { name: "Gray", color: "#E5E7EB" },
   { name: "Blue", color: "#DBEAFE" },
 ];
-type EffectFeedbackPayload = { menu_id: number; improvement_tags: string[] };
 
 export default function LogNewPage() {
   const navigate = useNavigate();
@@ -62,7 +61,6 @@ export default function LogNewPage() {
   const [menuCatalog, setMenuCatalog] = useState<TrainingMenu[]>([]);
   const [menuToAdd, setMenuToAdd] = useState("");
   const [selectedMenuIds, setSelectedMenuIds] = useState<Set<number>>(() => new Set());
-  const [effectFeedbacks, setEffectFeedbacks] = useState<EffectFeedbackPayload[]>([]);
 
   // 追加時の色
   const [menuColorToAdd, setMenuColorToAdd] = useState(MENU_COLOR_PALETTE[0].color);
@@ -131,7 +129,6 @@ export default function LogNewPage() {
 
       const existing = res.data as TrainingLog | null;
       if (!existing) {
-        setEffectFeedbacks([]);
         setInitialLoading(false);
         return;
       }
@@ -143,25 +140,6 @@ export default function LogNewPage() {
         existing.menu_ids && existing.menu_ids.length ? existing.menu_ids : (existing.menus ?? []).map((m) => m.id);
 
       setSelectedMenuIds(new Set(ids));
-      const validEffectFeedbacks = Array.isArray(existing.effect_feedbacks)
-        ? existing.effect_feedbacks
-            .map((entry): EffectFeedbackPayload | null => {
-              const menuId = typeof entry?.menu_id === "number" && entry.menu_id > 0 ? entry.menu_id : null;
-              const improvementTags = Array.isArray(entry?.improvement_tags)
-                ? Array.from(
-                    new Set(
-                      entry.improvement_tags
-                        .map((tag) => (typeof tag === "string" ? tag.trim() : ""))
-                        .filter((tag) => tag.length > 0)
-                    )
-                  )
-                : [];
-              if (!menuId || improvementTags.length === 0) return null;
-              return { menu_id: menuId, improvement_tags: improvementTags };
-            })
-            .filter((v): v is EffectFeedbackPayload => v !== null)
-        : [];
-      setEffectFeedbacks(validEffectFeedbacks);
 
       setInitialLoading(false);
     })();
@@ -220,7 +198,6 @@ export default function LogNewPage() {
       duration_min: Number.isNaN(parsedDuration as number) ? null : parsedDuration,
       menu_ids: quickMode ? [] : selectedMenuIdsArray,
       notes: notes.trim() === "" ? null : notes,
-      effect_feedbacks: effectFeedbacks,
     };
 
     const result = await upsertTrainingLog(payload);

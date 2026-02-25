@@ -13,6 +13,7 @@ import {
 import { fetchTrainingMenus } from "../api/trainingMenus";
 import { useAuth } from "../features/auth/useAuth";
 import { emitGamificationRewards } from "../features/gamification/rewardBus";
+import { improvementTagLabel, improvementTagToneClass } from "../features/improvementTags/improvementTags";
 import { avatarIconPath } from "../features/profile/avatarIcons";
 import type { TrainingMenu } from "../types/trainingMenu";
 import { IMPROVEMENT_TAG_OPTIONS, type CommunityPost } from "../types/community";
@@ -22,31 +23,6 @@ import "./CommunityPage.css";
 
 type ListTab = "posts" | "favorites";
 type BrowseSort = "newest" | "by_tag" | "mine";
-const LEGACY_TAG_LABELS: Record<string, string> = {
-  pitch_stability: "音程精度",
-};
-
-function tagToneClass(tag: string): string {
-  return tag === "high_note_ease"
-    ? "communityPage__tag--purple"
-    : tag === "range_breadth"
-      ? "communityPage__tag--rose"
-      : tag === "pitch_accuracy" || tag === "pitch_stability"
-        ? "communityPage__tag--blue"
-      : tag === "passaggio_smoothness"
-        ? "communityPage__tag--teal"
-        : tag === "less_breathlessness"
-          ? "communityPage__tag--mint"
-          : tag === "volume_stability"
-            ? "communityPage__tag--orange"
-            : tag === "less_throat_tension"
-              ? "communityPage__tag--green"
-              : tag === "resonance_clarity"
-                ? "communityPage__tag--violet"
-                : tag === "long_tone_sustain"
-                  ? "communityPage__tag--sky"
-                  : "communityPage__tag--neutral";
-}
 
 export default function CommunityPage() {
   const navigate = useNavigate();
@@ -566,8 +542,8 @@ export default function CommunityPage() {
                     <div className="communityPage__tagsLabel">感じられた効果</div>
                     <div className="communityPage__tags communityPage__tags--field">
                       {post.improvement_tags.map((tag) => {
-                        const label = IMPROVEMENT_TAG_OPTIONS.find((x) => x.key === tag)?.label ?? LEGACY_TAG_LABELS[tag] ?? tag;
-                        const tagClass = tagToneClass(tag);
+                        const label = improvementTagLabel(tag);
+                        const tagClass = improvementTagToneClass(tag);
                         return (
                           <span key={`${post.id}-${tag}`} className={`communityPage__tag ${tagClass}`}>
                             {label}
@@ -666,7 +642,7 @@ export default function CommunityPage() {
                 <div className="communityPage__chipGrid">
                   {IMPROVEMENT_TAG_OPTIONS.map((opt) => {
                     const isOn = tags.includes(opt.key);
-                    const chipToneClass = tagToneClass(opt.key);
+                    const chipToneClass = improvementTagToneClass(opt.key);
                     return (
                       <label
                         key={opt.key}

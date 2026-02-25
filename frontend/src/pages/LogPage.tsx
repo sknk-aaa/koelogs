@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { fetchMonthlyLog, upsertMonthlyLog } from "../api/monthlyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
@@ -926,9 +926,13 @@ export default function LogPage() {
                 <div className="logAi__meta">目標と直近ログから、今日のおすすめを作成</div>
               </div>
               <div className="logAi__headerRight">
-                <div className="logAi__pill logAi__pill--sample">
-                  {guestMode && isDayMode ? "ゲスト" : goalText ? "作成準備OK" : "目標未設定"}
-                </div>
+                {(guestMode && isDayMode) && <div className="logAi__pill logAi__pill--sample">ゲスト</div>}
+                {(!guestMode && !goalText) && <div className="logAi__pill logAi__pill--sample">目標未設定</div>}
+                {!guestMode && (
+                  <Link to="/settings/ai" className="logPage__aiSettingsLink">
+                    AIカスタム指示
+                  </Link>
+                )}
                 <InfoModal
                   title="おすすめは何をもとに作られますか？"
                   bodyClassName="logPage__aiInfoBody"

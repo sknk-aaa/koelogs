@@ -89,6 +89,7 @@ export default function AppHeader() {
           title: "設定",
           items: [
             { label: "設定", onClick: () => navigate("/settings"), to: "/settings", match: "exact" },
+            { label: "AIカスタム指示", onClick: () => navigate("/settings/ai"), to: "/settings/ai", match: "exact" },
           ],
         },
         {

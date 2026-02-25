@@ -179,7 +179,6 @@ module Gamification
 
     XP_RULE_POINTS = {
       "training_log_saved" => 10,
-      "training_log_feedback_added" => 5,
       "monthly_log_saved" => 20,
       "measurement_saved" => 10,
       "ai_recommendation_generated" => 15,

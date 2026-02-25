@@ -675,6 +675,25 @@
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
 
+.logPage__aiSettingsLink {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.logPage__aiSettingsLink:hover {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+}
+
 .logPage__aiInfoBtn:hover {
   border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
   background: color-mix(in srgb, var(--accent) 14%, var(--surface));
@@ -955,6 +974,17 @@
 :root[data-theme-mode="dark"] .logPage__aiInfoBtn {
   border-color: rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiSettingsLink {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logPage__aiSettingsLink:hover {
+  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.22));
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.08));
 }
 
 :root[data-theme-mode="dark"] .logPage__aiInfoBtn:hover {

@@ -6,6 +6,7 @@ import "./styles/base.css";
 import "./styles/theme.css";
 import "./styles/page.css";
 import "./styles/drawer.css";
+import "./styles/improvement-tags.css";
 
 import { ThemeProvider } from "./features/theme/ThemeProvider";
 import { SettingsProvider } from "./features/settings/SettingsProvider";

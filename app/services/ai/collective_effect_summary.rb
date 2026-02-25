@@ -46,7 +46,7 @@ module Ai
 
         {
           tag_key: tag,
-          tag_label: TrainingLogFeedback::TAG_LABELS[tag] || tag,
+          tag_label: ImprovementTagCatalog::LABELS[tag] || tag,
           top_menus: sorted
         }
       end.compact
@@ -66,7 +66,7 @@ module Ai
         .map(&:strip)
         .reject(&:blank?)
         .uniq
-        .select { |tag| TrainingLogFeedback::IMPROVEMENT_TAGS.include?(tag) }
+        .select { |tag| ImprovementTagCatalog::TAGS.include?(tag) }
     end
   end
 end

@@ -1,6 +1,7 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 import type { CommunityPost, CommunityProfileDetail, CommunityRankings } from "../types/community";
+import type { SaveRewards } from "../types/gamification";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
@@ -47,7 +48,7 @@ export async function createCommunityPost(input: {
   improvement_tags: string[];
   comment?: string;
   published?: boolean;
-}): Promise<CommunityPost> {
+}): Promise<{ data: CommunityPost; rewards: SaveRewards | null }> {
   const res = await fetch(`${API_BASE}/api/community/posts`, {
     method: "POST",
     credentials: "include",
@@ -66,7 +67,10 @@ export async function createCommunityPost(input: {
     throw new Error(errors.join(", ") || "Failed to create community post");
   }
   if (!isRecord(json) || !isRecord(json.data)) throw new Error("Unexpected response");
-  return json.data as CommunityPost;
+  return {
+    data: json.data as CommunityPost,
+    rewards: (isRecord(json) && "rewards" in json ? (json.rewards as SaveRewards | null | undefined) : null) ?? null,
+  };
 }
 
 export async function updateCommunityPost(

@@ -11,6 +11,8 @@ import MiniPreview, { type MeasurementPreviewKind } from "../features/measuremen
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import { createMeasurement, fetchMeasurements, updateMeasurement, type MeasurementRun } from "../api/measurements";
+import { emitGamificationRewards } from "../features/gamification/rewardBus";
+import type { SaveRewards } from "../types/gamification";
 import ProcessingOverlay from "../components/ProcessingOverlay";
 import { RANGE_MISSION_FLAG } from "../features/missions/constants";
 
@@ -698,7 +700,7 @@ export default function TrainingPage() {
     try {
       setMeasurementSessionSaving(true);
       const shouldAutoIncludeRange = missionRangeAutoInclude && activeMeasurementKey === "range";
-      const savedRun = await persistMeasurement({
+      const saved = await persistMeasurement({
         systemKey: activeMeasurementKey,
         peakNote,
         lowestNote,
@@ -714,6 +716,7 @@ export default function TrainingPage() {
         pitchNoteCount,
         includeInInsights: shouldAutoIncludeRange,
       });
+      emitGamificationRewards(saved.rewards);
       if (shouldAutoIncludeRange) {
         setMissionRangeAutoInclude(false);
         if (typeof window !== "undefined") {
@@ -722,8 +725,8 @@ export default function TrainingPage() {
         }
       }
       return buildMeasurementInstantResult({
-        runId: savedRun.id,
-        includeInInsights: !!savedRun.include_in_insights,
+        runId: saved.run.id,
+        includeInInsights: !!saved.run.include_in_insights,
         source,
         systemKey: activeMeasurementKey,
         lowestNote,
@@ -1525,9 +1528,9 @@ async function persistMeasurement({
   pitchAvgCentsError: number | null;
   pitchNoteCount: number;
   includeInInsights?: boolean;
-}): Promise<MeasurementRun> {
+}): Promise<{ run: MeasurementRun; rewards: SaveRewards | null }> {
   if (systemKey === "range") {
-    return createMeasurement({
+    const created = await createMeasurement({
       measurement_type: "range",
       include_in_insights: includeInInsights,
       range_result: {
@@ -1539,10 +1542,11 @@ async function persistMeasurement({
         falsetto_top_note: falsettoTopNote,
       },
     });
+    return { run: created.data, rewards: created.rewards };
   }
 
   if (systemKey === "long_tone") {
-    return createMeasurement({
+    const created = await createMeasurement({
       measurement_type: "long_tone",
       include_in_insights: includeInInsights,
       long_tone_result: {
@@ -1550,10 +1554,11 @@ async function persistMeasurement({
         sustain_note: sustainNote,
       },
     });
+    return { run: created.data, rewards: created.rewards };
   }
 
   if (systemKey === "pitch_accuracy") {
-    return createMeasurement({
+    const created = await createMeasurement({
       measurement_type: "pitch_accuracy",
       include_in_insights: includeInInsights,
       pitch_accuracy_result: {
@@ -1562,6 +1567,7 @@ async function persistMeasurement({
         note_count: pitchNoteCount,
       },
     });
+    return { run: created.data, rewards: created.rewards };
   }
 
   const minLoudness = loudnessDbSamples.length ? Math.min(...loudnessDbSamples) : null;
@@ -1569,7 +1575,7 @@ async function persistMeasurement({
   const rangeDb = minLoudness != null && maxLoudness != null ? maxLoudness - minLoudness : null;
   const score = computeWithinBandRatePct(loudnessDbSamples, avgLoudnessDb, 3, 3);
   const ratio = score != null ? Number((score / 100).toFixed(6)) : null;
-  return createMeasurement({
+  const created = await createMeasurement({
     measurement_type: "volume_stability",
     include_in_insights: includeInInsights,
     volume_stability_result: {
@@ -1581,6 +1587,7 @@ async function persistMeasurement({
       loudness_range_pct: score,
     },
   });
+  return { run: created.data, rewards: created.rewards };
 }
 
 function useMediaQuery(query: string) {

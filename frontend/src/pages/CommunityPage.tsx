@@ -12,6 +12,7 @@ import {
 } from "../api/community";
 import { fetchTrainingMenus } from "../api/trainingMenus";
 import { useAuth } from "../features/auth/useAuth";
+import { emitGamificationRewards } from "../features/gamification/rewardBus";
 import { avatarIconPath } from "../features/profile/avatarIcons";
 import type { TrainingMenu } from "../types/trainingMenu";
 import { IMPROVEMENT_TAG_OPTIONS, type CommunityPost } from "../types/community";
@@ -241,19 +242,24 @@ export default function CommunityPage() {
     setNotice(null);
     try {
       const trimmedComment = comment.trim();
-      const saved = editingPost
-        ? await updateCommunityPost(editingPost.id, {
-            training_menu_id: menuId,
-            improvement_tags: tags,
-            comment: trimmedComment,
-          })
-        : await createCommunityPost({
-            training_menu_id: menuId,
-            improvement_tags: tags,
-            comment: trimmedComment || undefined,
-          });
+      let savedPost: CommunityPost;
+      if (editingPost) {
+        savedPost = await updateCommunityPost(editingPost.id, {
+          training_menu_id: menuId,
+          improvement_tags: tags,
+          comment: trimmedComment,
+        });
+      } else {
+        const created = await createCommunityPost({
+          training_menu_id: menuId,
+          improvement_tags: tags,
+          comment: trimmedComment || undefined,
+        });
+        savedPost = created.data;
+        emitGamificationRewards(created.rewards);
+      }
       await reloadAllLists();
-      setHighlightPostId(saved.id);
+      setHighlightPostId(savedPost.id);
       if (!editingPost) setListTab("posts");
       setNotice(editingPost ? "投稿を更新しました。" : "投稿しました。");
       setComment("");

@@ -21,7 +21,11 @@ module Ai
       end
 
       User.where(id: contributor_ids).find_each do |user|
-        Gamification::Awarder.call(user: user, grants: [])
+        Gamification::Awarder.call(
+          user: user,
+          grants: [],
+          metric_hints: [ :ai_contribution_count ]
+        )
       end
     end
 

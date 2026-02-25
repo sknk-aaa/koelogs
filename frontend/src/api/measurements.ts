@@ -1,3 +1,4 @@
+import type { SaveRewards } from "../types/gamification";
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export type MeasurementType = "range" | "long_tone" | "volume_stability" | "pitch_accuracy";
@@ -66,7 +67,7 @@ export async function createMeasurement(input: {
     accuracy_score?: number | null;
     note_count?: number | null;
   };
-}): Promise<MeasurementRun> {
+}): Promise<{ data: MeasurementRun; rewards: SaveRewards | null }> {
   const res = await fetch(`${API_BASE}/api/measurements`, {
     method: "POST",
     credentials: "include",
@@ -74,7 +75,12 @@ export async function createMeasurement(input: {
     body: JSON.stringify(input),
   });
 
-  const json = (await res.json().catch(() => ({}))) as { data?: MeasurementRun; errors?: string[]; error?: string };
+  const json = (await res.json().catch(() => ({}))) as {
+    data?: MeasurementRun;
+    rewards?: SaveRewards | null;
+    errors?: string[];
+    error?: string;
+  };
   if (!res.ok) {
     let message = "Failed to create measurement";
     if (Array.isArray(json.errors) && json.errors.length > 0) {
@@ -87,7 +93,7 @@ export async function createMeasurement(input: {
     throw new Error(message);
   }
   if (!json.data) throw new Error("Missing measurement data");
-  return json.data;
+  return { data: json.data, rewards: json.rewards ?? null };
 }
 
 export async function fetchLatestMeasurements(): Promise<{

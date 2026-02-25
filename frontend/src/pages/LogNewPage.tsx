@@ -9,6 +9,7 @@ import type { SaveRewards } from "../types/gamification";
 import { fetchTrainingMenus, createTrainingMenu, updateTrainingMenu } from "../api/trainingMenus";
 import type { TrainingMenu } from "../types/trainingMenu";
 import { useSettings } from "../features/settings/useSettings";
+import { mergeRewards } from "../features/gamification/rewardBus";
 import ColoredTag from "../components/ColoredTag";
 
 import "./LogNewPage.css";
@@ -280,9 +281,10 @@ export default function LogNewPage() {
 
     setAiPromptOpen(false);
     setAiPromptLoading(false);
+    const mergedRewards = mergeRewards(pendingRewards, res.rewards);
     navigate(`/log?mode=day&date=${encodeURIComponent(aiPromptDate)}`, {
       replace: true,
-      state: pendingRewards ? { gamificationToast: pendingRewards } : null,
+      state: mergedRewards ? { gamificationToast: mergedRewards } : null,
     });
   };
 

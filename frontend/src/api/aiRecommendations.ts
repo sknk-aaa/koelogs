@@ -3,6 +3,7 @@ import type {
   AiRecommendationCreateResponse,
   AiRecommendationShowResponse,
 } from "../types/aiRecommendation";
+import type { SaveRewards } from "../types/gamification";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -113,7 +114,7 @@ export async function fetchAiRecommendationByDate(
 export async function createAiRecommendation(
   payload?: { range_days?: number; date?: string }
 ): Promise<
-  | { ok: true; data: AiRecommendation; status: 200 | 201 }
+  | { ok: true; data: AiRecommendation; rewards: SaveRewards | null; status: 200 | 201 }
   | { ok: false; status: number; errors: string[] }
 > {
   const res = await fetch(`${API_BASE}/api/ai_recommendations`, {
@@ -127,7 +128,9 @@ export async function createAiRecommendation(
 
   if (res.ok) {
     if (isCreateSuccessResponse(json)) {
-      return { ok: true, data: json.data, status: res.status as 200 | 201 };
+      const rewards =
+        isRecord(json) && "rewards" in json ? (json.rewards as SaveRewards | null | undefined) ?? null : null;
+      return { ok: true, data: json.data, rewards, status: res.status as 200 | 201 };
     }
     // 200/201なのに data が無い/壊れてる → バグ扱いで返す
     return { ok: false, status: res.status, errors: ["Invalid response format"] };

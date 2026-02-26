@@ -1,8 +1,8 @@
 // frontend/src/pages/TrainingPage.tsx
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import type { ScaleTrack, ScaleType, Tempo } from "../api/scaleTracks";
-import { SCALE_TYPES, TEMPOS } from "../features/training/constants";
+import type { ScaleRange, ScaleTrack, ScaleType } from "../api/scaleTracks";
+import { SCALE_RANGES, SCALE_TYPES } from "../features/training/constants";
 import { useScaleTracks } from "../features/training/hooks/useScaleTracks";
 import { useAudioPlayer } from "../features/training/hooks/useAudioPlayer";
 import AudioPlayer from "../features/training/components/AudioPlayer";
@@ -161,7 +161,7 @@ export default function TrainingPage() {
   const { me, isLoading: authLoading } = useAuth();
 
   const [scaleType, setScaleType] = useState<ScaleType>("5tone");
-  const [tempo, setTempo] = useState<Tempo>(120);
+  const [rangeType, setRangeType] = useState<ScaleRange>("mid");
   const [activeMeasurementKey, setActiveMeasurementKey] = useState<MeasurementSystemKey>("range");
   const [measurementMetricInfoOpen, setMeasurementMetricInfoOpen] = useState(false);
   const [measurementError, setMeasurementError] = useState<string | null>(null);
@@ -224,8 +224,8 @@ export default function TrainingPage() {
   const replayRafRef = useStateRef<number | null>(null);
 
   const selected: ScaleTrack | null = useMemo(() => {
-    return tracks.find((t) => t.scale_type === scaleType && t.tempo === tempo) ?? null;
-  }, [tracks, scaleType, tempo]);
+    return tracks.find((t) => t.scale_type === scaleType && t.range_type === rangeType) ?? null;
+  }, [tracks, rangeType, scaleType]);
   const activeMeasurement = useMemo(
     () => MEASUREMENT_SHORTCUTS.find((v) => v.systemKey === activeMeasurementKey) ?? null,
     [activeMeasurementKey]
@@ -1512,7 +1512,7 @@ export default function TrainingPage() {
             <SessionStepHead
               badge="1"
               title="トレーニングメニューを選択"
-              subtitle="スケールとテンポを選び、すぐに練習を始められます。"
+              subtitle="スケールと音域タイプを選び、すぐに練習を始められます。"
               titleClassName="trainingPage__measurementStepTitle--record"
               className="trainingPage__measurementStepHead--training"
             />
@@ -1529,11 +1529,11 @@ export default function TrainingPage() {
                 defaultVolume={settings.defaultVolume}
                 loopEnabled={settings.loopEnabled}
                 scaleType={scaleType}
-                tempo={tempo}
+                rangeType={rangeType}
                 scaleTypes={SCALE_TYPES}
-                tempos={TEMPOS}
+                rangeTypes={SCALE_RANGES}
                 onChangeScaleType={setScaleType}
-                onChangeTempo={setTempo}
+                onChangeRangeType={setRangeType}
               />
             </div>
           </div>
@@ -1739,7 +1739,7 @@ export default function TrainingPage() {
                             <details className="trainingPage__measurementModeDetails">
                               <summary className="trainingPage__measurementModeSummary">Play with track</summary>
                               <div className="trainingPage__measurementModeText">
-                                比較精度を上げるには、毎回同じスケール/テンポで「音源と同時に録音」するのが効果的です。
+                                比較精度を上げるには、毎回同じスケール/音域タイプで「音源と同時に録音」するのが効果的です。
                               </div>
                               <label className="trainingPage__measurementToggle">
                                 <input

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_25_143000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_26_093000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -149,9 +149,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_25_143000) do
   create_table "scale_tracks", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "file_path"
+    t.string "range_type", default: "mid", null: false
     t.string "scale_type"
     t.integer "tempo"
     t.datetime "updated_at", null: false
+    t.index ["scale_type", "range_type"], name: "index_scale_tracks_on_scale_type_and_range_type"
   end
 
   create_table "training_log_menus", force: :cascade do |t|

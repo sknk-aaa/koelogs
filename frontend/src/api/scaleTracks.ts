@@ -1,10 +1,10 @@
-export type ScaleType = "5tone" | "octave";
-export type Tempo = 100 | 120 | 140;
+export type ScaleType = "5tone" | "triad" | "Descending5tone" | "octave" | "Risingoctave";
+export type ScaleRange = "low" | "mid" | "high";
 
 export type ScaleTrack = {
   id: number;
   scale_type: ScaleType;
-  tempo: Tempo;
+  range_type: ScaleRange;
   file_path: string;
 };
 

@@ -162,7 +162,7 @@ export default function HamburgerDrawer({
               <div className="drawer__sectionTitle">{sec.title}</div>
 
               <div className="drawer__group">
-                {sec.items.map((it) => {
+                {sec.items.map((it, index) => {
                   const active = isActive(it);
                   const className = [
                     "drawer__item",
@@ -185,6 +185,7 @@ export default function HamburgerDrawer({
                       }}
                       style={{
                         ...styles.item,
+                        ...(index > 0 ? styles.itemWithDivider : null),
                         ...(it.variant === "danger" ? styles.itemDanger : null),
                         ...(it.disabled ? styles.itemDisabled : null),
                         ...(active ? styles.itemActive : null),
@@ -295,6 +296,9 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 10,
+  },
+  itemWithDivider: {
+    borderTop: "1px solid var(--drawerBorder)",
   },
   itemLabel: { fontSize: 14, fontWeight: 800 },
   itemLabelActive: { fontWeight: 900 },

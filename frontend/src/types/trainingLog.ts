@@ -19,9 +19,6 @@ export type TrainingLog = {
   menu_ids?: number[];
 
   notes: string | null;
-  effect_feedbacks?: Array<{ menu_id: number; improvement_tags: string[] }>;
-  effective_menu_ids?: number[];
-  improvement_tags?: string[];
   updated_at?: string | null;
 };
 

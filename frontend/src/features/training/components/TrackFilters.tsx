@@ -1,30 +1,40 @@
 // frontend/src/features/training/components/TrackFilters.tsx
 import { useState } from "react";
-import type { ScaleType, Tempo } from "../../../api/scaleTracks";
+import type { ScaleRange, ScaleType } from "../../../api/scaleTracks";
 import "./TrackFilters.css";
 
 type Props = {
   scaleType: ScaleType;
-  tempo: Tempo;
+  rangeType: ScaleRange;
   scaleTypes: readonly ScaleType[];
-  tempos: readonly Tempo[];
+  rangeTypes: readonly ScaleRange[];
   disabled?: boolean;
   onChangeScaleType: (v: ScaleType) => void;
-  onChangeTempo: (v: Tempo) => void;
+  onChangeRangeType: (v: ScaleRange) => void;
 };
 
 function labelScale(t: ScaleType) {
-  return t === "5tone" ? "5 tone" : "octave";
+  if (t === "5tone") return "5tone";
+  if (t === "Descending5tone") return "下降5tone";
+  if (t === "triad") return "トライアド";
+  if (t === "Risingoctave") return "上昇オクターブ";
+  return "オクターブ+1";
+}
+
+function labelRange(r: ScaleRange) {
+  if (r === "low") return "低";
+  if (r === "mid") return "中";
+  return "高";
 }
 
 export default function TrackFilters({
   scaleType,
-  tempo,
+  rangeType,
   scaleTypes,
-  tempos,
+  rangeTypes,
   disabled = false,
   onChangeScaleType,
-  onChangeTempo,
+  onChangeRangeType,
 }: Props) {
   const [selectFocused, setSelectFocused] = useState(false);
 
@@ -65,25 +75,25 @@ export default function TrackFilters({
         </div>
       </div>
 
-      {/* テンポ：ボタン（使いやすさ優先で維持） */}
+      {/* 音域タイプ：ボタン */}
       <div className="trackFilters__block">
         <div className="trackFilters__labelRow">
-          <div className="trackFilters__label">テンポ</div>
+          <div className="trackFilters__label">音域タイプ</div>
         </div>
 
         <div className="trackFilters__grid3">
-          {tempos.map((t) => {
-            const active = t === tempo;
+          {rangeTypes.map((r) => {
+            const active = r === rangeType;
             return (
               <button
-                key={t}
+                key={r}
                 type="button"
                 disabled={disabled}
-                onClick={() => onChangeTempo(t)}
-                className={`trackFilters__tempoBtn${active ? " is-active" : ""}`}
+                onClick={() => onChangeRangeType(r)}
+                className={`trackFilters__rangeBtn${active ? " is-active" : ""}`}
                 aria-pressed={active}
               >
-                {t} BPM
+                {labelRange(r)}
               </button>
             );
           })}

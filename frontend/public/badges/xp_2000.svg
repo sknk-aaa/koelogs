@@ -1,0 +1,17 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgX2000" x1="8" y1="88" x2="88" y2="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#42AFE8"/>
+      <stop offset="1" stop-color="#7A62D8"/>
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="40" fill="url(#bgX2000)"/>
+  <circle cx="48" cy="41" r="23" stroke="rgba(255,255,255,0.38)" stroke-width="2"/>
+  <path d="M48 16L57 29L72 33L61 44L64 61L48 53L32 61L35 44L24 33L39 29L48 16Z" fill="rgba(255,255,255,0.93)"/>
+  <circle cx="48" cy="40" r="10.5" fill="#5578DA"/>
+  <path d="M48 20L52 24L48 28L44 24L48 20Z" fill="rgba(255,255,255,0.95)"/>
+  <path d="M24 26L27 31L33 33L27 35L24 40L21 35L15 33L21 31L24 26Z" fill="rgba(255,255,255,0.9)"/>
+  <path d="M72 24L74.5 28.5L80 31L74.5 33.5L72 38L69.5 33.5L64 31L69.5 28.5L72 24Z" fill="rgba(255,255,255,0.88)"/>
+  <rect x="18" y="64" width="60" height="14" rx="7" fill="rgba(255,255,255,0.97)"/>
+  <text x="48" y="74" text-anchor="middle" font-size="10" font-weight="900" fill="#2A3F72">XP 2000</text>
+</svg>

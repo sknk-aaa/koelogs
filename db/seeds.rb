@@ -1,14 +1,17 @@
 ScaleTrack.delete_all
 
-scale_types = [ "5tone", "octave" ]
-tempos = [ 100, 120, 140 ]
+scale_types = [ "5tone", "triad", "Descending5tone", "octave", "Risingoctave" ]
+range_types = [ "low", "mid", "high" ]
+# Tempo is fixed per audio source and not user-selectable on TrainingPage.
+default_tempo = 100
 
 scale_types.each do |t|
-  tempos.each do |bpm|
+  range_types.each do |range|
     ScaleTrack.create!(
       scale_type: t,
-      tempo: bpm,
-      file_path: "/scales/#{t}_#{bpm}.mp3"
+      range_type: range,
+      tempo: default_tempo,
+      file_path: "/scales/#{t}-#{range}.mp3"
     )
   end
 end

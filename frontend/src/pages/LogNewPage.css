@@ -237,6 +237,13 @@
   border-color: var(--lognew-border-dark);
 }
 
+:root[data-theme-mode="dark"] .logNew__input:focus,
+:root[data-theme-mode="dark"] .logNew__textarea:focus {
+  border-color: color-mix(in srgb, var(--accent) 56%, #243244);
+  outline: 2px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  outline-offset: 1px;
+}
+
 :root[data-theme-mode="dark"] .logNew__input::placeholder,
 :root[data-theme-mode="dark"] .logNew__textarea::placeholder {
   color: color-mix(in srgb, #0b1220 90%, #ffffff 10%);
@@ -248,6 +255,7 @@
 :root[data-theme-mode="dark"] .logNew__effectBox {
   background: #ffffff;
   color: var(--on-light-2);
+  border-color: var(--lognew-border-dark);
 }
 
 :root[data-theme-mode="dark"] .logNew__aiQualityTitle {

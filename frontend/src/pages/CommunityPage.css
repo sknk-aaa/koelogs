@@ -389,6 +389,13 @@
   margin-bottom: 12px;
 }
 
+.communityPage__notice {
+  color: #0f5132;
+  border: 1px solid rgba(25, 135, 84, 0.25);
+  background: rgba(25, 135, 84, 0.08);
+  margin-bottom: 12px;
+}
+
 .communityPage__list {
   display: grid;
   gap: 10px;
@@ -560,6 +567,68 @@
   white-space: nowrap;
 }
 
+.communityPage__cardHeaderMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.communityPage__postActions {
+  position: relative;
+}
+
+.communityPage__postActionTrigger {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(43, 82, 132, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+  color: #36567a;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+}
+
+.communityPage__postActionMenu {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  z-index: 10;
+  min-width: 124px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 12px 24px rgba(17, 29, 56, 0.18);
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.communityPage__postActionItem {
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.communityPage__postActionItem:hover {
+  background: color-mix(in srgb, var(--accent) 12%, #f3f7ff);
+}
+
+.communityPage__postActionItem.is-danger {
+  color: #b42318;
+}
+
 .communityPage__cardBody {
   display: grid;
   gap: 8px;
@@ -658,7 +727,9 @@
 }
 
 .communityPage__tag--blue,
-.communityPage__chip.is-on.communityPage__tag--blue {
+.communityPage__chip.is-on.communityPage__tag--blue,
+.communityPage__tag.improvementTagTone--blue,
+.communityPage__chip.is-on.improvementTagTone--blue {
   /* 深めのブルー */
   background: #e9f1ff;
   border-color: #8fb0ff;
@@ -666,7 +737,9 @@
 }
 
 .communityPage__tag--sky,
-.communityPage__chip.is-on.communityPage__tag--sky {
+.communityPage__chip.is-on.communityPage__tag--sky,
+.communityPage__tag.improvementTagTone--sky,
+.communityPage__chip.is-on.improvementTagTone--sky {
   /* シアン（空色） */
   background: #e8fbff;
   border-color: #5fe0ff;
@@ -674,15 +747,29 @@
 }
 
 .communityPage__tag--purple,
-.communityPage__chip.is-on.communityPage__tag--purple {
+.communityPage__chip.is-on.communityPage__tag--purple,
+.communityPage__tag.improvementTagTone--purple,
+.communityPage__chip.is-on.improvementTagTone--purple {
   /* しっかり紫 */
   background: #f3edff;
   border-color: #a98bff;
   color: #5b21b6;
 }
 
+.communityPage__tag--rose,
+.communityPage__chip.is-on.communityPage__tag--rose,
+.communityPage__tag.improvementTagTone--rose,
+.communityPage__chip.is-on.improvementTagTone--rose {
+  /* ローズ（音域） */
+  background: #ffedf3;
+  border-color: #ff90b4;
+  color: #9f1249;
+}
+
 .communityPage__tag--violet,
-.communityPage__chip.is-on.communityPage__tag--violet {
+.communityPage__chip.is-on.communityPage__tag--violet,
+.communityPage__tag.improvementTagTone--violet,
+.communityPage__chip.is-on.improvementTagTone--violet {
   /* ピンク寄り（マゼンタ） */
   background: #fff0f7;
   border-color: #ff7bb8;
@@ -690,7 +777,9 @@
 }
 
 .communityPage__tag--green,
-.communityPage__chip.is-on.communityPage__tag--green {
+.communityPage__chip.is-on.communityPage__tag--green,
+.communityPage__tag.improvementTagTone--green,
+.communityPage__chip.is-on.improvementTagTone--green {
   /* はっきり緑 */
   background: #ebfff0;
   border-color: #55d48a;
@@ -698,7 +787,9 @@
 }
 
 .communityPage__tag--mint,
-.communityPage__chip.is-on.communityPage__tag--mint {
+.communityPage__chip.is-on.communityPage__tag--mint,
+.communityPage__tag.improvementTagTone--mint,
+.communityPage__chip.is-on.improvementTagTone--mint {
   /* ミント（黄緑寄り） */
   background: #f3ffe8;
   border-color: #b6f26a;
@@ -706,7 +797,9 @@
 }
 
 .communityPage__tag--orange,
-.communityPage__chip.is-on.communityPage__tag--orange {
+.communityPage__chip.is-on.communityPage__tag--orange,
+.communityPage__tag.improvementTagTone--orange,
+.communityPage__chip.is-on.improvementTagTone--orange {
   /* オレンジ */
   background: #fff2e0;
   border-color: #ff9f4a;
@@ -714,15 +807,115 @@
 }
 
 .communityPage__tag--teal,
-.communityPage__chip.is-on.communityPage__tag--teal {
+.communityPage__chip.is-on.communityPage__tag--teal,
+.communityPage__tag.improvementTagTone--teal,
+.communityPage__chip.is-on.improvementTagTone--teal {
   /* ティール（青緑） */
   background: #e8fff9;
   border-color: #45e5c1;
   color: #0f766e;
 }
 
+/* =========================================
+   Dark Mode Tag Colors
+   前提: :root[data-theme-mode="dark"]
+========================================= */
+
+/* BLUE */
+:root[data-theme-mode="dark"] .communityPage__tag--blue,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.communityPage__tag--blue,
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--blue,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--blue {
+  background: #1e293b;
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+/* SKY */
+:root[data-theme-mode="dark"] .communityPage__tag--sky,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.communityPage__tag--sky,
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--sky,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--sky {
+  background: #0f2a30;
+  border-color: #22d3ee;
+  color: #67e8f9;
+}
+
+/* PURPLE */
+:root[data-theme-mode="dark"] .communityPage__tag--purple,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.communityPage__tag--purple,
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--purple,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--purple {
+  background: #2a1f3d;
+  border-color: #8b5cf6;
+  color: #c4b5fd;
+}
+
+/* ROSE */
+:root[data-theme-mode="dark"] .communityPage__tag--rose,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.communityPage__tag--rose,
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--rose,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--rose {
+  background: #3a1f2c;
+  border-color: #f43f5e;
+  color: #fda4af;
+}
+
+/* VIOLET */
+:root[data-theme-mode="dark"] .communityPage__tag--violet,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.communityPage__tag--violet,
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--violet,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--violet {
+  background: #351f33;
+  border-color: #ec4899;
+  color: #f9a8d4;
+}
+
+/* GREEN */
+:root[data-theme-mode="dark"] .communityPage__tag--green,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.communityPage__tag--green,
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--green,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--green {
+  background: #1f3326;
+  border-color: #22c55e;
+  color: #86efac;
+}
+
+/* MINT */
+:root[data-theme-mode="dark"] .communityPage__tag--mint,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.communityPage__tag--mint,
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--mint,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--mint {
+  background: #25331f;
+  border-color: #a3e635;
+  color: #d9f99d;
+}
+
+/* ORANGE */
+:root[data-theme-mode="dark"] .communityPage__tag--orange,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.communityPage__tag--orange,
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--orange,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--orange {
+  background: #3a2619;
+  border-color: #f97316;
+  color: #fdba74;
+}
+
+/* TEAL */
+:root[data-theme-mode="dark"] .communityPage__tag--teal,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.communityPage__tag--teal,
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--teal,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--teal {
+  background: #153430;
+  border-color: #14b8a6;
+  color: #5eead4;
+}
+
+
 .communityPage__tag--neutral,
-.communityPage__chip.is-on.communityPage__tag--neutral {
+.communityPage__chip.is-on.communityPage__tag--neutral,
+.communityPage__tag.improvementTagTone--neutral,
+.communityPage__chip.is-on.improvementTagTone--neutral {
   background: #f6f8fb;
   border-color: #d8e0ee;
   color: #4a5a74;
@@ -894,6 +1087,9 @@
 
 :root[data-theme-mode="dark"] .communityPage__favoriteBtnLabel {
   color: var(--on-light-1);
+}
+:root[data-theme-mode="dark"] .communityPage__favoriteBtnCount {
+  color: #16284a;
 }
 
 .communityPage__favoriteBtn:disabled {
@@ -1412,6 +1608,30 @@
 :root[data-theme-mode="dark"] .communityPage__cardDate {
   color: var(--community-faint);
 }
+:root[data-theme-mode="dark"] .communityPage__notice {
+  color: #d7ffe7;
+  border-color: rgba(98, 216, 160, 0.35);
+  background: rgba(16, 99, 66, 0.34);
+}
+:root[data-theme-mode="dark"] .communityPage__postActionTrigger {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__postActionMenu {
+  border-color: var(--community-border);
+  background: var(--community-card);
+  box-shadow: 0 16px 24px rgba(0, 0, 0, 0.45);
+}
+:root[data-theme-mode="dark"] .communityPage__postActionItem {
+  color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__postActionItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+:root[data-theme-mode="dark"] .communityPage__postActionItem.is-danger {
+  color: #ff9f97;
+}
 
 /* タイトル（いま青系/ライト想定なのでダークで読みやすく） */
 :root[data-theme-mode="dark"] .communityPage__cardTitleMain {
@@ -1488,6 +1708,9 @@
 :root[data-theme-mode="dark"] .communityPage__modalFooter {
   background: var(--community-card);
   box-shadow: 0 -14px 24px rgba(0, 0, 0, 0.50);
+}
+:root[data-theme-mode="dark"] .communityPage__submit {
+  color: #000000;
 }
 :root[data-theme-mode="dark"] .communityPage__modalClose {
   background: rgba(255, 255, 255, 0.06);

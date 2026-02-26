@@ -29,7 +29,7 @@ class CommunityPost < ApplicationRecord
   end
 
   def improvement_tags_are_allowed
-    invalid = Array(improvement_tags) - TrainingLogFeedback::IMPROVEMENT_TAGS
+    invalid = Array(improvement_tags) - ImprovementTagCatalog::TAGS
     return if invalid.empty?
 
     errors.add(:improvement_tags, "contains invalid tags: #{invalid.join(', ')}")

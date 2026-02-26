@@ -7,6 +7,8 @@ export type Me = {
   avatar_icon: string;
   avatar_image_url: string | null;
   goal_text: string | null;
+  ai_custom_instructions: string | null;
+  ai_improvement_tags: string[];
   public_profile_enabled: boolean;
   public_goal_enabled: boolean;
   ranking_participation_enabled: boolean;
@@ -40,6 +42,8 @@ export async function updateMe(input: {
   avatar_icon?: string;
   avatar_image_url?: string;
   goal_text?: string;
+  ai_custom_instructions?: string;
+  ai_improvement_tags?: string[];
   public_profile_enabled?: boolean;
   public_goal_enabled?: boolean;
   ranking_participation_enabled?: boolean;

@@ -42,12 +42,12 @@
   background: color-mix(in srgb, var(--accent) 16%, #0b1220);
 }
 
-:root[data-theme-mode="dark"] .audioPlayer__tempoBtn.trainingPage__measurementMiniBtn {
+:root[data-theme-mode="dark"] .audioPlayer__rangeBtn.trainingPage__measurementMiniBtn {
   background: color-mix(in srgb, #0b1220 86%, var(--on-dark-1) 14%);
   color: var(--on-dark-2);
 }
 
-:root[data-theme-mode="dark"] .audioPlayer__tempoBtn.trainingPage__measurementMiniBtn.is-active {
+:root[data-theme-mode="dark"] .audioPlayer__rangeBtn.trainingPage__measurementMiniBtn.is-active {
   background: color-mix(in srgb, var(--accent) 26%, #0b1220);
   color: var(--on-dark-1);
 }
@@ -77,8 +77,8 @@
 }
 
 .audioPlayer__sessionCard .trainingPage__measurementPlayerArt .scalePattern {
-  width: 94%;
-  max-width: 188px;
+  width: 99%;
+  max-width: 198px;
 }
 
 .audioPlayer__artRow {
@@ -100,13 +100,13 @@
   position: relative;
   display: grid;
   place-items: center;
-  padding: 10px;
+  padding: 4px;
 }
 
 .audioPlayer__previewScaleLabel {
   position: absolute;
-  top: 8px;
-  left: 10px;
+  top: -9px;
+  left: 6px;
   z-index: 1;
   font-size: 12px;
   font-weight: 900;
@@ -272,14 +272,14 @@
   border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
 }
 
-.audioPlayer__tempoInline {
+.audioPlayer__rangeInline {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, auto));
   gap: 10px;
   align-items: center;
 }
 
-.audioPlayer__tempoBtn.trainingPage__measurementMiniBtn {
+.audioPlayer__rangeBtn.trainingPage__measurementMiniBtn {
   min-width: 66px;
   min-height: 44px;
   border-radius: 999px;
@@ -293,16 +293,16 @@
   transition: transform 80ms ease, box-shadow 120ms ease, border-color 120ms ease, background-color 120ms ease;
 }
 
-.audioPlayer__tempoBtn.trainingPage__measurementMiniBtn:hover:not(:disabled) {
+.audioPlayer__rangeBtn.trainingPage__measurementMiniBtn:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
   box-shadow: none;
 }
 
-.audioPlayer__tempoBtn.trainingPage__measurementMiniBtn:active:not(:disabled) {
+.audioPlayer__rangeBtn.trainingPage__measurementMiniBtn:active:not(:disabled) {
   transform: translateY(1px);
 }
 
-.audioPlayer__tempoBtn.trainingPage__measurementMiniBtn.is-active {
+.audioPlayer__rangeBtn.trainingPage__measurementMiniBtn.is-active {
   border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
   background: color-mix(in srgb, var(--accent) 22%, var(--card));
   color: var(--on-light-1);
@@ -478,7 +478,7 @@
 .audioPlayer__playBtn:disabled,
 .audioPlayer__transportBtn:disabled,
 .audioPlayer__loopToggle:disabled,
-.audioPlayer__tempoBtn:disabled {
+.audioPlayer__rangeBtn:disabled {
   opacity: 0.46;
   cursor: not-allowed;
   transform: none;
@@ -588,7 +588,7 @@
 }
 
 .audioPlayer__scaleTrigger:focus-visible,
-.audioPlayer__tempoBtn:focus-visible,
+.audioPlayer__rangeBtn:focus-visible,
 .audioPlayer__transportBtn:focus-visible,
 .audioPlayer__playBtn:focus-visible,
 .audioPlayer__loopToggle:focus-visible {

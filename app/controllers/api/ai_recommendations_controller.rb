@@ -30,7 +30,7 @@ module Api
 
       logs = current_user.training_logs
                         .where(practiced_on: from..to)
-                        .includes(:training_menus, :training_log_feedback) # ✅ N+1防止（generatorが association を参照）
+                        .includes(:training_menus)
                         .order(:practiced_on)
       collective_effects = Ai::CollectiveEffectSummary.new(window_days: 90, min_count: 3).build
 
@@ -53,7 +53,11 @@ module Api
         rescue => e
           Rails.logger.error("[AI][ContributionTracker] #{e.class}: #{e.message}")
         end
-        render json: { data: serialize(rec) }, status: :created
+        rewards = Gamification::Awarder.call(
+          user: current_user,
+          grants: [ { rule_key: "ai_recommendation_generated", source_type: "ai_recommendation", source_id: rec.id } ]
+        )
+        render json: { data: serialize(rec), rewards: rewards }, status: :created
       else
         render json: { errors: rec.errors.full_messages }, status: :unprocessable_entity
       end

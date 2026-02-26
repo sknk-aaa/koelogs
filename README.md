@@ -9,7 +9,10 @@
   - 日付単位の記録（`/log`, `/log/new`）
   - 練習時間、メニュー、メモ、最高音（地声/裏声）
 - トレーニング再生
-  - スケール/テンポ選択と音源再生（`/training`）
+  - スケール/音域タイプ（low/mid/high）選択と音源再生（`/training`）
+  - テンポ選択UIは廃止（音源側で固定テンポ）
+  - 対応スケール: `5tone` / `Descending5tone` / `triad` / `octave` / `Risingoctave`
+  - 音源命名規則: `public/scales/{scale}-{range}.mp3`
 - 録音測定（`/training`）
   - 音域 / ロングトーン / 音量安定性 / 音程精度 を測定
   - 音程精度はスケール（low/mid/high）選択後、録音開始と同時に固定ガイド音源を再生
@@ -363,7 +366,9 @@ npm --prefix frontend run dev
 ### scale_tracks
 - 用途: トレーニング用音源管理
 - 主なカラム:
-  - `scale_type`, `tempo`, `file_path`
+  - `scale_type`, `range_type`, `tempo`, `file_path`
+  - `range_type`: `low` / `mid` / `high`
+  - `tempo`: DB保持のみ（TrainingPageの選択UIでは未使用）
 
 ## AI録音分析メモ
 

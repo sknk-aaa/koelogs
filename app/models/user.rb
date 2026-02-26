@@ -14,7 +14,6 @@ class User < ApplicationRecord
   has_secure_password
 
   has_many :training_logs, dependent: :destroy
-  has_many :training_log_feedbacks, dependent: :destroy
   has_many :training_menus, dependent: :destroy
   has_many :measurement_runs, dependent: :destroy
   has_many :ai_recommendations, dependent: :destroy
@@ -38,6 +37,10 @@ class User < ApplicationRecord
   # 目標は任意。空白は nil として扱う
   before_validation :normalize_goal_text
   validates :goal_text, length: { maximum: 50 }, allow_nil: true
+  before_validation :normalize_ai_custom_instructions
+  before_validation :normalize_ai_improvement_tags
+  validates :ai_custom_instructions, length: { maximum: 600 }, allow_nil: true
+  validate :ai_improvement_tags_are_allowed
   before_validation :normalize_avatar_image_url
   # data URL (base64) での保存を許容するため、上限は十分大きくする
   validates :avatar_image_url, length: { maximum: 2_000_000 }, allow_nil: true
@@ -96,5 +99,23 @@ class User < ApplicationRecord
 
     v = avatar_image_url.strip
     self.avatar_image_url = v.empty? ? nil : v
+  end
+
+  def normalize_ai_custom_instructions
+    return if ai_custom_instructions.nil?
+
+    v = ai_custom_instructions.to_s.strip
+    self.ai_custom_instructions = v.empty? ? nil : v
+  end
+
+  def normalize_ai_improvement_tags
+    self.ai_improvement_tags = Array(ai_improvement_tags).map(&:to_s).map(&:strip).reject(&:blank?).uniq
+  end
+
+  def ai_improvement_tags_are_allowed
+    invalid = Array(ai_improvement_tags) - ImprovementTagCatalog::TAGS
+    return if invalid.empty?
+
+    errors.add(:ai_improvement_tags, "contains invalid tags: #{invalid.join(', ')}")
   end
 end

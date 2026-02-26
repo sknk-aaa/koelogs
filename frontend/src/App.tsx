@@ -16,6 +16,7 @@ import InsightsNotesPage from "./pages/InsightsNotesPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import SettingsPage from "./pages/SettingsPage";
+import AiSettingsPage from "./pages/AiSettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import MyPage from "./pages/MyPage";
 import CommunityPage from "./pages/CommunityPage";
@@ -23,6 +24,7 @@ import CommunityProfilePage from "./pages/CommunityProfilePage";
 import CommunityRankingPage from "./pages/CommunityRankingPage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
+import HelpContactPage from "./pages/HelpContactPage";
 
 export default function App() {
   return (
@@ -52,6 +54,7 @@ export default function App() {
             <Route element={<RequireAuth />}>
               <Route path="/log/new" element={<LogNewPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/settings/ai" element={<AiSettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/mypage" element={<MyPage />} />
             </Route>
@@ -59,6 +62,7 @@ export default function App() {
             {/* ヘルプはログイン不要 */}
             <Route path="/help/guide" element={<HelpGuidePage />} />
             <Route path="/help/about" element={<HelpAboutPage />} />
+            <Route path="/help/contact" element={<HelpContactPage />} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />

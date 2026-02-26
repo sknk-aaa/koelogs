@@ -1,6 +1,6 @@
 module Api
   class CommunityPostsController < ApplicationController
-    before_action :require_login!, only: [ :create, :favorites, :favorite, :unfavorite ]
+    before_action :require_login!, only: [ :create, :update, :destroy, :favorites, :favorite, :unfavorite ]
 
     # GET /api/community/posts
     # public page (login optional)
@@ -8,14 +8,15 @@ module Api
       limit = params[:limit].presence&.to_i || 30
       limit = 30 if limit <= 0
       limit = 100 if limit > 100
+      mine_only = ActiveModel::Type::Boolean.new.cast(params[:mine_only])
 
       posts = CommunityPost
                 .includes(:training_menu, :user)
                 .where(published: true)
-                .order(created_at: :desc)
-                .limit(limit)
+      posts = mine_only ? posts.where(user_id: current_user&.id) : posts
+      posts = posts.order(created_at: :desc).limit(limit)
 
-      if current_user && ActiveModel::Type::Boolean.new.cast(params[:mine_first])
+      if !mine_only && current_user && ActiveModel::Type::Boolean.new.cast(params[:mine_first])
         case_sql = "CASE WHEN community_posts.user_id = #{current_user.id.to_i} THEN 0 ELSE 1 END"
         posts = posts.reorder(Arel.sql("#{case_sql}, community_posts.created_at DESC"))
       end
@@ -60,7 +61,7 @@ module Api
     # body:
     # {
     #   training_menu_id: 1,
-    #   improvement_tags: ["pitch_stability"],
+    #   improvement_tags: ["pitch_accuracy"],
     #   effect_level: 4,
     #   comment: "...",
     #   published: true
@@ -81,16 +82,63 @@ module Api
       )
 
       if post.save
+        rewards =
+          if post.published
+            Gamification::Awarder.call(
+              user: current_user,
+              grants: [ { rule_key: "community_post_published", source_type: "community_post", source_id: post.id } ]
+            )
+          end
+
         render json: {
           data: serialize_post(
             post,
             profile_map: { current_user.id => serialize_public_profile(current_user) },
             favorite_meta: { counts: { post.id => 0 }, mine: {} }
-          )
+          ),
+          rewards: rewards
         }, status: :created
       else
         render json: { errors: post.errors.full_messages }, status: :unprocessable_entity
       end
+    end
+
+    # PATCH /api/community/posts/:id
+    def update
+      post = current_user.community_posts.find_by(id: params[:id])
+      return render json: { error: "not_found" }, status: :not_found if post.nil?
+
+      menu_id = update_params[:training_menu_id].presence || post.training_menu_id
+      menu = current_user.training_menus.find_by(id: menu_id)
+      return render json: { errors: [ "training_menu_id is invalid" ] }, status: :unprocessable_entity if menu.nil?
+
+      effect_level = update_params[:effect_level].presence || post.effect_level
+
+      post.assign_attributes(
+        training_menu: menu,
+        improvement_tags: update_params[:improvement_tags].presence || post.improvement_tags,
+        effect_level: effect_level,
+        comment: update_params.key?(:comment) ? update_params[:comment] : post.comment,
+        published: update_params.key?(:published) ? ActiveModel::Type::Boolean.new.cast(update_params[:published]) : post.published,
+        practiced_on: update_params.key?(:practiced_on) ? update_params[:practiced_on] : post.practiced_on
+      )
+
+      if post.save
+        profile_map = { current_user.id => serialize_public_profile(current_user) }
+        favorite_meta = build_favorite_meta([ post ])
+        render json: { data: serialize_post(post, profile_map: profile_map, favorite_meta: favorite_meta) }, status: :ok
+      else
+        render json: { errors: post.errors.full_messages }, status: :unprocessable_entity
+      end
+    end
+
+    # DELETE /api/community/posts/:id
+    def destroy
+      post = current_user.community_posts.find_by(id: params[:id])
+      return render json: { error: "not_found" }, status: :not_found if post.nil?
+
+      post.destroy!
+      render json: { ok: true }, status: :ok
     end
 
     # POST /api/community/posts/:id/favorite
@@ -117,9 +165,14 @@ module Api
       params.permit(:training_menu_id, :effect_level, :comment, :published, :practiced_on, improvement_tags: [])
     end
 
+    def update_params
+      params.permit(:training_menu_id, :effect_level, :comment, :published, :practiced_on, improvement_tags: [])
+    end
+
     def serialize_post(post, profile_map:, favorite_meta:)
       {
         id: post.id,
+        user_id: post.user_id,
         training_menu_id: post.training_menu_id,
         menu_name: post.training_menu&.name.to_s,
         canonical_key: post.canonical_key,

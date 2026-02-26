@@ -675,6 +675,25 @@
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
 
+.logPage__aiSettingsLink {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.logPage__aiSettingsLink:hover {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+}
+
 .logPage__aiInfoBtn:hover {
   border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
   background: color-mix(in srgb, var(--accent) 14%, var(--surface));
@@ -932,6 +951,15 @@
   background: rgba(59, 130, 246, 0.15);
 }
 
+:root[data-theme-mode="dark"] .logAi__loadingInline {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme-mode="dark"] .logAi__text--muted {
+  color: rgba(255, 255, 255, 0.88);
+  opacity: 1;
+}
+
 :root[data-theme-mode="dark"] .logAi__pill--ng {
   border-color: rgba(239, 68, 68, 0.5);
   background: rgba(239, 68, 68, 0.18);
@@ -946,6 +974,17 @@
 :root[data-theme-mode="dark"] .logPage__aiInfoBtn {
   border-color: rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiSettingsLink {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logPage__aiSettingsLink:hover {
+  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.22));
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.08));
 }
 
 :root[data-theme-mode="dark"] .logPage__aiInfoBtn:hover {
@@ -999,6 +1038,207 @@
   background: var(--card);
   box-shadow: var(--shadow-sm);
   color: var(--cardText, var(--text));
+}
+
+.logPage__missionCard {
+  margin-bottom: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--card));
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__missionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logPage__missionTitle {
+  font-size: 15px;
+  font-weight: 950;
+  color: var(--log-text-1);
+}
+
+.logPage__missionMeta {
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 13%, var(--surface));
+  font-size: 11px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logPage__missionDailyList {
+  display: grid;
+  gap: 7px;
+}
+
+.logPage__missionDailyItem {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--log-text-1);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logPage__missionDailyItem.is-done {
+  cursor: default;
+  opacity: 0.76;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+
+.logPage__missionCheck {
+  width: 16px;
+  text-align: center;
+  opacity: 0.86;
+}
+
+.logPage__missionMoreBtn {
+  min-height: 34px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color: var(--log-text-2);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logPage__missionMoreBody {
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 26%, var(--border));
+  padding-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__missionSubTitle {
+  font-size: 12px;
+  font-weight: 950;
+  color: var(--log-text-2);
+}
+
+.logPage__missionBeginnerList,
+.logPage__missionContinuousList {
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__missionBeginnerItem,
+.logPage__missionContinuousItem {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 10px;
+}
+
+.logPage__missionBeginnerItem {
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__missionBeginnerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logPage__missionBeginnerName {
+  font-size: 13px;
+  font-weight: 950;
+  color: var(--log-text-1);
+}
+
+.logPage__missionPill {
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logPage__missionPill.is-pending {
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.logPage__missionPill.is-done {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.logPage__missionBeginnerDesc {
+  font-size: 12px;
+  color: var(--log-text-3);
+  line-height: 1.5;
+}
+
+.logPage__missionJumpBtn {
+  justify-self: start;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--log-text-2);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logPage__missionContinuousItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logPage__missionContinuousIcon {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.logPage__missionContinuousMain {
+  min-width: 0;
+}
+
+.logPage__missionContinuousName {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--log-text-1);
+}
+
+.logPage__missionContinuousMeta {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--log-text-3);
+}
+
+.logPage__missionContinuousItem.is-done .logPage__missionContinuousMeta {
+  color: color-mix(in srgb, var(--accent) 64%, var(--log-text-1));
+}
+
+.logPage__missionContinuousEmpty {
+  font-size: 12px;
+  color: var(--log-text-3);
 }
 
 .goalBar__row {
@@ -1247,6 +1487,27 @@
   --log-text-1: var(--on-dark-1);
   --log-text-2: var(--on-dark-2);
   --log-text-3: var(--on-dark-3);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionCard {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionMeta,
+:root[data-theme-mode="dark"] .logPage__missionMoreBtn,
+:root[data-theme-mode="dark"] .logPage__missionPill.is-pending,
+:root[data-theme-mode="dark"] .logPage__missionJumpBtn {
+  border-color: color-mix(in srgb, var(--accent) 50%, rgba(255, 255, 255, 0.2));
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.04));
+  color: var(--on-dark-1);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionDailyItem,
+:root[data-theme-mode="dark"] .logPage__missionBeginnerItem,
+:root[data-theme-mode="dark"] .logPage__missionContinuousItem {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 :root[data-theme-mode="dark"] .logPage__tags {

@@ -1,0 +1,24 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgA100" x1="8" y1="88" x2="88" y2="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#68A2FF"/>
+      <stop offset="1" stop-color="#A167CF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="40" fill="url(#bgA100)"/>
+  <circle cx="48" cy="41" r="25" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <circle cx="48" cy="41" r="28" stroke="rgba(255,255,255,0.22)" stroke-width="1.7"/>
+  <path d="M38 18L42 22L48 18L54 22L58 18V24H38V18Z" fill="rgba(255,255,255,0.92)"/>
+  <circle cx="36" cy="37" r="8.4" fill="rgba(255,255,255,0.95)"/>
+  <circle cx="60" cy="37" r="8.4" fill="rgba(255,255,255,0.95)"/>
+  <rect x="29" y="44" width="38" height="12" rx="6" fill="rgba(255,255,255,0.96)"/>
+  <path d="M35 50H61" stroke="#5258C7" stroke-width="2.7" stroke-linecap="round"/>
+  <circle cx="48" cy="25" r="5" fill="rgba(255,255,255,0.93)"/>
+  <circle cx="28" cy="27" r="3.2" fill="rgba(255,255,255,0.84)"/>
+  <circle cx="68" cy="27" r="3.2" fill="rgba(255,255,255,0.84)"/>
+  <path d="M31 30L42 33M65 30L54 33" stroke="rgba(255,255,255,0.8)" stroke-width="2"/>
+  <path d="M22 36L25 40L30 42L25 44L22 48L19 44L14 42L19 40L22 36Z" fill="rgba(255,255,255,0.86)"/>
+  <path d="M74 34L76.5 38L81 40L76.5 42L74 46L71.5 42L67 40L71.5 38L74 34Z" fill="rgba(255,255,255,0.84)"/>
+  <rect x="14" y="64" width="68" height="14" rx="7" fill="rgba(255,255,255,0.97)"/>
+  <text x="48" y="74" text-anchor="middle" font-size="9" font-weight="900" fill="#27356A">AI HELPER 100</text>
+</svg>

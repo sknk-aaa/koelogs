@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_22_153000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_26_093000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -149,21 +149,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_153000) do
   create_table "scale_tracks", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "file_path"
+    t.string "range_type", default: "mid", null: false
     t.string "scale_type"
     t.integer "tempo"
     t.datetime "updated_at", null: false
-  end
-
-  create_table "training_log_feedbacks", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.jsonb "effective_menu_ids", default: [], null: false
-    t.jsonb "improvement_tags", default: [], null: false
-    t.jsonb "menu_effects", default: [], null: false
-    t.bigint "training_log_id", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["training_log_id"], name: "index_training_log_feedbacks_on_training_log_id", unique: true
-    t.index ["user_id"], name: "index_training_log_feedbacks_on_user_id"
+    t.index ["scale_type", "range_type"], name: "index_scale_tracks_on_scale_type_and_range_type"
   end
 
   create_table "training_log_menus", force: :cascade do |t|
@@ -223,6 +213,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_153000) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.text "ai_custom_instructions"
+    t.jsonb "ai_improvement_tags", default: [], null: false
     t.string "avatar_icon", default: "note_blue", null: false
     t.text "avatar_image_url"
     t.datetime "created_at", null: false
@@ -268,8 +260,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_22_153000) do
   add_foreign_key "measurement_runs", "users"
   add_foreign_key "measurement_volume_stability_results", "measurement_runs"
   add_foreign_key "monthly_logs", "users"
-  add_foreign_key "training_log_feedbacks", "training_logs"
-  add_foreign_key "training_log_feedbacks", "users"
   add_foreign_key "training_log_menus", "training_logs", column: ["training_log_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_logs_same_user", on_delete: :cascade
   add_foreign_key "training_log_menus", "training_menus", column: ["training_menu_id", "user_id"], primary_key: ["id", "user_id"], name: "fk_tlm_menus_same_user", on_delete: :restrict
   add_foreign_key "training_log_menus", "users"

@@ -1,0 +1,20 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgMo12" x1="8" y1="88" x2="88" y2="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF8B53"/>
+      <stop offset="1" stop-color="#D2535E"/>
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="40" fill="url(#bgMo12)"/>
+  <circle cx="48" cy="42" r="24" stroke="rgba(255,255,255,0.36)" stroke-width="2"/>
+  <path d="M34 18L38 22L42 18H54L58 22L62 18V24H34V18Z" fill="rgba(255,255,255,0.9)"/>
+  <rect x="24" y="22" width="48" height="38" rx="10" fill="rgba(255,255,255,0.95)"/>
+  <path d="M24 34H72" stroke="#CB5959" stroke-width="2.9"/>
+  <circle cx="36" cy="28.5" r="2" fill="#CB5959"/>
+  <circle cx="60" cy="28.5" r="2" fill="#CB5959"/>
+  <path d="M32 43H64M32 49H59" stroke="#C04E56" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="48" cy="56" r="7.5" fill="rgba(255,255,255,0.94)"/>
+  <text x="48" y="59" text-anchor="middle" font-size="8" font-weight="900" fill="#BB4953">12</text>
+  <rect x="16" y="64" width="64" height="14" rx="7" fill="rgba(255,255,255,0.97)"/>
+  <text x="48" y="74" text-anchor="middle" font-size="9" font-weight="900" fill="#742F3A">MONTHLY 12</text>
+</svg>

@@ -1646,7 +1646,7 @@ function LongToneTrendChart({ points }: { points: MeasurementPoint[] }) {
                 return (
                   <g key={`lt-x-${idx}`}>
                     <line x1={x} y1={xAxisY} x2={x} y2={xAxisY + 4} stroke="rgba(42,89,155,0.38)" />
-                    <text x={x} y={height - 8} textAnchor="middle" style={{ fontSize: 11, opacity: 0.76 }}>
+                    <text x={x} y={height - 8} textAnchor="middle" className="insightsFixedTrend__xLabel" style={{ fontSize: 11, opacity: 0.76 }}>
                       {p?.date ? p.date.slice(5) : ""}
                     </text>
                   </g>
@@ -1813,7 +1813,7 @@ function ScoreTrendChart({
                 return (
                   <g key={`score-x-${idx}`}>
                     <line x1={x} y1={xAxisY} x2={x} y2={xAxisY + 4} stroke="rgba(42,89,155,0.38)" />
-                    <text x={x} y={height - 8} textAnchor="middle" style={{ fontSize: 11, opacity: 0.76 }}>
+                    <text x={x} y={height - 8} textAnchor="middle" className="insightsFixedTrend__xLabel" style={{ fontSize: 11, opacity: 0.76 }}>
                       {p?.date ? p.date.slice(5) : ""}
                     </text>
                   </g>

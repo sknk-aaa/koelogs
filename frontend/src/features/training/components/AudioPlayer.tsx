@@ -1,5 +1,5 @@
 // frontend/src/features/training/components/AudioPlayer.tsx
-import type { ScaleType, Tempo } from "../../../api/scaleTracks";
+import type { ScaleRange, ScaleType } from "../../../api/scaleTracks";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ScalePatternPreview, { scalePatternFromScaleType } from "./ScalePatternPreview";
@@ -20,11 +20,11 @@ type Props = {
   defaultVolume: number; // 0..1
   loopEnabled: boolean;
   scaleType: ScaleType;
-  tempo: Tempo;
+  rangeType: ScaleRange;
   scaleTypes: readonly ScaleType[];
-  tempos: readonly Tempo[];
+  rangeTypes: readonly ScaleRange[];
   onChangeScaleType: (v: ScaleType) => void;
-  onChangeTempo: (v: Tempo) => void;
+  onChangeRangeType: (v: ScaleRange) => void;
 };
 
 function clamp(n: number, min: number, max: number) {
@@ -39,14 +39,23 @@ function fmt(sec: number) {
 }
 
 function labelScaleCompact(t: ScaleType) {
-  return t === "5tone" ? "5tone" : "1oct";
+  if (t === "5tone") return "5tone";
+  if (t === "Descending5tone") return "下降5tone";
+  if (t === "triad") return "トライアド";
+  if (t === "Risingoctave") return "上昇オクターブ";
+  return "オクターブ+1";
 }
 
-function trainingRangeForScale(t: ScaleType) {
-  if (t === "5tone") {
-    return { low: "G3", high: "C5" };
-  }
-  return { low: "D3", high: "C5" };
+function labelRangeType(r: ScaleRange) {
+  if (r === "low") return "低";
+  if (r === "mid") return "中";
+  return "高";
+}
+
+function trainingRangeForType(r: ScaleRange) {
+  if (r === "low") return { low: "E3", high: "E4" };
+  if (r === "mid") return { low: "G3", high: "G4" };
+  return { low: "C4", high: "C5" };
 }
 
 export default function AudioPlayer({
@@ -61,11 +70,11 @@ export default function AudioPlayer({
   defaultVolume,
   loopEnabled,
   scaleType,
-  tempo,
+  rangeType,
   scaleTypes,
-  tempos,
+  rangeTypes,
   onChangeScaleType,
-  onChangeTempo,
+  onChangeRangeType,
 }: Props) {
   const [loop, setLoop] = useState<boolean>(() => !!loopEnabled);
   const [duration, setDuration] = useState<number>(0);
@@ -114,7 +123,7 @@ export default function AudioPlayer({
   }, [current, duration]);
 
   const canPlay = !disabled && !!src;
-  const rangeGuide = trainingRangeForScale(scaleType);
+  const rangeGuide = trainingRangeForType(rangeType);
 
   const handleSeek = (v: number) => {
     const el = audioRef.current;
@@ -167,19 +176,20 @@ export default function AudioPlayer({
             </div>
           )}
         </div>
-        <div className="audioPlayer__tempoInline">
-          {tempos.map((t) => {
-            const active = tempo === t;
+        <div className="audioPlayer__rangeInline" role="radiogroup" aria-label="音域タイプ">
+          {rangeTypes.map((r) => {
+            const active = rangeType === r;
             return (
               <button
-                key={t}
+                key={r}
                 type="button"
                 disabled={disabled}
-                onClick={() => onChangeTempo(t)}
-                className={`audioPlayer__tempoBtn trainingPage__measurementMiniBtn${active ? " is-active" : ""}`}
-                aria-pressed={active}
+                onClick={() => onChangeRangeType(r)}
+                className={`audioPlayer__rangeBtn trainingPage__measurementMiniBtn${active ? " is-active" : ""}`}
+                role="radio"
+                aria-checked={active}
               >
-                {t}
+                {labelRangeType(r)}
               </button>
             );
           })}
@@ -219,7 +229,7 @@ export default function AudioPlayer({
           </div>
         }
         title={undefined}
-        subtitle={<span className="audioPlayer__rangeGuideInline">音域目安 {rangeGuide.low} 〜 {rangeGuide.high}</span>}
+        subtitle={<span className="audioPlayer__rangeGuideInline">{labelRangeType(rangeType)}音域目安 {rangeGuide.low} 〜 {rangeGuide.high}</span>}
         description={<span className="audioPlayer__timeInlineText">{fmt(current)} / {fmt(duration)}</span>}
         beforeTransport={
           <div className="audioPlayer__seekRow">
@@ -267,7 +277,7 @@ export default function AudioPlayer({
         }
       />
 
-      {!src && <div className="audioPlayer__hint">スケール/テンポを選ぶと再生できます</div>}
+      {!src && <div className="audioPlayer__hint">スケール/音域タイプを選ぶと再生できます</div>}
     </div>
   );
 }

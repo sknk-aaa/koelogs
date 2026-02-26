@@ -115,18 +115,23 @@ export default function CommunityRankingPage() {
                       </div>
                     </div>
                   </div>
+
                   <div className="communityRanking__focusValue">
-                    {current.meEntry ? current.meEntry.value : "-"}
+                    {current.meEntry ? formatValueForTab(tab, current.meEntry.value) : "-"}
                     <span>{current.unit}</span>
                   </div>
                 </div>
+
                 <div className="communityRanking__focusMeta">
                   <div className="communityRanking__focusRank">
                     {current.meRank ? `${current.meRank}位 / ${current.total}人` : `- / ${current.total}人`}
                   </div>
+
                   {current.diff !== null ? (
                     <div className={`communityRanking__focusDiff is-${current.diffType}`}>
-                      平均より {current.diff >= 0 ? `+${current.diff}` : current.diff}
+                      平均より{" "}
+                      {current.diff >= 0 ? "+" : ""}
+                      {tab === "weekly" ? formatWeeklyHoursFromMinutes(current.diff) : current.diff}
                       {current.unit}
                     </div>
                   ) : (
@@ -181,21 +186,25 @@ export default function CommunityRankingPage() {
                               </span>
                             ) : null}
                           </div>
+
                           <img
                             src={avatarIconPath(entry.avatar_icon, entry.avatar_image_url)}
                             alt={entry.display_name}
                             className="communityRanking__rowAvatar"
                           />
+
                           <div className="communityRanking__name">
                             {entry.display_name} <span>Lv.{entry.level}</span>
                             {isMe ? <span className="communityRanking__youTag">YOU</span> : null}
                           </div>
                         </div>
+
                         <div className="communityRanking__value">
-                          {entry.value}
+                          {formatValueForTab(tab, entry.value)}
                           <span>{current.unit}</span>
                         </div>
                       </div>
+
                       <div className="communityRanking__bar">
                         <span style={{ width: animateBars ? `${barWidth}%` : "0%" }} />
                       </div>
@@ -227,5 +236,24 @@ function tabLabel(tab: RankTab): string {
 function tabUnit(tab: RankTab): string {
   if (tab === "ai") return "回";
   if (tab === "streak") return "日";
-  return "分";
+  return "時間";
+}
+
+/**
+ * weekly_duration_min (minutes) を「時間」表示に変換する。
+ * - 小数1桁（例: 90分 -> 1.5）
+ * - 2.0 のような末尾 .0 は落とす
+ */
+function formatWeeklyHoursFromMinutes(min: number): string {
+  if (!Number.isFinite(min)) return "-";
+  const hours = min / 60;
+
+  const rounded = Math.round(hours * 10) / 10; // 小数1桁
+  const s = String(rounded);
+  return s.endsWith(".0") ? s.slice(0, -2) : s;
+}
+
+function formatValueForTab(tab: RankTab, value: number): string {
+  if (tab === "weekly") return formatWeeklyHoursFromMinutes(value);
+  return String(value);
 }

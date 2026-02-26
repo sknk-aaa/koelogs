@@ -1,4 +1,4 @@
-import type { ScaleType, Tempo } from "../../api/scaleTracks";
+import type { ScaleRange, ScaleType } from "../../api/scaleTracks";
 
-export const SCALE_TYPES: ScaleType[] = ["5tone", "octave"];
-export const TEMPOS: Tempo[] = [100, 120, 140];
+export const SCALE_TYPES: ScaleType[] = ["5tone", "triad", "Descending5tone", "octave", "Risingoctave"];
+export const SCALE_RANGES: ScaleRange[] = ["low", "mid", "high"];

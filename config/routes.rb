@@ -19,6 +19,8 @@ Rails.application.routes.draw do
 
     # insights
     get "insights", to: "insights#show"
+    get "missions", to: "missions#show"
+    post "help/contact", to: "help_contacts#create"
 
     # ✅ AI recommendations
     get "ai_recommendations", to: "ai_recommendations#show"
@@ -27,6 +29,8 @@ Rails.application.routes.draw do
     # community
     get "community/posts", to: "community_posts#index"
     post "community/posts", to: "community_posts#create"
+    patch "community/posts/:id", to: "community_posts#update"
+    delete "community/posts/:id", to: "community_posts#destroy"
     get "community/favorites", to: "community_posts#favorites"
     post "community/posts/:id/favorite", to: "community_posts#favorite"
     delete "community/posts/:id/favorite", to: "community_posts#unfavorite"

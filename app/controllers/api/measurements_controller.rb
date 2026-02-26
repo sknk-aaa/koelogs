@@ -76,7 +76,11 @@ module Api
       end
 
       run.reload
-      render json: { data: serialize(run) }, status: :created
+      rewards = Gamification::Awarder.call(
+        user: current_user,
+        grants: [ { rule_key: "measurement_saved", source_type: "measurement_run", source_id: run.id } ]
+      )
+      render json: { data: serialize(run), rewards: rewards }, status: :created
     rescue ActiveRecord::RecordInvalid => e
       msg = e.record.errors.full_messages.presence || run&.errors&.full_messages || [ "invalid measurement payload" ]
       render json: { errors: msg }, status: :unprocessable_entity

@@ -1,0 +1,18 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgMo1" x1="12" y1="84" x2="84" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFB972"/>
+      <stop offset="1" stop-color="#F18A61"/>
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="40" fill="url(#bgMo1)"/>
+  <rect x="28" y="24" width="40" height="34" rx="8" fill="rgba(255,255,255,0.93)"/>
+  <path d="M28 34H68" stroke="#E78663" stroke-width="2.6"/>
+  <circle cx="38" cy="29" r="2" fill="#E78663"/>
+  <circle cx="58" cy="29" r="2" fill="#E78663"/>
+  <path d="M36 42H60M36 48H56" stroke="#DE7A5D" stroke-width="2.3" stroke-linecap="round"/>
+  <circle cx="48" cy="55" r="7" fill="rgba(255,255,255,0.92)"/>
+  <text x="48" y="58" text-anchor="middle" font-size="8" font-weight="900" fill="#D16E55">1M</text>
+  <rect x="21" y="64" width="54" height="14" rx="7" fill="rgba(255,255,255,0.96)"/>
+  <text x="48" y="74" text-anchor="middle" font-size="9" font-weight="900" fill="#8C473A">MONTHLY 1</text>
+</svg>

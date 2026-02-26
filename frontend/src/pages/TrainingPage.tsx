@@ -1,8 +1,8 @@
 // frontend/src/pages/TrainingPage.tsx
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import type { ScaleTrack, ScaleType, Tempo } from "../api/scaleTracks";
-import { SCALE_TYPES, TEMPOS } from "../features/training/constants";
+import type { ScaleRange, ScaleTrack, ScaleType } from "../api/scaleTracks";
+import { SCALE_RANGES, SCALE_TYPES } from "../features/training/constants";
 import { useScaleTracks } from "../features/training/hooks/useScaleTracks";
 import { useAudioPlayer } from "../features/training/hooks/useAudioPlayer";
 import AudioPlayer from "../features/training/components/AudioPlayer";
@@ -11,6 +11,8 @@ import MiniPreview, { type MeasurementPreviewKind } from "../features/measuremen
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import { createMeasurement, fetchMeasurements, updateMeasurement, type MeasurementRun } from "../api/measurements";
+import { emitGamificationRewards } from "../features/gamification/rewardBus";
+import type { SaveRewards } from "../types/gamification";
 import ProcessingOverlay from "../components/ProcessingOverlay";
 import { RANGE_MISSION_FLAG } from "../features/missions/constants";
 
@@ -18,8 +20,24 @@ import "./TrainingPage.css";
 
 type MeasurementSystemKey = "range" | "long_tone" | "volume_stability" | "pitch_accuracy";
 type RangePhase = "chest" | "falsetto";
+type PitchGuideRange = "low" | "mid" | "high";
+type PitchJudgeTone = "inactive" | "green" | "yellow" | "red";
+type PitchPoint = { t: number; midi: number };
+type PitchGuideSegment = { startSec: number; endSec: number; midi: number };
+type PitchGuide = {
+  bpm: number;
+  totalSec: number;
+  countInSec: number;
+  segments: PitchGuideSegment[];
+};
+const PITCH_GUIDE_OPTIONS = [
+  { key: "low", label: "Low", detail: "5tone / 音域: E3〜E4" },
+  { key: "mid", label: "Mid", detail: "5tone / 音域: G3〜G4" },
+  { key: "high", label: "High", detail: "5tone / 音域: C4〜C5" },
+] as const;
 type MeasurementInstantResult = {
   runId: number;
+  measurementKey: MeasurementSystemKey;
   includeInInsights: boolean;
   source: "file" | "recording";
   title: string;
@@ -46,12 +64,33 @@ type MeasurementInstantResult = {
   pitchAccuracyScore?: number | null;
   pitchAccuracyAvgCents?: number | null;
   pitchAccuracyNoteCount?: number | null;
+  replayPitchPoints?: PitchPoint[];
+  replayDbValues?: number[];
+  replayDurationSec?: number;
+  replayGuideRange?: PitchGuideRange | null;
 };
-const NOISE_DB_THRESHOLD = -140;
-const MIN_VOICED_STREAK_FRAMES = 1;
-const PITCH_JUMP_SEMITONE_LIMIT = 18;
+const DEFAULT_NOISE_DB_THRESHOLD = -70;
+const VOLUME_NOISE_DB_THRESHOLD = -60;
+const MIN_VOICED_STREAK_FRAMES = 3;
+const PITCH_JUMP_SEMITONE_LIMIT = 10;
 const YIN_THRESHOLD = 0.32;
 const YIN_FALLBACK_ACCEPT_MAX = 0.75;
+const PITCH_GUIDE_BPM = 100;
+const PITCH_GUIDE_COUNT_IN_BEATS = 4;
+const PITCH_GUIDE_NOTE_DURATION_BEATS = 0.5;
+const PITCH_GUIDE_BAR_BEATS = 4;
+const PITCH_GUIDE_INTERVALS = [0, 2, 4, 5, 7, 5, 4, 2] as const;
+const PITCH_GUIDE_ASC_TRANSPOSE = [0, 1, 2, 3, 4, 5] as const;
+const PITCH_GUIDE_DESC_TRANSPOSE = [4, 3, 2, 1, 0] as const;
+const PITCH_JUDGE_GREEN_CENTS = 10;
+const PITCH_JUDGE_YELLOW_CENTS = 25;
+const PITCH_LINE_GAP_SEC = 0.25;
+const PITCH_AXIS_BY_RANGE: Record<PitchGuideRange, { minMidi: number; maxMidi: number }> = {
+  low: { minMidi: noteToMidi("C3") ?? 48, maxMidi: noteToMidi("G4") ?? 67 },
+  mid: { minMidi: noteToMidi("E3") ?? 52, maxMidi: noteToMidi("A4") ?? 69 },
+  high: { minMidi: noteToMidi("A3") ?? 57, maxMidi: noteToMidi("E5") ?? 76 },
+};
+const PITCH_SCROLL_WINDOW_SEC = 9;
 
 const MEASUREMENT_SHORTCUTS: Array<{
   title: string;
@@ -122,7 +161,7 @@ export default function TrainingPage() {
   const { me, isLoading: authLoading } = useAuth();
 
   const [scaleType, setScaleType] = useState<ScaleType>("5tone");
-  const [tempo, setTempo] = useState<Tempo>(120);
+  const [rangeType, setRangeType] = useState<ScaleRange>("mid");
   const [activeMeasurementKey, setActiveMeasurementKey] = useState<MeasurementSystemKey>("range");
   const [measurementMetricInfoOpen, setMeasurementMetricInfoOpen] = useState(false);
   const [measurementError, setMeasurementError] = useState<string | null>(null);
@@ -130,14 +169,22 @@ export default function TrainingPage() {
   const [measurementFileAnalyzing, setMeasurementFileAnalyzing] = useState(false);
   const [measurementUseTrainingTrack, setMeasurementUseTrainingTrack] = useState(false);
   const [measurementRecording, setMeasurementRecording] = useState(false);
+  const [pitchGuideRange, setPitchGuideRange] = useState<PitchGuideRange | null>(null);
+  const [measurementElapsedSec, setMeasurementElapsedSec] = useState(0);
   const [, setMeasurementCurrentNote] = useState<string | null>(null);
   const [measurementCurrentMidi, setMeasurementCurrentMidi] = useState<number | null>(null);
   const [measurementCurrentDb, setMeasurementCurrentDb] = useState<number | null>(null);
-  const [measurementRealtimeMidiPoints, setMeasurementRealtimeMidiPoints] = useState<number[]>([]);
+  const [measurementRealtimePitchPoints, setMeasurementRealtimePitchPoints] = useState<PitchPoint[]>([]);
   const [measurementRealtimeDbPoints, setMeasurementRealtimeDbPoints] = useState<number[]>([]);
   const [measurementInstantResult, setMeasurementInstantResult] = useState<MeasurementInstantResult | null>(null);
   const [measurementResultModalOpen, setMeasurementResultModalOpen] = useState(false);
   const [measurementResultSaving, setMeasurementResultSaving] = useState(false);
+  const [measurementRecordedAudioBlob, setMeasurementRecordedAudioBlob] = useState<Blob | null>(null);
+  const [measurementRecordedAudioUrl, setMeasurementRecordedAudioUrl] = useState<string | null>(null);
+  const [measurementReplayPlaying, setMeasurementReplayPlaying] = useState(false);
+  const [measurementReplayElapsedSec, setMeasurementReplayElapsedSec] = useState(0);
+  const [measurementWavConverting, setMeasurementWavConverting] = useState(false);
+  const [measurementReplayPanelOpen, setMeasurementReplayPanelOpen] = useState(false);
   const [longToneCompare, setLongToneCompare] = useState<{ previousSec: number | null; bestSec: number | null }>({
     previousSec: null,
     bestSec: null,
@@ -152,10 +199,16 @@ export default function TrainingPage() {
   const measurementRafRef = useStateRef<number | null>(null);
   const measurementStartedAtRef = useStateRef<number>(0);
   const measurementMidiSamplesRef = useStateRef<number[]>([]);
+  const measurementPitchSampleTimesRef = useStateRef<number[]>([]);
   const measurementLoudnessSamplesRef = useStateRef<number[]>([]);
   const measurementVoicedFramesRef = useStateRef<number>(0);
   const measurementFramesRef = useStateRef<number>(0);
   const measurementTrackEndHandlerRef = useStateRef<(() => void) | null>(null);
+  const measurementPitchGuideRef = useStateRef<PitchGuide | null>(null);
+  const measurementPitchGuideAudioRef = useStateRef<HTMLAudioElement | null>(null);
+  const measurementPitchGuideEndedHandlerRef = useStateRef<(() => void) | null>(null);
+  const measurementRecorderRef = useStateRef<MediaRecorder | null>(null);
+  const measurementRecorderChunksRef = useStateRef<BlobPart[]>([]);
   const measurementAutoPlaybackRef = useStateRef<boolean>(false);
   const measurementPrevMidiRef = useStateRef<number | null>(null);
   const measurementSmoothedMidiRef = useStateRef<number | null>(null);
@@ -166,13 +219,22 @@ export default function TrainingPage() {
   const measurementRangeFalsettoMidiRef = useStateRef<number[]>([]);
   const bodyOverflowBackupRef = useStateRef<string | null>(null);
   const measurementSaveBtnRef = useRef<HTMLButtonElement | null>(null);
+  const measurementReplaySectionRef = useRef<HTMLDivElement | null>(null);
+  const replayAudioRef = useStateRef<HTMLAudioElement | null>(null);
+  const replayRafRef = useStateRef<number | null>(null);
 
   const selected: ScaleTrack | null = useMemo(() => {
-    return tracks.find((t) => t.scale_type === scaleType && t.tempo === tempo) ?? null;
-  }, [tracks, scaleType, tempo]);
+    return tracks.find((t) => t.scale_type === scaleType && t.range_type === rangeType) ?? null;
+  }, [tracks, rangeType, scaleType]);
   const activeMeasurement = useMemo(
     () => MEASUREMENT_SHORTCUTS.find((v) => v.systemKey === activeMeasurementKey) ?? null,
     [activeMeasurementKey]
+  );
+  const effectivePitchGuideRange: PitchGuideRange = pitchGuideRange ?? "mid";
+  const pitchGuide = useMemo(() => buildPitchGuide(effectivePitchGuideRange), [effectivePitchGuideRange]);
+  const selectedPitchGuideOption = useMemo(
+    () => PITCH_GUIDE_OPTIONS.find((v) => v.key === pitchGuideRange) ?? null,
+    [pitchGuideRange]
   );
   const sessionCopy = sessionCopyFor(activeMeasurementKey);
   const activeMeasurementIndex = MEASUREMENT_SHORTCUTS.findIndex((v) => v.systemKey === activeMeasurementKey);
@@ -191,12 +253,12 @@ export default function TrainingPage() {
   const mobileStep: "select" | "execute" = mobileStepParam === "execute" ? "execute" : "select";
   const showSelectPane = isMdUp || mobileStep === "select";
   const showExecutePane = isMdUp || mobileStep === "execute";
-  const supportsTrainingTrackToggle =
-    activeMeasurementKey === "volume_stability" || activeMeasurementKey === "pitch_accuracy";
+  const supportsTrainingTrackToggle = activeMeasurementKey === "volume_stability";
   const shouldUseTrainingTrack = supportsTrainingTrackToggle && measurementUseTrainingTrack;
   const recordButtonDisabled =
     measurementSessionSaving ||
     measurementFileAnalyzing ||
+    (activeMeasurementKey === "pitch_accuracy" && !measurementRecording && !pitchGuideRange) ||
     (measurementRecording && activeMeasurementKey === "range") ||
     (shouldUseTrainingTrack && !selected?.file_path);
   const transportSwitchDisabled = measurementRecording || measurementSessionSaving || measurementFileAnalyzing;
@@ -206,6 +268,8 @@ export default function TrainingPage() {
       : "■ 停止"
     : measurementSessionSaving
       ? "保存中…"
+      : activeMeasurementKey === "pitch_accuracy" && !pitchGuideRange
+        ? "スケールを選択してください"
       : "▶ 録音開始";
 
   const setMobileMeasureStep = (step: "select" | "execute") => {
@@ -221,6 +285,116 @@ export default function TrainingPage() {
   const goLogin = () => {
     navigate("/login", { state: { fromPath: "/training" } });
   };
+
+  const stopPitchGuideAudio = useCallback(() => {
+    const audio = measurementPitchGuideAudioRef.current;
+    const endedHandler = measurementPitchGuideEndedHandlerRef.current;
+    if (audio && endedHandler) {
+      audio.removeEventListener("ended", endedHandler);
+    }
+    if (audio) {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch {
+        // no-op
+      }
+    }
+    measurementPitchGuideEndedHandlerRef.current = null;
+    measurementPitchGuideAudioRef.current = null;
+  }, [measurementPitchGuideAudioRef, measurementPitchGuideEndedHandlerRef]);
+
+  const stopReplayAudio = useCallback(() => {
+    const audio = replayAudioRef.current;
+    if (audio) {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch {
+        // no-op
+      }
+    }
+    if (replayRafRef.current != null) {
+      cancelAnimationFrame(replayRafRef.current);
+      replayRafRef.current = null;
+    }
+    setMeasurementReplayPlaying(false);
+    setMeasurementReplayElapsedSec(0);
+    replayAudioRef.current = null;
+  }, [replayAudioRef, replayRafRef]);
+
+  const clearRecordedAudio = useCallback(() => {
+    stopReplayAudio();
+    if (measurementRecordedAudioUrl) {
+      URL.revokeObjectURL(measurementRecordedAudioUrl);
+    }
+    setMeasurementRecordedAudioUrl(null);
+    setMeasurementRecordedAudioBlob(null);
+  }, [measurementRecordedAudioUrl, stopReplayAudio]);
+
+  const stopMeasurementAudioCapture = useCallback(async (): Promise<Blob | null> => {
+    const recorder = measurementRecorderRef.current;
+    if (!recorder) return null;
+
+    const chunks = measurementRecorderChunksRef.current;
+    const mimeType = recorder.mimeType || "audio/webm";
+    const finalize = () => {
+      const blob = chunks.length > 0 ? new Blob(chunks, { type: mimeType }) : null;
+      measurementRecorderChunksRef.current = [];
+      measurementRecorderRef.current = null;
+      return blob;
+    };
+
+    if (recorder.state === "inactive") {
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      return finalize();
+    }
+
+    return await new Promise<Blob | null>((resolve) => {
+      const handleStop = () => {
+        window.setTimeout(() => resolve(finalize()), 120);
+      };
+      const handleError = () => resolve(finalize());
+      recorder.addEventListener("stop", handleStop, { once: true });
+      recorder.addEventListener("error", handleError, { once: true });
+      try {
+        if (typeof recorder.requestData === "function") {
+          recorder.requestData();
+        }
+        recorder.stop();
+      } catch {
+        resolve(finalize());
+      }
+    });
+  }, [measurementRecorderChunksRef, measurementRecorderRef]);
+
+  const createAudioRecorder = useCallback((stream: MediaStream): MediaRecorder | null => {
+    if (typeof MediaRecorder === "undefined") return null;
+
+    const candidates = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/mp4",
+      "audio/ogg;codecs=opus",
+    ];
+
+    for (const mimeType of candidates) {
+      try {
+        if (typeof MediaRecorder.isTypeSupported === "function" && !MediaRecorder.isTypeSupported(mimeType)) {
+          continue;
+        }
+        return new MediaRecorder(stream, { mimeType });
+      } catch {
+        // try next
+      }
+    }
+
+    try {
+      return new MediaRecorder(stream);
+    } catch {
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     const missionParam = searchParams.get("mission");
@@ -307,19 +481,30 @@ export default function TrainingPage() {
     };
   }, [measurementResultModalOpen, measurementInstantResult]);
 
+  useEffect(() => {
+    if (!measurementResultModalOpen || !measurementInstantResult) return;
+    setMeasurementReplayPanelOpen(false);
+  }, [measurementResultModalOpen, measurementInstantResult?.runId]);
+
   const startMeasurementRecording = async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
       setMeasurementError("このブラウザは録音に対応していません");
       return;
     }
+    if (activeMeasurementKey === "pitch_accuracy" && !pitchGuideRange) {
+      setMeasurementError("先にスケールを選択してください");
+      return;
+    }
     setMeasurementError(null);
     setMeasurementResultModalOpen(false);
+    clearRecordedAudio();
     if (shouldUseTrainingTrack && (!selected?.file_path || !audioRef.current)) {
       setMeasurementError("同時再生モードには再生可能なトレーニング音源が必要です");
       return;
     }
 
     try {
+      const noiseDbThreshold = noiseDbThresholdFor(activeMeasurementKey);
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { noiseSuppression: false, autoGainControl: false, echoCancellation: false },
       });
@@ -343,6 +528,7 @@ export default function TrainingPage() {
       measurementMediaStreamRef.current = stream;
       measurementStartedAtRef.current = performance.now();
       measurementMidiSamplesRef.current = [];
+      measurementPitchSampleTimesRef.current = [];
       measurementLoudnessSamplesRef.current = [];
       measurementVoicedFramesRef.current = 0;
       measurementFramesRef.current = 0;
@@ -353,8 +539,10 @@ export default function TrainingPage() {
       setMeasurementCurrentNote(null);
       setMeasurementCurrentMidi(null);
       setMeasurementCurrentDb(null);
-      setMeasurementRealtimeMidiPoints([]);
+      setMeasurementRealtimePitchPoints([]);
+      setMeasurementElapsedSec(0);
       setMeasurementRealtimeDbPoints([]);
+      measurementPitchGuideRef.current = activeMeasurementKey === "pitch_accuracy" ? pitchGuide : null;
       if (activeMeasurementKey === "range") {
         setRangePhase("chest");
         measurementRangePhaseRef.current = "chest";
@@ -366,8 +554,41 @@ export default function TrainingPage() {
       }
       setMeasurementRecording(true);
       measurementAutoPlaybackRef.current = false;
+      {
+        const recorder = createAudioRecorder(stream);
+        if (recorder) {
+          measurementRecorderChunksRef.current = [];
+          recorder.addEventListener("dataavailable", (ev) => {
+            if (ev.data && ev.data.size > 0) {
+              measurementRecorderChunksRef.current.push(ev.data);
+            }
+          });
+          try {
+            recorder.start();
+            measurementRecorderRef.current = recorder;
+          } catch {
+            measurementRecorderChunksRef.current = [];
+            measurementRecorderRef.current = null;
+          }
+        } else {
+          measurementRecorderChunksRef.current = [];
+          measurementRecorderRef.current = null;
+        }
+      }
 
-      if (shouldUseTrainingTrack && audioRef.current) {
+      if (activeMeasurementKey === "pitch_accuracy") {
+        stopPitchGuideAudio();
+        const guideAudio = new Audio(`/scales/pitch_accuracy-${effectivePitchGuideRange}.mp3`);
+        guideAudio.preload = "auto";
+        guideAudio.currentTime = 0;
+        const onEnded = () => {
+          void stopMeasurementRecording(true);
+        };
+        measurementPitchGuideEndedHandlerRef.current = onEnded;
+        guideAudio.addEventListener("ended", onEnded);
+        measurementPitchGuideAudioRef.current = guideAudio;
+        await guideAudio.play();
+      } else if (shouldUseTrainingTrack && audioRef.current) {
         const audio = audioRef.current;
         if (measurementTrackEndHandlerRef.current) {
           audio.removeEventListener("ended", measurementTrackEndHandlerRef.current);
@@ -393,14 +614,20 @@ export default function TrainingPage() {
         const frameRms = calcRms(data);
         const frameDb = rmsToDb(frameRms);
         setMeasurementCurrentDb(frameDb);
-        if (frameDb > NOISE_DB_THRESHOLD && measurementFramesRef.current % 2 === 0) {
+        if (frameDb > noiseDbThreshold && measurementFramesRef.current % 2 === 0) {
           setMeasurementRealtimeDbPoints((prev) => [...prev.slice(-179), frameDb]);
           measurementLoudnessSamplesRef.current.push(frameDb);
         }
         const yinFreq = autoCorrelate(data, ac.sampleRate);
-        const freq = frameDb > NOISE_DB_THRESHOLD ? yinFreq : null;
+        const freq = frameDb > noiseDbThreshold ? yinFreq : null;
+        const guideElapsedSec = measurementPitchGuideAudioRef.current?.currentTime;
+        const elapsed =
+          activeMeasurementKey === "pitch_accuracy" && Number.isFinite(guideElapsedSec)
+            ? Math.max(0, guideElapsedSec ?? 0)
+            : (performance.now() - measurementStartedAtRef.current) / 1000;
+        setMeasurementElapsedSec(elapsed);
         measurementFramesRef.current += 1;
-        if (freq && frameDb > NOISE_DB_THRESHOLD) {
+        if (freq && frameDb > noiseDbThreshold) {
           const midi = 69 + 12 * Math.log2(freq / 440);
           const prevMidi = measurementPrevMidiRef.current;
           if (prevMidi != null && Math.abs(midi - prevMidi) > PITCH_JUMP_SEMITONE_LIMIT) {
@@ -416,12 +643,13 @@ export default function TrainingPage() {
           measurementVoicedFramesRef.current += 1;
           measurementPrevMidiRef.current = midi;
           measurementMidiSamplesRef.current.push(midi);
+          measurementPitchSampleTimesRef.current.push(elapsed);
           if (activeMeasurementKey === "range") {
             if (measurementRangePhaseRef.current === "chest") measurementRangeChestMidiRef.current.push(midi);
             if (measurementRangePhaseRef.current === "falsetto") measurementRangeFalsettoMidiRef.current.push(midi);
           }
           if (measurementFramesRef.current % 2 === 0) {
-            setMeasurementRealtimeMidiPoints((prev) => [...prev.slice(-179), midi]);
+            setMeasurementRealtimePitchPoints((prev) => [...prev.slice(-1399), { t: elapsed, midi }]);
           }
           const prevSmoothed = measurementSmoothedMidiRef.current;
           const smoothed = prevSmoothed == null ? midi : prevSmoothed + (midi - prevSmoothed) * 0.22;
@@ -446,6 +674,12 @@ export default function TrainingPage() {
   };
 
   const stopMeasurementRecording = async (save: boolean) => {
+    const guideElapsedSec = measurementPitchGuideAudioRef.current?.currentTime;
+    const elapsedAtStopSec =
+      activeMeasurementKey === "pitch_accuracy" && Number.isFinite(guideElapsedSec)
+        ? Math.max(0, guideElapsedSec ?? 0)
+        : (performance.now() - measurementStartedAtRef.current) / 1000;
+    stopPitchGuideAudio();
     if (measurementTrackEndHandlerRef.current && audioRef.current) {
       audioRef.current.removeEventListener("ended", measurementTrackEndHandlerRef.current);
       measurementTrackEndHandlerRef.current = null;
@@ -454,6 +688,15 @@ export default function TrainingPage() {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       measurementAutoPlaybackRef.current = false;
+    }
+
+    const recordedBlob = await stopMeasurementAudioCapture();
+    if (recordedBlob && save) {
+      const nextUrl = URL.createObjectURL(recordedBlob);
+      setMeasurementRecordedAudioBlob(recordedBlob);
+      setMeasurementRecordedAudioUrl(nextUrl);
+    } else if (!save) {
+      clearRecordedAudio();
     }
 
     if (measurementRafRef.current != null) {
@@ -493,16 +736,20 @@ export default function TrainingPage() {
     setMeasurementCurrentMidi(null);
     setMeasurementCurrentNote(null);
     setMeasurementCurrentDb(null);
+    setMeasurementElapsedSec(0);
     setRangePhase(null);
     measurementRangePhaseRef.current = null;
+    measurementPitchGuideRef.current = null;
 
     if (!save) return;
 
     const mids = measurementMidiSamplesRef.current;
+    const sampleTimesSec = measurementPitchSampleTimesRef.current;
     const loudnessDbSamples = measurementLoudnessSamplesRef.current;
-    const elapsedSec = Math.max(1, Math.round((performance.now() - measurementStartedAtRef.current) / 1000));
+    const elapsedSec = Math.max(1, Math.round(elapsedAtStopSec));
     const created = await saveMeasurementSessionFromMetrics({
       mids,
+      sampleTimesSec,
       loudnessDbSamples,
       rangeChestMids: measurementRangeChestMidiRef.current,
       rangeFalsettoMids: measurementRangeFalsettoMidiRef.current,
@@ -530,14 +777,18 @@ export default function TrainingPage() {
     setMeasurementError(null);
     setMeasurementInstantResult(null);
     setMeasurementResultModalOpen(false);
+    clearRecordedAudio();
+    measurementPitchGuideRef.current = activeMeasurementKey === "pitch_accuracy" ? pitchGuide : null;
     setMeasurementFileAnalyzing(true);
     try {
+      const noiseDbThreshold = noiseDbThresholdFor(activeMeasurementKey);
       const fileBuf = await file.arrayBuffer();
       const audio = await ctx.decodeAudioData(fileBuf);
       const data = audio.getChannelData(0);
       const windowSize = 4096;
       const hopSize = 1024;
       const mids: number[] = [];
+      const sampleTimesSec: number[] = [];
       const loudnessDbSamples: number[] = [];
       let frames = 0;
       let voicedFrames = 0;
@@ -547,7 +798,7 @@ export default function TrainingPage() {
         const frame = data.subarray(i, i + windowSize);
         const frameRms = calcRms(frame);
         const frameDb = rmsToDb(frameRms);
-        if (frameDb <= NOISE_DB_THRESHOLD) {
+        if (frameDb <= noiseDbThreshold) {
           voicedStreak = 0;
           frames += 1;
           continue;
@@ -563,10 +814,12 @@ export default function TrainingPage() {
         if (voicedStreak < MIN_VOICED_STREAK_FRAMES) continue;
         voicedFrames += 1;
         mids.push(69 + 12 * Math.log2(freq / 440));
+        sampleTimesSec.push(i / audio.sampleRate);
       }
 
       const saved = await saveMeasurementSessionFromMetrics({
         mids,
+        sampleTimesSec,
         loudnessDbSamples,
         elapsedSec: Math.max(1, Math.round(audio.duration)),
         voicedFrames,
@@ -591,6 +844,7 @@ export default function TrainingPage() {
 
   const saveMeasurementSessionFromMetrics = async ({
     mids,
+    sampleTimesSec,
     loudnessDbSamples,
     rangeChestMids,
     rangeFalsettoMids,
@@ -600,6 +854,7 @@ export default function TrainingPage() {
     source = "recording",
   }: {
     mids: number[];
+    sampleTimesSec: number[];
     loudnessDbSamples: number[];
     rangeChestMids?: number[];
     rangeFalsettoMids?: number[];
@@ -620,42 +875,55 @@ export default function TrainingPage() {
     const minMidi = Math.min(minMidiBase, percentileMin);
     const maxMidi = Math.max(maxMidiBase, percentileMax);
     const representativeMidi = quantizedMids.length ? median(quantizedMids) : null;
-    const peakNote = quantizedMids.length ? midiToNote(Math.round(maxMidi)) : null;
-    const lowestNote = quantizedMids.length ? midiToNote(Math.round(minMidi)) : null;
+    const basePeakNote = quantizedMids.length ? midiToNote(Math.round(maxMidi)) : null;
+    const baseLowestNote = quantizedMids.length ? midiToNote(Math.round(minMidi)) : null;
     const sustainNote = representativeMidi != null ? midiToNote(Math.round(representativeMidi)) : null;
-    const rangeSemitones = quantizedMids.length ? Math.max(0, Math.round(maxMidi - minMidi)) : null;
-    const pitchAbsCentsErrors = refinedMids.map((m) => Math.abs(m - Math.round(m)) * 100);
+    const baseRangeSemitones = quantizedMids.length ? Math.max(0, Math.round(maxMidi - minMidi)) : null;
+    const pitchAbsCentsErrors =
+      activeMeasurementKey === "pitch_accuracy"
+        ? mids
+            .map((m, idx) => {
+              const t = sampleTimesSec[idx];
+              const guide = measurementPitchGuideRef.current;
+              const targetMidi = guide ? findTargetMidiAtSec(guide, t) : null;
+              if (targetMidi == null) return null;
+              return Math.abs(m - targetMidi) * 100;
+            })
+            .filter((v): v is number => v != null)
+        : refinedMids.map((m) => Math.abs(m - Math.round(m)) * 100);
     const pitchAvgCentsError =
       pitchAbsCentsErrors.length > 0
         ? pitchAbsCentsErrors.reduce((acc, v) => acc + v, 0) / pitchAbsCentsErrors.length
         : null;
     const pitchScoreRaw = pitchAvgCentsError != null ? 100 - pitchAvgCentsError / 2 : null;
     const pitchAccuracyScore = pitchScoreRaw != null ? Math.max(0, Math.min(100, pitchScoreRaw)) : null;
-    const pitchNoteCount = refinedMids.length;
+    const pitchNoteCount = pitchAbsCentsErrors.length;
     const avgLoudnessDb = loudnessDbSamples.length
       ? loudnessDbSamples.reduce((acc, v) => acc + v, 0) / loudnessDbSamples.length
       : -99;
     const voicedDurationSec = elapsedSec * voicedRatio;
     const defaultPhonationDurationSec = Number(voicedDurationSec.toFixed(1));
-    const longestRun = findLongestSameNoteRun(quantizedMids);
-    const secPerVoicedSample = quantizedMids.length > 0 ? voicedDurationSec / quantizedMids.length : 0;
-    const longToneDurationSec =
-      longestRun && secPerVoicedSample > 0 ? Number((longestRun.run * secPerVoicedSample).toFixed(1)) : 0;
-    const longToneNote = longestRun ? midiToNote(longestRun.noteMidi) : null;
+    const longToneDurationSec = Number(voicedDurationSec.toFixed(1));
+    const longToneNote = sustainNote;
     const phonationDurationSec =
       activeMeasurementKey === "long_tone" ? longToneDurationSec : defaultPhonationDurationSec;
     const resolvedSustainNote =
       activeMeasurementKey === "long_tone" ? longToneNote : sustainNote;
-    const chestQuantized = quantizeMidiSeriesWithHysteresis(refineMidiSamples(rangeChestMids ?? []));
-    const falsettoQuantized = quantizeMidiSeriesWithHysteresis(refineMidiSamples(rangeFalsettoMids ?? []));
-    const chestTopNote = chestQuantized.length ? midiToNote(Math.round(Math.max(...chestQuantized))) : null;
-    const falsettoTopNote = falsettoQuantized.length ? midiToNote(Math.round(Math.max(...falsettoQuantized))) : null;
-    const chestLowestNote = chestQuantized.length ? midiToNote(Math.round(Math.min(...chestQuantized))) : null;
-    const falsettoLowestNote = falsettoQuantized.length ? midiToNote(Math.round(Math.min(...falsettoQuantized))) : null;
-    const chestMinMidi = chestQuantized.length ? Math.min(...chestQuantized) : null;
-    const chestMaxMidi = chestQuantized.length ? Math.max(...chestQuantized) : null;
-    const falsettoMinMidi = falsettoQuantized.length ? Math.min(...falsettoQuantized) : null;
-    const falsettoMaxMidi = falsettoQuantized.length ? Math.max(...falsettoQuantized) : null;
+    const chestRangeBoundsRaw = estimatePhaseRangeBounds(rangeChestMids ?? [], "chest");
+    const falsettoRangeBoundsRaw = estimatePhaseRangeBounds(rangeFalsettoMids ?? [], "falsetto");
+    const chestRangeBounds =
+      chestRangeBoundsRaw && falsettoRangeBoundsRaw && chestRangeBoundsRaw.max > falsettoRangeBoundsRaw.max
+        ? { ...chestRangeBoundsRaw, max: falsettoRangeBoundsRaw.max }
+        : chestRangeBoundsRaw;
+    const falsettoRangeBounds = falsettoRangeBoundsRaw;
+    const chestTopNote = chestRangeBounds ? midiToNote(Math.round(chestRangeBounds.max)) : null;
+    const falsettoTopNote = falsettoRangeBounds ? midiToNote(Math.round(falsettoRangeBounds.max)) : null;
+    const chestLowestNote = chestRangeBounds ? midiToNote(Math.round(chestRangeBounds.min)) : null;
+    const falsettoLowestNote = falsettoRangeBounds ? midiToNote(Math.round(falsettoRangeBounds.min)) : null;
+    const chestMinMidi = chestRangeBounds?.min ?? null;
+    const chestMaxMidi = chestRangeBounds?.max ?? null;
+    const falsettoMinMidi = falsettoRangeBounds?.min ?? null;
+    const falsettoMaxMidi = falsettoRangeBounds?.max ?? null;
     const overlapMinMidi =
       chestMinMidi != null && falsettoMinMidi != null ? Math.max(chestMinMidi, falsettoMinMidi) : null;
     const overlapMaxMidi =
@@ -663,21 +931,30 @@ export default function TrainingPage() {
     const hasOverlap = overlapMinMidi != null && overlapMaxMidi != null && overlapMinMidi <= overlapMaxMidi;
     const overlapLowestNote = hasOverlap ? midiToNote(Math.round(overlapMinMidi)) : null;
     const overlapHighestNote = hasOverlap ? midiToNote(Math.round(overlapMaxMidi)) : null;
+    const phaseMinMidiCandidates = [chestMinMidi, falsettoMinMidi].filter((v): v is number => v != null);
+    const phaseMaxMidiCandidates = [chestMaxMidi, falsettoMaxMidi].filter((v): v is number => v != null);
+    const totalMinMidi = phaseMinMidiCandidates.length > 0 ? Math.min(minMidi, ...phaseMinMidiCandidates) : minMidi;
+    const totalMaxMidi = phaseMaxMidiCandidates.length > 0 ? Math.max(maxMidi, ...phaseMaxMidiCandidates) : maxMidi;
+    const lowestNote = quantizedMids.length ? midiToNote(Math.round(totalMinMidi)) : baseLowestNote;
+    const peakNote = quantizedMids.length ? midiToNote(Math.round(totalMaxMidi)) : basePeakNote;
+    const rangeSemitones = quantizedMids.length
+      ? Math.max(0, Math.round(totalMaxMidi - totalMinMidi))
+      : baseRangeSemitones;
 
     if (activeMeasurementKey === "range" && (!lowestNote || !peakNote || rangeSemitones == null)) {
       setMeasurementError("有効な音程が十分に検出できませんでした。もう少し大きい声で再測定してください。");
       return null;
     }
-    if (activeMeasurementKey === "range" && !chestTopNote) {
+    if (activeMeasurementKey === "range" && source !== "file" && !chestTopNote) {
       setMeasurementError("地声の最高音を検出できませんでした。地声パートを再測定してください。");
       return null;
     }
-    if (activeMeasurementKey === "range" && !falsettoTopNote) {
+    if (activeMeasurementKey === "range" && source !== "file" && !falsettoTopNote) {
       setMeasurementError("裏声の最高音を検出できませんでした。裏声パートを再測定してください。");
       return null;
     }
     if (activeMeasurementKey === "long_tone" && (resolvedSustainNote == null || phonationDurationSec <= 0)) {
-      setMeasurementError("ロングトーンを判定できませんでした。同じ音程を連続で発声して再測定してください。");
+      setMeasurementError("ロングトーンを判定できませんでした。有効な発声が続くように再測定してください。");
       return null;
     }
     if (
@@ -698,7 +975,7 @@ export default function TrainingPage() {
     try {
       setMeasurementSessionSaving(true);
       const shouldAutoIncludeRange = missionRangeAutoInclude && activeMeasurementKey === "range";
-      const savedRun = await persistMeasurement({
+      const saved = await persistMeasurement({
         systemKey: activeMeasurementKey,
         peakNote,
         lowestNote,
@@ -714,6 +991,7 @@ export default function TrainingPage() {
         pitchNoteCount,
         includeInInsights: shouldAutoIncludeRange,
       });
+      emitGamificationRewards(saved.rewards);
       if (shouldAutoIncludeRange) {
         setMissionRangeAutoInclude(false);
         if (typeof window !== "undefined") {
@@ -722,8 +1000,9 @@ export default function TrainingPage() {
         }
       }
       return buildMeasurementInstantResult({
-        runId: savedRun.id,
-        includeInInsights: !!savedRun.include_in_insights,
+        runId: saved.run.id,
+        measurementKey: activeMeasurementKey,
+        includeInInsights: !!saved.run.include_in_insights,
         source,
         systemKey: activeMeasurementKey,
         lowestNote,
@@ -742,6 +1021,10 @@ export default function TrainingPage() {
         pitchAccuracyScore,
         pitchAvgCentsError,
         pitchNoteCount,
+        replayPitchPoints: sampleTimesSec.map((t, idx) => ({ t, midi: mids[idx] ?? 0 })).filter((v) => Number.isFinite(v.midi)),
+        replayDbValues: loudnessDbSamples.map((v) => Number(v.toFixed(3))),
+        replayDurationSec: elapsedSec,
+        replayGuideRange: activeMeasurementKey === "pitch_accuracy" ? effectivePitchGuideRange : null,
       });
     } catch (e) {
       setMeasurementError(errorMessage(e, "測定結果の保存に失敗しました"));
@@ -762,18 +1045,21 @@ export default function TrainingPage() {
     onSelectMeasurementShortcut(MEASUREMENT_SHORTCUTS[nextIndex].systemKey);
   };
   const closeMeasurementResultModal = () => {
+    stopReplayAudio();
+    setMeasurementReplayPanelOpen(false);
     setMeasurementResultModalOpen(false);
+    clearRecordedAudio();
   };
   const saveMeasurementForInsights = async () => {
     if (!measurementInstantResult || measurementInstantResult.includeInInsights) {
-      setMeasurementResultModalOpen(false);
+      closeMeasurementResultModal();
       return;
     }
     try {
       setMeasurementResultSaving(true);
       await updateMeasurement({ id: measurementInstantResult.runId, include_in_insights: true });
       setMeasurementInstantResult({ ...measurementInstantResult, includeInInsights: true });
-      setMeasurementResultModalOpen(false);
+      closeMeasurementResultModal();
     } catch (e) {
       setMeasurementError(errorMessage(e, "測定結果の保存設定に失敗しました"));
     } finally {
@@ -784,7 +1070,12 @@ export default function TrainingPage() {
     if (!measurementRecording || activeMeasurementKey !== "range") return;
     setRangePhase("falsetto");
     measurementRangePhaseRef.current = "falsetto";
-    setMeasurementRealtimeMidiPoints([]);
+    // 地声→裏声の切替直後は音高ジャンプが大きくなるため、前状態をリセットして検出を通しやすくする。
+    measurementPrevMidiRef.current = null;
+    measurementSmoothedMidiRef.current = null;
+    measurementVoicedStreakRef.current = 0;
+    measurementUnvoicedFramesRef.current = 0;
+    setMeasurementRealtimePitchPoints([]);
     setMeasurementCurrentMidi(null);
     setMeasurementCurrentNote(null);
     setMeasurementError(null);
@@ -793,25 +1084,82 @@ export default function TrainingPage() {
     void stopMeasurementRecording(false);
   };
 
-  const shareMeasurementResult = async () => {
-    if (!measurementInstantResult) return;
-    const text = `${measurementInstantResult.title} (${measurementInstantResult.measuredAt})\n${measurementInstantResult.lines.join("\n")}`;
-    const nav = navigator as Navigator & { share?: (d: { title?: string; text?: string }) => Promise<void> };
-    if (typeof nav.share === "function") {
-      try {
-        await nav.share({ title: "測定結果", text });
-        return;
-      } catch {
-        // no-op: fallback to clipboard
-      }
+  const replayCurrentMidi = useMemo(() => {
+    const points = measurementInstantResult?.replayPitchPoints ?? [];
+    if (points.length === 0) return null;
+    const targetTime = measurementReplayElapsedSec;
+    let last = points[0].midi;
+    for (const point of points) {
+      if (point.t > targetTime) break;
+      last = point.midi;
     }
-    if (navigator.clipboard?.writeText) {
-      try {
-        await navigator.clipboard.writeText(text);
-        return;
-      } catch {
-        // no-op
+    return last;
+  }, [measurementInstantResult, measurementReplayElapsedSec]);
+
+  const toggleReplayAudio = async () => {
+    setMeasurementReplayPanelOpen(true);
+    if (!measurementRecordedAudioUrl) {
+      setMeasurementError("この端末/ブラウザでは録音の再生に対応していない可能性があります。");
+      return;
+    }
+    const existing = replayAudioRef.current;
+    if (existing && !existing.paused) {
+      stopReplayAudio();
+      return;
+    }
+    requestAnimationFrame(() => {
+      measurementReplaySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    const audio = existing ?? new Audio(measurementRecordedAudioUrl);
+    audio.preload = "auto";
+    replayAudioRef.current = audio;
+    const tick = () => {
+      const current = replayAudioRef.current;
+      if (!current) return;
+      setMeasurementReplayElapsedSec(current.currentTime || 0);
+      if (!current.paused && !current.ended) {
+        replayRafRef.current = requestAnimationFrame(tick);
       }
+    };
+    if (replayRafRef.current != null) {
+      cancelAnimationFrame(replayRafRef.current);
+      replayRafRef.current = null;
+    }
+    audio.onended = () => {
+      stopReplayAudio();
+    };
+    try {
+      setMeasurementReplayElapsedSec(audio.currentTime || 0);
+      await audio.play();
+      setMeasurementReplayPlaying(true);
+      replayRafRef.current = requestAnimationFrame(tick);
+    } catch (e) {
+      setMeasurementError(errorMessage(e, "録音の再生を開始できませんでした"));
+      stopReplayAudio();
+    }
+  };
+
+  const downloadRecordedAudio = async () => {
+    if (!measurementRecordedAudioBlob) {
+      setMeasurementError("この端末/ブラウザでは録音データの保存に対応していない可能性があります。");
+      return;
+    }
+    try {
+      setMeasurementWavConverting(true);
+      const wavBlob = await convertBlobToWav(measurementRecordedAudioBlob);
+      const tempUrl = URL.createObjectURL(wavBlob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15);
+      const key = measurementInstantResult?.measurementKey ?? "measurement";
+      a.href = tempUrl;
+      a.download = `voice-measurement-${key}-${stamp}.wav`;
+      a.click();
+      URL.revokeObjectURL(tempUrl);
+    } catch (e) {
+      setMeasurementError(errorMessage(e, "WAVへの変換に失敗しました。"));
+    } finally {
+      setMeasurementWavConverting(false);
     }
   };
 
@@ -834,7 +1182,14 @@ export default function TrainingPage() {
             {activeMeasurementKey === "volume_stability" ? (
               <RealtimeDbMonitor dbValues={measurementRealtimeDbPoints} currentDb={measurementCurrentDb} />
             ) : (
-              <RealtimePitchMonitor midiValues={measurementRealtimeMidiPoints} currentMidi={measurementCurrentMidi} />
+                <RealtimePitchMonitor
+                  points={measurementRealtimePitchPoints}
+                  currentMidi={measurementCurrentMidi}
+                  systemKey={activeMeasurementKey}
+                  pitchGuide={activeMeasurementKey === "pitch_accuracy" ? pitchGuide : null}
+                  pitchGuideRange={effectivePitchGuideRange}
+                  elapsedSec={measurementElapsedSec}
+                />
             )}
             {activeMeasurementKey === "range" ? (
               <div className="trainingPage__rangePhaseActions">
@@ -981,18 +1336,28 @@ export default function TrainingPage() {
               )}
               {measurementInstantResult.title === "音程精度" && (
                 <div className="trainingPage__resultModalMetric">
-                  <div className="trainingPage__resultModalMetricValue">
-                    {measurementInstantResult.pitchAccuracyScore != null ? measurementInstantResult.pitchAccuracyScore.toFixed(1) : "-"}
-                    <span>点</span>
-                  </div>
-                  <div className="trainingPage__resultModalMetricSub">
-                    平均ズレ: {measurementInstantResult.pitchAccuracyAvgCents != null ? `${measurementInstantResult.pitchAccuracyAvgCents.toFixed(1)} cent` : "-"}
-                  </div>
-                  <div className="trainingPage__resultModalStats">
-                    <div>発声音数 {measurementInstantResult.pitchAccuracyNoteCount ?? 0}</div>
-                    <div>目安 ±{measurementInstantResult.pitchAccuracyAvgCents != null ? Math.max(0, Math.round(measurementInstantResult.pitchAccuracyAvgCents)).toFixed(0) : "-"} cent</div>
-                    <div>精度 {measurementInstantResult.pitchAccuracyScore != null ? `${measurementInstantResult.pitchAccuracyScore.toFixed(1)} 点` : "-"}</div>
-                  </div>
+                  {(() => {
+                    const semitoneDrift =
+                      measurementInstantResult.pitchAccuracyAvgCents != null
+                        ? Math.max(0, measurementInstantResult.pitchAccuracyAvgCents / 100)
+                        : null;
+                    return (
+                      <>
+                        <div className="trainingPage__resultModalMetricValue">
+                          {semitoneDrift != null ? semitoneDrift.toFixed(2) : "-"}
+                          <span>半音</span>
+                        </div>
+                        <div className="trainingPage__resultModalMetricSub">
+                          平均ズレ: {measurementInstantResult.pitchAccuracyAvgCents != null ? `${measurementInstantResult.pitchAccuracyAvgCents.toFixed(1)} cent` : "-"}
+                        </div>
+                        <div className="trainingPage__resultModalStats">
+                          <div>発声音数 {measurementInstantResult.pitchAccuracyNoteCount ?? 0}</div>
+                          <div>目安 ±{measurementInstantResult.pitchAccuracyAvgCents != null ? Math.max(0, Math.round(measurementInstantResult.pitchAccuracyAvgCents)).toFixed(0) : "-"} cent</div>
+                          <div>精度 {measurementInstantResult.pitchAccuracyScore != null ? `${measurementInstantResult.pitchAccuracyScore.toFixed(1)} 点` : "-"}</div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
               {measurementInstantResult.title === "音量安定性" && (
@@ -1005,36 +1370,115 @@ export default function TrainingPage() {
                   timeline={measurementInstantResult.loudnessTimeline ?? []}
                 />
               )}
+              {measurementInstantResult.source === "recording" && measurementRecordedAudioUrl && (
+                <div className="trainingPage__resultReplay" ref={measurementReplaySectionRef}>
+                  <div className="trainingPage__resultReplayHead">
+                    <div className="trainingPage__resultReplayTitle">録音の再生プレビュー</div>
+                    <button
+                      type="button"
+                      className="trainingPage__resultReplayToggle"
+                      onClick={() => {
+                        setMeasurementReplayPanelOpen((prev) => {
+                          const next = !prev;
+                          if (!next) stopReplayAudio();
+                          return next;
+                        });
+                      }}
+                      aria-expanded={measurementReplayPanelOpen}
+                      aria-label={measurementReplayPanelOpen ? "再生プレビューを閉じる" : "再生プレビューを開く"}
+                    >
+                      <span className="trainingPage__resultReplayToggleIcon" aria-hidden="true">
+                        <span className={measurementReplayPanelOpen ? "is-open" : "is-closed"} />
+                      </span>
+                    </button>
+                  </div>
+                  {measurementReplayPanelOpen && (
+                    <div className="trainingPage__resultReplayMonitor">
+                      {measurementInstantResult.measurementKey === "volume_stability" ? (
+                        <RealtimeDbMonitor
+                          dbValues={measurementInstantResult.replayDbValues ?? []}
+                          currentDb={
+                            measurementInstantResult.replayDbValues && measurementInstantResult.replayDbValues.length > 0
+                              ? measurementInstantResult.replayDbValues[
+                                  Math.min(
+                                    measurementInstantResult.replayDbValues.length - 1,
+                                    Math.floor(
+                                      (measurementReplayElapsedSec /
+                                        Math.max(0.001, measurementInstantResult.replayDurationSec ?? 1)) *
+                                        measurementInstantResult.replayDbValues.length
+                                    )
+                                  )
+                                ]
+                              : null
+                          }
+                          elapsedSec={measurementReplayElapsedSec}
+                          durationSec={measurementInstantResult.replayDurationSec ?? undefined}
+                          showPlayhead
+                        />
+                      ) : (
+                        <RealtimePitchMonitor
+                          points={measurementInstantResult.replayPitchPoints ?? []}
+                          currentMidi={replayCurrentMidi}
+                          systemKey={measurementInstantResult.measurementKey}
+                          pitchGuide={
+                            measurementInstantResult.measurementKey === "pitch_accuracy"
+                              ? buildPitchGuide(measurementInstantResult.replayGuideRange ?? "mid")
+                              : null
+                          }
+                          pitchGuideRange={measurementInstantResult.replayGuideRange ?? "mid"}
+                          elapsedSec={measurementReplayElapsedSec}
+                          totalDurationSec={measurementInstantResult.replayDurationSec ?? undefined}
+                          showPlayhead
+                        />
+                      )}
+                    </div>
+                  )}
+                  <div className="trainingPage__resultReplayActions">
+                    <button
+                      type="button"
+                      className="trainingPage__resultModalBtn trainingPage__resultModalBtn--replay-primary trainingPage__resultReplayActionBtn"
+                      onClick={() => void toggleReplayAudio()}
+                    >
+                      {measurementReplayPlaying ? "録音プレビューを停止" : "録音プレビューを再生"}
+                    </button>
+                    <button
+                      type="button"
+                      className="trainingPage__resultModalBtn trainingPage__resultModalBtn--download trainingPage__resultReplayActionBtn"
+                      onClick={() => void downloadRecordedAudio()}
+                      disabled={measurementWavConverting}
+                    >
+                      {measurementWavConverting ? "WAV変換中..." : "音声のみをWAV保存"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="trainingPage__resultModalFooter">
               <div className="trainingPage__resultModalActions">
-              <button
-                type="button"
-                className="trainingPage__resultModalBtn trainingPage__resultModalBtn--save"
-                onClick={() => void saveMeasurementForInsights()}
-                disabled={measurementResultSaving || measurementInstantResult.includeInInsights}
-                ref={measurementSaveBtnRef}
-              >
-                {measurementInstantResult.includeInInsights
-                  ? "保存済み"
-                  : measurementResultSaving
-                    ? "保存中..."
-                    : "この結果を保存する"}
-              </button>
-              <button
-                type="button"
-                className="trainingPage__resultModalBtn trainingPage__resultModalBtn--share"
-                onClick={() => void shareMeasurementResult()}
-              >
-                シェアする
-              </button>
-              <button
-                type="button"
-                className="trainingPage__resultModalBtn trainingPage__resultModalBtn--close"
-                onClick={closeMeasurementResultModal}
-              >
-                閉じる
-              </button>
+                <div className="trainingPage__resultModalActionGroup trainingPage__resultModalActionGroup--persist">
+                  <button
+                    type="button"
+                    className="trainingPage__resultModalBtn trainingPage__resultModalBtn--save trainingPage__resultModalBtn--savePrimary"
+                    onClick={() => void saveMeasurementForInsights()}
+                    disabled={measurementResultSaving || measurementInstantResult.includeInInsights}
+                    ref={measurementSaveBtnRef}
+                  >
+                    {measurementInstantResult.includeInInsights
+                      ? "保存済み"
+                      : measurementResultSaving
+                        ? "保存中..."
+                        : "この結果を保存する"}
+                  </button>
+                </div>
+                <div className="trainingPage__resultModalActionGroup trainingPage__resultModalActionGroup--close">
+                  <button
+                    type="button"
+                    className="trainingPage__resultModalBtn trainingPage__resultModalBtn--close trainingPage__resultModalBtn--closeText"
+                    onClick={closeMeasurementResultModal}
+                  >
+                    閉じる
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1068,7 +1512,7 @@ export default function TrainingPage() {
             <SessionStepHead
               badge="1"
               title="トレーニングメニューを選択"
-              subtitle="スケールとテンポを選び、すぐに練習を始められます。"
+              subtitle="スケールと音域タイプを選び、すぐに練習を始められます。"
               titleClassName="trainingPage__measurementStepTitle--record"
               className="trainingPage__measurementStepHead--training"
             />
@@ -1085,11 +1529,11 @@ export default function TrainingPage() {
                 defaultVolume={settings.defaultVolume}
                 loopEnabled={settings.loopEnabled}
                 scaleType={scaleType}
-                tempo={tempo}
+                rangeType={rangeType}
                 scaleTypes={SCALE_TYPES}
-                tempos={TEMPOS}
+                rangeTypes={SCALE_RANGES}
                 onChangeScaleType={setScaleType}
-                onChangeTempo={setTempo}
+                onChangeRangeType={setRangeType}
               />
             </div>
           </div>
@@ -1203,7 +1647,6 @@ export default function TrainingPage() {
                       active={measurementRecording}
                       art={<MiniPreview kind={previewKindFor(activeMeasurementKey)} size="md" />}
                       title={activeMeasurement?.title ?? "測定"}
-                      subtitle={`${scaleTypeLabel(scaleType)} • ${tempo} BPM`}
                       description={activeMeasurement?.selectedSummary}
                       error={measurementError ? <div className="trainingPage__measurementError">{measurementError}</div> : undefined}
                       transport={
@@ -1241,6 +1684,48 @@ export default function TrainingPage() {
                       }
                       footer={
                         <>
+                          {activeMeasurementKey === "range" && (
+                            <div className="trainingPage__rangeTips" role="note" aria-label="音域測定のコツ">
+                              <div className="trainingPage__rangeTipsTitle">正確に測定するために</div>
+                              <ul className="trainingPage__rangeTipsList">
+                                <li>地声の最高音は、少し長めにキープしてみましょう。</li>
+                                <li>音はできるだけつなげて、なめらかに出してみましょう。</li>
+                              </ul>
+                            </div>
+                          )}
+                          {activeMeasurementKey === "pitch_accuracy" && (
+                            <div className="trainingPage__pitchGuideConfig" role="note" aria-label="音程精度測定設定">
+                              <div className="trainingPage__pitchGuideTitle">スケール選択（音程精度 / 音源追従）</div>
+                              <div className="trainingPage__pitchGuideDesc">
+                                使う5toneスケールを選べます。録音開始と同時に選択した固定音源を再生するので、参照バーに合わせて発声してください（イヤホン推奨）。
+                              </div>
+                              <div
+                                className={`trainingPage__pitchGuideStatus ${pitchGuideRange ? "is-selected" : "is-required"}`}
+                                aria-live="polite"
+                              >
+                                <span className="trainingPage__pitchGuideStatusStep">Step 1</span>
+                                <span className="trainingPage__pitchGuideStatusText">
+                                  {selectedPitchGuideOption
+                                    ? `選択中: ${selectedPitchGuideOption.label}（${selectedPitchGuideOption.detail}）`
+                                    : "先にスケールを選択してください"}
+                                </span>
+                              </div>
+                              <div className="trainingPage__pitchGuideRangeRow">
+                                {PITCH_GUIDE_OPTIONS.map((opt) => (
+                                  <button
+                                    key={opt.key}
+                                    type="button"
+                                    className={`trainingPage__pitchGuideRangeBtn ${pitchGuideRange === opt.key ? "is-active" : ""}`}
+                                    onClick={() => setPitchGuideRange(opt.key)}
+                                    disabled={measurementRecording || measurementSessionSaving}
+                                  >
+                                    <span className="trainingPage__pitchGuideRangeBtnLabel">{opt.label}</span>
+                                    <span className="trainingPage__pitchGuideRangeBtnMeta">{opt.detail}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           <label className={`trainingPage__fileBtn ${measurementFileAnalyzing ? "is-busy" : ""}`}>
                             {measurementFileAnalyzing ? "解析中…" : "音声ファイルを解析"}
                             <input
@@ -1254,7 +1739,7 @@ export default function TrainingPage() {
                             <details className="trainingPage__measurementModeDetails">
                               <summary className="trainingPage__measurementModeSummary">Play with track</summary>
                               <div className="trainingPage__measurementModeText">
-                                比較精度を上げるには、毎回同じスケール/テンポで「音源と同時に録音」するのが効果的です。
+                                比較精度を上げるには、毎回同じスケール/音域タイプで「音源と同時に録音」するのが効果的です。
                               </div>
                               <label className="trainingPage__measurementToggle">
                                 <input
@@ -1351,7 +1836,25 @@ export default function TrainingPage() {
   );
 }
 
-function RealtimePitchMonitor({ midiValues, currentMidi }: { midiValues: number[]; currentMidi: number | null }) {
+function RealtimePitchMonitor({
+  points,
+  currentMidi,
+  systemKey,
+  pitchGuide,
+  pitchGuideRange,
+  elapsedSec,
+  showPlayhead = false,
+  totalDurationSec,
+}: {
+  points: PitchPoint[];
+  currentMidi: number | null;
+  systemKey: MeasurementSystemKey;
+  pitchGuide: PitchGuide | null;
+  pitchGuideRange: PitchGuideRange;
+  elapsedSec: number;
+  showPlayhead?: boolean;
+  totalDurationSec?: number;
+}) {
   const isMobileViewport =
     typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
   const width = isMobileViewport ? 720 : 880;
@@ -1367,7 +1870,8 @@ function RealtimePitchMonitor({ midiValues, currentMidi }: { midiValues: number[
   const clampedCents = cents != null ? Math.max(-50, Math.min(50, cents)) : 0;
   const tunerPos = (clampedCents + 50) / 100;
 
-  if (midiValues.length < 2) {
+  const isPitchAccuracy = systemKey === "pitch_accuracy" && pitchGuide != null;
+  if (!isPitchAccuracy && points.length < 2) {
     return (
       <div className="trainingPage__monitor trainingPage__monitor--pitch">
         <div className="trainingPage__monitorHeader">
@@ -1379,25 +1883,111 @@ function RealtimePitchMonitor({ midiValues, currentMidi }: { midiValues: number[
     );
   }
 
-  const min = Math.min(...midiValues);
-  const max = Math.max(...midiValues);
-  const minBound = Math.max(24, Math.floor(min) - 2);
-  const maxBound = Math.min(96, Math.ceil(max) + 2);
+  const minBound = isPitchAccuracy
+    ? PITCH_AXIS_BY_RANGE[pitchGuideRange].minMidi
+    : Math.max(24, Math.floor(Math.min(...points.map((v) => v.midi))) - 2);
+  const maxBound = isPitchAccuracy
+    ? PITCH_AXIS_BY_RANGE[pitchGuideRange].maxMidi
+    : Math.min(96, Math.ceil(Math.max(...points.map((v) => v.midi))) + 2);
   const range = Math.max(1, maxBound - minBound);
-  const step = (width - padLeft - padRight) / Math.max(1, midiValues.length - 1);
-  const path = midiValues
-    .map((m, idx) => {
-      const x = padLeft + idx * step;
-      const y = height - padBottom - ((m - minBound) / range) * (height - padTop - padBottom);
-      return `${idx === 0 ? "M" : "L"} ${x} ${y}`;
-    })
-    .join(" ");
-  const ticks = Array.from({ length: 8 }).map((_, i) => {
-    const r = i / 7;
-    const midi = Math.round(minBound + (maxBound - minBound) * (1 - r));
-    const y = padTop + (height - padTop - padBottom) * r;
-    return { y, label: midiToNote(midi) };
+  const axisDurationSec = isPitchAccuracy
+    ? Math.max(1, Math.min(PITCH_SCROLL_WINDOW_SEC, pitchGuide.totalSec))
+    : Math.max(1, totalDurationSec ?? ((points.at(-1)?.t ?? 0) - (points[0]?.t ?? 0)));
+  const axisStartSec = isPitchAccuracy
+    ? Math.max(
+        0,
+        Math.min(
+          Math.max(0, pitchGuide.totalSec - axisDurationSec),
+          elapsedSec - axisDurationSec * 0.35
+        )
+      )
+    : points[0]?.t ?? 0;
+  const projectedPoints = points.map((point) => {
+    const x = padLeft + (((point.t - axisStartSec) / axisDurationSec) * (width - padLeft - padRight));
+    const y = height - padBottom - ((point.midi - minBound) / range) * (height - padTop - padBottom);
+    const tone: PitchJudgeTone =
+      isPitchAccuracy && pitchGuide
+        ? classifyPitchJudgeTone(point.midi, findTargetMidiAtSec(pitchGuide, point.t))
+        : "inactive";
+    return { ...point, x, y, tone };
   });
+  const defaultPitchPath = projectedPoints
+    .map((point, idx) => `${idx === 0 ? "M" : "L"} ${point.x} ${point.y}`)
+    .join(" ");
+  const defaultPitchSegments = projectedPoints.length >= 2 ? buildPitchPathSegments(projectedPoints) : [];
+  const judgedPitchSegments =
+    isPitchAccuracy && projectedPoints.length >= 2
+      ? buildJudgedPitchSegments(projectedPoints)
+      : [];
+  const tickTopMidi = Math.floor(maxBound);
+  const tickBottomMidi = Math.ceil(minBound);
+  const tickMidis = Array.from({ length: Math.max(0, tickTopMidi - tickBottomMidi + 1) }).map(
+    (_, idx) => tickTopMidi - idx
+  );
+  const labelStep = isPitchAccuracy ? 1 : Math.max(1, Math.ceil(tickMidis.length / 9));
+  const ticks = tickMidis.map((midi, idx) => {
+    const y = height - padBottom - ((midi - minBound) / range) * (height - padTop - padBottom);
+    const isLast = idx === tickMidis.length - 1;
+    return {
+      y,
+      label: midiToNote(midi),
+      showLabel: idx % labelStep === 0 || isLast,
+    };
+  });
+  const bandMinMidi = Math.floor(minBound);
+  const bandMaxMidi = Math.ceil(maxBound);
+  const pitchBands = Array.from({ length: Math.max(0, bandMaxMidi - bandMinMidi) }).map((_, idx) => {
+    const lowerMidi = bandMinMidi + idx;
+    const bandLow = Math.max(minBound, lowerMidi);
+    const bandHigh = Math.min(maxBound, lowerMidi + 1);
+    const yBottom = height - padBottom - ((bandLow - minBound) / range) * (height - padTop - padBottom);
+    const yTop = height - padBottom - ((bandHigh - minBound) / range) * (height - padTop - padBottom);
+    return {
+      key: `band-${lowerMidi}`,
+      y: yTop,
+      h: Math.max(0, yBottom - yTop),
+      black: lowerMidi % 2 !== 0,
+    };
+  });
+
+  const referenceRects =
+    isPitchAccuracy && pitchGuide
+      ? pitchGuide.segments.map((segment, idx) => {
+          const clippedStart = Math.max(axisStartSec, segment.startSec);
+          const clippedEnd = Math.min(axisStartSec + axisDurationSec, segment.endSec);
+          if (clippedEnd <= clippedStart) return null;
+          const left = padLeft + (((clippedStart - axisStartSec) / axisDurationSec) * (width - padLeft - padRight));
+          const right = padLeft + (((clippedEnd - axisStartSec) / axisDurationSec) * (width - padLeft - padRight));
+          const y = height - padBottom - ((segment.midi - minBound + 0.5) / range) * (height - padTop - padBottom);
+          const h = Math.max(10, (height - padTop - padBottom) / range * 0.8);
+          return {
+            key: `ref-${idx}`,
+            x: left,
+            y: y - h / 2,
+            w: Math.max(1, right - left),
+            h,
+            clippedStartSec: clippedStart,
+            clippedEndSec: clippedEnd,
+          };
+        }).filter(
+          (v): v is {
+            key: string;
+            x: number;
+            y: number;
+            w: number;
+            h: number;
+            clippedStartSec: number;
+            clippedEndSec: number;
+          } => v != null
+        )
+      : [];
+
+  const shouldShowPlayhead = isPitchAccuracy || showPlayhead;
+  const playheadX = shouldShowPlayhead
+    ? padLeft +
+      ((Math.max(axisStartSec, Math.min(axisStartSec + axisDurationSec, elapsedSec)) - axisStartSec) / axisDurationSec) *
+        (width - padLeft - padRight)
+    : null;
 
   return (
     <div className="trainingPage__monitor trainingPage__monitor--pitch">
@@ -1417,21 +2007,101 @@ function RealtimePitchMonitor({ midiValues, currentMidi }: { midiValues: number[
         </div>
       </div>
       <svg viewBox={`0 0 ${width} ${height}`} className="trainingPage__monitorSvg" aria-hidden="true">
+        {pitchBands.map((band) => (
+          <rect
+            key={band.key}
+            x={padLeft}
+            y={band.y}
+            width={width - padLeft - padRight}
+            height={band.h}
+            className={band.black ? "trainingPage__monitorPitchBand trainingPage__monitorPitchBand--black" : "trainingPage__monitorPitchBand trainingPage__monitorPitchBand--white"}
+          />
+        ))}
         {ticks.map((t) => (
           <g key={`pt-${t.label}-${t.y}`}>
             <line x1={padLeft} y1={t.y} x2={width - padRight} y2={t.y} className="trainingPage__monitorGridLine" />
-            <text x={padLeft - 6} y={t.y + 4} textAnchor="end" className="trainingPage__monitorAxisLabel">
-              {t.label}
-            </text>
+            {t.showLabel && (
+              <text x={padLeft - 6} y={t.y + 4} textAnchor="end" className="trainingPage__monitorAxisLabel">
+                {t.label}
+              </text>
+            )}
           </g>
         ))}
-        <path d={path} className="trainingPage__monitorPitchPath" />
+        {referenceRects.map((rect) => {
+          const progress = Math.max(
+            0,
+            Math.min(
+              1,
+              (elapsedSec - rect.clippedStartSec) / Math.max(0.0001, rect.clippedEndSec - rect.clippedStartSec)
+            )
+          );
+          return (
+            <g key={rect.key}>
+              <rect
+                x={rect.x}
+                y={rect.y}
+                width={rect.w}
+                height={rect.h}
+                rx={4}
+                className="trainingPage__monitorReferenceBar"
+              />
+              {progress > 0 && (
+                <rect
+                  x={rect.x}
+                  y={rect.y}
+                  width={rect.w * progress}
+                  height={rect.h}
+                  rx={4}
+                  className="trainingPage__monitorReferenceBarActive"
+                />
+              )}
+            </g>
+          );
+        })}
+        {playheadX != null && (
+          <line
+            x1={playheadX}
+            y1={padTop}
+            x2={playheadX}
+            y2={height - padBottom}
+            className="trainingPage__monitorPlayhead"
+          />
+        )}
+        {isPitchAccuracy
+          ? judgedPitchSegments.map((segment, idx) => (
+              <path
+                key={`pitch-segment-${idx}-${segment.tone}`}
+                d={segment.d}
+                className={`trainingPage__monitorPitchPath trainingPage__monitorPitchPath--${segment.tone}`}
+              />
+            ))
+          : defaultPitchSegments.length > 0
+            ? defaultPitchSegments.map((d, idx) => (
+                <path
+                  key={`pitch-segment-default-${idx}`}
+                  d={d}
+                  className="trainingPage__monitorPitchPath"
+                />
+              ))
+            : <path d={defaultPitchPath} className="trainingPage__monitorPitchPath" />}
       </svg>
     </div>
   );
 }
 
-function RealtimeDbMonitor({ dbValues, currentDb }: { dbValues: number[]; currentDb: number | null }) {
+function RealtimeDbMonitor({
+  dbValues,
+  currentDb,
+  elapsedSec,
+  durationSec,
+  showPlayhead = false,
+}: {
+  dbValues: number[];
+  currentDb: number | null;
+  elapsedSec?: number;
+  durationSec?: number;
+  showPlayhead?: boolean;
+}) {
   const isMobileViewport =
     typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
   const minDb = -80;
@@ -1490,6 +2160,15 @@ function RealtimeDbMonitor({ dbValues, currentDb }: { dbValues: number[]; curren
           );
         })}
         {path && <path d={path} className="trainingPage__monitorDbPath" />}
+        {showPlayhead && elapsedSec != null && durationSec != null && durationSec > 0 && (
+          <line
+            x1={pad + Math.max(0, Math.min(1, elapsedSec / durationSec)) * (width - pad * 2)}
+            y1={pad}
+            x2={pad + Math.max(0, Math.min(1, elapsedSec / durationSec)) * (width - pad * 2)}
+            y2={height - pad}
+            className="trainingPage__monitorPlayhead"
+          />
+        )}
       </svg>
     </div>
   );
@@ -1525,9 +2204,9 @@ async function persistMeasurement({
   pitchAvgCentsError: number | null;
   pitchNoteCount: number;
   includeInInsights?: boolean;
-}): Promise<MeasurementRun> {
+}): Promise<{ run: MeasurementRun; rewards: SaveRewards | null }> {
   if (systemKey === "range") {
-    return createMeasurement({
+    const created = await createMeasurement({
       measurement_type: "range",
       include_in_insights: includeInInsights,
       range_result: {
@@ -1539,10 +2218,11 @@ async function persistMeasurement({
         falsetto_top_note: falsettoTopNote,
       },
     });
+    return { run: created.data, rewards: created.rewards };
   }
 
   if (systemKey === "long_tone") {
-    return createMeasurement({
+    const created = await createMeasurement({
       measurement_type: "long_tone",
       include_in_insights: includeInInsights,
       long_tone_result: {
@@ -1550,10 +2230,11 @@ async function persistMeasurement({
         sustain_note: sustainNote,
       },
     });
+    return { run: created.data, rewards: created.rewards };
   }
 
   if (systemKey === "pitch_accuracy") {
-    return createMeasurement({
+    const created = await createMeasurement({
       measurement_type: "pitch_accuracy",
       include_in_insights: includeInInsights,
       pitch_accuracy_result: {
@@ -1562,6 +2243,7 @@ async function persistMeasurement({
         note_count: pitchNoteCount,
       },
     });
+    return { run: created.data, rewards: created.rewards };
   }
 
   const minLoudness = loudnessDbSamples.length ? Math.min(...loudnessDbSamples) : null;
@@ -1569,7 +2251,7 @@ async function persistMeasurement({
   const rangeDb = minLoudness != null && maxLoudness != null ? maxLoudness - minLoudness : null;
   const score = computeWithinBandRatePct(loudnessDbSamples, avgLoudnessDb, 3, 3);
   const ratio = score != null ? Number((score / 100).toFixed(6)) : null;
-  return createMeasurement({
+  const created = await createMeasurement({
     measurement_type: "volume_stability",
     include_in_insights: includeInInsights,
     volume_stability_result: {
@@ -1581,6 +2263,7 @@ async function persistMeasurement({
       loudness_range_pct: score,
     },
   });
+  return { run: created.data, rewards: created.rewards };
 }
 
 function useMediaQuery(query: string) {
@@ -1669,14 +2352,75 @@ function sessionCopyFor(systemKey: MeasurementSystemKey): { title: string; subti
   }
 }
 
-function scaleTypeLabel(scaleType: ScaleType) {
-  return scaleType === "5tone" ? "5 tone" : "octave";
-}
-
 function errorMessage(e: unknown, fallback: string) {
   if (e instanceof Error) return e.message;
   if (typeof e === "string") return e;
   return fallback;
+}
+
+function noiseDbThresholdFor(systemKey: MeasurementSystemKey): number {
+  return systemKey === "volume_stability" ? VOLUME_NOISE_DB_THRESHOLD : DEFAULT_NOISE_DB_THRESHOLD;
+}
+
+async function convertBlobToWav(sourceBlob: Blob): Promise<Blob> {
+  const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctx) throw new Error("AudioContext が利用できません");
+  const ctx = new Ctx();
+  try {
+    const arrayBuf = await sourceBlob.arrayBuffer();
+    const audioBuffer = await ctx.decodeAudioData(arrayBuf.slice(0));
+    return encodeWavFromAudioBuffer(audioBuffer);
+  } finally {
+    try {
+      await ctx.close();
+    } catch {
+      // no-op
+    }
+  }
+}
+
+function encodeWavFromAudioBuffer(audioBuffer: AudioBuffer): Blob {
+  const channelCount = audioBuffer.numberOfChannels;
+  const sampleRate = audioBuffer.sampleRate;
+  const sampleCount = audioBuffer.length;
+  const bytesPerSample = 2;
+  const blockAlign = channelCount * bytesPerSample;
+  const dataSize = sampleCount * blockAlign;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  writeAscii(view, 0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeAscii(view, 8, "WAVE");
+  writeAscii(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channelCount, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bytesPerSample * 8, true);
+  writeAscii(view, 36, "data");
+  view.setUint32(40, dataSize, true);
+
+  let offset = 44;
+  const channelData = Array.from({ length: channelCount }, (_, idx) => audioBuffer.getChannelData(idx));
+  for (let i = 0; i < sampleCount; i += 1) {
+    for (let ch = 0; ch < channelCount; ch += 1) {
+      const sample = Math.max(-1, Math.min(1, channelData[ch][i] ?? 0));
+      const pcm = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+      view.setInt16(offset, Math.round(pcm), true);
+      offset += 2;
+    }
+  }
+
+  return new Blob([buffer], { type: "audio/wav" });
+}
+
+function writeAscii(view: DataView, offset: number, text: string) {
+  for (let i = 0; i < text.length; i += 1) {
+    view.setUint8(offset + i, text.charCodeAt(i) & 0xff);
+  }
 }
 
 function useStateRef<T>(initial: T) {
@@ -1684,10 +2428,128 @@ function useStateRef<T>(initial: T) {
   return ref;
 }
 
+function buildPitchGuide(range: PitchGuideRange): PitchGuide {
+  const beatSec = 60 / PITCH_GUIDE_BPM;
+  const countInSec = PITCH_GUIDE_COUNT_IN_BEATS * beatSec;
+  const transpositions = [...PITCH_GUIDE_ASC_TRANSPOSE, ...PITCH_GUIDE_DESC_TRANSPOSE];
+  const baseMidi = baseMidiForPitchGuideRange(range);
+  const segments: PitchGuideSegment[] = [];
+  let cursorBeats = PITCH_GUIDE_COUNT_IN_BEATS;
+
+  for (const transpose of transpositions) {
+    const rootMidi = baseMidi + transpose;
+    for (const interval of PITCH_GUIDE_INTERVALS) {
+      const startSec = cursorBeats * beatSec;
+      const endSec = startSec + PITCH_GUIDE_NOTE_DURATION_BEATS * beatSec;
+      segments.push({ startSec, endSec, midi: rootMidi + interval });
+      cursorBeats += PITCH_GUIDE_NOTE_DURATION_BEATS;
+    }
+    const holdStartSec = cursorBeats * beatSec;
+    const holdEndSec = holdStartSec + 2 * beatSec;
+    segments.push({ startSec: holdStartSec, endSec: holdEndSec, midi: rootMidi });
+    cursorBeats += PITCH_GUIDE_BAR_BEATS;
+  }
+
+  return {
+    bpm: PITCH_GUIDE_BPM,
+    totalSec: cursorBeats * beatSec,
+    countInSec,
+    segments,
+  };
+}
+
+function baseMidiForPitchGuideRange(range: PitchGuideRange): number {
+  if (range === "low") return noteToMidi("E3") ?? 52;
+  if (range === "mid") return noteToMidi("G3") ?? 55;
+  return noteToMidi("C4") ?? 60;
+}
+
+function findTargetMidiAtSec(guide: PitchGuide, sec: number): number | null {
+  if (sec < 0 || sec > guide.totalSec) return null;
+  for (const segment of guide.segments) {
+    if (sec >= segment.startSec && sec < segment.endSec) return segment.midi;
+  }
+  return null;
+}
+
+function classifyPitchJudgeTone(actualMidi: number, targetMidi: number | null): PitchJudgeTone {
+  // 判定対象外の定義を統一:
+  // - target が存在しない時間帯
+  // - 無音扱い（RMS閾値以下 / 周波数未検出）は点自体を描画しない運用
+  if (targetMidi == null) return "inactive";
+  const centsAbs = Math.abs(actualMidi - targetMidi) * 100;
+  if (centsAbs <= PITCH_JUDGE_GREEN_CENTS) return "green";
+  if (centsAbs <= PITCH_JUDGE_YELLOW_CENTS) return "yellow";
+  return "red";
+}
+
+function buildJudgedPitchSegments(points: Array<PitchPoint & { x: number; y: number; tone: PitchJudgeTone }>) {
+  const segments: Array<{ tone: PitchJudgeTone; d: string }> = [];
+  let tone = points[0]?.tone ?? "inactive";
+  let run: Array<{ x: number; y: number; t: number }> = points[0] ? [{ x: points[0].x, y: points[0].y, t: points[0].t }] : [];
+
+  const flush = () => {
+    if (run.length < 2) return;
+    const d = run.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+    segments.push({ tone, d });
+  };
+
+  for (let i = 1; i < points.length; i += 1) {
+    const prev = points[i - 1];
+    const curr = points[i];
+    const hasGap = curr.t - prev.t > PITCH_LINE_GAP_SEC;
+    if (hasGap) {
+      flush();
+      tone = curr.tone;
+      run = [{ x: curr.x, y: curr.y, t: curr.t }];
+      continue;
+    }
+    if (curr.tone !== tone) {
+      flush();
+      tone = curr.tone;
+      run = [
+        { x: prev.x, y: prev.y, t: prev.t },
+        { x: curr.x, y: curr.y, t: curr.t },
+      ];
+      continue;
+    }
+    run.push({ x: curr.x, y: curr.y, t: curr.t });
+  }
+
+  flush();
+  return segments;
+}
+
+function buildPitchPathSegments(points: Array<PitchPoint & { x: number; y: number }>) {
+  const segments: string[] = [];
+  let run: Array<{ x: number; y: number; t: number }> = points[0] ? [{ x: points[0].x, y: points[0].y, t: points[0].t }] : [];
+
+  const flush = () => {
+    if (run.length < 2) return;
+    const d = run.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+    segments.push(d);
+  };
+
+  for (let i = 1; i < points.length; i += 1) {
+    const prev = points[i - 1];
+    const curr = points[i];
+    const hasGap = curr.t - prev.t > PITCH_LINE_GAP_SEC;
+    if (hasGap) {
+      flush();
+      run = [{ x: curr.x, y: curr.y, t: curr.t }];
+      continue;
+    }
+    run.push({ x: curr.x, y: curr.y, t: curr.t });
+  }
+
+  flush();
+  return segments;
+}
+
 function autoCorrelate(buf: Float32Array, sampleRate: number): number | null {
   const size = buf.length;
   const rms = calcRms(buf);
-  if (rms < 0.0003) return null;
+  if (rms < 0.003) return null;
 
   const minFreq = 55;
   const maxFreq = 1760;
@@ -1824,6 +2686,56 @@ function quantizeMidiSeriesWithHysteresis(mids: number[]) {
   return out;
 }
 
+function estimatePhaseRangeBounds(mids: number[], phase: "chest" | "falsetto") {
+  if (mids.length === 0) return null;
+  const quantized = quantizeMidiSeriesWithHysteresis(mids);
+  if (quantized.length === 0) return null;
+  if (quantized.length < 12) {
+    return {
+      min: Math.min(...quantized),
+      max: Math.max(...quantized),
+    };
+  }
+
+  // Phase別（地声/裏声）は、リアルタイム表示との乖離を抑えるため
+  // percentileで上下端を決めつつ、短い断続ノートだけの極端値は抑える。
+  // 地声は高音側の誤検出が出やすいので、上側だけ少し厳しくする。
+  const minByPercentile = percentile(quantized, 0.02);
+  const maxByPercentile = percentile(quantized, phase === "chest" ? 0.94 : 0.98);
+  const stableRange = estimateStablePhaseExtremes(quantized, phase === "chest" ? 4 : 2);
+  const min = stableRange ? Math.max(minByPercentile, stableRange.min) : minByPercentile;
+  const max = stableRange ? Math.min(maxByPercentile, stableRange.max) : maxByPercentile;
+  return { min, max };
+}
+
+function estimateStablePhaseExtremes(mids: number[], minStableRun: number) {
+  if (mids.length === 0) return null;
+  const maxRunByNote = new Map<number, number>();
+  let cur = mids[0];
+  let run = 1;
+  for (let i = 1; i < mids.length; i += 1) {
+    if (mids[i] === cur) {
+      run += 1;
+      continue;
+    }
+    const prevMax = maxRunByNote.get(cur) ?? 0;
+    if (run > prevMax) maxRunByNote.set(cur, run);
+    cur = mids[i];
+    run = 1;
+  }
+  const lastMax = maxRunByNote.get(cur) ?? 0;
+  if (run > lastMax) maxRunByNote.set(cur, run);
+
+  const stableNotes = [...maxRunByNote.entries()]
+    .filter(([, maxRun]) => maxRun >= minStableRun)
+    .map(([note]) => note);
+  if (stableNotes.length === 0) return null;
+  return {
+    min: Math.min(...stableNotes),
+    max: Math.max(...stableNotes),
+  };
+}
+
 function estimateStableExtremes(mids: number[]) {
   if (mids.length === 0) return null;
   const maxRunByNote = new Map<number, number>();
@@ -1852,31 +2764,6 @@ function estimateStableExtremes(mids: number[]) {
   };
 }
 
-function findLongestSameNoteRun(mids: number[]) {
-  if (mids.length === 0) return null;
-  let cur = mids[0];
-  let run = 1;
-  let bestNote = cur;
-  let bestRun = 1;
-  for (let i = 1; i < mids.length; i += 1) {
-    if (mids[i] === cur) {
-      run += 1;
-      continue;
-    }
-    if (run > bestRun) {
-      bestRun = run;
-      bestNote = cur;
-    }
-    cur = mids[i];
-    run = 1;
-  }
-  if (run > bestRun) {
-    bestRun = run;
-    bestNote = cur;
-  }
-  return { noteMidi: bestNote, run: bestRun };
-}
-
 function median(values: number[]) {
   if (values.length === 0) return 0;
   const arr = [...values].sort((a, b) => a - b);
@@ -1895,6 +2782,7 @@ function percentile(values: number[], p: number) {
 
 function buildMeasurementInstantResult({
   runId,
+  measurementKey,
   includeInInsights,
   source,
   systemKey,
@@ -1914,8 +2802,13 @@ function buildMeasurementInstantResult({
   pitchAccuracyScore,
   pitchAvgCentsError,
   pitchNoteCount,
+  replayPitchPoints,
+  replayDbValues,
+  replayDurationSec,
+  replayGuideRange,
 }: {
   runId: number;
+  measurementKey: MeasurementSystemKey;
   includeInInsights: boolean;
   source: "file" | "recording";
   systemKey: MeasurementSystemKey;
@@ -1935,12 +2828,17 @@ function buildMeasurementInstantResult({
   pitchAccuracyScore: number | null;
   pitchAvgCentsError: number | null;
   pitchNoteCount: number;
+  replayPitchPoints: PitchPoint[];
+  replayDbValues: number[];
+  replayDurationSec: number;
+  replayGuideRange: PitchGuideRange | null;
 }): MeasurementInstantResult {
   const measuredAt = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
   if (systemKey === "range") {
     const oct = rangeSemitones != null ? (rangeSemitones / 12).toFixed(2) : "-";
     return {
       runId,
+      measurementKey,
       includeInInsights,
       source,
       title: "音域",
@@ -1954,6 +2852,10 @@ function buildMeasurementInstantResult({
       falsettoLowestNote,
       overlapHighestNote,
       overlapLowestNote,
+      replayPitchPoints,
+      replayDbValues,
+      replayDurationSec,
+      replayGuideRange,
       measuredAt,
       lines: [
         `最低音: ${lowestNote ?? "-"}`,
@@ -1968,30 +2870,42 @@ function buildMeasurementInstantResult({
   if (systemKey === "long_tone") {
     return {
       runId,
+      measurementKey,
       includeInInsights,
       source,
       title: "ロングトーン",
       longToneSec: Number(phonationDurationSec.toFixed(1)),
       sustainNote,
+      replayPitchPoints,
+      replayDbValues,
+      replayDurationSec,
+      replayGuideRange,
       measuredAt,
       lines: [
-        `同音程の連続発声秒数: ${phonationDurationSec.toFixed(1)} 秒`,
+        `有効な発声の継続秒数: ${phonationDurationSec.toFixed(1)} 秒`,
         `発声音程: ${sustainNote ?? "-"}`,
       ],
     };
   }
 
   if (systemKey === "pitch_accuracy") {
+    const semitoneDrift = pitchAvgCentsError != null ? Math.max(0, pitchAvgCentsError / 100) : null;
     return {
       runId,
+      measurementKey,
       includeInInsights,
       source,
       title: "音程精度",
       pitchAccuracyScore: pitchAccuracyScore != null ? Number(pitchAccuracyScore.toFixed(1)) : null,
       pitchAccuracyAvgCents: pitchAvgCentsError != null ? Number(pitchAvgCentsError.toFixed(1)) : null,
       pitchAccuracyNoteCount: pitchNoteCount,
+      replayPitchPoints,
+      replayDbValues,
+      replayDurationSec,
+      replayGuideRange,
       measuredAt,
       lines: [
+        `平均ズレ: ${semitoneDrift != null ? `${semitoneDrift.toFixed(2)} 半音` : "-"}`,
         `精度スコア: ${pitchAccuracyScore != null ? `${pitchAccuracyScore.toFixed(1)} 点` : "-"}`,
         `平均ズレ: ${pitchAvgCentsError != null ? `${pitchAvgCentsError.toFixed(1)} cent` : "-"}`,
         `発声音数: ${pitchNoteCount}`,
@@ -2005,6 +2919,7 @@ function buildMeasurementInstantResult({
   const score = computeWithinBandRatePct(loudnessDbSamples, avgLoudnessDb, 3, 1);
   return {
     runId,
+    measurementKey,
     includeInInsights,
     source,
     title: "音量安定性",
@@ -2014,6 +2929,10 @@ function buildMeasurementInstantResult({
     loudnessRangeDb: rangeDb != null ? Number(rangeDb.toFixed(1)) : null,
     loudnessRangePct: score != null ? Number(score.toFixed(1)) : null,
     loudnessTimeline: loudnessDbSamples.slice(-180).map((v) => Number(v.toFixed(3))),
+    replayPitchPoints,
+    replayDbValues,
+    replayDurationSec,
+    replayGuideRange,
     measuredAt,
     lines: [
       `許容幅内率 (平均±3dB): ${score != null ? `${score.toFixed(1)} %` : "-"}`,
@@ -2059,12 +2978,6 @@ function RangeResultVisualizer({
   const chest = buildRangeInfo("地声", chestLowestNote, chestTopNote, "chest");
   const falsetto = buildRangeInfo("裏声", falsettoLowestNote, falsettoTopNote, "falsetto");
   const overlap = buildRangeInfo("共通音域", overlapLowestNote, overlapHighestNote, "overlap");
-  const overlapStatus: "ok" | "none" | "insufficient" =
-    overlap.minMidi != null && overlap.maxMidi != null
-      ? "ok"
-      : chest.minMidi == null || chest.maxMidi == null || falsetto.minMidi == null || falsetto.maxMidi == null
-        ? "insufficient"
-        : "none";
   const allRanges = [total, chest, falsetto, overlap].filter((v) => v.minMidi != null && v.maxMidi != null);
   const globalMin = allRanges.length ? Math.min(...allRanges.map((v) => v.minMidi as number)) : 36;
   const globalMax = allRanges.length ? Math.max(...allRanges.map((v) => v.maxMidi as number)) : 72;
@@ -2101,12 +3014,6 @@ function RangeResultVisualizer({
         <RangeSummaryLine range={chest} />
         <RangeSummaryLine range={falsetto} />
         <RangeSummaryLine range={overlap} />
-      </div>
-
-      <div className="trainingPage__rangeResultOverlapInfo">
-        {overlapStatus === "ok" && "共通音域は地声・裏声の両方で安定して出せるレンジです。"}
-        {overlapStatus === "none" && "共通音域：なし（地声と裏声のレンジが重なっていません）"}
-        {overlapStatus === "insufficient" && "共通音域：未算出（地声/裏声の測定が不足しています）"}
       </div>
 
     </div>
@@ -2323,7 +3230,7 @@ function LongToneResultHero({
           {bestSec != null && <div>ベスト: {bestSec.toFixed(1)} 秒</div>}
         </div>
       )}
-      <div className="trainingPage__longToneHint">ロングトーンは同じ音程を保てた最長時間で判定します。</div>
+      <div className="trainingPage__longToneHint">ロングトーンは有効な発声が続いた時間で判定します。</div>
     </div>
   );
 }

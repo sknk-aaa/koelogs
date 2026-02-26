@@ -1,0 +1,15 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgX1000" x1="10" y1="86" x2="86" y2="10" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4DB8EC"/>
+      <stop offset="1" stop-color="#6E73DE"/>
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="40" fill="url(#bgX1000)"/>
+  <path d="M48 18L56 30L70 33L60 44L63 59L48 52L33 59L36 44L26 33L40 30L48 18Z" fill="rgba(255,255,255,0.92)"/>
+  <circle cx="48" cy="41" r="10" fill="#587FE0"/>
+  <path d="M28 27L31 31L36 32L31 34L28 39L25 34L20 32L25 31L28 27Z" fill="rgba(255,255,255,0.86)"/>
+  <path d="M68 25L70 28L74 29L70 31L68 35L66 31L62 29L66 28L68 25Z" fill="rgba(255,255,255,0.84)"/>
+  <rect x="20" y="64" width="56" height="14" rx="7" fill="rgba(255,255,255,0.97)"/>
+  <text x="48" y="74" text-anchor="middle" font-size="10" font-weight="900" fill="#2E467C">XP 1000</text>
+</svg>

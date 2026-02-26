@@ -9,7 +9,14 @@
   - 日付単位の記録（`/log`, `/log/new`）
   - 練習時間、メニュー、メモ、最高音（地声/裏声）
 - トレーニング再生
-  - スケール/テンポ選択と音源再生（`/training`）
+  - スケール/音域タイプ（low/mid/high）選択と音源再生（`/training`）
+  - テンポ選択UIは廃止（音源側で固定テンポ）
+  - 対応スケール: `5tone` / `Descending5tone` / `triad` / `octave` / `Risingoctave`
+  - 音源命名規則: `public/scales/{scale}-{range}.mp3`
+- 録音測定（`/training`）
+  - 音域 / ロングトーン / 音量安定性 / 音程精度 を測定
+  - 音程精度はスケール（low/mid/high）選択後、録音開始と同時に固定ガイド音源を再生
+  - 参照バー（ターゲット音程）と自分のピッチ線を同時表示し、追従精度を確認
 - 分析
   - 練習時間推移
   - メニュー別分析
@@ -34,6 +41,13 @@
   - パスワード再設定（現在パスワード照合あり）
 - マイページ
   - バッジ / 進捗 / ミッションの確認
+  - ミッションは「デイリー（常時表示）」+「もっと見る（初心者）」構成
+  - 継続ミッション（バッジ）はミッション折りたたみと独立して常時表示
+  - バッジ獲得時は専用ポップアップ表示（ミッション達成とは独立）
+- ヘルプ / お問い合わせ
+  - 使い方ガイド（`/help/guide`）
+  - アプリ説明（`/help/about`）
+  - お問い合わせフォーム（`/help/contact`）
 
 ## 技術スタック
 
@@ -62,7 +76,7 @@
   - `/training`
   - `/insights`, `/insights/time`, `/insights/menus`, `/insights/notes`
   - `/community`, `/community/rankings`, `/community/profile/:userId`
-  - `/help/guide`, `/help/about`
+  - `/help/guide`, `/help/about`, `/help/contact`
 - レイアウト内（ログイン必須）:
   - `/log/new`
   - `/analysis/history`
@@ -104,6 +118,7 @@ SMTP_USERNAME=
 SMTP_PASSWORD=
 SMTP_AUTHENTICATION=plain
 SMTP_ENABLE_STARTTLS_AUTO=true
+CONTACT_MAIL_TO=support@example.com
 ```
 
 任意:
@@ -213,6 +228,7 @@ npm --prefix frontend run dev
   - `GET /api/scale_tracks`
   - `GET /api/insights`
   - `GET/POST /api/ai_recommendations`
+  - `POST /api/help/contact`
 
 ## DB設計（現行）
 
@@ -350,7 +366,9 @@ npm --prefix frontend run dev
 ### scale_tracks
 - 用途: トレーニング用音源管理
 - 主なカラム:
-  - `scale_type`, `tempo`, `file_path`
+  - `scale_type`, `range_type`, `tempo`, `file_path`
+  - `range_type`: `low` / `mid` / `high`
+  - `tempo`: DB保持のみ（TrainingPageの選択UIでは未使用）
 
 ## AI録音分析メモ
 

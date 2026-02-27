@@ -90,6 +90,7 @@ export default function AppHeader() {
           items: [
             { label: "設定", onClick: () => navigate("/settings"), to: "/settings", match: "exact" },
             { label: "AIカスタム指示", onClick: () => navigate("/settings/ai"), to: "/settings/ai", match: "exact" },
+            { label: "練習メニュー管理", onClick: () => navigate("/log/new?panel=menus"), to: "/log/new", match: "exact" },
           ],
         },
         {

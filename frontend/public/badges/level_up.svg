@@ -1,0 +1,21 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="16" y1="12" x2="112" y2="116" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF7D6"/>
+      <stop offset="1" stop-color="#FDE68A"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="24" y1="22" x2="104" y2="86" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FCD34D"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="64" cy="64" r="56" fill="url(#bg)"/>
+  <circle cx="64" cy="64" r="54" stroke="#F59E0B" stroke-opacity="0.35" stroke-width="2"/>
+
+  <path d="M30 38L44 52L56 36L64 54L72 36L84 52L98 38V66C98 74.8366 90.8366 82 82 82H46C37.1634 82 30 74.8366 30 66V38Z" fill="url(#gold)" stroke="#B45309" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="46" y="84" width="36" height="8" rx="4" fill="#B45309"/>
+  <rect x="40" y="92" width="48" height="10" rx="5" fill="#92400E"/>
+
+  <path d="M64 18L67.8 25.2L76 26.4L70 32.2L71.4 40.4L64 36.6L56.6 40.4L58 32.2L52 26.4L60.2 25.2L64 18Z" fill="#F59E0B"/>
+</svg>

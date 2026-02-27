@@ -49,6 +49,7 @@ export default function LogNewPage() {
   const { settings } = useSettings();
   const navState = location.state as { quickFromWelcome?: boolean } | null;
   const quickMode = navState?.quickFromWelcome === true;
+  const menuManageMode = params.get("panel") === "menus";
 
   // /log/new?date=YYYY-MM-DD で来たらそれを優先
   const initialDate = params.get("date") || todayISO();
@@ -94,6 +95,7 @@ export default function LogNewPage() {
 
   // 初回保存時のみ AI生成ポップアップを出す
   useEffect(() => {
+    if (menuManageMode) return;
     let cancelled = false;
     (async () => {
       const res = await fetchInsights(30);
@@ -111,10 +113,11 @@ export default function LogNewPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [menuManageMode]);
 
   // 初期表示で既存ログを読み込み、あればフォームに反映
   useEffect(() => {
+    if (menuManageMode) return;
     let cancelled = false;
     (async () => {
       setInitialLoading(true);
@@ -147,9 +150,10 @@ export default function LogNewPage() {
     return () => {
       cancelled = true;
     };
-  }, [practicedOn]);
+  }, [menuManageMode, practicedOn]);
 
   const toggleMenu = (id: number) => {
+    if (menuManageMode) return;
     setSelectedMenuIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -270,7 +274,7 @@ export default function LogNewPage() {
       <form id="log-new-form" onSubmit={onSubmit} className="logNew__form">
         {initialLoading && <div className="logNew__loading">既存ログを読み込み中…</div>}
 
-        {!quickMode && (
+        {!quickMode && !menuManageMode && (
           <section className="card logNew__section">
             <div className="logNew__sectionTitle">基本情報</div>
 
@@ -305,7 +309,8 @@ export default function LogNewPage() {
 
         {!quickMode && (
           <section className="card logNew__section">
-            <div className="logNew__sectionTitle">練習メニュー（複数選択）</div>
+            <div className="logNew__sectionTitle">{menuManageMode ? "練習メニュー管理" : "練習メニュー（複数選択）"}</div>
+            {menuManageMode && <div className="logNew__muted">この画面では、メニューの追加・削除のみ行えます。</div>}
 
           <div className="logNew__panel">
             <div className="logNew__subLabel">メニュー名</div>
@@ -363,23 +368,27 @@ export default function LogNewPage() {
               return (
                 <div
                   key={menu.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => toggleMenu(menu.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      toggleMenu(menu.id);
-                    }
-                  }}
-                  aria-pressed={checked}
-                  className={`logNew__menuRow ${checked ? "is-checked" : ""}`}
+                  role={menuManageMode ? undefined : "button"}
+                  tabIndex={menuManageMode ? undefined : 0}
+                  onClick={menuManageMode ? undefined : () => toggleMenu(menu.id)}
+                  onKeyDown={
+                    menuManageMode
+                      ? undefined
+                      : (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            toggleMenu(menu.id);
+                          }
+                        }
+                  }
+                  aria-pressed={menuManageMode ? undefined : checked}
+                  className={`logNew__menuRow ${checked ? "is-checked" : ""}${menuManageMode ? " is-manageOnly" : ""}`}
                 >
-                  <span className="logNew__check" aria-hidden="true">✓</span>
+                  {!menuManageMode && <span className="logNew__check" aria-hidden="true">✓</span>}
 
                   <ColoredTag text={menu.name} color={menu.color} />
 
-                  {checked && <span className="logNew__selectedText">選択中</span>}
+                  {!menuManageMode && checked && <span className="logNew__selectedText">選択中</span>}
 
                   <button
                     type="button"
@@ -401,22 +410,25 @@ export default function LogNewPage() {
             )}
           </div>
 
-          <div className="logNew__field">
-            <div className="logNew__subLabel">選択中メニュー</div>
-            <div className="logNew__selectedTags">
-              {selectedMenuIdsArray.length ? (
-                selectedMenuIdsArray.map((id) => {
-                  const m = menuCatalog.find((x) => x.id === id);
-                  return <ColoredTag key={id} text={m?.name ?? `#${id}`} color={m?.color ?? "#E5E7EB"} />;
-                })
-              ) : (
-                <span className="logNew__muted">なし</span>
-              )}
+          {!menuManageMode && (
+            <div className="logNew__field">
+              <div className="logNew__subLabel">選択中メニュー</div>
+              <div className="logNew__selectedTags">
+                {selectedMenuIdsArray.length ? (
+                  selectedMenuIdsArray.map((id) => {
+                    const m = menuCatalog.find((x) => x.id === id);
+                    return <ColoredTag key={id} text={m?.name ?? `#${id}`} color={m?.color ?? "#E5E7EB"} />;
+                  })
+                ) : (
+                  <span className="logNew__muted">なし</span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
           </section>
         )}
 
+        {!menuManageMode && (
         <section className="card logNew__section">
           <div className="logNew__sectionTitle">{quickMode ? "現在の声の状況を教えてください" : "自由記述"}</div>
           <textarea
@@ -427,8 +439,9 @@ export default function LogNewPage() {
             className="logNew__textarea"
           />
         </section>
+        )}
 
-        {errors.length > 0 && (
+        {errors.length > 0 && !menuManageMode && (
           <section className="logNew__errorBox">
             <div className="logNew__errorTitle">保存できませんでした</div>
             <ul className="logNew__errorList">
@@ -440,7 +453,7 @@ export default function LogNewPage() {
         )}
       </form>
 
-      {aiPromptOpen && (
+      {aiPromptOpen && !menuManageMode && (
         <div className="logNew__aiPromptOverlay" role="dialog" aria-modal="true" aria-label="AIおすすめ生成確認">
           <section className="logNew__aiPromptCard">
             <div className="logNew__aiPromptTitle">AIおすすめを生成しますか？</div>
@@ -473,20 +486,22 @@ export default function LogNewPage() {
       <div className="logNew__stickyBar">
         <div className="logNew__stickyInner">
           <button type="button" onClick={onCancel} disabled={submitting} className="logNew__btn logNew__btn--ghost">
-            キャンセル
+            {menuManageMode ? "閉じる" : "キャンセル"}
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              const form = document.getElementById("log-new-form") as HTMLFormElement | null;
-              form?.requestSubmit();
-            }}
-            disabled={submitting}
-            className="logNew__btn logNew__btn--primary"
-          >
-            {submitting ? "保存中…" : "保存"}
-          </button>
+          {!menuManageMode && (
+            <button
+              type="button"
+              onClick={() => {
+                const form = document.getElementById("log-new-form") as HTMLFormElement | null;
+                form?.requestSubmit();
+              }}
+              disabled={submitting}
+              className="logNew__btn logNew__btn--primary"
+            >
+              {submitting ? "保存中…" : "保存"}
+            </button>
+          )}
         </div>
       </div>
     </div>

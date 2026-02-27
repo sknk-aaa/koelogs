@@ -6,6 +6,7 @@ import { loadThemeKey, loadThemeMode, saveThemeKey, saveThemeMode, type ThemeMod
 function applyThemeToRoot(key: ThemeKey, mode: "light" | "dark") {
   const def = THEMES.find((t) => t.key === key) ?? THEMES[0];
   const root = document.documentElement;
+  const dynamicLightVars = [ "--bg-glow-1", "--bg-glow-2", "--card-tint" ] as const;
 
   root.dataset.theme = def.key;
   root.dataset.themeMode = mode;
@@ -15,6 +16,9 @@ function applyThemeToRoot(key: ThemeKey, mode: "light" | "dark") {
   Object.keys(def.vars).forEach((k) => {
     root.style.removeProperty(k);
   });
+  dynamicLightVars.forEach((k) => {
+    root.style.removeProperty(k);
+  });
 
   // Light mode uses selected theme colors.
   // Dark mode intentionally ignores theme variants (rose/sky/etc).
@@ -22,6 +26,9 @@ function applyThemeToRoot(key: ThemeKey, mode: "light" | "dark") {
     Object.entries(def.vars).forEach(([k, v]) => {
       root.style.setProperty(k, v);
     });
+    root.style.setProperty("--bg-glow-1", "color-mix(in srgb, var(--accent) 20%, transparent)");
+    root.style.setProperty("--bg-glow-2", "color-mix(in srgb, var(--accent) 14%, transparent)");
+    root.style.setProperty("--card-tint", "color-mix(in srgb, var(--accent) 8%, #ffffff)");
   }
 }
 

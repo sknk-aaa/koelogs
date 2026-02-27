@@ -1,8 +1,16 @@
-export type ThemeKey = "rose" | "sky" | "emerald" | "amber" | "violet";
+export type ThemeKey =
+  | "rose"
+  | "sky"
+  | "violet"
+  | "ocean"
+  | "sunset"
+  | "canary"
+  | "umber";
 
 export type ThemeDef = {
   key: ThemeKey;
   name: string;
+  unlockLevel?: number;
   // CSS変数に入れる値
   vars: {
     "--accent": string;
@@ -19,60 +27,87 @@ export const THEMES: ThemeDef[] = [
     key: "rose",
     name: "Rose",
     vars: {
-      "--accent": "#d84a7f",
-      "--accentSoft": "rgba(216, 74, 127, 0.24)",
+      "--accent": "#E11D73",
+      "--accentSoft": "rgba(225, 29, 115, 0.32)",
       "--accentText": "#ffffff",
-      "--bgTop": "#ffe0eb",
-      "--bgMid": "#f9eff4",
-      "--bgBottom": "#eef1f7",
+      "--bgTop": "#FFE5F1",
+      "--bgMid": "#FFF3F8",
+      "--bgBottom": "#F7F4F8",
     },
   },
   {
     key: "sky",
     name: "Sky",
     vars: {
-      "--accent": "#0e91d8",
-      "--accentSoft": "rgba(14, 145, 216, 0.24)",
+      "--accent": "#0284FF",
+      "--accentSoft": "rgba(2, 132, 255, 0.32)",
       "--accentText": "#ffffff",
-      "--bgTop": "#dcefff",
-      "--bgMid": "#edf3fb",
-      "--bgBottom": "#e5ebf5",
+      "--bgTop": "#E2F1FF",
+      "--bgMid": "#F3F8FF",
+      "--bgBottom": "#EEF3FA",
     },
   },
   {
-    key: "emerald",
-    name: "Emerald",
+    key: "ocean",
+    name: "Graphite",
     vars: {
-      "--accent": "#0f9c84",
-      "--accentSoft": "rgba(15, 156, 132, 0.24)",
+      "--accent": "#334155",
+      "--accentSoft": "rgba(51, 65, 85, 0.34)",
       "--accentText": "#ffffff",
-      "--bgTop": "#d6f5ec",
-      "--bgMid": "#ebf6f2",
-      "--bgBottom": "#e4eef0",
+      "--bgTop": "#E8EDF4",
+      "--bgMid": "#F6F8FB",
+      "--bgBottom": "#EEF1F6",
     },
   },
   {
-    key: "amber",
-    name: "Amber",
+    key: "sunset",
+    name: "Lime",
     vars: {
-      "--accent": "#d58a1e",
-      "--accentSoft": "rgba(213, 138, 30, 0.26)",
-      "--accentText": "#111111",
-      "--bgTop": "#f8e3c3",
-      "--bgMid": "#f4efe3",
-      "--bgBottom": "#e9e6e1",
+      "--accent": "#65C11A",
+      "--accentSoft": "rgba(101, 193, 26, 0.34)",
+      "--accentText": "#ffffff",
+      "--bgTop": "#EEFACF",
+      "--bgMid": "#F7FDE8",
+      "--bgBottom": "#EDF4DD",
     },
   },
   {
     key: "violet",
     name: "Violet",
+    unlockLevel: 5,
     vars: {
-      "--accent": "#6f56d9",
-      "--accentSoft": "rgba(111, 86, 217, 0.24)",
+      "--accent": "#7C3AED",
+      "--accentSoft": "rgba(124, 58, 237, 0.32)",
       "--accentText": "#ffffff",
-      "--bgTop": "#e8e2ff",
-      "--bgMid": "#f0eff9",
-      "--bgBottom": "#e6e8f4",
+      "--bgTop": "#EEE6FF",
+      "--bgMid": "#F6F3FF",
+      "--bgBottom": "#EFEFFC",
+    },
+  },
+  {
+    key: "canary",
+    name: "Canary",
+    unlockLevel: 10,
+    vars: {
+      "--accent": "#EAB308",
+      "--accentSoft": "rgba(234, 179, 8, 0.34)",
+      "--accentText": "#111111",
+      "--bgTop": "#FFF3BA",
+      "--bgMid": "#FFFBE2",
+      "--bgBottom": "#F4EED6",
+    },
+  },
+  {
+    key: "umber",
+    name: "Umber",
+    unlockLevel: 20,
+    vars: {
+      "--accent": "#A16207",
+      "--accentSoft": "rgba(161, 98, 7, 0.34)",
+      "--accentText": "#ffffff",
+      "--bgTop": "#F5E2CC",
+      "--bgMid": "#FBF0E3",
+      "--bgBottom": "#F1E3D4",
     },
   },
 ];

@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import AppHeader from "./AppHeader";
 import AppFooterTabs from "./AppFooterTabs";
 import BadgeUnlockPopup from "./BadgeUnlockPopup";
+import LevelUpToast from "./LevelUpToast";
 import { PageContainer } from "../features/ui";
 
 export default function AppLayout() {
@@ -17,6 +18,7 @@ export default function AppLayout() {
         </PageContainer>
       </main>
       {!hideFooterTabs && <AppFooterTabs />}
+      <LevelUpToast />
       <BadgeUnlockPopup />
     </div>
   );

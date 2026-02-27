@@ -136,9 +136,21 @@
   cursor: pointer;
 }
 
+.settingsPage__themeBtn:disabled {
+  cursor: default;
+}
+
 .settingsPage__themeBtn.isSelected {
   border-color: color-mix(in srgb, var(--accent) 44%, #aaa);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.settingsPage__themeBtn.isLocked {
+  opacity: 0.65;
+}
+
+.settingsPage__themeBtn.isModeLocked {
+  opacity: 0.55;
 }
 
 .settingsPage__swatchWrap {
@@ -157,6 +169,22 @@
 .settingsPage__themeName {
   font-size: 13px;
   font-weight: 900;
+}
+
+.settingsPage__themeMeta {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.settingsPage__themeLock {
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.78;
+}
+
+.settingsPage__hint--themeLevel {
+  margin-bottom: 8px;
 }
 
 .settingsPage__volumeRow {

@@ -40,11 +40,13 @@ module Api
         range_days: range_days,
         include_today: include_today
       ).generate!(logs: logs, collective_effects: collective_effects)
+      collective_summary = build_collective_summary(collective_effects)
 
       rec = current_user.ai_recommendations.new(
         generated_for_date: target_date,
         range_days: range_days,
-        recommendation_text: text
+        recommendation_text: text,
+        collective_summary: collective_summary
       )
 
       if rec.save
@@ -86,7 +88,63 @@ module Api
         generated_for_date: rec.generated_for_date.iso8601,
         range_days: rec.range_days,
         recommendation_text: rec.recommendation_text,
+        collective_summary: collective_summary_payload_for(rec.collective_summary),
         created_at: rec.created_at.iso8601
+      }
+    end
+
+    def default_collective_summary
+      {
+        used: false,
+        window_days: 90,
+        min_count: 3,
+        items: []
+      }
+    end
+
+    def collective_summary_payload_for(raw)
+      return nil unless raw.is_a?(Hash)
+      used = raw[:used]
+      used = raw["used"] if used.nil?
+      return nil unless used == true || used == false
+
+      raw
+    end
+
+    def build_collective_summary(collective_effects)
+      rows = Array(collective_effects[:rows])
+      window_days = collective_effects[:window_days].to_i
+      min_count = collective_effects[:min_count].to_i
+
+      return default_collective_summary.merge(window_days: window_days, min_count: min_count) if rows.blank?
+
+      items = rows.first(3).map do |row|
+        menus = Array(row[:top_menus]).first(2).map do |menu|
+          {
+            menu_label: menu[:display_label].presence || menu[:canonical_key].to_s,
+            count: menu[:count].to_i,
+            scale_distribution: Array(menu[:top_scales]).map { |s| { label: s[:label].to_s, count: s[:count].to_i } },
+            detail_comments: Array(menu[:detail_samples]).map(&:to_s),
+            detail_keywords: Array(menu[:detail_keywords]).map { |k| k[:label].to_s },
+            detail_patterns: {
+              improved: Array(menu.dig(:detail_patterns, :improved)).map { |v| v[:text].to_s },
+              range: Array(menu.dig(:detail_patterns, :range)).map { |v| v[:text].to_s },
+              focus: Array(menu.dig(:detail_patterns, :focus)).map { |v| v[:text].to_s }
+            }
+          }
+        end
+        {
+          tag_key: row[:tag_key].to_s,
+          tag_label: row[:tag_label].to_s,
+          menus: menus
+        }
+      end
+
+      {
+        used: true,
+        window_days: window_days,
+        min_count: min_count,
+        items: items
       }
     end
   end

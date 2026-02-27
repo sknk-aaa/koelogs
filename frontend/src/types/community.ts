@@ -23,6 +23,8 @@ export type CommunityPost = {
   canonical_key: string;
   improvement_tags: string[];
   effect_level: number;
+  used_scale_type: CommunityUsedScaleType;
+  used_scale_other_text: string | null;
   comment: string | null;
   published: boolean;
   practiced_on: string | null;
@@ -75,3 +77,29 @@ export const IMPROVEMENT_TAG_OPTIONS: Array<{ key: string; label: string }> = [
   { key: "resonance_clarity", label: "声の抜け・響き" },
   { key: "long_tone_sustain", label: "ロングトーン維持" },
 ];
+
+export type CommunityUsedScaleType =
+  | "five_tone"
+  | "triad"
+  | "one_half_octave"
+  | "octave"
+  | "octave_repeat"
+  | "semitone"
+  | "other";
+
+export const COMMUNITY_USED_SCALE_OPTIONS: Array<{ key: CommunityUsedScaleType; label: string }> = [
+  { key: "five_tone", label: "5トーン" },
+  { key: "triad", label: "トライアド" },
+  { key: "one_half_octave", label: "1.5オクターブ" },
+  { key: "octave", label: "オクターブ" },
+  { key: "octave_repeat", label: "オクターブリピート" },
+  { key: "semitone", label: "セミトーン" },
+  { key: "other", label: "その他" },
+];
+
+export function usedScaleLabel(type: CommunityUsedScaleType, otherText?: string | null): string {
+  if (type === "other") {
+    return otherText?.trim() ? `その他（${otherText.trim()}）` : "その他";
+  }
+  return COMMUNITY_USED_SCALE_OPTIONS.find((opt) => opt.key === type)?.label ?? "その他";
+}

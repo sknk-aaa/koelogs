@@ -23,6 +23,9 @@
   - 最高音推移（`/insights*`）
 - AIおすすめ
   - 直近ログをもとに当日の練習方針を生成
+  - 個人ログを主根拠、コミュニティ投稿を補助根拠として利用
+  - 出力は `1)今日の方針 / 2)今の状態 / 3)おすすめメニュー / 4)補足`
+  - 集合知を利用した場合は、`参考にしたコミュニティ投稿` をカード下に表示（メニュー比率・人気スケール・自由記述）
 - AI録音分析
   - 分析メニュー作成（比較条件/詳細設定）
   - 判定項目選択
@@ -327,6 +330,7 @@ npm --prefix frontend run dev
 - 用途: AIおすすめ保存
 - 主なカラム:
   - `user_id`, `generated_for_date`, `range_days`, `recommendation_text`
+  - `collective_summary`（jsonb: 推薦時に参照したコミュニティ要約）
 - 制約:
   - `index_ai_recommendations_on_user_id_and_generated_for_date`（unique）
 
@@ -336,6 +340,8 @@ npm --prefix frontend run dev
   - `user_id`, `training_menu_id`, `canonical_key`
   - `improvement_tags`（jsonb）
   - `effect_level`（1..5）
+  - `used_scale_type`（`five_tone|triad|one_half_octave|octave|octave_repeat|semitone|other`）
+  - `used_scale_other_text`（`used_scale_type=other` の補足）
   - `comment`, `published`, `practiced_on`
 
 ### community_post_favorites

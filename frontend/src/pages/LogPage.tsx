@@ -493,6 +493,37 @@ export default function LogPage() {
     range_days: settings.aiRangeDays,
     recommendation_text:
       "今日はウォームアップを10分入れてから、ミックス練習を中心に。後半はテンポを落として音程の安定を優先しましょう。",
+    collective_summary: {
+      used: true,
+      window_days: 90,
+      min_count: 3,
+      items: [
+        {
+          tag_key: "pitch_accuracy",
+          tag_label: "音程精度",
+          menus: [
+            {
+              menu_label: "ハミング",
+              count: 4,
+              scale_distribution: [
+                { label: "5トーン", count: 3 },
+                { label: "トライアド", count: 1 },
+              ],
+              detail_comments: [
+                "喉を開く意識で力みが減った",
+                "音量一定で当たりが安定した",
+              ],
+              detail_keywords: [ "声帯閉鎖維持", "鼻腔への響き" ],
+              detail_patterns: {
+                improved: [ "ミドルが楽" ],
+                range: [ "換声点付近" ],
+                focus: [ "声帯閉鎖を維持する" ],
+              },
+            },
+          ],
+        },
+      ],
+    },
     created_at: new Date().toISOString(),
   };
 
@@ -913,6 +944,7 @@ export default function LogPage() {
             collapsible={aiCollapsible}
             expanded={aiExpanded}
             onToggleExpanded={() => setAiExpanded((v) => !v)}
+            collectiveSummary={effectiveAiRec?.collective_summary}
           />
         )}
       </div>

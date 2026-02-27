@@ -1,6 +1,11 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
-import type { CommunityPost, CommunityProfileDetail, CommunityRankings } from "../types/community";
+import type {
+  CommunityPost,
+  CommunityProfileDetail,
+  CommunityRankings,
+  CommunityUsedScaleType,
+} from "../types/community";
 import type { SaveRewards } from "../types/gamification";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -46,6 +51,8 @@ export async function fetchFavoriteCommunityPosts(opts?: { limit?: number }): Pr
 export async function createCommunityPost(input: {
   training_menu_id: number;
   improvement_tags: string[];
+  used_scale_type: CommunityUsedScaleType;
+  used_scale_other_text?: string;
   comment?: string;
   published?: boolean;
 }): Promise<{ data: CommunityPost; rewards: SaveRewards | null }> {
@@ -78,6 +85,8 @@ export async function updateCommunityPost(
   input: {
     training_menu_id: number;
     improvement_tags: string[];
+    used_scale_type: CommunityUsedScaleType;
+    used_scale_other_text?: string;
     comment?: string;
     published?: boolean;
   }

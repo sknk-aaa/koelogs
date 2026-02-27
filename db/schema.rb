@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_26_093000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_27_102000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_26_093000) do
   end
 
   create_table "ai_recommendations", force: :cascade do |t|
+    t.jsonb "collective_summary", default: {}, null: false
     t.datetime "created_at", null: false
     t.date "generated_for_date", null: false
     t.integer "range_days", default: 7, null: false
@@ -58,6 +59,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_26_093000) do
     t.boolean "published", default: true, null: false
     t.bigint "training_menu_id", null: false
     t.datetime "updated_at", null: false
+    t.string "used_scale_other_text"
+    t.string "used_scale_type", default: "other", null: false
     t.bigint "user_id", null: false
     t.index ["canonical_key", "created_at"], name: "index_community_posts_on_canonical_key_and_created_at"
     t.index ["published", "created_at"], name: "index_community_posts_on_published_and_created_at"

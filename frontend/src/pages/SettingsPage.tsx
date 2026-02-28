@@ -173,17 +173,8 @@ export default function SettingsPage() {
       <section className="card settingsPage__card">
         <div className="settingsPage__cardTitle">AIおすすめ</div>
         <div className="settingsPage__block">
-          <div className="settingsPage__label">参照日数（今日を除く直近）</div>
+          <div className="settingsPage__label">参照期間</div>
           <div className="settingsPage__row">
-            <label className={`settingsPage__pillRadio ${settings.aiRangeDays === 7 ? "isSelected" : ""}`}>
-              <input
-                type="radio"
-                checked={settings.aiRangeDays === 7}
-                onChange={() => patchSettings({ aiRangeDays: 7 })}
-              />
-              <span>7日</span>
-            </label>
-
             <label className={`settingsPage__pillRadio ${settings.aiRangeDays === 14 ? "isSelected" : ""}`}>
               <input
                 type="radio"
@@ -192,9 +183,27 @@ export default function SettingsPage() {
               />
               <span>14日</span>
             </label>
+
+            <label className={`settingsPage__pillRadio ${settings.aiRangeDays === 30 ? "isSelected" : ""}`}>
+              <input
+                type="radio"
+                checked={settings.aiRangeDays === 30}
+                onChange={() => patchSettings({ aiRangeDays: 30 })}
+              />
+              <span>30日</span>
+            </label>
+
+            <label className={`settingsPage__pillRadio ${settings.aiRangeDays === 90 ? "isSelected" : ""}`}>
+              <input
+                type="radio"
+                checked={settings.aiRangeDays === 90}
+                onChange={() => patchSettings({ aiRangeDays: 90 })}
+              />
+              <span>90日</span>
+            </label>
           </div>
           <div className="settingsPage__hint">
-            日数を増やすと安定した提案になりやすい一方、直近の変化には鈍くなります。
+            詳細ログは常に直近14日を使います。30/90日は月ログ傾向も合わせて参照します。
           </div>
         </div>
       </section>

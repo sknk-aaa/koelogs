@@ -7,39 +7,55 @@ module Api
     # GET /api/ai_recommendations?date=YYYY-MM-DD
     def show
       date = parse_date!(params[:date])
-      rec = current_user.ai_recommendations.find_by(generated_for_date: date)
+      range_days = normalize_range_days(params[:range_days])
+      rec = current_user.ai_recommendations.find_by(generated_for_date: date, range_days: range_days)
       render json: { data: rec ? serialize(rec) : nil }, status: :ok
     rescue ArgumentError => e
       render json: { error: e.message }, status: :bad_request
     end
 
     # POST /api/ai_recommendations
-    # body: { date: "YYYY-MM-DD", range_days: 7 }
+    # body: { date: "YYYY-MM-DD", range_days: 14|30|90 }
     def create
       target_date = params[:date].present? ? parse_date!(params[:date]) : Date.current
 
-      range_days = (params[:range_days].presence || 7).to_i
-      range_days = 7 if range_days <= 0
+      range_days = normalize_range_days(params[:range_days])
 
-      existing = current_user.ai_recommendations.find_by(generated_for_date: target_date)
+      existing = current_user.ai_recommendations.find_by(generated_for_date: target_date, range_days: range_days)
       return render json: { data: serialize(existing) }, status: :ok if existing
 
       include_today = true
-      from = include_today ? (target_date - (range_days - 1)) : (target_date - range_days)
+      detail_window_days = 14
+      from = include_today ? (target_date - (detail_window_days - 1)) : (target_date - detail_window_days)
       to = include_today ? target_date : (target_date - 1)
 
       logs = current_user.training_logs
                         .where(practiced_on: from..to)
                         .includes(:training_menus)
                         .order(:practiced_on)
-      collective_effects = Ai::CollectiveEffectSummary.new(window_days: 90, min_count: 3).build
+      trend_month_count = trend_month_count_for(range_days)
+      monthly_logs = monthly_logs_for(target_date: target_date, month_count: trend_month_count)
+      measurement_evidence = Ai::MeasurementEvidenceSummary.build(
+        user: current_user,
+        improvement_tags: current_user.ai_improvement_tags,
+        goal_text: current_user.goal_text,
+        logs: logs
+      )
+      collective_effects = Ai::CollectiveEffectCache.fetch(window_days: 90, min_count: 3)
 
       text = Ai::RecommendationGenerator.new(
         user: current_user,
         date: target_date,
         range_days: range_days,
         include_today: include_today
-      ).generate!(logs: logs, collective_effects: collective_effects)
+      ).generate!(
+        logs: logs,
+        monthly_logs: monthly_logs,
+        measurement_evidence: measurement_evidence,
+        selected_range_days: range_days,
+        detail_window_days: detail_window_days,
+        collective_effects: collective_effects
+      )
       collective_summary = build_collective_summary(collective_effects)
 
       rec = current_user.ai_recommendations.new(
@@ -80,6 +96,29 @@ module Api
       Date.iso8601(value.to_s)
     rescue ArgumentError
       raise ArgumentError, "invalid date format. use YYYY-MM-DD"
+    end
+
+    def normalize_range_days(raw)
+      value = raw.to_i
+      return 30 if value == 30
+      return 90 if value == 90
+
+      14
+    end
+
+    def trend_month_count_for(range_days)
+      return 1 if range_days == 30
+      return 3 if range_days == 90
+
+      0
+    end
+
+    def monthly_logs_for(target_date:, month_count:)
+      return MonthlyLog.none if month_count <= 0
+
+      to_month = target_date.beginning_of_month
+      from_month = to_month << (month_count - 1)
+      current_user.monthly_logs.where(month_start: from_month..to_month).order(:month_start)
     end
 
     def serialize(rec)

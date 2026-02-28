@@ -97,6 +97,22 @@ function previewText(text: string, previewChars: number) {
   return t.slice(0, previewChars) + "…";
 }
 
+function monthlyTrendNote(rangeDays: 14 | 30 | 90): string {
+  if (rangeDays === 30) return "傾向=直近1か月の月ログ";
+  if (rangeDays === 90) return "傾向=直近3か月の月ログ";
+  return "傾向=月ログ参照なし";
+}
+
+function aiReferenceMeta(rangeDays: 14 | 30 | 90): string {
+  return `詳細=直近14日 / ${monthlyTrendNote(rangeDays)}`;
+}
+
+function normalizeAiRangeDays(value: number | null | undefined): 14 | 30 | 90 {
+  if (value === 30) return 30;
+  if (value === 90) return 90;
+  return 14;
+}
+
 function isWithinFirst7Days(createdAt?: string | null): boolean {
   if (!createdAt) return false;
   const created = new Date(createdAt);
@@ -118,7 +134,7 @@ export default function LogPage() {
     [params, selectedDate]
   );
   const monthKey = useMemo(() => selectedMonth, [selectedMonth]);
-  const { settings } = useSettings();
+  const { settings, patchSettings } = useSettings();
   const { me: authMe, isLoading: authLoading } = useAuth();
   const guestMode = !authLoading && !authMe;
 
@@ -349,7 +365,7 @@ export default function LogPage() {
 
       setAiError(null);
 
-      const res = await fetchAiRecommendationByDate(selectedDate);
+      const res = await fetchAiRecommendationByDate(selectedDate, settings.aiRangeDays);
       if (cancelled) return;
 
       if (res.error) {
@@ -363,7 +379,7 @@ export default function LogPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate, authMe, isDayMode]);
+  }, [selectedDate, authMe, isDayMode, settings.aiRangeDays]);
 
   useEffect(() => {
     if (authLoading || !authMe) {
@@ -490,7 +506,7 @@ export default function LogPage() {
   const previewAiRec: AiRecommendation = {
     id: -1,
     generated_for_date: selectedDate,
-    range_days: settings.aiRangeDays,
+    range_days: 14,
     recommendation_text:
       "今日はウォームアップを10分入れてから、ミックス練習を中心に。後半はテンポを落として音程の安定を優先しましょう。",
     collective_summary: {
@@ -529,6 +545,8 @@ export default function LogPage() {
 
   const effectiveLog = guestMode ? previewLog : log;
   const effectiveAiRec = guestMode ? previewAiRec : aiRec;
+  const selectedRangeDays = settings.aiRangeDays;
+  const aiMeta = aiReferenceMeta(normalizeAiRangeDays(effectiveAiRec?.range_days ?? selectedRangeDays));
   const currentAiText = effectiveAiRec?.recommendation_text ?? null;
   const showAiArea = isDayMode && (guestMode || !!effectiveAiRec || aiLoading || !!aiError);
   const showAiButton = isDayMode && isToday && !aiLoading && !effectiveAiRec && !aiError;
@@ -932,9 +950,7 @@ export default function LogPage() {
         {showAiArea && (
           <AiRecommendationCard
             title="今日のおすすめメニュー"
-            meta={
-              `今日を含めて直近 ${settings.aiRangeDays} 日を参考`
-            }
+            meta={aiMeta}
             aiLoading={aiLoading}
             aiError={guestMode && isDayMode ? null : aiError}
             recommendationText={currentAiText}
@@ -978,7 +994,7 @@ export default function LogPage() {
                         <span>主に使う</span>
                       </div>
                       <div className="logPage__aiInfoBlockText">
-                        直近ログ（時間・メニュー・メモ）と目標を参考にします。
+                        詳細ログは直近14日を使い、選択した参照期間が30/90日の場合は月ログ傾向も補助で参照します。
                       </div>
                     </section>
                     <section className="logPage__aiInfoBlock">
@@ -1005,6 +1021,25 @@ export default function LogPage() {
             </div>
 
             <div className="logAi__content">
+              <div className="logAi__rangeSection" aria-label="AI参照期間">
+                <div className="logAi__rangeLabel">参照期間</div>
+                <div className="logAi__rangeOptions">
+                  {[ 14, 30, 90 ].map((days) => (
+                    <button
+                      key={`ai-range-${days}`}
+                      type="button"
+                      className={`logAi__rangeOption ${selectedRangeDays === days ? "is-active" : ""}`}
+                      onClick={() => patchSettings({ aiRangeDays: days as 14 | 30 | 90 })}
+                      aria-pressed={selectedRangeDays === days}
+                    >
+                      {days}日
+                    </button>
+                  ))}
+                </div>
+                <div className="logAi__rangeHint">
+                  {aiReferenceMeta(selectedRangeDays)}
+                </div>
+              </div>
               <div className="logPage__aiCtaActions">
                 <button onClick={onAskAi} className="logPage__btn logPage__aiCtaBtn">
                   {guestMode && isDayMode

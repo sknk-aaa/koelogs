@@ -9,7 +9,7 @@ module Ai
       "4) 直近ログと集合知（補助根拠）"
     ].freeze
 
-    def initialize(user:, date:, range_days: 7, include_today: false, client: Gemini::Client.new)
+    def initialize(user:, date:, range_days: 14, include_today: false, client: Gemini::Client.new)
       @user = user
       @date = date
       @range_days = range_days
@@ -17,10 +17,19 @@ module Ai
       @client = client
     end
 
-    def generate!(logs:, collective_effects:)
+    def generate!(logs:, collective_effects:, monthly_logs:, measurement_evidence:, selected_range_days:, detail_window_days:)
       collective_used = collective_knowledge_used?(collective_effects)
-      system = build_system_text(collective_used:)
-      payload = build_user_text(logs, collective_effects, collective_used:)
+      measurement_used = measurement_used?(measurement_evidence)
+      system = build_system_text(collective_used:, measurement_used: measurement_used)
+      payload = build_user_text(
+        logs,
+        collective_effects,
+        collective_used: collective_used,
+        monthly_logs: monthly_logs,
+        measurement_evidence: measurement_evidence,
+        selected_range_days: selected_range_days,
+        detail_window_days: detail_window_days
+      )
 
       @client.generate_text!(
         user_text: payload,
@@ -32,7 +41,7 @@ module Ai
 
     private
 
-    def build_system_text(collective_used:)
+    def build_system_text(collective_used:, measurement_used:)
       custom_instruction_line =
         if user_custom_instructions.present?
           <<~RULES
@@ -79,6 +88,20 @@ module Ai
           RULES
         end
 
+      measurement_rule_block =
+        if measurement_used
+          <<~RULES
+            - 測定結果データは観測事実として扱い、ログ文脈と矛盾しない範囲で根拠に使う。
+            - 測定回数が少ない指標（count < 5）は参考値として扱い、断定しない。
+            - 傾向の強い言及は、前5回比較(delta_vs_prev_5)がある場合に限定する。
+            - 単発値のみの変化で強い結論を出さない。
+          RULES
+        else
+          <<~RULES
+            - 測定結果データがない場合、測定に基づく断定は行わない。
+          RULES
+        end
+
       <<~SYS
         あなたはボイストレーニング支援アプリのコーチです。
         目的: ユーザー目標の達成を最優先に、今日の練習メニューのおすすめを日本語で作成してください。
@@ -95,6 +118,7 @@ module Ai
         - 根拠は「どのデータから言えるか」が分かるように具体化し、断定しすぎない。
         - 「コミュニティ傾向」が与えられた場合は、個人データを主根拠、コミュニティ傾向を補助根拠として使う。
         #{collective_rule_block}
+        #{measurement_rule_block}
         - 目標が抽象的、またはログが不足して声の状態を正確に把握できない場合は、その旨を明記し「追加で欲しいデータ」を1〜2個だけ具体的に書く。
         - 出力は 300〜700文字程度。短い見出しと箇条書きで、読みやすく簡潔にする。
         - 3)おすすめメニューの各項目は「2行構成」に固定する:
@@ -109,14 +133,16 @@ module Ai
       SYS
     end
 
-    def build_user_text(logs, collective_effects, collective_used:)
-      from = (@include_today ? (@date - (@range_days - 1)) : (@date - @range_days)).iso8601
+    def build_user_text(logs, collective_effects, collective_used:, monthly_logs:, measurement_evidence:, selected_range_days:, detail_window_days:)
+      from = (@include_today ? (@date - (detail_window_days - 1)) : (@date - detail_window_days)).iso8601
       to = (@include_today ? @date : (@date - 1)).iso8601
 
       lines = []
       lines << "対象日: #{@date.iso8601}"
-      range_label = @include_today ? "当日を含む直近#{@range_days}日" : "今日を除く直近#{@range_days}日"
-      lines << "参照期間: #{from}〜#{to}（#{range_label}）"
+      lines << "参照期間(選択): 直近#{selected_range_days}日"
+      detail_range_label = @include_today ? "当日を含む直近#{detail_window_days}日" : "今日を除く直近#{detail_window_days}日"
+      lines << "詳細ログ（日次）: #{from}〜#{to}（#{detail_range_label}）"
+      lines << "傾向ログ（月次）: #{monthly_trend_label(selected_range_days)}"
       lines << "集合知利用: #{collective_used ? 'あり' : 'なし'}"
       if user_custom_instructions.present?
         lines << "ユーザーAI設定（カスタム指示）:"
@@ -155,6 +181,36 @@ module Ai
       end
 
       lines << ""
+      lines << "月ログ（傾向）:"
+      if monthly_logs.blank?
+        lines << "・(なし)"
+      else
+        monthly_logs.each do |monthly_log|
+          next if monthly_log.month_start.blank?
+
+          lines << "・#{monthly_log.month_start.strftime('%Y-%m')}"
+          note = monthly_log.notes.to_s.gsub(/\s+/, " ").strip
+          if note.present?
+            lines << "  月メモ: #{note.slice(0, 180)}"
+          else
+            lines << "  月メモ: (なし)"
+          end
+        end
+      end
+
+      if measurement_used?(measurement_evidence)
+        lines << ""
+        lines << "録音測定データ（改善タグ/目標/自由記述に基づく参照）:"
+        Array(measurement_evidence[:items]).each do |item|
+          lines << "・#{item[:label]}（参照理由: #{Array(item[:reasons]).join(' / ')}）"
+          lines << "  測定回数: #{item[:count]}回"
+          Array(item[:facts]).each do |fact|
+            lines << "  #{fact}"
+          end
+        end
+      end
+
+      lines << ""
       lines << "コミュニティ傾向（直近#{collective_effects[:window_days]}日 / 件数#{collective_effects[:min_count]}以上）:"
       if collective_effects[:rows].blank?
         lines << "・(十分なデータなし)"
@@ -187,6 +243,12 @@ module Ai
       collective_effects[:rows].present?
     end
 
+    def measurement_used?(measurement_evidence)
+      return false unless measurement_evidence.is_a?(Hash)
+
+      Array(measurement_evidence[:items]).any?
+    end
+
     def user_custom_instructions
       return "" unless @user.respond_to?(:ai_custom_instructions)
 
@@ -202,6 +264,17 @@ module Ai
         .reject(&:blank?)
         .uniq
         .select { |tag| ImprovementTagCatalog::TAGS.include?(tag) }
+    end
+
+    def monthly_trend_label(selected_range_days)
+      case selected_range_days
+      when 30
+        "直近1か月の月ログ"
+      when 90
+        "直近3か月の月ログ"
+      else
+        "利用なし（14日モード）"
+      end
     end
   end
 end

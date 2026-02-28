@@ -3,14 +3,14 @@ export type FontScale = "normal" | "large";
 export type AppSettings = {
   defaultVolume: number; // 0.0 - 1.0
   loopEnabled: boolean;
-  aiRangeDays: 7 | 14;
+  aiRangeDays: 14 | 30 | 90;
   fontScale: FontScale;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
   defaultVolume: 0.75,
   loopEnabled: false,
-  aiRangeDays: 7,
+  aiRangeDays: 14,
   fontScale: "normal",
 };
 
@@ -24,7 +24,7 @@ export function normalizeSettings(input: Partial<AppSettings>): AppSettings {
   const loopEnabled =
     typeof input.loopEnabled === "boolean" ? input.loopEnabled : DEFAULT_SETTINGS.loopEnabled;
 
-  const aiRangeDays = input.aiRangeDays === 14 ? 14 : 7;
+  const aiRangeDays = input.aiRangeDays === 30 ? 30 : input.aiRangeDays === 90 ? 90 : 14;
 
   const fontScale = input.fontScale === "large" ? "large" : "normal";
 

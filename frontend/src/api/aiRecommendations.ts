@@ -114,13 +114,14 @@ async function safeJson(res: Response): Promise<unknown | null> {
 /** ---------- API ---------- */
 
 export async function fetchAiRecommendationByDate(
-  date: string
+  date: string,
+  rangeDays: 14 | 30 | 90 = 14
 ): Promise<{
   data: AiRecommendation | null;
   error?: string;
   status?: number;
 }> {
-  const url = `${API_BASE}/api/ai_recommendations?date=${encodeURIComponent(date)}`;
+  const url = `${API_BASE}/api/ai_recommendations?date=${encodeURIComponent(date)}&range_days=${rangeDays}`;
 
   const res = await fetch(url, {
     method: "GET",

@@ -859,6 +859,50 @@
   padding: 14px;
 }
 
+.logAi__rangeSection {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+
+.logAi__rangeLabel {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.logAi__rangeOptions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.logAi__rangeOption {
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 999px;
+  background: var(--card);
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logAi__rangeOption.is-active {
+  color: color-mix(in srgb, var(--accent) 84%, var(--text));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+}
+
+.logAi__rangeHint {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0.8;
+}
+
 .logAi__text {
   white-space: pre-wrap;
   line-height: 1.8;
@@ -1157,6 +1201,21 @@
 :root[data-theme-mode="dark"] .logAi__content,
 :root[data-theme-mode="dark"] .logAi__text {
   color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .logAi__rangeSection {
+  border-color: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.25));
+  background: color-mix(in srgb, var(--accent) 8%, rgba(16, 20, 36, 0.85));
+}
+
+:root[data-theme-mode="dark"] .logAi__rangeOption {
+  background: rgba(18, 24, 42, 0.9);
+  border-color: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.24));
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAi__rangeOption.is-active {
+  background: color-mix(in srgb, var(--accent) 18%, rgba(18, 24, 42, 0.92));
 }
 
 :root[data-theme-mode="dark"] .logAi__pill {

@@ -24,9 +24,20 @@ Rails.application.routes.draw do
 
     # ✅ AI recommendations
     get "ai_recommendations", to: "ai_recommendations#show"
+    get "ai_recommendations/history", to: "ai_recommendations#history"
     post "ai_recommendations", to: "ai_recommendations#create"
     get "ai_recommendations/:id/thread", to: "ai_recommendation_threads#show"
     post "ai_recommendations/:id/thread/messages", to: "ai_recommendation_threads#create_message"
+    get "ai_chat/projects", to: "ai_chat#projects"
+    post "ai_chat/projects", to: "ai_chat#create_project"
+    patch "ai_chat/projects/:id", to: "ai_chat#update_project"
+    delete "ai_chat/projects/:id", to: "ai_chat#destroy_project"
+    get "ai_chat/threads", to: "ai_chat#threads"
+    post "ai_chat/threads", to: "ai_chat#create_thread"
+    get "ai_chat/threads/:id", to: "ai_chat#show_thread"
+    patch "ai_chat/threads/:id", to: "ai_chat#update_thread"
+    delete "ai_chat/threads/:id", to: "ai_chat#destroy_thread"
+    post "ai_chat/threads/:id/messages", to: "ai_chat#create_message"
 
     # community
     get "community/posts", to: "community_posts#index"

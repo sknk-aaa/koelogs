@@ -16,9 +16,17 @@
   - 詳細ログは常に直近14日、30/90では月ログ（1か月/3か月）を追加参照
   - 集合知（コミュニティ投稿）は補助根拠として利用
   - 集合知集計は `Rails.cache` でキャッシュ（6時間）
+- AI設定（`/settings/ai`）
+  - 回答スタイル指示（`ai_custom_instructions`）
+  - 改善したい項目（`ai_improvement_tags`）
+  - AIが参照する長期プロフィール（自動要約 + ユーザー編集オーバーライド）
 - AIおすすめへのフォローアップ会話
   - 当日おすすめに対する質問・調整会話
   - 1スレッド最大20メッセージ、履歴は保持
+- AIチャット（`/chat`）
+  - 汎用のトレーニング相談チャット
+  - 通常会話と「AIおすすめへの質問」スレッドを同一UIで管理
+  - 外部知識（Web検索）とKoelogs内データ（ログ/長期プロフィール/おすすめ履歴）を併用
 - コミュニティ（`/community`）
   - 投稿 / お気に入り / ランキング / 公開プロフィール
 
@@ -47,6 +55,7 @@
   - `/settings/ai`（認証必須）
   - `/profile`（認証必須）
   - `/mypage`（認証必須）
+  - `/chat`（認証必須）
 - コミュニティ
   - `/community`
   - `/community/rankings`
@@ -137,6 +146,17 @@ npm --prefix frontend run dev
   - `POST /api/ai_recommendations`（`date`, `range_days`）
   - `GET /api/ai_recommendations/:id/thread`
   - `POST /api/ai_recommendations/:id/thread/messages`
+- AIチャット
+  - `GET /api/ai_chat/projects`
+  - `POST /api/ai_chat/projects`
+  - `PATCH /api/ai_chat/projects/:id`
+  - `DELETE /api/ai_chat/projects/:id`
+  - `GET /api/ai_chat/threads`
+  - `POST /api/ai_chat/threads`
+  - `GET /api/ai_chat/threads/:id`
+  - `PATCH /api/ai_chat/threads/:id`
+  - `DELETE /api/ai_chat/threads/:id`
+  - `POST /api/ai_chat/threads/:id/messages`
 - コミュニティ
   - `GET /api/community/posts`
   - `POST /api/community/posts`
@@ -190,6 +210,38 @@ npm --prefix frontend run dev
   - 不適切要求はテンプレ拒否
   - 大幅な方針変更要求は再生成案内
 
+## AI設定（長期プロフィール）仕様（現行）
+
+- 保存対象
+  - `users.ai_custom_instructions`（回答スタイル要求）
+  - `users.ai_improvement_tags`
+  - `ai_user_profiles`（長期プロフィール）
+- 長期プロフィール構造
+  - `auto_profile`（AI自動要約）
+  - `user_overrides`（ユーザー編集値）
+  - `source_window_days=90`
+  - `source_fingerprint` / `source_meta`（再計算差分判定）
+- 更新
+  - `AiUserProfileRefreshJob`（変更時）
+  - `AiUserProfilesDailyRefreshJob`（日次更新）
+- AI投入
+  - `Ai::UserLongTermProfileManager.profile_text_for_prompt` を通して
+    AIおすすめ・AIチャットへ投入
+
+## AIチャット仕様（現行）
+
+- 対象
+  - `/chat` の汎用会話（`Ai::GeneralChatResponder`）
+  - おすすめ追質問チャット（`Ai::RecommendationFollowupResponder`）
+- データ優先順位
+  - 1) 最新ユーザー質問
+  - 2) Koelogs内データ（長期プロフィール/ログ/おすすめ履歴）
+  - 3) 外部知識（Web検索、必要時のみ）
+- 外部知識併用
+  - `Ai::WebSearchDecision` で検索発火判定
+  - `Gemini::Client` の `web_search` 有効時に参照URLを抽出
+  - 取得できた場合は回答末尾に `参考情報:` を追記
+
 ## 主要テーブル（抜粋）
 
 - `users`
@@ -219,6 +271,7 @@ npm --prefix frontend run build
 
 ## ドキュメント
 
+- AI全体まとめ: `docs/AI_SYSTEM_OVERVIEW_2026-03-01.md`
 - 最新実装仕様: `docs/CURRENT_IMPLEMENTATION_SPEC_2026-02-28.md`
 - 集合知/AIおすすめ: `docs/COLLECTIVE_INTELLIGENCE_AI_RECOMMENDATIONS.md`
 - 測定・月ログ再設計: `docs/MEASUREMENT_MONTHLY_LOG_REDESIGN_SPEC.md`

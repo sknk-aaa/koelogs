@@ -7,11 +7,12 @@ import { PageContainer } from "../features/ui";
 
 export default function AppLayout() {
   const { pathname } = useLocation();
-  const hideFooterTabs = pathname.startsWith("/log/new");
+  const hideFooterTabs = pathname.startsWith("/log/new") || pathname.startsWith("/chat");
+  const hideHeader = pathname.startsWith("/chat");
 
   return (
     <div style={styles.page}>
-      <AppHeader />
+      {!hideHeader && <AppHeader />}
       <main style={styles.main}>
         <PageContainer>
           <Outlet />

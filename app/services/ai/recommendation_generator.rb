@@ -37,7 +37,9 @@ module Ai
         user_text: payload,
         system_text: system,
         max_output_tokens: 10000,
-        temperature: 0.5
+        temperature: 0.5,
+        user: @user,
+        feature: "recommendation"
       )
     end
 

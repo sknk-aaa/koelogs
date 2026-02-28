@@ -114,6 +114,10 @@
   opacity: 0.78;
 }
 
+.aiSettingsPage__hint--range {
+  margin-top: 2px;
+}
+
 .aiSettingsPage__ghostBtn {
   min-height: 30px;
   border-radius: 999px;
@@ -234,6 +238,29 @@
   line-height: 1;
   font-weight: 900;
   background: rgba(255, 255, 255, 0.72);
+}
+
+.aiSettingsPage__rangeOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.aiSettingsPage__rangeOption {
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.aiSettingsPage__rangeOption.is-active {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
 }
 
 .aiSettingsPage__previewToggle {
@@ -379,6 +406,17 @@
 
 :root[data-theme-mode="dark"] .aiSettingsPage__previewBody {
   border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__rangeOption {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__rangeOption.is-active {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.08));
 }
 
 :root[data-theme-mode="dark"] .aiSettingsPage__saveDock {

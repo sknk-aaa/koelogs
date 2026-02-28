@@ -3,13 +3,13 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { fetchMonthlyLog, upsertMonthlyLog } from "../api/monthlyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
-import { fetchAiRecommendationThread, postAiRecommendationThreadMessage } from "../api/aiRecommendationThreads";
 import { fetchInsights } from "../api/insights";
+import { fetchMissions } from "../api/missions";
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
-import type { AiRecommendationThreadMessage } from "../types/aiRecommendation";
 import type { MonthlyLogData } from "../types/monthlyLog";
 import type { SaveRewards } from "../types/gamification";
+import type { MissionItem } from "../types/missions";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import { emitGamificationRewards } from "../features/gamification/rewardBus";
@@ -22,7 +22,6 @@ import "./LogPage.css";
 import LogHeader from "../features/log/components/LogHeader";
 import SummaryCard from "../features/log/components/SummaryCard";
 import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
-import AiRecommendationChatModal from "../features/log/components/AiRecommendationChatModal";
 import WelcomeGuideModal from "../features/log/components/WelcomeGuideModal";
 import { setLastLogPath } from "../features/log/logNavigation";
 
@@ -137,7 +136,7 @@ export default function LogPage() {
     [params, selectedDate]
   );
   const monthKey = useMemo(() => selectedMonth, [selectedMonth]);
-  const { settings, patchSettings } = useSettings();
+  const { settings } = useSettings();
   const { me: authMe, isLoading: authLoading } = useAuth();
   const guestMode = !authLoading && !authMe;
 
@@ -168,6 +167,7 @@ export default function LogPage() {
   const [monthNotesDraft, setMonthNotesDraft] = useState("");
   const [monthSaveLoading, setMonthSaveLoading] = useState(false);
   const [monthSaveError, setMonthSaveError] = useState<string | null>(null);
+  const [beginnerMissions, setBeginnerMissions] = useState<MissionItem[]>([]);
 
   // ===== Me / Goal =====
   const [me, setMe] = useState<Me | null>(null);
@@ -236,13 +236,6 @@ export default function LogPage() {
   const [aiRec, setAiRec] = useState<AiRecommendation | null>(null);
 
   const [monthModalOpen, setMonthModalOpen] = useState(false);
-  const [aiChatOpen, setAiChatOpen] = useState(false);
-  const [aiChatLoading, setAiChatLoading] = useState(false);
-  const [aiChatSending, setAiChatSending] = useState(false);
-  const [aiChatError, setAiChatError] = useState<string | null>(null);
-  const [aiChatMessages, setAiChatMessages] = useState<AiRecommendationThreadMessage[]>([]);
-  const [aiChatCanPost, setAiChatCanPost] = useState(false);
-  const [aiChatRemaining, setAiChatRemaining] = useState(0);
 
   const [aiExpandedByKey, setAiExpandedByKey] = useState<Record<string, boolean>>({});
   const aiKey = isDayMode ? `day:${selectedDate}` : `month:${selectedMonth}`;
@@ -340,6 +333,29 @@ export default function LogPage() {
       setCurrentStreakDays(res.data?.streaks.current_days ?? null);
       setLongestStreakDays(res.data?.streaks.longest_days ?? null);
       setTotalPracticeDaysCount(res.data?.total_practice_days_count ?? 0);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authMe]);
+
+  // beginner missions (for log top guidance)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!authMe) {
+        setBeginnerMissions([]);
+        return;
+      }
+
+      const res = await fetchMissions();
+      if (cancelled) return;
+      if (res.error || !res.data) {
+        setBeginnerMissions([]);
+        return;
+      }
+      setBeginnerMissions(res.data.beginner ?? []);
     })();
 
     return () => {
@@ -489,47 +505,17 @@ export default function LogPage() {
     setAiExpanded(true);
   };
 
-  const openAiChat = async (initialMessage?: string) => {
+  const openAiChat = (initialMessage?: string) => {
     if (!authMe || !effectiveAiRec || guestMode) return;
-
-    setAiChatOpen(true);
-    setAiChatLoading(true);
-    setAiChatError(null);
-    const res = await fetchAiRecommendationThread(effectiveAiRec.id);
-    if (!res.ok) {
-      setAiChatError(res.errors.join("\n"));
-      setAiChatLoading(false);
-      return;
-    }
-
-    setAiChatMessages(res.data.messages);
-    setAiChatCanPost(res.data.can_post);
-    setAiChatRemaining(res.data.remaining_messages);
-    setAiChatLoading(false);
-
-    const seed = initialMessage?.trim();
-    if (seed && res.data.can_post) {
-      await sendAiChatMessage(seed, { recommendationId: effectiveAiRec.id });
-    }
-  };
-
-  const sendAiChatMessage = async (message: string, options?: { recommendationId?: number }) => {
-    const recommendationId = options?.recommendationId ?? effectiveAiRec?.id;
-    if (!recommendationId || aiChatSending) return;
-
-    setAiChatSending(true);
-    setAiChatError(null);
-    const res = await postAiRecommendationThreadMessage(recommendationId, message);
-    if (!res.ok) {
-      setAiChatError(res.errors.join("\n"));
-      setAiChatSending(false);
-      return;
-    }
-
-    setAiChatMessages((prev) => [ ...prev, res.data.user_message, res.data.assistant_message ]);
-    setAiChatCanPost(res.data.can_post);
-    setAiChatRemaining(res.data.remaining_messages);
-    setAiChatSending(false);
+    const seed = initialMessage?.trim() ?? "";
+    navigate("/chat", {
+      state: {
+        source: "ai_recommendation",
+        seedMessage: seed,
+        recommendationDate: selectedDate,
+        recommendationText: effectiveAiRec.recommendation_text,
+      },
+    });
   };
 
   const closeFirstGuide = (showHintBanner: boolean) => {
@@ -598,8 +584,7 @@ export default function LogPage() {
 
   const effectiveLog = guestMode ? previewLog : log;
   const effectiveAiRec = guestMode ? previewAiRec : aiRec;
-  const selectedRangeDays = settings.aiRangeDays;
-  const aiMeta = aiReferenceMeta(normalizeAiRangeDays(effectiveAiRec?.range_days ?? selectedRangeDays));
+  const aiMeta = aiReferenceMeta(normalizeAiRangeDays(effectiveAiRec?.range_days ?? settings.aiRangeDays));
   const currentAiText = effectiveAiRec?.recommendation_text ?? null;
   const showAiArea = isDayMode && (guestMode || !!effectiveAiRec || aiLoading || !!aiError);
   const showAiButton = isDayMode && isToday && !aiLoading && !effectiveAiRec && !aiError;
@@ -622,6 +607,11 @@ export default function LogPage() {
 
   const goalText = me?.goal_text ?? null;
   const isWithinInitial7Days = isWithinFirst7Days(me?.created_at);
+  const pendingBeginnerMissions = useMemo(
+    () => beginnerMissions.filter((mission) => !mission.done),
+    [beginnerMissions]
+  );
+  const beginnerPendingCount = pendingBeginnerMissions.length;
   const aiCreateButtonText =
     !guestMode && isWithinInitial7Days
       ? "今日のおすすめをAIに作成してもらう"
@@ -761,6 +751,28 @@ export default function LogPage() {
           {toastLines.map((line, idx) => (
             <div key={`${line}-${idx}`} className="logPage__rewardToastLine">{line}</div>
           ))}
+        </section>
+      )}
+
+      {!!authMe && beginnerPendingCount > 0 && (
+        <section className="card logPage__beginnerMissions">
+          <div className="logPage__beginnerMissionsHead">
+            <div className="logPage__beginnerMissionsTitle">初心者ミッション</div>
+            <span className="logPage__beginnerMissionsCount">残り {beginnerPendingCount} 件</span>
+          </div>
+          <div className="logPage__beginnerMissionsList">
+            {pendingBeginnerMissions.map((mission) => (
+              <article key={mission.key} className="logPage__beginnerMissionItem">
+                <div className="logPage__beginnerMissionText">
+                  <div className="logPage__beginnerMissionItemTitle">{mission.title}</div>
+                  <div className="logPage__beginnerMissionItemDesc">{mission.description}</div>
+                </div>
+                <Link to={mission.to} className="logPage__beginnerMissionAction">
+                  開く
+                </Link>
+              </article>
+            ))}
+          </div>
         </section>
       )}
 
@@ -1019,18 +1031,6 @@ export default function LogPage() {
         )}
       </div>
 
-      <AiRecommendationChatModal
-        open={aiChatOpen}
-        onClose={() => setAiChatOpen(false)}
-        messages={aiChatMessages}
-        canPost={aiChatCanPost}
-        remainingMessages={aiChatRemaining}
-        loading={aiChatLoading}
-        sending={aiChatSending}
-        error={aiChatError}
-        onSend={sendAiChatMessage}
-      />
-
       <div className="logPage__actions">
         {(showAiButton || (guestMode && isDayMode)) && (
           <section className="logAi logPage__card logPage__aiCtaCard logAi--empty">
@@ -1041,7 +1041,6 @@ export default function LogPage() {
               </div>
               <div className="logAi__headerRight">
                 {(guestMode && isDayMode) && <div className="logAi__pill logAi__pill--sample">ゲスト</div>}
-                {(!guestMode && !goalText) && <div className="logAi__pill logAi__pill--sample">目標未設定</div>}
                 {!guestMode && (
                   <Link to="/settings/ai" className="logPage__aiSettingsLink">
                     AIカスタム指示
@@ -1052,7 +1051,7 @@ export default function LogPage() {
                   bodyClassName="logPage__aiInfoBody"
                   triggerClassName="logPage__aiInfoBtn"
                 >
-                  <div className="logPage__aiInfoLead">直近の記録と目標から、今日の練習プランをAIが提案します。</div>
+                  <div className="logPage__aiInfoLead">目標・直近の記録・AI設定をもとに、今日の練習プランを生成します。</div>
                   <div className="logPage__aiInfoBlocks">
                     <section className="logPage__aiInfoBlock logPage__aiInfoBlock--primary">
                       <div className="logPage__aiInfoBlockTitle">
@@ -1060,7 +1059,7 @@ export default function LogPage() {
                         <span>主に使う</span>
                       </div>
                       <div className="logPage__aiInfoBlockText">
-                        詳細ログは直近14日を使い、選択した参照期間が30/90日の場合は月ログ傾向も補助で参照します。
+                        詳細ログは直近14日を参照します。参照期間（14/30/90）はAIカスタム指示ページで設定でき、30/90では月ログ傾向も補助で参照します。
                       </div>
                     </section>
                     <section className="logPage__aiInfoBlock">
@@ -1069,7 +1068,7 @@ export default function LogPage() {
                         <span>補助</span>
                       </div>
                       <div className="logPage__aiInfoBlockText">
-                        コミュニティで投稿されたトレーニング内容を参考にすることがあります。
+                        AIカスタム指示（回答スタイル）・改善したい項目・長期プロフィール・コミュニティ集合知を補助根拠として使います。
                       </div>
                     </section>
                     <section className="logPage__aiInfoBlock logPage__aiInfoBlock--save">
@@ -1078,7 +1077,7 @@ export default function LogPage() {
                         <span>保存</span>
                       </div>
                       <div className="logPage__aiInfoBlockText">
-                        生成結果は当日分として保存され、後から見返せます。
+                        生成結果は日付ごとに保存され、AIチャットから質問・調整できます。
                       </div>
                     </section>
                   </div>
@@ -1087,25 +1086,6 @@ export default function LogPage() {
             </div>
 
             <div className="logAi__content">
-              <div className="logAi__rangeSection" aria-label="AI参照期間">
-                <div className="logAi__rangeLabel">参照期間</div>
-                <div className="logAi__rangeOptions">
-                  {[ 14, 30, 90 ].map((days) => (
-                    <button
-                      key={`ai-range-${days}`}
-                      type="button"
-                      className={`logAi__rangeOption ${selectedRangeDays === days ? "is-active" : ""}`}
-                      onClick={() => patchSettings({ aiRangeDays: days as 14 | 30 | 90 })}
-                      aria-pressed={selectedRangeDays === days}
-                    >
-                      {days}日
-                    </button>
-                  ))}
-                </div>
-                <div className="logAi__rangeHint">
-                  {aiReferenceMeta(selectedRangeDays)}
-                </div>
-              </div>
               <div className="logPage__aiCtaActions">
                 <button onClick={onAskAi} className="logPage__btn logPage__aiCtaBtn">
                   {guestMode && isDayMode

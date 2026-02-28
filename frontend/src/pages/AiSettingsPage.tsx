@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 
 import { fetchMe, recalculateAiLongTermProfile, updateMe, type AiLongTermProfileCustomItem } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
+import { useSettings } from "../features/settings/useSettings";
 import {
-  improvementTagLabel,
   improvementTagToneClass,
   normalizeImprovementTags,
 } from "../features/improvementTags/improvementTags";
@@ -54,8 +54,15 @@ function sameCustomItems(a: AiLongTermProfileCustomItem[], b: AiLongTermProfileC
   return a.every((item, i) => item.title === b[i]?.title && item.content === b[i]?.content);
 }
 
+function aiRangeTrendLabel(days: 14 | 30 | 90): string {
+  if (days === 30) return "傾向=直近1か月の月ログ";
+  if (days === 90) return "傾向=直近3か月の月ログ";
+  return "傾向=月ログ参照なし";
+}
+
 export default function AiSettingsPage() {
   const { refresh } = useAuth();
+  const { settings, patchSettings } = useSettings();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -68,7 +75,6 @@ export default function AiSettingsPage() {
   const [initialCustomInstructions, setInitialCustomInstructions] = useState("");
   const [initialSelectedTags, setInitialSelectedTags] = useState<string[]>([]);
 
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [recalcLoading, setRecalcLoading] = useState(false);
 
   const [strengthsText, setStrengthsText] = useState("");
@@ -393,46 +399,26 @@ export default function AiSettingsPage() {
       </section>
 
       <section className="card aiSettingsPage__card">
-        <button
-          type="button"
-          className="aiSettingsPage__previewToggle"
-          onClick={() => setPreviewOpen((prev) => !prev)}
-          aria-expanded={previewOpen}
-        >
-          <span className="aiSettingsPage__sectionTitle">プレビュー</span>
-          <span className="aiSettingsPage__previewIcon" aria-hidden="true">{previewOpen ? "▲" : "▼"}</span>
-        </button>
-
-        {previewOpen && (
-          <div className="aiSettingsPage__previewBody">
-            <div>
-              <div className="aiSettingsPage__previewLabel">改善タグ</div>
-              {normalizedDraftTags.length === 0 ? (
-                <div className="aiSettingsPage__previewEmpty">未選択</div>
-              ) : (
-                <div className="aiSettingsPage__previewTags">
-                  {normalizedDraftTags.map((tag) => (
-                    <span
-                      key={`preview-tag-${tag}`}
-                      className={`aiSettingsPage__tagPreview ${improvementTagToneClass(tag)}`}
-                    >
-                      {improvementTagLabel(tag)}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="aiSettingsPage__previewLabel">カスタム指示</div>
-              {normalizedDraftInstructions.length === 0 ? (
-                <div className="aiSettingsPage__previewEmpty">未入力</div>
-              ) : (
-                <div className="aiSettingsPage__previewText">{customInstructions}</div>
-              )}
-            </div>
-          </div>
-        )}
+        <div className="aiSettingsPage__sectionHead">
+          <h2 className="aiSettingsPage__sectionTitle">AIおすすめの参照期間</h2>
+        </div>
+        <p className="aiSettingsPage__hint">14 / 30 / 90 から選択できます。</p>
+        <div className="aiSettingsPage__rangeOptions">
+          {[ 14, 30, 90 ].map((days) => (
+            <button
+              key={`ai-range-days-${days}`}
+              type="button"
+              className={`aiSettingsPage__rangeOption ${settings.aiRangeDays === days ? "is-active" : ""}`}
+              onClick={() => patchSettings({ aiRangeDays: days as 14 | 30 | 90 })}
+              aria-pressed={settings.aiRangeDays === days}
+            >
+              {days}日
+            </button>
+          ))}
+        </div>
+        <p className="aiSettingsPage__hint aiSettingsPage__hint--range">
+          詳細=直近14日 / {aiRangeTrendLabel(settings.aiRangeDays)}
+        </p>
       </section>
 
       <div className="aiSettingsPage__saveDock" role="region" aria-label="保存操作">

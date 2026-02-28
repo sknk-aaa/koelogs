@@ -8,12 +8,12 @@ import trainingActive from "../assets/tabs/training_active.png";
 import trainingInactive from "../assets/tabs/training_inactive.png";
 import insightsActive from "../assets/tabs/insights_active.png";
 import insightsInactive from "../assets/tabs/insights_inactive.png";
-import mypageActive from "../assets/tabs/mypage_active.svg";
-import mypageInactive from "../assets/tabs/mypage_inactive.svg";
+import aiChatActive from "../assets/tabs/ai_chat_active.svg";
+import aiChatInactive from "../assets/tabs/ai_chat_inactive.svg";
 import communityActive from "../assets/tabs/community_active.svg";
 import communityInactive from "../assets/tabs/community_inactive.svg";
 
-type TabKey = "log" | "training" | "insights" | "mypage" | "community";
+type TabKey = "log" | "training" | "insights" | "chat" | "community";
 
 const BASE_TABS: {
   key: TabKey;
@@ -22,13 +22,6 @@ const BASE_TABS: {
   iconActive: string;
   iconInactive: string;
 }[] = [
-  {
-    key: "mypage",
-    label: "マイページ",
-    to: "/mypage",
-    iconActive: mypageActive,
-    iconInactive: mypageInactive,
-  },
   {
     key: "log",
     label: "ログ",
@@ -42,6 +35,13 @@ const BASE_TABS: {
     to: "/training",
     iconActive: trainingActive,
     iconInactive: trainingInactive,
+  },
+  {
+    key: "chat",
+    label: "AIチャット",
+    to: "/chat",
+    iconActive: aiChatActive,
+    iconInactive: aiChatInactive,
   },
   {
     key: "community",

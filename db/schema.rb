@@ -10,9 +10,48 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_28_143000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_28_201500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "ai_chat_messages", force: :cascade do |t|
+    t.bigint "ai_chat_thread_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.string "role", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_chat_thread_id", "created_at"], name: "index_ai_chat_messages_on_thread_and_created"
+    t.index ["ai_chat_thread_id"], name: "index_ai_chat_messages_on_ai_chat_thread_id"
+  end
+
+  create_table "ai_chat_projects", force: :cascade do |t|
+    t.boolean "archived", default: false, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "name"], name: "index_ai_chat_projects_on_user_id_and_name"
+    t.index ["user_id"], name: "index_ai_chat_projects_on_user_id"
+  end
+
+  create_table "ai_chat_threads", force: :cascade do |t|
+    t.bigint "ai_chat_project_id"
+    t.datetime "created_at", null: false
+    t.datetime "last_message_at", null: false
+    t.string "llm_model_name", null: false
+    t.date "source_date"
+    t.string "source_kind"
+    t.string "system_prompt_version", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.string "user_prompt_version", null: false
+    t.index ["ai_chat_project_id", "last_message_at"], name: "index_ai_chat_threads_on_project_and_last_message"
+    t.index ["ai_chat_project_id"], name: "index_ai_chat_threads_on_ai_chat_project_id"
+    t.index ["user_id", "last_message_at"], name: "index_ai_chat_threads_on_user_id_and_last_message_at"
+    t.index ["user_id", "source_kind", "source_date"], name: "index_ai_chat_threads_on_user_ai_reco_source", unique: true, where: "(((source_kind)::text = 'ai_recommendation'::text) AND (source_date IS NOT NULL))"
+    t.index ["user_id"], name: "index_ai_chat_threads_on_user_id"
+  end
 
   create_table "ai_contribution_events", force: :cascade do |t|
     t.bigint "ai_recommendation_id", null: false
@@ -65,6 +104,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_143000) do
     t.bigint "user_id", null: false
     t.index ["user_id", "generated_for_date", "range_days"], name: "index_ai_recommendations_on_user_id_date_range_days", unique: true
     t.index ["user_id"], name: "index_ai_recommendations_on_user_id"
+  end
+
+  create_table "ai_token_usages", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "feature", null: false
+    t.integer "input_tokens", default: 0, null: false
+    t.string "llm_model_name"
+    t.integer "output_tokens", default: 0, null: false
+    t.integer "total_tokens", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.datetime "used_at", null: false
+    t.bigint "user_id", null: false
+    t.date "year_month", null: false
+    t.index ["used_at"], name: "index_ai_token_usages_on_used_at"
+    t.index ["user_id", "feature", "year_month"], name: "index_ai_token_usages_on_user_feature_month"
+    t.index ["user_id", "year_month"], name: "index_ai_token_usages_on_user_id_and_year_month"
+    t.index ["user_id"], name: "index_ai_token_usages_on_user_id"
   end
 
   create_table "ai_user_profiles", force: :cascade do |t|
@@ -294,12 +350,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_143000) do
     t.index ["user_id"], name: "index_xp_events_on_user_id"
   end
 
+  add_foreign_key "ai_chat_messages", "ai_chat_threads"
+  add_foreign_key "ai_chat_projects", "users"
+  add_foreign_key "ai_chat_threads", "ai_chat_projects"
+  add_foreign_key "ai_chat_threads", "users"
   add_foreign_key "ai_contribution_events", "ai_recommendations"
   add_foreign_key "ai_contribution_events", "users"
   add_foreign_key "ai_recommendation_messages", "ai_recommendation_threads"
   add_foreign_key "ai_recommendation_threads", "ai_recommendations"
   add_foreign_key "ai_recommendation_threads", "users"
   add_foreign_key "ai_recommendations", "users"
+  add_foreign_key "ai_token_usages", "users"
   add_foreign_key "ai_user_profiles", "users"
   add_foreign_key "community_post_favorites", "community_posts"
   add_foreign_key "community_post_favorites", "users"

@@ -8,13 +8,14 @@ module Ai
     MAX_OUTPUT_CHARS = 1000
 
     class << self
-      def summarize!(input:, client: Gemini::Client.new)
-        new(input: input, client: client).summarize!
+      def summarize!(input:, user:, client: Gemini::Client.new)
+        new(input: input, user: user, client: client).summarize!
       end
     end
 
-    def initialize(input:, client:)
+    def initialize(input:, user:, client:)
       @input = input
+      @user = user
       @client = client
     end
 
@@ -23,7 +24,9 @@ module Ai
         system_text: system_text,
         user_text: user_text,
         max_output_tokens: 1600,
-        temperature: 0.25
+        temperature: 0.25,
+        user: @user,
+        feature: "long_profile"
       )
       normalize_profile(parse_json(text))
     end

@@ -171,44 +171,6 @@ export default function SettingsPage() {
       </section>
 
       <section className="card settingsPage__card">
-        <div className="settingsPage__cardTitle">AIおすすめ</div>
-        <div className="settingsPage__block">
-          <div className="settingsPage__label">参照期間</div>
-          <div className="settingsPage__row">
-            <label className={`settingsPage__pillRadio ${settings.aiRangeDays === 14 ? "isSelected" : ""}`}>
-              <input
-                type="radio"
-                checked={settings.aiRangeDays === 14}
-                onChange={() => patchSettings({ aiRangeDays: 14 })}
-              />
-              <span>14日</span>
-            </label>
-
-            <label className={`settingsPage__pillRadio ${settings.aiRangeDays === 30 ? "isSelected" : ""}`}>
-              <input
-                type="radio"
-                checked={settings.aiRangeDays === 30}
-                onChange={() => patchSettings({ aiRangeDays: 30 })}
-              />
-              <span>30日</span>
-            </label>
-
-            <label className={`settingsPage__pillRadio ${settings.aiRangeDays === 90 ? "isSelected" : ""}`}>
-              <input
-                type="radio"
-                checked={settings.aiRangeDays === 90}
-                onChange={() => patchSettings({ aiRangeDays: 90 })}
-              />
-              <span>90日</span>
-            </label>
-          </div>
-          <div className="settingsPage__hint">
-            詳細ログは常に直近14日を使います。30/90日は月ログ傾向も合わせて参照します。
-          </div>
-        </div>
-      </section>
-
-      <section className="card settingsPage__card">
         <div className="settingsPage__cardTitle">アクセシビリティ</div>
         <div className="settingsPage__block">
           <div className="settingsPage__label">フォントサイズ</div>

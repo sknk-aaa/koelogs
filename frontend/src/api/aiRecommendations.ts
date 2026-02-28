@@ -1,4 +1,5 @@
 import type {
+  AiRecommendationHistoryItem,
   AiCollectiveSummary,
   AiRecommendation,
   AiRecommendationCreateResponse,
@@ -189,4 +190,44 @@ export async function createAiRecommendation(
     status: res.status,
     errors: error ? [error] : [`Request failed: ${res.status}`],
   };
+}
+
+function isHistoryItem(v: unknown): v is AiRecommendationHistoryItem {
+  return (
+    isRecord(v) &&
+    typeof v.id === "number" &&
+    typeof v.generated_for_date === "string" &&
+    typeof v.range_days === "number" &&
+    typeof v.recommendation_text_preview === "string" &&
+    typeof v.created_at === "string"
+  );
+}
+
+export async function fetchAiRecommendationHistory(
+  limit = 30
+): Promise<{ data: AiRecommendationHistoryItem[]; error?: string; status?: number }> {
+  const safeLimit = Math.max(1, Math.min(100, Math.trunc(limit)));
+  const url = `${API_BASE}/api/ai_recommendations/history?limit=${safeLimit}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+  });
+
+  const json = await safeJson(res);
+  if (!res.ok) {
+    const { error } = extractErrorShape(json);
+    return {
+      data: [],
+      error: error ?? `Request failed: ${res.status}`,
+      status: res.status,
+    };
+  }
+
+  if (!isRecord(json) || !Array.isArray(json.data) || !json.data.every((item) => isHistoryItem(item))) {
+    return { data: [], error: "Invalid response format", status: res.status };
+  }
+
+  return { data: json.data };
 }

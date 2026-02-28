@@ -14,6 +14,29 @@ module Api
       render json: { error: e.message }, status: :bad_request
     end
 
+    # GET /api/ai_recommendations/history?limit=30
+    def history
+      limit = params[:limit].to_i
+      limit = 30 if limit <= 0
+      limit = 100 if limit > 100
+
+      rows = current_user.ai_recommendations
+                         .order(generated_for_date: :desc, created_at: :desc)
+                         .limit(limit)
+
+      render json: {
+        data: rows.map do |rec|
+          {
+            id: rec.id,
+            generated_for_date: rec.generated_for_date.iso8601,
+            range_days: rec.range_days,
+            recommendation_text_preview: rec.recommendation_text.to_s.gsub(/\s+/, " ").strip.slice(0, 90),
+            created_at: rec.created_at.iso8601
+          }
+        end
+      }, status: :ok
+    end
+
     # POST /api/ai_recommendations
     # body: { date: "YYYY-MM-DD", range_days: 14|30|90 }
     def create
@@ -94,6 +117,8 @@ module Api
       end
     rescue ArgumentError => e
       render json: { error: e.message }, status: :bad_request
+    rescue Ai::TokenUsageTracker::LimitExceededError => e
+      render json: { error: e.message }, status: :unprocessable_entity
     rescue => e
       Rails.logger.error("[AI] #{e.class}: #{e.message}\n#{e.backtrace&.first(20)&.join("\n")}")
       render json: { error: "AI生成に失敗しました" }, status: :internal_server_error

@@ -110,6 +110,77 @@
   font-weight: 900;
 }
 
+.logPage__beginnerMissions {
+  margin-bottom: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__beginnerMissionsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logPage__beginnerMissionsTitle {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.logPage__beginnerMissionsCount {
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 66%, var(--text));
+}
+
+.logPage__beginnerMissionsList {
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__beginnerMissionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  padding: 10px 12px;
+}
+
+.logPage__beginnerMissionText {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.logPage__beginnerMissionItemTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.logPage__beginnerMissionItemDesc {
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.76;
+}
+
+.logPage__beginnerMissionAction {
+  flex: 0 0 auto;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
 .logPage__guestHero {
   margin-bottom: 12px;
   display: grid;
@@ -680,22 +751,43 @@
 }
 
 .logPage__aiSettingsLink {
-  min-height: 26px;
-  padding: 0 10px;
+  min-height: 30px;
+  padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   text-decoration: none;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: border-color 140ms ease, background 140ms ease, transform 120ms ease, box-shadow 140ms ease;
+}
+
+.logPage__aiSettingsLink::after {
+  content: "›";
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.8;
 }
 
 .logPage__aiSettingsLink:hover {
-  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
-  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.12);
+}
+
+.logPage__aiSettingsLink:active {
+  transform: translateY(0);
+}
+
+.logPage__aiSettingsLink:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 2px;
 }
 
 .logPage__aiInfoBtn:hover {
@@ -1818,14 +1910,15 @@
 }
 
 :root[data-theme-mode="dark"] .logPage__aiSettingsLink {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24);
 }
 
 :root[data-theme-mode="dark"] .logPage__aiSettingsLink:hover {
-  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.22));
-  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.08));
+  border-color: color-mix(in srgb, var(--accent) 64%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.1));
 }
 
 :root[data-theme-mode="dark"] .logPage__aiInfoBtn:hover {
@@ -2087,6 +2180,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.goalBar__label {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.5;
+  color: var(--cardText, var(--text));
 }
 
 .goalBar__row--end {
@@ -2692,4 +2793,15 @@
 .logPage__mini--streak::after {
   -webkit-mask-image: url("/icons/flame.svg");
   mask-image: url("/icons/flame.svg");
+}
+
+@media (max-width: 560px) {
+  .logPage__beginnerMissionItem {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .logPage__beginnerMissionAction {
+    align-self: flex-end;
+  }
 }

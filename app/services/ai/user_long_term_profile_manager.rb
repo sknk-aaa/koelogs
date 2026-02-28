@@ -112,7 +112,7 @@ module Ai
           window_days: window_days,
           previous_computed_at: profile.computed_at
         )
-        Ai::UserLongTermProfileSummarizer.summarize!(input: input)
+        Ai::UserLongTermProfileSummarizer.summarize!(input: input, user: user)
       rescue => e
         Rails.logger.warn("[AI][UserLongTermProfileManager] llm_profile_fallback #{e.class}: #{e.message}")
         builder = Ai::UserLongTermProfileBuilder.new(user: user, window_days: window_days)

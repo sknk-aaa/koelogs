@@ -18,6 +18,9 @@ class User < ApplicationRecord
   has_many :measurement_runs, dependent: :destroy
   has_many :ai_recommendations, dependent: :destroy
   has_many :ai_recommendation_threads, dependent: :destroy
+  has_many :ai_token_usages, dependent: :destroy
+  has_many :ai_chat_projects, dependent: :destroy
+  has_many :ai_chat_threads, dependent: :destroy
   has_one :ai_user_profile, dependent: :destroy
   has_many :community_posts, dependent: :destroy
   has_many :community_post_favorites, dependent: :destroy

@@ -64,6 +64,13 @@ module Api
         }
       }, status: :created
     rescue => e
+      if e.is_a?(Ai::TokenUsageTracker::LimitExceededError)
+        return render json: { errors: [ e.message ] }, status: :unprocessable_entity
+      end
+      if e.is_a?(Gemini::Error) && e.message.include?("timeout")
+        return render json: { errors: [ "AI応答が混み合っています。少し時間をおいて再試行してください。" ] }, status: :unprocessable_entity
+      end
+
       Rails.logger.error("[AI][Followup] #{e.class}: #{e.message}\n#{e.backtrace&.first(20)&.join("\n")}")
       render json: { errors: [ "会話の生成に失敗しました" ] }, status: :internal_server_error
     end

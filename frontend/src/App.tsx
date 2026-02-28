@@ -19,6 +19,7 @@ import SettingsPage from "./pages/SettingsPage";
 import AiSettingsPage from "./pages/AiSettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import MyPage from "./pages/MyPage";
+import AiChatPage from "./pages/AiChatPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityProfilePage from "./pages/CommunityProfilePage";
 import CommunityRankingPage from "./pages/CommunityRankingPage";
@@ -57,6 +58,7 @@ export default function App() {
               <Route path="/settings/ai" element={<AiSettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/mypage" element={<MyPage />} />
+              <Route path="/chat" element={<AiChatPage />} />
             </Route>
 
             {/* ヘルプはログイン不要 */}

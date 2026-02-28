@@ -25,13 +25,23 @@ module Ai
       return RADICAL_CHANGE_TEMPLATE if radical_change_request?(latest_user_text)
       return SAFETY_TEMPLATE if unsafe_request?(latest_user_text)
 
-      text = @client.generate_text!(
+      decision = Ai::WebSearchDecision.decide(
+        query: latest_user_text,
+        responder_type: :recommendation_followup,
+        menu_names: recommended_menu_names
+      )
+      Rails.logger.debug("[AI][RecommendationFollowupResponder] web_search=#{decision[:use_search]} reason=#{decision[:reason]}")
+
+      result = @client.generate_text_with_usage!(
         system_text: build_system_text,
         user_text: build_user_text,
-        max_output_tokens: 5000,
-        temperature: 0.35
+        max_output_tokens: 7000,
+        temperature: 0.35,
+        user: recommendation.user,
+        feature: "followup",
+        web_search: decision[:use_search]
       )
-      finalize_text(text)
+      finalize_text(result[:text], sources: result[:sources])
     end
 
     private
@@ -75,11 +85,16 @@ module Ai
           ✅ 次の一手
         - 箇条書きは「・」を使って2〜4行でまとめる。
         - 返答の最後は必ず文を完結させる。
+        - スレッド名や過去会話の流れより、最新の user 質問を最優先する。
+        - 前の話題と違う質問が来たら、その質問に直接回答する。
       SYS
     end
 
     def build_user_text
       lines = []
+      lines << "最優先質問:"
+      lines << latest_user_message.presence || "(なし)"
+      lines << ""
       lines << "おすすめ対象日: #{recommendation.generated_for_date.iso8601}"
       lines << "元のおすすめ:"
       lines << recommendation.recommendation_text.to_s
@@ -87,7 +102,7 @@ module Ai
       lines << "生成時コンテキスト(スナップショット):"
       lines << context_snapshot.to_json
       lines << ""
-      lines << "会話履歴:"
+      lines << "会話履歴(参考情報。最新質問より優先しない):"
       recent_messages.each do |message|
         lines << "#{message.role}: #{message.content.to_s.strip}"
       end
@@ -100,12 +115,51 @@ module Ai
       messages.last(12)
     end
 
-    def finalize_text(text)
-      v = text.to_s.strip
+    def finalize_text(text, sources: [])
+      v = sanitize_markdown(text.to_s)
+      v = append_sources(v, sources)
       return v if v.blank?
       return v if v.match?(/[。！？.!?]\z/)
 
       "#{v}。"
+    end
+
+    def append_sources(text, sources)
+      rows = Array(sources).map do |source|
+        title = source[:title].to_s.strip
+        url = source[:url].to_s.strip
+        next nil if url.blank?
+        title = "参考情報" if title.blank?
+        "#{title}(#{url})"
+      end.compact.uniq.first(2)
+      return text if rows.blank?
+
+      [ text, "参考情報: #{rows.join(' / ')}" ].join("\n")
+    end
+
+    def recommended_menu_names
+      recommendation.recommendation_text.to_s.lines.filter_map do |line|
+        next unless line.include?("|")
+        candidate = line.split("|").first.to_s.strip
+        next if candidate.blank?
+
+        candidate
+      end.uniq.first(8)
+    end
+
+    def sanitize_markdown(text)
+      v = text.to_s.gsub(/\r\n?/, "\n")
+      v = v.gsub(/```[A-Za-z0-9_-]*\n?/, "")
+      v = v.gsub("```", "")
+      v = v.gsub(/`([^`]+)`/, '\1')
+      v = v.gsub(/\[([^\]]+)\]\(([^)]+)\)/, '\1（\2）')
+      v = v.gsub(/^\s{0,3}\#{1,6}\s+/m, "")
+      v = v.gsub(/^\s*>\s?/m, "")
+      v = v.gsub(/^\s*[-*]\s+/m, "・")
+      v = v.gsub(/\*\*(.+?)\*\*/, '\1')
+      v = v.gsub(/__(.+?)__/, '\1')
+      v = v.gsub(/\n{3,}/, "\n\n")
+      v.strip
     end
   end
 end

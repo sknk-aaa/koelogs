@@ -55,3 +55,11 @@ export type AiRecommendationThread = {
   user_prompt_version: string;
   created_at: string;
 };
+
+export type AiRecommendationHistoryItem = {
+  id: number;
+  generated_for_date: string;
+  range_days: number;
+  recommendation_text_preview: string;
+  created_at: string;
+};

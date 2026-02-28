@@ -2,6 +2,7 @@
 
 module Ai
   class RecommendationGenerator
+    PROMPT_VERSION = "recommendation-v1"
     PROMPT_PRIORITY_LINES = [
       "1) ユーザーのカスタム指示（最優先）",
       "2) ユーザー目標（goal_text）",
@@ -34,9 +35,19 @@ module Ai
       @client.generate_text!(
         user_text: payload,
         system_text: system,
-        max_output_tokens: 10_000,
+        max_output_tokens: 10000,
         temperature: 0.5
       )
+    end
+
+    def model_name
+      return @client.model_name if @client.respond_to?(:model_name)
+
+      Gemini::Client::DEFAULT_MODEL
+    end
+
+    def prompt_version
+      PROMPT_VERSION
     end
 
     private

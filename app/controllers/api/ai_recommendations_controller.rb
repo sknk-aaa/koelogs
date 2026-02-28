@@ -43,12 +43,13 @@ module Api
       )
       collective_effects = Ai::CollectiveEffectCache.fetch(window_days: 90, min_count: 3)
 
-      text = Ai::RecommendationGenerator.new(
+      generator = Ai::RecommendationGenerator.new(
         user: current_user,
         date: target_date,
         range_days: range_days,
         include_today: include_today
-      ).generate!(
+      )
+      text = generator.generate!(
         logs: logs,
         monthly_logs: monthly_logs,
         measurement_evidence: measurement_evidence,
@@ -57,12 +58,24 @@ module Api
         collective_effects: collective_effects
       )
       collective_summary = build_collective_summary(collective_effects)
+      generation_context = build_generation_context(
+        target_date: target_date,
+        range_days: range_days,
+        detail_window_days: detail_window_days,
+        logs: logs,
+        monthly_logs: monthly_logs,
+        measurement_evidence: measurement_evidence,
+        collective_summary: collective_summary
+      )
 
       rec = current_user.ai_recommendations.new(
         generated_for_date: target_date,
         range_days: range_days,
         recommendation_text: text,
-        collective_summary: collective_summary
+        collective_summary: collective_summary,
+        generation_context: generation_context,
+        generator_model_name: generator.model_name,
+        generator_prompt_version: generator.prompt_version
       )
 
       if rec.save
@@ -81,9 +94,6 @@ module Api
       end
     rescue ArgumentError => e
       render json: { error: e.message }, status: :bad_request
-    rescue Gemini::Error => e
-      Rails.logger.error("[Gemini] #{e.message} status=#{e.status} body=#{e.body}")
-      render json: { error: "AI生成に失敗しました（外部APIエラー）" }, status: :internal_server_error
     rescue => e
       Rails.logger.error("[AI] #{e.class}: #{e.message}\n#{e.backtrace&.first(20)&.join("\n")}")
       render json: { error: "AI生成に失敗しました" }, status: :internal_server_error
@@ -119,6 +129,37 @@ module Api
       to_month = target_date.beginning_of_month
       from_month = to_month << (month_count - 1)
       current_user.monthly_logs.where(month_start: from_month..to_month).order(:month_start)
+    end
+
+    def build_generation_context(target_date:, range_days:, detail_window_days:, logs:, monthly_logs:, measurement_evidence:, collective_summary:)
+      {
+        target_date: target_date.iso8601,
+        selected_range_days: range_days,
+        detail_window_days: detail_window_days,
+        detailed_logs: logs.map do |log|
+          {
+            practiced_on: log.practiced_on&.iso8601,
+            duration_min: log.duration_min.to_i,
+            menus: log.respond_to?(:training_menus) ? log.training_menus.map { |m| m.name.to_s } : [],
+            notes: compact_text(log.notes, max_len: 180)
+          }
+        end,
+        monthly_logs: monthly_logs.map do |monthly_log|
+          {
+            month_start: monthly_log.month_start&.iso8601,
+            notes: compact_text(monthly_log.notes, max_len: 220)
+          }
+        end,
+        measurement_evidence: measurement_evidence,
+        collective_summary: collective_summary
+      }
+    end
+
+    def compact_text(text, max_len:)
+      v = text.to_s.gsub(/\s+/, " ").strip
+      return nil if v.blank?
+
+      v.slice(0, max_len)
     end
 
     def serialize(rec)

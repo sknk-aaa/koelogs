@@ -25,6 +25,8 @@ Rails.application.routes.draw do
     # ✅ AI recommendations
     get "ai_recommendations", to: "ai_recommendations#show"
     post "ai_recommendations", to: "ai_recommendations#create"
+    get "ai_recommendations/:id/thread", to: "ai_recommendation_threads#show"
+    post "ai_recommendations/:id/thread/messages", to: "ai_recommendation_threads#create_message"
 
     # community
     get "community/posts", to: "community_posts#index"

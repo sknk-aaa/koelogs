@@ -39,3 +39,19 @@ export type AiRecommendationCreateResponse =
   | { data: AiRecommendation }
   | { errors: string[] }
   | { error: string };
+
+export type AiRecommendationThreadMessage = {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+};
+
+export type AiRecommendationThread = {
+  id: number;
+  generated_for_date: string;
+  model_name: string;
+  system_prompt_version: string;
+  user_prompt_version: string;
+  created_at: string;
+};

@@ -38,7 +38,6 @@ export default function SummaryCard({
           {sampleMode && (
             <div className="logPage__cardBadge logPage__cardBadge--sample">サンプル</div>
           )}
-          {log && <div className="logPage__cardBadge logPage__cardBadge--ok">記録あり</div>}
           {!log && !loading && !error && (
             <div className="logPage__cardBadge logPage__cardBadge--empty">未記録</div>
           )}

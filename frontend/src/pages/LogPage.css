@@ -36,6 +36,10 @@
   gap: 16px;
 }
 
+.logPage__stack > .logAi.logPage__card {
+  margin-top: 24px;
+}
+
 .logPage__modeSwitch {
   margin-bottom: 10px;
   display: inline-flex;
@@ -195,8 +199,8 @@
   display: grid;
   grid-template-columns: auto minmax(240px, 320px) auto;
   align-items: end;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .logPage__weekHeader {
@@ -317,7 +321,7 @@
 }
 
 .logPage__title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 950;
   letter-spacing: 0.3px;
 }
@@ -460,7 +464,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .logPage__kpi {
@@ -574,7 +578,7 @@
 }
 
 .logPage__section {
-  margin-top: 10px;
+  margin-top: 20px;
 }
 
 .logPage__sectionTitle {
@@ -777,6 +781,10 @@
 .logAi {
   position: relative;
   overflow: hidden;
+  --log-ai-theme-accent: color-mix(in srgb, var(--accent) 26%, #f59e0b);
+  --log-ai-state-accent: color-mix(in srgb, var(--accent) 24%, #10b981);
+  --log-ai-menu-accent: color-mix(in srgb, var(--accent) 58%, #3b82f6);
+  --log-ai-question-accent: color-mix(in srgb, var(--accent) 22%, #f97316);
   border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
   background: color-mix(in srgb, var(--accent) 10%, var(--card));
   box-shadow: var(--shadow-md);
@@ -909,6 +917,173 @@
   font-size: 13px;
 }
 
+.logAi__structured {
+  display: grid;
+  gap: 24px;
+}
+
+.logAiSection {
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 94%, #ffffff);
+  padding: 14px;
+}
+
+.logAiSection--theme {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.logAiSection--state {
+  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 24%, var(--border));
+  border-left: 2px solid color-mix(in srgb, var(--log-ai-state-accent) 55%, var(--border));
+  background: transparent;
+}
+
+.logAiSection--menu {
+  border-left: 4px solid var(--log-ai-menu-accent);
+  border-color: color-mix(in srgb, var(--log-ai-menu-accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--log-ai-menu-accent) 10%, var(--surface));
+}
+
+.logAiSection--note {
+  border-left: 4px solid #8b5cf6;
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.04));
+}
+
+.logAiSection__title {
+  font-size: 14px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.logAiSection--theme .logAiSection__title {
+  color: color-mix(in srgb, var(--log-ai-theme-accent) 62%, var(--text));
+  margin-bottom: 6px;
+}
+
+.logAiSection--state .logAiSection__title {
+  color: color-mix(in srgb, var(--log-ai-state-accent) 62%, var(--text));
+}
+
+.logAiSection--menu .logAiSection__title {
+  color: color-mix(in srgb, var(--log-ai-menu-accent) 78%, var(--text));
+}
+
+.logAiSection__body {
+  display: grid;
+  gap: 8px;
+}
+
+.logAiSection__body p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 2.05;
+  font-size: 13px;
+}
+
+.logAiStateList {
+  display: grid;
+  gap: 10px;
+}
+
+.logAiStateItem {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--log-ai-state-accent) 4%, var(--surface));
+  padding: 10px 11px;
+  line-height: 1.95;
+  font-size: 13px;
+}
+
+.logAiState__actions {
+  margin-top: 8px;
+}
+
+.logAiState__toggle {
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logAiState__detail {
+  margin-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  padding-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.logAiState__detail p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.95;
+  font-size: 12px;
+}
+
+.logAiTheme {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  padding: 10px 11px;
+  font-size: 14px;
+  line-height: 1.9;
+  font-weight: 900;
+}
+
+.logAiMenus {
+  display: grid;
+  gap: 10px;
+}
+
+.logAiMenuRow {
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 78%, var(--card));
+  padding: 10px;
+}
+
+.logAiMenuRow__top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.logAiMenuRow__name {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.logAiMenuRow__time {
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 74%, var(--text));
+}
+
+.logAiMenuRow__desc {
+  margin-top: 6px;
+  line-height: 1.95;
+  font-size: 13px;
+}
+
+.logAiToken--metric {
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+}
+
+.logAiToken--note {
+  font-weight: 900;
+  color: #0f6ab8;
+}
+
 .logAi__text--muted {
   opacity: 0.75;
 }
@@ -949,27 +1124,101 @@
   border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
 }
 
+.logAiQuestion {
+  margin-top: 12px;
+  border-top: 0;
+  padding-top: 6px;
+}
+
+.logAiQuestion__title {
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--log-ai-question-accent) 60%, var(--text));
+}
+
+.logAiQuestion__row {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.logAiQuestion__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.logAiQuestion__input {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 74%, var(--card));
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.logAiQuestion__send {
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logAiQuestion__send:hover {
+  filter: brightness(0.97);
+}
+
+.logAiQuestion__history {
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 999px;
+  background: var(--card);
+  color: color-mix(in srgb, var(--accent) 54%, var(--text));
+  padding: 7px 11px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .logAi__collective {
   margin-top: 12px;
   padding: 10px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  background: color-mix(in srgb, var(--surface) 82%, var(--card));
 }
 
 .logAi__collectiveHead {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
   font-size: 14px;
   font-weight: 950;
 }
 
-.logAi__collectiveHead span {
+.logAi__collectiveHeadLeft {
+  min-width: 0;
+}
+
+.logAi__collectiveToggle {
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  padding: 5px 10px;
+  font: inherit;
   font-size: 11px;
-  font-weight: 800;
-  opacity: 0.7;
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .logAi__collectiveMuted {
@@ -986,11 +1235,11 @@
 }
 
 .logAi__collectiveRow {
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  border-left: 4px solid color-mix(in srgb, var(--accent) 48%, var(--border));
-  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-left: 2px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+  border-radius: 10px;
   padding: 10px;
-  background: color-mix(in srgb, var(--accent) 7%, var(--card));
+  background: color-mix(in srgb, var(--surface) 86%, var(--card));
 }
 
 .logAi__collectiveRowHead {
@@ -1027,9 +1276,9 @@
 
 .logAi__collectiveMenuCard {
   border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
-  border-radius: 10px;
+  border-radius: 9px;
   padding: 8px 9px;
-  background: color-mix(in srgb, var(--card) 88%, var(--surface));
+  background: color-mix(in srgb, var(--surface) 90%, var(--card));
   display: grid;
   gap: 6px;
 }
@@ -1203,6 +1452,70 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
+:root[data-theme-mode="dark"] .logAiSection {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .logAiSection--theme {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+:root[data-theme-mode="dark"] .logAiSection--state {
+  border-color: rgba(52, 211, 153, 0.32);
+  border-left-color: rgba(52, 211, 153, 0.58);
+  background: transparent;
+}
+
+:root[data-theme-mode="dark"] .logAiSection--menu {
+  border-left-color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.36);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+:root[data-theme-mode="dark"] .logAiSection--note {
+  border-left-color: #a78bfa;
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.2), rgba(18, 24, 42, 0.7));
+}
+
+:root[data-theme-mode="dark"] .logAiStateItem,
+:root[data-theme-mode="dark"] .logAiMenuRow {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logAiStateItem {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme-mode="dark"] .logAiMenuRow {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .logAiTheme {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme-mode="dark"] .logAiState__toggle {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAiState__detail {
+  border-top-color: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme-mode="dark"] .logAiToken--metric {
+  color: #93c5fd;
+}
+
+:root[data-theme-mode="dark"] .logAiToken--note {
+  color: #a5d8ff;
+}
+
 :root[data-theme-mode="dark"] .logAi__rangeSection {
   border-color: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.25));
   background: color-mix(in srgb, var(--accent) 8%, rgba(16, 20, 36, 0.85));
@@ -1254,15 +1567,43 @@
   color: #ffffff;
 }
 
-:root[data-theme-mode="dark"] .logAi__collective {
+:root[data-theme-mode="dark"] .logAiQuestion {
+  border-top-color: transparent;
+}
+
+:root[data-theme-mode="dark"] .logAiQuestion__input {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(13, 18, 31, 0.88);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAiQuestion__send {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAiQuestion__history {
   border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAi__collective {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(7, 11, 20, 0.52);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveToggle {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
 :root[data-theme-mode="dark"] .logAi__collectiveRow {
-  border-color: rgba(255, 255, 255, 0.2);
-  border-left-color: rgba(96, 165, 250, 0.62);
-  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  border-left-color: rgba(96, 165, 250, 0.48);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 :root[data-theme-mode="dark"] .logAi__collectiveRowHead {
@@ -1302,7 +1643,7 @@
 }
 
 :root[data-theme-mode="dark"] .logAi__collectiveMenuCard {
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -1329,8 +1670,133 @@
 }
 
 @media (max-width: 700px) {
+  .logAi__content {
+    padding: 10px 8px;
+  }
+
+  .logAi__structured {
+    margin-left: -8px;
+    margin-right: -8px;
+    gap: 12px;
+  }
+
+  .logAiSection {
+    border-radius: 10px;
+    padding: 9px;
+  }
+
+  .logAiSection__title {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .logAiSection__body p,
+  .logAiStateItem,
+  .logAiMenuRow__name,
+  .logAiMenuRow__desc {
+    font-size: 12px;
+  }
+
+  .logAi__collective {
+    margin-left: -8px;
+    margin-right: -8px;
+    padding: 8px;
+    border-radius: 10px;
+  }
+
+  .logAiQuestion {
+    margin-left: -8px;
+    margin-right: -8px;
+    padding: 8px;
+  }
+
+  .logAiQuestion__row {
+    grid-template-columns: 1fr;
+  }
+
+  .logAiQuestion__actions {
+    justify-self: end;
+  }
+
+  .logAiQuestion__history,
+  .logAiQuestion__send {
+    justify-self: end;
+  }
+
+  .logAi__collectiveHead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  .logAi__collectiveToggle {
+    align-self: flex-end;
+  }
+
+  .logAi__collectiveRow {
+    padding: 7px;
+    border-left-width: 3px;
+  }
+
+  .logAi__collectiveRowHead {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .logAi__collectiveTag {
+    font-size: 16px;
+  }
+
+  .logAi__collectiveMenus {
+    gap: 8px;
+  }
+
+  .logAi__collectiveMenuCard {
+    padding: 7px;
+    gap: 7px;
+  }
+
+  .logAi__collectiveBarTop {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .logAi__collectiveMenuName {
+    font-size: 13px;
+  }
+
+  .logAi__collectiveCount {
+    font-size: 11px;
+  }
+
+  .logAi__collectiveSubhead,
+  .logAi__collectiveSectionHead,
+  .logAi__collectiveLabel,
+  .logAi__collectiveValue,
+  .logAi__collectiveMuted {
+    font-size: 11px;
+  }
+
+  .logAi__collectiveComments,
+  .logAi__collectiveQuotes {
+    gap: 6px;
+  }
+
+  .logAi__scaleChips {
+    gap: 6px;
+  }
+
+  .logAi__scaleChip {
+    padding: 3px 7px;
+    font-size: 10px;
+  }
+
   .logAi__collectiveQuotes li {
     max-width: 100%;
+    padding: 7px 8px;
   }
 }
 
@@ -1611,11 +2077,8 @@
   gap: 10px;
 }
 
-.goalBar__label {
-  font-size: 12px;
-  font-weight: 950;
-  letter-spacing: 0.2px;
-  opacity: 0.74;
+.goalBar__row--end {
+  justify-content: flex-end;
 }
 
 .goalBar__text {
@@ -1711,6 +2174,7 @@
   width: 100%;
   min-width: 0;
   max-width: 320px;
+  margin-inline: auto;
   box-shadow: var(--shadow-sm);
   color: var(--cardText, var(--text));
 }
@@ -1909,6 +2373,40 @@
 }
 
 @media (max-width: 520px) {
+  .logAi__content {
+    padding: 8px 6px;
+  }
+
+  .logAi__structured {
+    margin-left: -6px;
+    margin-right: -6px;
+    gap: 14px;
+  }
+
+  .logAiSection {
+    padding: 10px;
+  }
+
+  .logAi__collective {
+    margin-left: -6px;
+    margin-right: -6px;
+    padding: 7px;
+  }
+
+  .logAiQuestion {
+    margin-left: -6px;
+    margin-right: -6px;
+    padding: 7px;
+  }
+
+  .logAi__collectiveRow {
+    padding: 6px;
+  }
+
+  .logAi__collectiveMenuCard {
+    padding: 6px;
+  }
+
   .logPage__aiCtaActions .logPage__btn {
     width: 100%;
   }

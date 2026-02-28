@@ -27,6 +27,10 @@ module Gemini
       raise Error, "GEMINI_API_KEY is not set" if @api_key.nil? || @api_key.strip.empty?
     end
 
+    def model_name
+      @model
+    end
+
     # return String (generated text)
     def generate_text!(user_text:, system_text:, max_output_tokens: 600, temperature: 0.7)
       uri = URI("#{BASE_URL}#{API_VER}/models/#{@model}:generateContent")

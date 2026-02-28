@@ -3,9 +3,11 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { fetchMonthlyLog, upsertMonthlyLog } from "../api/monthlyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
+import { fetchAiRecommendationThread, postAiRecommendationThreadMessage } from "../api/aiRecommendationThreads";
 import { fetchInsights } from "../api/insights";
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
+import type { AiRecommendationThreadMessage } from "../types/aiRecommendation";
 import type { MonthlyLogData } from "../types/monthlyLog";
 import type { SaveRewards } from "../types/gamification";
 import { useSettings } from "../features/settings/useSettings";
@@ -20,6 +22,7 @@ import "./LogPage.css";
 import LogHeader from "../features/log/components/LogHeader";
 import SummaryCard from "../features/log/components/SummaryCard";
 import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
+import AiRecommendationChatModal from "../features/log/components/AiRecommendationChatModal";
 import WelcomeGuideModal from "../features/log/components/WelcomeGuideModal";
 import { setLastLogPath } from "../features/log/logNavigation";
 
@@ -233,6 +236,13 @@ export default function LogPage() {
   const [aiRec, setAiRec] = useState<AiRecommendation | null>(null);
 
   const [monthModalOpen, setMonthModalOpen] = useState(false);
+  const [aiChatOpen, setAiChatOpen] = useState(false);
+  const [aiChatLoading, setAiChatLoading] = useState(false);
+  const [aiChatSending, setAiChatSending] = useState(false);
+  const [aiChatError, setAiChatError] = useState<string | null>(null);
+  const [aiChatMessages, setAiChatMessages] = useState<AiRecommendationThreadMessage[]>([]);
+  const [aiChatCanPost, setAiChatCanPost] = useState(false);
+  const [aiChatRemaining, setAiChatRemaining] = useState(0);
 
   const [aiExpandedByKey, setAiExpandedByKey] = useState<Record<string, boolean>>({});
   const aiKey = isDayMode ? `day:${selectedDate}` : `month:${selectedMonth}`;
@@ -477,6 +487,49 @@ export default function LogPage() {
     emitGamificationRewards(res.rewards);
     setAiLoading(false);
     setAiExpanded(true);
+  };
+
+  const openAiChat = async (initialMessage?: string) => {
+    if (!authMe || !effectiveAiRec || guestMode) return;
+
+    setAiChatOpen(true);
+    setAiChatLoading(true);
+    setAiChatError(null);
+    const res = await fetchAiRecommendationThread(effectiveAiRec.id);
+    if (!res.ok) {
+      setAiChatError(res.errors.join("\n"));
+      setAiChatLoading(false);
+      return;
+    }
+
+    setAiChatMessages(res.data.messages);
+    setAiChatCanPost(res.data.can_post);
+    setAiChatRemaining(res.data.remaining_messages);
+    setAiChatLoading(false);
+
+    const seed = initialMessage?.trim();
+    if (seed && res.data.can_post) {
+      await sendAiChatMessage(seed, { recommendationId: effectiveAiRec.id });
+    }
+  };
+
+  const sendAiChatMessage = async (message: string, options?: { recommendationId?: number }) => {
+    const recommendationId = options?.recommendationId ?? effectiveAiRec?.id;
+    if (!recommendationId || aiChatSending) return;
+
+    setAiChatSending(true);
+    setAiChatError(null);
+    const res = await postAiRecommendationThreadMessage(recommendationId, message);
+    if (!res.ok) {
+      setAiChatError(res.errors.join("\n"));
+      setAiChatSending(false);
+      return;
+    }
+
+    setAiChatMessages((prev) => [ ...prev, res.data.user_message, res.data.assistant_message ]);
+    setAiChatCanPost(res.data.can_post);
+    setAiChatRemaining(res.data.remaining_messages);
+    setAiChatSending(false);
   };
 
   const closeFirstGuide = (showHintBanner: boolean) => {
@@ -961,9 +1014,23 @@ export default function LogPage() {
             expanded={aiExpanded}
             onToggleExpanded={() => setAiExpanded((v) => !v)}
             collectiveSummary={effectiveAiRec?.collective_summary}
+            showFollowupButton={!guestMode && !!effectiveAiRec}
+            onOpenFollowup={(message) => void openAiChat(message)}
           />
         )}
       </div>
+
+      <AiRecommendationChatModal
+        open={aiChatOpen}
+        onClose={() => setAiChatOpen(false)}
+        messages={aiChatMessages}
+        canPost={aiChatCanPost}
+        remainingMessages={aiChatRemaining}
+        loading={aiChatLoading}
+        sending={aiChatSending}
+        error={aiChatError}
+        onSend={sendAiChatMessage}
+      />
 
       <div className="logPage__actions">
         {(showAiButton || (guestMode && isDayMode)) && (

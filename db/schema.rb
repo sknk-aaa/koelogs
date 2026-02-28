@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_28_101500) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_28_121000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -26,10 +26,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_101500) do
     t.index ["user_id"], name: "index_ai_contribution_events_on_user_id"
   end
 
+  create_table "ai_recommendation_messages", force: :cascade do |t|
+    t.bigint "ai_recommendation_thread_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.string "role", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_recommendation_thread_id", "created_at"], name: "index_ai_reco_msgs_on_thread_and_created"
+    t.index ["ai_recommendation_thread_id"], name: "index_ai_reco_msgs_on_thread_id"
+  end
+
+  create_table "ai_recommendation_threads", force: :cascade do |t|
+    t.bigint "ai_recommendation_id", null: false
+    t.jsonb "context_snapshot", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.date "generated_for_date", null: false
+    t.string "llm_model_name", default: "gemini-2.5-flash", null: false
+    t.text "seed_recommendation_text", null: false
+    t.string "system_prompt_version", default: "followup-v1", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.string "user_prompt_version", default: "followup-v1", null: false
+    t.index ["ai_recommendation_id"], name: "index_ai_recommendation_threads_on_ai_recommendation_id", unique: true
+    t.index ["user_id", "generated_for_date"], name: "index_ai_reco_threads_on_user_and_date"
+    t.index ["user_id"], name: "index_ai_recommendation_threads_on_user_id"
+  end
+
   create_table "ai_recommendations", force: :cascade do |t|
     t.jsonb "collective_summary", default: {}, null: false
     t.datetime "created_at", null: false
     t.date "generated_for_date", null: false
+    t.jsonb "generation_context", default: {}, null: false
+    t.string "generator_model_name", default: "gemini-2.5-flash", null: false
+    t.string "generator_prompt_version", default: "recommendation-v1", null: false
     t.integer "range_days", default: 7, null: false
     t.text "recommendation_text", null: false
     t.datetime "updated_at", null: false
@@ -252,6 +281,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_101500) do
 
   add_foreign_key "ai_contribution_events", "ai_recommendations"
   add_foreign_key "ai_contribution_events", "users"
+  add_foreign_key "ai_recommendation_messages", "ai_recommendation_threads"
+  add_foreign_key "ai_recommendation_threads", "ai_recommendations"
+  add_foreign_key "ai_recommendation_threads", "users"
   add_foreign_key "ai_recommendations", "users"
   add_foreign_key "community_post_favorites", "community_posts"
   add_foreign_key "community_post_favorites", "users"

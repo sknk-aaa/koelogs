@@ -28,6 +28,8 @@ module Api
 
         "test recommendation"
       end
+      generator.define_singleton_method(:model_name) { "gemini-2.5-flash" }
+      generator.define_singleton_method(:prompt_version) { "recommendation-v1" }
 
       tracker = Object.new
       tracker.define_singleton_method(:record!) {}

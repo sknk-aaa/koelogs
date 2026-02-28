@@ -1210,14 +1210,16 @@
 
 .logAi__collectiveToggle {
   flex-shrink: 0;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-  color: color-mix(in srgb, var(--accent) 72%, var(--text));
-  padding: 5px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: color-mix(in srgb, var(--accent) 54%, var(--text));
+  padding: 3px 4px;
   font: inherit;
-  font-size: 11px;
-  font-weight: 900;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
   cursor: pointer;
 }
 
@@ -1245,9 +1247,8 @@
 .logAi__collectiveRowHead {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 8px;
+  gap: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
 }
 
@@ -1259,13 +1260,13 @@
 
 .logAi__collectiveTagPill {
   flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 900;
-  color: color-mix(in srgb, var(--accent) 64%, var(--text));
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  font-size: 9px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--accent) 46%, var(--text));
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
   border-radius: 999px;
-  padding: 2px 8px;
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  padding: 1px 6px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
 }
 
 .logAi__collectiveMenus {
@@ -1350,6 +1351,12 @@
   border: 1px solid color-mix(in srgb, #3b82f6 45%, var(--border));
   background: color-mix(in srgb, #3b82f6 16%, var(--surface));
   color: color-mix(in srgb, #1e40af 72%, var(--text));
+}
+
+.logAi__scaleChip--more {
+  border-style: dashed;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 86%, var(--card));
 }
 
 .logAi__collectiveValue {
@@ -1595,9 +1602,8 @@
 }
 
 :root[data-theme-mode="dark"] .logAi__collectiveToggle {
-  border-color: rgba(255, 255, 255, 0.24);
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 :root[data-theme-mode="dark"] .logAi__collectiveRow {
@@ -1611,9 +1617,9 @@
 }
 
 :root[data-theme-mode="dark"] .logAi__collectiveTagPill {
-  color: #dbeafe;
-  border-color: rgba(96, 165, 250, 0.42);
-  background: rgba(59, 130, 246, 0.14);
+  color: rgba(219, 234, 254, 0.8);
+  border-color: rgba(96, 165, 250, 0.32);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 :root[data-theme-mode="dark"] .logAi__collectiveBarTrack {
@@ -1651,6 +1657,12 @@
   border-color: rgba(96, 165, 250, 0.5);
   background: rgba(59, 130, 246, 0.2);
   color: #dbeafe;
+}
+
+:root[data-theme-mode="dark"] .logAi__scaleChip--more {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 :root[data-theme-mode="dark"] .logAi__moreBtn {

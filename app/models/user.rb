@@ -18,6 +18,7 @@ class User < ApplicationRecord
   has_many :measurement_runs, dependent: :destroy
   has_many :ai_recommendations, dependent: :destroy
   has_many :ai_recommendation_threads, dependent: :destroy
+  has_one :ai_user_profile, dependent: :destroy
   has_many :community_posts, dependent: :destroy
   has_many :community_post_favorites, dependent: :destroy
   has_many :favorite_community_posts, through: :community_post_favorites, source: :community_post
@@ -43,6 +44,7 @@ class User < ApplicationRecord
   validates :ai_custom_instructions, length: { maximum: 600 }, allow_nil: true
   validate :ai_improvement_tags_are_allowed
   before_validation :normalize_avatar_image_url
+  after_commit :enqueue_ai_profile_refresh_if_ai_preferences_changed
   # data URL (base64) での保存を許容するため、上限は十分大きくする
   validates :avatar_image_url, length: { maximum: 2_000_000 }, allow_nil: true
   validates :public_profile_enabled, inclusion: { in: [ true, false ] }
@@ -118,5 +120,12 @@ class User < ApplicationRecord
     return if invalid.empty?
 
     errors.add(:ai_improvement_tags, "contains invalid tags: #{invalid.join(', ')}")
+  end
+
+  def enqueue_ai_profile_refresh_if_ai_preferences_changed
+    changed = previous_changes
+    return unless changed.key?("goal_text") || changed.key?("ai_custom_instructions") || changed.key?("ai_improvement_tags")
+
+    AiUserProfileRefreshJob.perform_later(id)
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_28_121000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_28_143000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -65,6 +65,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_121000) do
     t.bigint "user_id", null: false
     t.index ["user_id", "generated_for_date", "range_days"], name: "index_ai_recommendations_on_user_id_date_range_days", unique: true
     t.index ["user_id"], name: "index_ai_recommendations_on_user_id"
+  end
+
+  create_table "ai_user_profiles", force: :cascade do |t|
+    t.jsonb "auto_profile", default: {}, null: false
+    t.datetime "computed_at"
+    t.datetime "created_at", null: false
+    t.text "last_error"
+    t.datetime "overrides_updated_at"
+    t.string "source_fingerprint"
+    t.jsonb "source_meta", default: {}, null: false
+    t.integer "source_window_days", default: 90, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.jsonb "user_overrides", default: {}, null: false
+    t.index ["user_id"], name: "index_ai_user_profiles_on_user_id", unique: true
   end
 
   create_table "community_post_favorites", force: :cascade do |t|
@@ -285,6 +300,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_121000) do
   add_foreign_key "ai_recommendation_threads", "ai_recommendations"
   add_foreign_key "ai_recommendation_threads", "users"
   add_foreign_key "ai_recommendations", "users"
+  add_foreign_key "ai_user_profiles", "users"
   add_foreign_key "community_post_favorites", "community_posts"
   add_foreign_key "community_post_favorites", "users"
   add_foreign_key "community_posts", "training_menus"

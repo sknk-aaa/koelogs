@@ -1,121 +1,85 @@
-# voice-app
+# voice-app (Koelogs)
 
-ボイストレーニングの記録・分析Webアプリです。  
-日々の練習ログ管理、分析可視化、AIおすすめ、AI録音分析、コミュニティ投稿/ランキングを提供します。
+ボイストレーニングの記録・分析 Web アプリです。  
+日々の練習ログ、録音測定、AIおすすめ生成、コミュニティ集合知を統合して「次の一手」を提案します。
 
 ## 主な機能
 
-- 練習ログ
-  - 日付単位の記録（`/log`, `/log/new`）
-  - 練習時間、メニュー、メモ、最高音（地声/裏声）
-- トレーニング再生
-  - スケール/音域タイプ（low/mid/high）選択と音源再生（`/training`）
-  - テンポ選択UIは廃止（音源側で固定テンポ）
-  - 対応スケール: `5tone` / `Descending5tone` / `triad` / `octave` / `Risingoctave`
-  - 音源命名規則: `public/scales/{scale}-{range}.mp3`
+- 練習ログ（`/log`, `/log/new`）
+  - 1日1ログ（練習時間・メニュー・自由記述）
+  - 月次振り返り（`monthly_logs`）
 - 録音測定（`/training`）
-  - 音域 / ロングトーン / 音量安定性 / 音程精度 を測定
-  - 音程精度はスケール（low/mid/high）選択後、録音開始と同時に固定ガイド音源を再生
-  - 参照バー（ターゲット音程）と自分のピッチ線を同時表示し、追従精度を確認
-- 分析
-  - 練習時間推移
-  - メニュー別分析
-  - 最高音推移（`/insights*`）
-- AIおすすめ
-  - 直近ログをもとに当日の練習方針を生成
-  - 個人ログを主根拠、コミュニティ投稿を補助根拠として利用
-  - 出力は `1)今日の方針 / 2)今の状態 / 3)おすすめメニュー / 4)補足`
-  - 集合知を利用した場合は、`参考にしたコミュニティ投稿` をカード下に表示（メニュー比率・人気スケール・自由記述）
-- AI録音分析
-  - 分析メニュー作成（比較条件/詳細設定）
-  - 判定項目選択
-  - 分析履歴管理（`/analysis/history`）
-  - 録音保存ON時は履歴で再生可能
-- コミュニティ
-  - 投稿一覧/お気に入り切替（`/community`）
-  - 構造化投稿（メニュー/効果タグ/実感度/任意コメント）
-  - 投稿お気に入り
-  - 公開プロフィール（`/community/profile/:userId`）
-  - ランキング（`/community/rankings`）
-- プロフィール
-  - 表示名・公開設定更新
-  - ランキング参加設定
-  - アイコン自由設定（プリセット + カスタム画像）
-  - パスワード再設定（現在パスワード照合あり）
-- マイページ
-  - バッジ / 進捗 / ミッションの確認
-  - ミッションは「デイリー（常時表示）」+「もっと見る（初心者）」構成
-  - 継続ミッション（バッジ）はミッション折りたたみと独立して常時表示
-  - バッジ獲得時は専用ポップアップ表示（ミッション達成とは独立）
-  - レベルアップ時は全ページ共通トーストを表示（5秒、自動消滅）
-- 設定（テーマカラー開放）
-  - テーマカラーはレベル条件で開放
-  - `Violet`: Lv5 / `Canary`: Lv10 / `Umber`: Lv20
-  - ダークモード選択中はテーマカラー変更不可
-- ヘルプ / お問い合わせ
-  - 使い方ガイド（`/help/guide`）
-  - アプリ説明（`/help/about`）
-  - お問い合わせフォーム（`/help/contact`）
+  - 音域 / ロングトーン / 音量安定性 / 音程精度
+  - 測定結果は Insights で推移表示
+- AIおすすめ（`/log`）
+  - 参照期間 `14 / 30 / 90` 日を選択して生成
+  - 詳細ログは常に直近14日、30/90では月ログ（1か月/3か月）を追加参照
+  - 集合知（コミュニティ投稿）は補助根拠として利用
+  - 集合知集計は `Rails.cache` でキャッシュ（6時間）
+- AIおすすめへのフォローアップ会話
+  - 当日おすすめに対する質問・調整会話
+  - 1スレッド最大20メッセージ、履歴は保持
+- コミュニティ（`/community`）
+  - 投稿 / お気に入り / ランキング / 公開プロフィール
 
 ## 技術スタック
 
-- Backend: Ruby on Rails 8 (API) / PostgreSQL
-- Frontend: React + TypeScript + Vite + React Router
-- AI: Gemini 2.5 Flash API
+- Backend: Ruby on Rails 8.1 (API mode)
+- DB: PostgreSQL
+- Frontend: React 19 + TypeScript (strict) + Vite
+- Auth: Cookie Session
+- LLM: Gemini 2.5 Flash
 
-## ルーティング（要点）
+## ルーティング（現行）
 
-- コア固定導線:
-  - `/`（`/log` にリダイレクト）
+- コア導線
+  - `/` → `/log` にリダイレクト
   - `/log`
-  - `/log/new`
+  - `/log/new`（認証必須）
   - `/training`
   - `/insights`
-- 主要追加導線:
+- 分析
+  - `/insights/time`
+  - `/insights/menus`
+  - `/insights/notes`
+- 設定 / プロフィール
+  - `/settings`（認証必須）
+  - `/settings/ai`（認証必須）
+  - `/profile`（認証必須）
+  - `/mypage`（認証必須）
+- コミュニティ
   - `/community`
   - `/community/rankings`
   - `/community/profile/:userId`
-  - `/mypage`
-- レイアウト外（公開）:
+- ヘルプ
+  - `/help/guide`
+  - `/help/about`
+  - `/help/contact`
+- 認証前ページ
   - `/login`
   - `/signup`
-- レイアウト内（公開）:
-  - `/log`
-  - `/training`
-  - `/insights`, `/insights/time`, `/insights/menus`, `/insights/notes`
-  - `/community`, `/community/rankings`, `/community/profile/:userId`
-  - `/help/guide`, `/help/about`, `/help/contact`
-- レイアウト内（ログイン必須）:
-  - `/log/new`
-  - `/analysis/history`
-  - `/settings`
-  - `/profile`
-  - `/mypage`
 
 ## セットアップ
 
 前提:
-- Ruby 3.4.x
+- Ruby 3.4+
 - Node.js 20+
 - PostgreSQL
 
-### 1) 依存関係インストール
+### 1) 依存関係
 
 ```bash
 bundle install
 npm --prefix frontend install
 ```
 
-### 2) 環境変数
-
-プロジェクトルートの `.env` に最低限以下を設定してください。
+### 2) 環境変数（`.env`）
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key
 VITE_API_BASE_URL=http://localhost:3000
 FRONTEND_ORIGIN=http://localhost:5173
 
-# Mail (common)
 MAIL_FROM=no-reply@example.com
 MAILER_HOST=localhost
 MAILER_PORT=3000
@@ -129,52 +93,7 @@ SMTP_ENABLE_STARTTLS_AUTO=true
 CONTACT_MAIL_TO=support@example.com
 ```
 
-任意:
-
-```env
-VITE_RAILS_ORIGIN=http://localhost:3000
-```
-
-### 2.1) SMTP設定（Gmail / SendGrid）
-
-パスワード再設定メールは `ActionMailer + SMTP` で送信します。
-
-- Gmail（2段階認証 + アプリパスワード）
-
-```env
-MAIL_FROM=your_gmail_address@gmail.com
-MAILER_HOST=localhost
-MAILER_PORT=3000
-SMTP_ADDRESS=smtp.gmail.com
-SMTP_PORT=587
-SMTP_DOMAIN=gmail.com
-SMTP_USERNAME=your_gmail_address@gmail.com
-SMTP_PASSWORD=your_16char_app_password
-SMTP_AUTHENTICATION=plain
-SMTP_ENABLE_STARTTLS_AUTO=true
-```
-
-- SendGrid（推奨）
-
-```env
-MAIL_FROM=verified_sender@yourdomain.com
-MAILER_HOST=your-api-domain.com
-SMTP_ADDRESS=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_DOMAIN=your-api-domain.com
-SMTP_USERNAME=apikey
-SMTP_PASSWORD=SG.xxxxxxxxxxxxxxxxx
-SMTP_AUTHENTICATION=plain
-SMTP_ENABLE_STARTTLS_AUTO=true
-```
-
-動作確認（開発環境）:
-
-```bash
-bin/rails runner 'PasswordResetMailer.with(user: User.first, token: "test-token").reset_email.deliver_now'
-```
-
-### 3) DB準備
+### 3) DB 準備
 
 ```bash
 bin/rails db:create
@@ -183,27 +102,17 @@ bin/rails db:migrate
 
 ### 4) 起動
 
-Backend (Rails):
-
 ```bash
 bin/rails server
-```
-
-Frontend (Vite):
-
-```bash
 npm --prefix frontend run dev
 ```
 
-アクセス:
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:3000`
 
-## API概要
+## API 概要（`/api`）
 
-`/api` 配下の主なエンドポイント:
-
-- 認証
+- 認証/ユーザー
   - `POST /api/auth/signup`
   - `POST /api/auth/login`
   - `POST /api/auth/logout`
@@ -211,22 +120,28 @@ npm --prefix frontend run dev
   - `POST /api/auth/password_resets`
   - `GET /api/me`
   - `PATCH /api/me`
-    - 公開設定/ランキング参加/アイコン更新
-    - パスワード再設定（`current_password`, `password`, `password_confirmation`）
-- ログ
+- ログ/メニュー
   - `GET /api/training_logs`
   - `POST /api/training_logs`
   - `GET /api/monthly_logs`
   - `POST /api/monthly_logs`
-- メニュー
   - `GET/POST/PATCH /api/training_menus`
-  - `GET /api/analysis_menus`（固定プリセットのみ）
-- AI録音分析セッション
-  - `GET/POST/DELETE /api/analysis_sessions`
-  - `POST /api/analysis_sessions/:id/upload_audio`
+- 測定/分析
+  - `GET /api/measurements`
+  - `GET /api/measurements/latest`
+  - `POST /api/measurements`
+  - `PATCH /api/measurements/:id`
+  - `GET /api/insights`
+- AIおすすめ
+  - `GET /api/ai_recommendations?date=YYYY-MM-DD&range_days=14|30|90`
+  - `POST /api/ai_recommendations`（`date`, `range_days`）
+  - `GET /api/ai_recommendations/:id/thread`
+  - `POST /api/ai_recommendations/:id/thread/messages`
 - コミュニティ
   - `GET /api/community/posts`
   - `POST /api/community/posts`
+  - `PATCH /api/community/posts/:id`
+  - `DELETE /api/community/posts/:id`
   - `GET /api/community/favorites`
   - `POST /api/community/posts/:id/favorite`
   - `DELETE /api/community/posts/:id/favorite`
@@ -234,171 +149,68 @@ npm --prefix frontend run dev
   - `GET /api/community/profiles/:id`
 - その他
   - `GET /api/scale_tracks`
-  - `GET /api/insights`
-  - `GET/POST /api/ai_recommendations`
   - `POST /api/help/contact`
 
-## DB設計（現行）
+## AIおすすめ仕様（現行）
 
-`db/schema.rb`（version: `2026_02_21_122000`）時点のテーブル一覧です。
+- 参照期間
+  - `range_days=14`: 日次ログ14日（詳細）
+  - `range_days=30`: 日次ログ14日 + 月ログ1か月（傾向）
+  - `range_days=90`: 日次ログ14日 + 月ログ3か月（傾向）
+- 同日生成の保存単位
+  - `user_id + generated_for_date + range_days` で一意
+- 根拠の優先順位
+  - 1) `ai_custom_instructions`
+  - 2) `goal_text`
+  - 3) `ai_improvement_tags`
+  - 4) 直近ログ + 集合知
+- 集合知キャッシュ
+  - キー: `collective_effects:v1:window=<days>:min=<count>`
+  - TTL: 6時間
+  - 例外時はキャッシュをバイパスして集計（生成継続）
+- 録音測定データ参照
+  - 改善タグ / 目標 / 自由記述に測定関連の示唆がある場合のみ参照
+  - 指標ごとに直近最大10件を集計し、latest / avg_last_5 / delta_vs_prev_5 / count を構築
+- 出力
+  - プレーンテキスト（Markdown禁止）
+  - `1) 今日の方針 / 2) 今の状態 / 3) おすすめメニュー / 4) 補足`
 
-### users
-- 用途: ユーザー情報/認証/公開設定
-- 主なカラム:
-  - `email`（unique, not null）
-  - `password_digest`（not null）
-  - `display_name`
-  - `goal_text`（max 50）
-  - `avatar_icon`（not null, default: `note_blue`）
-  - `avatar_image_url`（nullable）
-  - `public_profile_enabled`（default false）
-  - `public_goal_enabled`（default false）
-  - `ranking_participation_enabled`（default false）
+## フォローアップ会話仕様（現行）
 
-### training_logs
-- 用途: 1日1件の練習ログ
-- 主なカラム:
-  - `user_id`, `practiced_on`
-  - `duration_min`, `notes`
-- 制約:
-  - `index_training_logs_on_user_id_and_practiced_on`（unique）
+- 当日おすすめのみ会話可能
+- 1スレッド最大20メッセージ
+- 会話コンテキストは直近6往復（12メッセージ）を投入
+- 保持データ
+  - 生成時コンテキスト（`ai_recommendations.generation_context`）
+  - 元おすすめ本文
+  - 会話ログ（`ai_recommendation_messages`）
+  - モデル/プロンプトバージョン
+- 安全ガード
+  - 医療断定禁止
+  - 不適切要求はテンプレ拒否
+  - 大幅な方針変更要求は再生成案内
 
-### training_log_menus
-- 用途: 日次ログと練習メニューの中間
-- 主なカラム:
-  - `user_id`, `training_log_id`, `training_menu_id`
-- 制約:
-  - `idx_training_log_menus_unique`（`training_log_id, training_menu_id` unique）
+## 主要テーブル（抜粋）
 
-### training_log_feedbacks
-- 用途: 日次ログの効果メモ
-- 主なカラム:
-  - `user_id`, `training_log_id`
-  - `menu_effects`（jsonb）
-  - `effective_menu_ids`（jsonb）
-  - `improvement_tags`（jsonb）
-- 制約:
-  - `training_log_id` unique（1ログ1件）
+- `users`
+  - `goal_text`, `ai_custom_instructions`, `ai_improvement_tags`
+- `training_logs`, `training_log_menus`, `training_menus`
+- `monthly_logs`
+- `measurement_runs`
+- `measurement_range_results`
+- `measurement_long_tone_results`
+- `measurement_volume_stability_results`
+- `measurement_pitch_accuracy_results`
+- `community_posts`, `community_post_favorites`
+- `ai_recommendations`
+  - `generated_for_date`, `range_days`, `recommendation_text`
+  - `collective_summary`, `generation_context`
+  - `generator_model_name`, `generator_prompt_version`
+- `ai_recommendation_threads`, `ai_recommendation_messages`
+- `ai_contribution_events`
+- `xp_events`, `user_badges`
 
-### monthly_logs
-- 用途: 月次振り返り
-- 主なカラム:
-  - `user_id`, `month_start`
-  - `notes`
-- 制約:
-  - `index_monthly_logs_on_user_id_and_month_start`（unique）
-
-### training_menus
-- 用途: ユーザー定義の練習メニュー
-- 主なカラム:
-  - `user_id`, `name`, `color`, `archived`
-  - `focus_points`
-  - `canonical_*` 一式（正規化情報）
-- 制約:
-  - `index_training_menus_on_user_id_and_name`（unique）
-
-### menu_aliases
-- 用途: メニュー表記ゆれ辞書
-- 主なカラム:
-  - `normalized_name`（unique）
-  - `canonical_key`, `confidence`, `source`
-  - `first_seen_at`, `last_seen_at`
-
-### analysis_menus
-- 用途: AI録音分析用メニュー
-- 主なカラム:
-  - `user_id`, `name`, `system_key`, `focus_points`
-  - `compare_mode`, `compare_by_scale`, `fixed_scale_type`
-  - `compare_by_tempo`, `fixed_tempo`
-  - `selected_metrics`（jsonb）
-  - `archived`
-- 制約:
-  - `index_analysis_menus_on_user_id_and_name`（unique）
-  - `index_analysis_menus_on_user_id_and_system_key`（unique）
-
-### analysis_sessions
-- 用途: AI録音分析の実行結果
-- 主なカラム:
-  - `user_id`, `analysis_menu_id`
-  - `duration_sec`, `measurement_kind`, `peak_note`, `lowest_note`
-  - `pitch_stability_score`, `voice_consistency_score`, `range_semitones`
-  - `recorded_scale_type`, `recorded_tempo`
-  - `feedback_text`, `raw_metrics`（jsonb）
-  - `audio_path`, `audio_content_type`, `audio_byte_size`
-
-### ai_recommendations
-- 用途: AIおすすめ保存
-- 主なカラム:
-  - `user_id`, `generated_for_date`, `range_days`, `recommendation_text`
-  - `collective_summary`（jsonb: 推薦時に参照したコミュニティ要約）
-- 制約:
-  - `index_ai_recommendations_on_user_id_and_generated_for_date`（unique）
-
-### community_posts
-- 用途: コミュニティ投稿（集合知入力）
-- 主なカラム:
-  - `user_id`, `training_menu_id`, `canonical_key`
-  - `improvement_tags`（jsonb）
-  - `effect_level`（1..5）
-  - `used_scale_type`（`five_tone|triad|one_half_octave|octave|octave_repeat|semitone|other`）
-  - `used_scale_other_text`（`used_scale_type=other` の補足）
-  - `comment`, `published`, `practiced_on`
-
-### community_post_favorites
-- 用途: コミュニティ投稿のお気に入り
-- 主なカラム:
-  - `user_id`, `community_post_id`
-- 制約:
-  - `idx_community_post_favorites_unique`（`user_id, community_post_id` unique）
-
-### ai_contribution_events
-- 用途: AIおすすめへの投稿貢献イベント
-- 主なカラム:
-  - `user_id`, `ai_recommendation_id`
-  - `canonical_key`, `improvement_tags`（jsonb）
-- 制約:
-  - `idx_ai_contrib_unique_user_recommendation`（`user_id, ai_recommendation_id` unique）
-
-### user_badges
-- 用途: 獲得バッジ
-- 主なカラム:
-  - `user_id`, `badge_key`, `unlocked_at`
-- 制約:
-  - `index_user_badges_on_user_id_and_badge_key`（unique）
-
-### xp_events
-- 用途: XP加算履歴
-- 主なカラム:
-  - `user_id`, `rule_key`, `points`
-  - `source_type`, `source_id`
-- 制約:
-  - `idx_xp_events_unique_source`（`user_id, rule_key, source_type, source_id` unique）
-
-### scale_tracks
-- 用途: トレーニング用音源管理
-- 主なカラム:
-  - `scale_type`, `range_type`, `tempo`, `file_path`
-  - `range_type`: `low` / `mid` / `high`
-  - `tempo`: DB保持のみ（TrainingPageの選択UIでは未使用）
-
-## AI録音分析メモ
-
-- 判定項目（詳細設定で選択）:
-  - ピッチ安定度
-  - 音程精度
-  - 音量安定
-  - 発声時間
-  - 最高音
-  - 発声の大きさの平均
-- デフォルト:
-  - ピッチ安定度 / 音程精度 / 音量安定
-- 比較条件:
-  - スケール / テンポ を任意固定可能
-- 録音保存:
-  - 「録音も保存する」ON時のみ保存
-  - 履歴一覧・履歴詳細で再生可能
-
-## 開発用コマンド
+## 開発コマンド
 
 ```bash
 npm --prefix frontend run lint
@@ -407,13 +219,8 @@ npm --prefix frontend run build
 
 ## ドキュメント
 
-- UI監査: `docs/UI_AUDIT.md`
-- 開発ログ:
-  - `docs/DEVLOG_02-17.md`
-  - `docs/DEVLOG_02-18.md`
-  - `docs/DEVLOG_02-19.md`
-- 未ログイン/初ログイン改善: `docs/ONBOARDING_GUEST_FIRST_LOGIN_IMPROVEMENTS.md`
-- 週ログ実装: `docs/WEEKLY_LOG_IMPLEMENTATION.md`
+- 最新実装仕様: `docs/CURRENT_IMPLEMENTATION_SPEC_2026-02-28.md`
 - 集合知/AIおすすめ: `docs/COLLECTIVE_INTELLIGENCE_AI_RECOMMENDATIONS.md`
-- パスワード再設定/SMTP設定: `docs/PASSWORD_RESET_SMTP_IMPLEMENTATION.md`
-- エージェント運用ルール: `AGENTS.md`
+- 測定・月ログ再設計: `docs/MEASUREMENT_MONTHLY_LOG_REDESIGN_SPEC.md`
+- パスワード再設定/SMTP: `docs/PASSWORD_RESET_SMTP_IMPLEMENTATION.md`
+- エージェント運用: `AGENTS.md`

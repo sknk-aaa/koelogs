@@ -49,5 +49,6 @@ Rails.application.routes.draw do
     # me
     get "me", to: "me#show"
     patch "me", to: "me#update"
+    post "me/ai_profile/recalculate", to: "me#recalculate_ai_profile"
   end
 end

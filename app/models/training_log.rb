@@ -6,6 +6,7 @@ class TrainingLog < ApplicationRecord
   has_many :training_menus, through: :training_log_menus
 
   before_validation :normalize_duration
+  after_commit :enqueue_ai_profile_refresh
 
   validates :practiced_on, presence: true
   validates :practiced_on, uniqueness: { scope: :user_id }
@@ -15,5 +16,9 @@ class TrainingLog < ApplicationRecord
 
   def normalize_duration
     self.duration_min = nil if duration_min.is_a?(String) && duration_min.strip == ""
+  end
+
+  def enqueue_ai_profile_refresh
+    AiUserProfileRefreshJob.perform_later(user_id)
   end
 end

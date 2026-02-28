@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { fetchMe, updateMe } from "../api/auth";
+import { fetchMe, recalculateAiLongTermProfile, updateMe, type AiLongTermProfileCustomItem } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
 import {
   improvementTagLabel,
@@ -13,7 +13,10 @@ import { IMPROVEMENT_TAG_OPTIONS } from "../types/community";
 import "./AiSettingsPage.css";
 
 const CUSTOM_MAX = 600;
-const TEMPLATE = "練習頻度：\n課題：\n環境：\n目標：";
+const TEMPLATE = "回答トーン：\n説明の粒度：\n厳しさ：\n形式（箇条書き/手順など）：";
+const LONG_PROFILE_ITEM_MAX = 6;
+const LONG_PROFILE_LINE_MAX = 6;
+const LONG_PROFILE_TEXT_MAX = 220;
 
 function normalizeInstructions(value: string): string {
   return value.trim();
@@ -22,6 +25,33 @@ function normalizeInstructions(value: string): string {
 function sameStringArray(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
   return a.every((v, index) => v === b[index]);
+}
+
+function normalizeLineArray(value: string): string[] {
+  return value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .slice(0, LONG_PROFILE_LINE_MAX);
+}
+
+function lineArrayToText(lines: string[]): string {
+  return lines.join("\n");
+}
+
+function normalizeCustomItems(items: AiLongTermProfileCustomItem[]): AiLongTermProfileCustomItem[] {
+  return items
+    .map((item) => ({
+      title: item.title.trim().slice(0, 40),
+      content: item.content.trim().slice(0, LONG_PROFILE_TEXT_MAX),
+    }))
+    .filter((item) => item.title.length > 0 && item.content.length > 0)
+    .slice(0, LONG_PROFILE_ITEM_MAX);
+}
+
+function sameCustomItems(a: AiLongTermProfileCustomItem[], b: AiLongTermProfileCustomItem[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((item, i) => item.title === b[i]?.title && item.content === b[i]?.content);
 }
 
 export default function AiSettingsPage() {
@@ -39,6 +69,19 @@ export default function AiSettingsPage() {
   const [initialSelectedTags, setInitialSelectedTags] = useState<string[]>([]);
 
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [recalcLoading, setRecalcLoading] = useState(false);
+
+  const [strengthsText, setStrengthsText] = useState("");
+  const [challengesText, setChallengesText] = useState("");
+  const [growthJourneyText, setGrowthJourneyText] = useState("");
+  const [customItems, setCustomItems] = useState<AiLongTermProfileCustomItem[]>([]);
+  const [computedAt, setComputedAt] = useState<string | null>(null);
+  const [windowDays, setWindowDays] = useState<number>(90);
+
+  const [initialStrengthsText, setInitialStrengthsText] = useState("");
+  const [initialChallengesText, setInitialChallengesText] = useState("");
+  const [initialGrowthJourneyText, setInitialGrowthJourneyText] = useState("");
+  const [initialCustomItems, setInitialCustomItems] = useState<AiLongTermProfileCustomItem[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,10 +98,25 @@ export default function AiSettingsPage() {
 
         const custom = me.ai_custom_instructions ?? "";
         const tags = normalizeImprovementTags(me.ai_improvement_tags ?? []);
+        const profile = me.ai_long_term_profile;
+        const strengths = lineArrayToText(profile?.strengths ?? []);
+        const challenges = lineArrayToText(profile?.challenges ?? []);
+        const growth = lineArrayToText(profile?.growth_journey ?? []);
+        const items = normalizeCustomItems(profile?.custom_items ?? []);
         setCustomInstructions(custom);
         setSelectedTags(tags);
         setInitialCustomInstructions(custom);
         setInitialSelectedTags(tags);
+        setStrengthsText(strengths);
+        setChallengesText(challenges);
+        setGrowthJourneyText(growth);
+        setCustomItems(items);
+        setInitialStrengthsText(strengths);
+        setInitialChallengesText(challenges);
+        setInitialGrowthJourneyText(growth);
+        setInitialCustomItems(items);
+        setComputedAt(profile?.meta?.computed_at ?? null);
+        setWindowDays(profile?.meta?.source_window_days ?? 90);
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : "読み込みに失敗しました");
@@ -90,7 +148,11 @@ export default function AiSettingsPage() {
   const isOverLimit = normalizedDraftInstructions.length > CUSTOM_MAX;
   const isDirty =
     normalizedDraftInstructions !== normalizeInstructions(initialCustomInstructions) ||
-    !sameStringArray(normalizedDraftTags, initialSelectedTags);
+    !sameStringArray(normalizedDraftTags, initialSelectedTags) ||
+    strengthsText.trim() !== initialStrengthsText.trim() ||
+    challengesText.trim() !== initialChallengesText.trim() ||
+    growthJourneyText.trim() !== initialGrowthJourneyText.trim() ||
+    !sameCustomItems(normalizeCustomItems(customItems), initialCustomItems);
   const canSave = !loading && !saving && !isOverLimit;
 
   const toggleTag = (tag: string) => {
@@ -112,6 +174,35 @@ export default function AiSettingsPage() {
     });
   };
 
+  const updateCustomItem = (index: number, key: "title" | "content", value: string) => {
+    setCustomItems((prev) => prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)));
+  };
+
+  const removeCustomItem = (index: number) => {
+    setCustomItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addCustomItem = () => {
+    setCustomItems((prev) => {
+      if (prev.length >= LONG_PROFILE_ITEM_MAX) return prev;
+      return [ ...prev, { title: "", content: "" } ];
+    });
+  };
+
+  const onRecalculateProfile = async () => {
+    if (recalcLoading) return;
+    setRecalcLoading(true);
+    setError(null);
+    try {
+      await recalculateAiLongTermProfile();
+      setStatus("長期プロフィールの再計算を開始しました");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "再計算の開始に失敗しました");
+    } finally {
+      setRecalcLoading(false);
+    }
+  };
+
   const onSave = async () => {
     if (!canSave) return;
     if (!isDirty) {
@@ -123,18 +214,40 @@ export default function AiSettingsPage() {
     setError(null);
 
     try {
+      const normalizedCustomItems = normalizeCustomItems(customItems);
       const updated = await updateMe({
         ai_custom_instructions: normalizedDraftInstructions,
         ai_improvement_tags: normalizedDraftTags,
+        ai_long_term_profile: {
+          strengths: normalizeLineArray(strengthsText),
+          challenges: normalizeLineArray(challengesText),
+          growth_journey: normalizeLineArray(growthJourneyText),
+          custom_items: normalizedCustomItems,
+        },
       });
       await refresh();
 
       const nextCustom = updated.ai_custom_instructions ?? "";
       const nextTags = normalizeImprovementTags(updated.ai_improvement_tags ?? []);
+      const profile = updated.ai_long_term_profile;
+      const nextStrengths = lineArrayToText(profile?.strengths ?? []);
+      const nextChallenges = lineArrayToText(profile?.challenges ?? []);
+      const nextGrowth = lineArrayToText(profile?.growth_journey ?? []);
+      const nextItems = normalizeCustomItems(profile?.custom_items ?? normalizedCustomItems);
       setCustomInstructions(nextCustom);
       setSelectedTags(nextTags);
       setInitialCustomInstructions(nextCustom);
       setInitialSelectedTags(nextTags);
+      setStrengthsText(nextStrengths);
+      setChallengesText(nextChallenges);
+      setGrowthJourneyText(nextGrowth);
+      setCustomItems(nextItems);
+      setInitialStrengthsText(nextStrengths);
+      setInitialChallengesText(nextChallenges);
+      setInitialGrowthJourneyText(nextGrowth);
+      setInitialCustomItems(nextItems);
+      setComputedAt(profile?.meta?.computed_at ?? null);
+      setWindowDays(profile?.meta?.source_window_days ?? 90);
       setStatus("AIカスタム指示を保存しました");
       void refresh().catch(() => undefined);
     } catch (e) {
@@ -151,7 +264,7 @@ export default function AiSettingsPage() {
       <section className="card aiSettingsPage__hero">
         <div className="aiSettingsPage__kicker">AI Custom</div>
         <h1 className="aiSettingsPage__title">AIカスタム指示</h1>
-        <p className="aiSettingsPage__sub">カスタム指示と改善したい項目を、AIおすすめ生成に反映できます。</p>
+        <p className="aiSettingsPage__sub">回答スタイル指示（どう答えてほしいか）と改善したい項目を設定できます。</p>
       </section>
 
       {status && (
@@ -164,12 +277,74 @@ export default function AiSettingsPage() {
 
       <section className="card aiSettingsPage__card">
         <div className="aiSettingsPage__sectionHead">
-          <h2 className="aiSettingsPage__sectionTitle">カスタム指示</h2>
+          <h2 className="aiSettingsPage__sectionTitle aiSettingsPage__sectionTitle--profile">AIが参照する長期プロフィール</h2>
+          <button type="button" className="aiSettingsPage__ghostBtn" onClick={onRecalculateProfile} disabled={recalcLoading}>
+            {recalcLoading ? "再計算中…" : "再計算"}
+          </button>
+        </div>
+        <p className="aiSettingsPage__hint aiSettingsPage__hint--profile">
+          自分の状態・課題・成長過程はここに記入してください。直近{windowDays}日の要約をもとに、必要に応じて修正できます（修正内容が優先されます）。
+          {computedAt ? ` 最終更新: ${computedAt.slice(0, 16).replace("T", " ")}` : ""}
+        </p>
+
+        <div className="aiSettingsPage__longProfileGrid">
+          <div>
+            <div className="aiSettingsPage__previewLabel">強み（改行で複数）</div>
+            <textarea className="aiSettingsPage__textarea aiSettingsPage__textarea--sm" rows={4} value={strengthsText} onChange={(e) => setStrengthsText(e.target.value)} />
+          </div>
+          <div>
+            <div className="aiSettingsPage__previewLabel">課題（改行で複数）</div>
+            <textarea className="aiSettingsPage__textarea aiSettingsPage__textarea--sm" rows={4} value={challengesText} onChange={(e) => setChallengesText(e.target.value)} />
+          </div>
+          <div>
+            <div className="aiSettingsPage__previewLabel">成長過程（改行で複数）</div>
+            <textarea className="aiSettingsPage__textarea aiSettingsPage__textarea--sm" rows={4} value={growthJourneyText} onChange={(e) => setGrowthJourneyText(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="aiSettingsPage__sectionHead" style={{ marginTop: 12 }}>
+          <div className="aiSettingsPage__previewLabel">自由項目</div>
+          <button type="button" className="aiSettingsPage__ghostBtn" onClick={addCustomItem} disabled={customItems.length >= LONG_PROFILE_ITEM_MAX}>
+            項目追加
+          </button>
+        </div>
+        <div className="aiSettingsPage__customItems">
+          {customItems.length === 0 && <div className="aiSettingsPage__previewEmpty">未設定</div>}
+          {customItems.map((item, index) => (
+            <div key={`long-custom-${index}`} className="aiSettingsPage__customItemRow">
+              <input
+                className="aiSettingsPage__customTitle"
+                value={item.title}
+                onChange={(e) => updateCustomItem(index, "title", e.target.value)}
+                placeholder="項目名"
+                maxLength={40}
+              />
+              <textarea
+                className="aiSettingsPage__textarea aiSettingsPage__textarea--sm"
+                rows={3}
+                value={item.content}
+                onChange={(e) => updateCustomItem(index, "content", e.target.value)}
+                placeholder="内容"
+                maxLength={LONG_PROFILE_TEXT_MAX}
+              />
+              <button type="button" className="aiSettingsPage__ghostBtn" onClick={() => removeCustomItem(index)}>
+                削除
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card aiSettingsPage__card">
+        <div className="aiSettingsPage__sectionHead">
+          <h2 className="aiSettingsPage__sectionTitle aiSettingsPage__sectionTitle--style">回答スタイル指示</h2>
           <button type="button" className="aiSettingsPage__ghostBtn" onClick={insertTemplate}>
             テンプレ挿入
           </button>
         </div>
-        <p className="aiSettingsPage__hint">ここに書いた内容はAIおすすめ生成に反映されます。</p>
+        <p className="aiSettingsPage__hint aiSettingsPage__hint--style">
+          回答トーン・説明の粒度・厳しさ・表現形式などを指定してください。あなたの状態や課題は上の「AIが参照する長期プロフィール」に記入します。
+        </p>
         <div className="aiSettingsPage__textareaWrap">
           <textarea
             value={customInstructions}
@@ -177,7 +352,7 @@ export default function AiSettingsPage() {
             className="aiSettingsPage__textarea"
             maxLength={CUSTOM_MAX}
             rows={8}
-            placeholder="例: 喉に力が入りやすいので、負担を下げるメニューを優先したい"
+            placeholder="例: 結論を先に、短く具体的に。厳しさは中程度。手順は箇条書きで。"
           />
           <div className={`aiSettingsPage__counter ${isOverLimit ? "is-over" : ""}`}>
             {normalizedDraftInstructions.length} / {CUSTOM_MAX}

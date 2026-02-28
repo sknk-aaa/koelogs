@@ -783,13 +783,12 @@ export default function LogPage() {
                   <div className="goalBar__label">
                     {isWithinInitial7Days
                       ? "目標を設定する（最大50文字・AIおすすめに反映）"
-                      : "目標を設定する（最大50文字）"}
+                      : "目標を設定する（最大50文字・AIおすすめに反映）"}
                   </div>
                   <button className="goalBar__btn" type="button" onClick={openGoalEdit}>
                     設定する
                   </button>
                 </div>
-                <div className="goalBar__hint">目標を設定すると「今日のおすすめメニュー」に反映されます。</div>
               </div>
             )
           ) : (

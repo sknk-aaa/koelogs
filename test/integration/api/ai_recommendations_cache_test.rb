@@ -32,7 +32,7 @@ module Api
       generator.define_singleton_method(:prompt_version) { "recommendation-v1" }
 
       tracker = Object.new
-      tracker.define_singleton_method(:record!) {}
+      tracker.define_singleton_method(:record!) { }
 
       rewards = {
         xp_earned: 0,

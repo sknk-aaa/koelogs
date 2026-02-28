@@ -839,21 +839,30 @@ export default function InsightsNotesPage() {
                     points={metricPoints}
                     color="#f0c419"
                     unit="%"
-                    min={0}
-                    max={100}
-                    yTicks={[0, 20, 40, 60, 80, 100]}
-                    tickFormatter={(v) => `${v}%`}
+                    tickFormatter={(v) => `${v.toFixed(0)}%`}
+                    autoScale={{
+                      hardMin: 0,
+                      hardMax: 100,
+                      minSpan: 8,
+                      maxTicks: 6,
+                      minPaddingRatio: 0.12,
+                      maxPaddingRatio: 0.12,
+                    }}
                   />
                 ) : metricTab === "pitch_accuracy" ? (
                   <ScoreTrendChart
                     points={metricPoints}
                     color="#2563eb"
                     unit="半音"
-                    min={0}
-                    max={1}
-                    yTicks={[0, 0.2, 0.4, 0.6, 0.8, 1]}
                     tickFormatter={(v) => `${v.toFixed(1)}半音`}
                     higherIsBetter={false}
+                    autoScale={{
+                      hardMin: 0,
+                      minSpan: 0.2,
+                      maxTicks: 6,
+                      minPaddingRatio: 0.16,
+                      maxPaddingRatio: 0.16,
+                    }}
                   />
                 ) : (
                   <SimpleTrendChart points={metricPoints} />
@@ -985,21 +994,30 @@ export default function InsightsNotesPage() {
                     points={metricPoints}
                     color="#f0c419"
                     unit="%"
-                    min={0}
-                    max={100}
-                    yTicks={[0, 20, 40, 60, 80, 100]}
-                    tickFormatter={(v) => `${v}%`}
+                    tickFormatter={(v) => `${v.toFixed(0)}%`}
+                    autoScale={{
+                      hardMin: 0,
+                      hardMax: 100,
+                      minSpan: 8,
+                      maxTicks: 6,
+                      minPaddingRatio: 0.12,
+                      maxPaddingRatio: 0.12,
+                    }}
                   />
                 ) : metricTab === "pitch_accuracy" ? (
                   <ScoreTrendChart
                     points={metricPoints}
                     color="#2563eb"
                     unit="半音"
-                    min={0}
-                    max={1}
-                    yTicks={[0, 0.2, 0.4, 0.6, 0.8, 1]}
                     tickFormatter={(v) => `${v.toFixed(1)}半音`}
                     higherIsBetter={false}
+                    autoScale={{
+                      hardMin: 0,
+                      minSpan: 0.2,
+                      maxTicks: 6,
+                      minPaddingRatio: 0.16,
+                      maxPaddingRatio: 0.16,
+                    }}
                   />
                 ) : (
                   <SimpleTrendChart points={metricPoints} />
@@ -1563,9 +1581,17 @@ function LongToneTrendChart({ points }: { points: MeasurementPoint[] }) {
   const padLeft = 18;
   const padRight = 18;
   const values = points.map((p) => p.value).filter((v): v is number => v != null);
-  const dataMax = values.length ? Math.max(...values) : 0;
-  const max = Math.max(4, Math.ceil(dataMax + 1));
-  const min = 0;
+  const axis = buildAutoNumericAxis({
+    values,
+    hardMin: 0,
+    minSpan: 4,
+    minPaddingRatio: 0.12,
+    maxPaddingRatio: 0.18,
+    maxTicks: 6,
+  });
+  const min = axis.min;
+  const max = axis.max;
+  const yTicks = axis.ticks;
   const range = Math.max(1, max - min);
   const plotW = width - padLeft - padRight;
   const plotH = height - padTop - padBottom;
@@ -1583,6 +1609,8 @@ function LongToneTrendChart({ points }: { points: MeasurementPoint[] }) {
   const bestValue = plotted.length > 0 ? Math.max(...plotted.map((p) => p.value)) : null;
   const bestPoint =
     bestValue == null ? null : [...plotted].reverse().find((p) => p.value === bestValue) ?? null;
+  const bestBadgeX = bestPoint ? Math.min(width - padRight - 20, Math.max(padLeft + 20, bestPoint.x)) : null;
+  const bestBadgeY = bestPoint ? Math.max(padTop + 14, bestPoint.y - 22) : null;
   const latestPoint = plotted.length > 0 ? plotted[plotted.length - 1] : null;
 
   const linePath = plotted.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
@@ -1590,11 +1618,6 @@ function LongToneTrendChart({ points }: { points: MeasurementPoint[] }) {
     plotted.length >= 2
       ? `${linePath} L ${plotted[plotted.length - 1].x} ${height - padBottom} L ${plotted[0].x} ${height - padBottom} Z`
       : "";
-
-  const yTickStep = max <= 10 ? 2 : Math.max(2, Math.ceil(max / 5));
-  const yTicks: number[] = [];
-  for (let v = 0; v <= max; v += yTickStep) yTicks.push(v);
-  if (yTicks[yTicks.length - 1] !== max) yTicks.push(max);
 
   const xTicks = Array.from(
     new Set(points.length <= 1 ? [0] : [0, Math.floor((points.length - 1) * 0.33), Math.floor((points.length - 1) * 0.66), points.length - 1])
@@ -1613,7 +1636,7 @@ function LongToneTrendChart({ points }: { points: MeasurementPoint[] }) {
                 <g key={`lt-axis-y-${v}`}>
                   <line x1={axisWidth - 5} y1={y} x2={axisWidth - 1} y2={y} stroke="#8eb7e8" strokeWidth="1.1" />
                   <text x={axisWidth - 7} y={y + 4} textAnchor="end" className="insightsFixedTrend__yLabel">
-                    {v}s
+                    {formatNumberForTick(v, axis.step)}s
                   </text>
                 </g>
               );
@@ -1685,8 +1708,8 @@ function LongToneTrendChart({ points }: { points: MeasurementPoint[] }) {
                 );
               })}
 
-              {bestPoint && (
-                <g transform={`translate(${bestPoint.x}, ${bestPoint.y - 22})`}>
+              {bestPoint && bestBadgeX != null && bestBadgeY != null && (
+                <g transform={`translate(${bestBadgeX}, ${bestBadgeY})`}>
                   <rect x={-18} y={-14} width={36} height={16} rx={8} fill="rgba(184,137,0,0.95)" />
                   <text x={0} y={-3} textAnchor="middle" style={{ fontSize: 9, fontWeight: 900, fill: "#fff", letterSpacing: "0.03em" }}>
                     BEST
@@ -1710,6 +1733,7 @@ function ScoreTrendChart({
   yTicks,
   tickFormatter,
   higherIsBetter = true,
+  autoScale,
 }: {
   points: MeasurementPoint[];
   color: string;
@@ -1719,6 +1743,14 @@ function ScoreTrendChart({
   yTicks?: number[];
   tickFormatter?: (value: number) => string;
   higherIsBetter?: boolean;
+  autoScale?: {
+    hardMin?: number;
+    hardMax?: number;
+    minSpan?: number;
+    maxTicks?: number;
+    minPaddingRatio?: number;
+    maxPaddingRatio?: number;
+  };
 }) {
   const width = 760;
   const height = 260;
@@ -1727,8 +1759,21 @@ function ScoreTrendChart({
   const padBottom = 36;
   const padLeft = 18;
   const padRight = 18;
-  const domainMin = min;
-  const domainMax = max;
+  const values = points.map((p) => p.value).filter((v): v is number => v != null);
+  const computedAxis =
+    autoScale != null
+      ? buildAutoNumericAxis({
+          values,
+          hardMin: autoScale.hardMin,
+          hardMax: autoScale.hardMax,
+          minSpan: autoScale.minSpan ?? 1,
+          maxTicks: autoScale.maxTicks ?? 6,
+          minPaddingRatio: autoScale.minPaddingRatio ?? 0.1,
+          maxPaddingRatio: autoScale.maxPaddingRatio ?? 0.1,
+        })
+      : null;
+  const domainMin = computedAxis?.min ?? min;
+  const domainMax = computedAxis?.max ?? max;
   const range = Math.max(0.0001, domainMax - domainMin);
   const plotW = width - padLeft - padRight;
   const plotH = height - padTop - padBottom;
@@ -1746,6 +1791,8 @@ function ScoreTrendChart({
   const bestValue = plotted.length > 0 ? (higherIsBetter ? Math.max(...plotted.map((p) => p.value)) : Math.min(...plotted.map((p) => p.value))) : null;
   const bestPoint =
     bestValue == null ? null : [...plotted].reverse().find((p) => p.value === bestValue) ?? null;
+  const bestBadgeX = bestPoint ? Math.min(width - padRight - 20, Math.max(padLeft + 20, bestPoint.x)) : null;
+  const bestBadgeY = bestPoint ? Math.max(padTop + 14, bestPoint.y - 22) : null;
   const latestPoint = plotted.length > 0 ? plotted[plotted.length - 1] : null;
   const linePath = plotted.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
   const areaPath =
@@ -1755,7 +1802,8 @@ function ScoreTrendChart({
   const xTicks = Array.from(
     new Set(points.length <= 1 ? [0] : [0, Math.floor((points.length - 1) * 0.33), Math.floor((points.length - 1) * 0.66), points.length - 1])
   );
-  const yAxisTicks = yTicks ?? [0, 20, 40, 60, 80, 100];
+  const yAxisTicks = yTicks ?? computedAxis?.ticks ?? [0, 20, 40, 60, 80, 100];
+  const tickStep = computedAxis?.step ?? (yAxisTicks.length >= 2 ? Math.abs(yAxisTicks[1] - yAxisTicks[0]) : 1);
   const xAxisY = height - padBottom;
   const isSemitoneAxis = unit === "半音";
   const formatAxisTick = (value: number) => {
@@ -1763,7 +1811,8 @@ function ScoreTrendChart({
       const formatted = tickFormatter(value);
       return isSemitoneAxis ? formatted.replace(/半音/g, "") : formatted;
     }
-    return isSemitoneAxis ? `${value}` : `${value}${unit}`;
+    const rendered = formatNumberForTick(value, tickStep);
+    return isSemitoneAxis ? `${rendered}` : `${rendered}${unit}`;
   };
 
   return (
@@ -1842,8 +1891,8 @@ function ScoreTrendChart({
                 );
               })}
 
-              {bestPoint && (
-                <g transform={`translate(${bestPoint.x}, ${bestPoint.y - 22})`}>
+              {bestPoint && bestBadgeX != null && bestBadgeY != null && (
+                <g transform={`translate(${bestBadgeX}, ${bestBadgeY})`}>
                   <rect x={-18} y={-14} width={36} height={16} rx={8} fill="rgba(184,137,0,0.95)" />
                   <text x={0} y={-3} textAnchor="middle" style={{ fontSize: 9, fontWeight: 900, fill: "#fff", letterSpacing: "0.03em" }}>
                     BEST
@@ -2327,6 +2376,126 @@ function isBlackKey(pitchClass: number): boolean {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+function buildAutoNumericAxis(params: {
+  values: number[];
+  hardMin?: number;
+  hardMax?: number;
+  minSpan?: number;
+  maxTicks?: number;
+  minPaddingRatio?: number;
+  maxPaddingRatio?: number;
+}): { min: number; max: number; ticks: number[]; step: number } {
+  const {
+    values,
+    hardMin,
+    hardMax,
+    minSpan = 1,
+    maxTicks = 6,
+    minPaddingRatio = 0.1,
+    maxPaddingRatio = 0.1,
+  } = params;
+
+  if (values.length === 0) {
+    const fallbackMin = hardMin ?? 0;
+    const fallbackMax = hardMax ?? Math.max(fallbackMin + minSpan, minSpan);
+    const ticks = buildNiceTicks(fallbackMin, fallbackMax, maxTicks);
+    const tickMin = ticks[0] ?? fallbackMin;
+    const tickMax = ticks[ticks.length - 1] ?? fallbackMax;
+    return {
+      min: tickMin,
+      max: tickMax,
+      ticks: ticks.length ? ticks : [tickMin, tickMax],
+      step: ticks.length >= 2 ? Math.abs(ticks[1] - ticks[0]) : Math.max(0.1, tickMax - tickMin),
+    };
+  }
+
+  const dataMin = Math.min(...values);
+  const dataMax = Math.max(...values);
+  const span = Math.max(minSpan, dataMax - dataMin);
+  let min = dataMin - span * minPaddingRatio;
+  let max = dataMax + span * maxPaddingRatio;
+
+  if (max - min < minSpan) {
+    const center = (max + min) / 2;
+    min = center - minSpan / 2;
+    max = center + minSpan / 2;
+  }
+
+  if (hardMin != null) min = Math.max(min, hardMin);
+  if (hardMax != null) max = Math.min(max, hardMax);
+
+  if (max - min < minSpan) {
+    const center = (dataMax + dataMin) / 2;
+    min = center - minSpan / 2;
+    max = center + minSpan / 2;
+    if (hardMin != null && min < hardMin) {
+      min = hardMin;
+      max = hardMin + minSpan;
+    }
+    if (hardMax != null && max > hardMax) {
+      max = hardMax;
+      min = hardMax - minSpan;
+    }
+    if (hardMin != null) min = Math.max(min, hardMin);
+    if (hardMax != null) max = Math.min(max, hardMax);
+  }
+
+  const ticks = buildNiceTicks(min, max, maxTicks);
+  const tickMin = ticks[0] ?? min;
+  const tickMax = ticks[ticks.length - 1] ?? max;
+  return {
+    min: tickMin,
+    max: tickMax,
+    ticks: ticks.length ? ticks : [tickMin, tickMax],
+    step: ticks.length >= 2 ? Math.abs(ticks[1] - ticks[0]) : Math.max(0.1, tickMax - tickMin),
+  };
+}
+
+function buildNiceTicks(min: number, max: number, maxTicks: number): number[] {
+  const safeMaxTicks = Math.max(2, maxTicks);
+  const safeRange = Math.max(0.000001, max - min);
+  const step = niceNumber(safeRange / (safeMaxTicks - 1), true);
+  const niceMin = Math.floor(min / step) * step;
+  const niceMax = Math.ceil(max / step) * step;
+  const ticks: number[] = [];
+  for (let v = niceMin; v <= niceMax + step * 0.5; v += step) {
+    ticks.push(roundTo(v, step));
+  }
+  if (ticks.length === 0) return [roundTo(min, step), roundTo(max, step)];
+  return ticks;
+}
+
+function niceNumber(value: number, round: boolean): number {
+  const exponent = Math.floor(Math.log10(Math.max(value, 0.000001)));
+  const fraction = value / Math.pow(10, exponent);
+  let niceFraction: number;
+  if (round) {
+    if (fraction < 1.5) niceFraction = 1;
+    else if (fraction < 3) niceFraction = 2;
+    else if (fraction < 7) niceFraction = 5;
+    else niceFraction = 10;
+  } else {
+    if (fraction <= 1) niceFraction = 1;
+    else if (fraction <= 2) niceFraction = 2;
+    else if (fraction <= 5) niceFraction = 5;
+    else niceFraction = 10;
+  }
+  return niceFraction * Math.pow(10, exponent);
+}
+
+function roundTo(value: number, step: number): number {
+  if (!Number.isFinite(value) || !Number.isFinite(step) || step <= 0) return value;
+  const decimals = Math.max(0, -Math.floor(Math.log10(step)) + 1);
+  const pow = 10 ** Math.min(decimals, 6);
+  return Math.round(value * pow) / pow;
+}
+
+function formatNumberForTick(value: number, step: number): string {
+  if (step >= 1) return `${Math.round(value)}`;
+  if (step >= 0.1) return value.toFixed(1);
+  return value.toFixed(2);
 }
 
 function transposeNote(note: string | null, semitones: number): string | null {

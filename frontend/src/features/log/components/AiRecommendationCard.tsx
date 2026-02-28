@@ -416,14 +416,16 @@ function CollectiveSummaryPanel({ summary }: { summary?: AiCollectiveSummary | n
           {summary.items.map((item) => (
             <article key={item.tag_key} className="logAi__collectiveRow">
               <div className="logAi__collectiveRowHead">
-                <div className="logAi__collectiveTag">{item.tag_label}</div>
                 <span className="logAi__collectiveTagPill">改善タグ</span>
+                <div className="logAi__collectiveTag">{item.tag_label}</div>
               </div>
               <div className="logAi__collectiveMenus" role="list" aria-label={`${item.tag_label}のメニュー分布と詳細`}>
                 {item.menus.map((menu) => {
                   const totalMenuCount = Math.max(item.menus.reduce((sum, m) => sum + m.count, 0), 1);
                   const ratio = Math.round((menu.count / totalMenuCount) * 100);
                   const scaleTotal = Math.max(menu.scale_distribution.reduce((sum, s) => sum + s.count, 0), 1);
+                  const displayedScales = menu.scale_distribution.slice(0, 2);
+                  const hiddenScaleCount = Math.max(0, menu.scale_distribution.length - displayedScales.length);
                   const commentKey = `${item.tag_key}-${menu.menu_label}`;
                   const isExpandedComment = expandedComments[commentKey] === true;
                   const previewComments = menu.detail_comments.slice(0, 2);
@@ -441,20 +443,25 @@ function CollectiveSummaryPanel({ summary }: { summary?: AiCollectiveSummary | n
                       <div className="logAi__collectiveSectionHead">人気スケール</div>
                       <div className="logAi__scaleChips">
                         {menu.scale_distribution.length > 0 ? (
-                          menu.scale_distribution.map((s) => {
+                          <>
+                            {displayedScales.map((s) => {
                             const pct = Math.round((s.count / scaleTotal) * 100);
                             return (
                               <span key={`${menu.menu_label}-scale-${s.label}`} className="logAi__scaleChip">
                                 {s.label} {pct}%
                               </span>
                             );
-                          })
+                            })}
+                            {hiddenScaleCount > 0 && (
+                              <span className="logAi__scaleChip logAi__scaleChip--more">+{hiddenScaleCount}</span>
+                            )}
+                          </>
                         ) : (
                           <span className="logAi__collectiveValue">データなし</span>
                         )}
                       </div>
 
-                      <div className="logAi__collectiveSubhead">自由記述</div>
+                      <div className="logAi__collectiveSubhead">📝自由記述要約</div>
                       {menu.detail_comments.length > 0 ? (
                         <>
                           {!isExpandedComment ? (
@@ -462,7 +469,7 @@ function CollectiveSummaryPanel({ summary }: { summary?: AiCollectiveSummary | n
                               {previewComments.map((comment, idx) => (
                                 <li key={`${menu.menu_label}-preview-${idx}`}>
                                   <span className="logAi__quoteText">
-                                    {`💬 ${compactText(formatCommentForDisplay(comment).join(" / "), 84).replace(/\s*\/\s*/g, "\n")}`}
+                                    {compactText(formatCommentForDisplay(comment).join(" / "), 84).replace(/\s*\/\s*/g, "\n")}
                                   </span>
                                 </li>
                               ))}
@@ -513,20 +520,47 @@ function CollectiveSummaryPanel({ summary }: { summary?: AiCollectiveSummary | n
 
 function formatCommentForDisplay(raw: string): string[] {
   const normalized = raw
-    .replace(/\s*(どこが良くなった？?|音域|意識した点|意識したポイント)\s*[:：]/g, "\n$1: ")
-    .replace(/\s*(改善された点)\s*[:：]/g, "\n$1: ")
+    .replace(/\s*(どこが良くなった？?|改善された点|音域|意識した点|意識したポイント)\s*[:：]/g, "\n$1:")
     .replace(/\n{2,}/g, "\n")
     .trim();
-  const lines = normalized
-    .split("\n")
-    .map((v) =>
-      v
-        .trim()
-        .replace(/^(どこが良くなった？?|改善された点|音域|意識した点|意識したポイント)\s*[:：]\s*/g, "")
-        .trim()
-    )
-    .filter((v) => v.length > 0);
-  return lines.length > 0 ? lines : [ raw.trim() ];
+  const lines = normalized.split("\n").map((v) => v.trim()).filter((v) => v.length > 0);
+  const out: string[] = [];
+  const unlabeled: string[] = [];
+  let hasLabeledLine = false;
+  let improved = "";
+  let range = "";
+  let focus = "";
+
+  for (const line of lines) {
+    const m = line.match(/^(どこが良くなった？?|改善された点|音域|意識した点|意識したポイント)\s*[:：]\s*(.*)$/);
+    if (!m) {
+      unlabeled.push(line);
+      continue;
+    }
+
+    hasLabeledLine = true;
+    const value = (m[2] ?? "").trim();
+    if (value.length === 0) continue;
+    if (/^(どこが良くなった？?|改善された点)$/.test(m[1])) {
+      improved = value;
+      continue;
+    }
+    if (m[1] === "音域") {
+      range = value;
+      continue;
+    }
+    focus = value;
+  }
+
+  // テンプレ準拠コメントだけ正規ラベルを表示。自由記述のみの場合は本文をそのまま出す。
+  if (!hasLabeledLine) return lines.length > 0 ? lines : [raw.trim()];
+
+  if (improved) out.push(`改善された点: ${improved}`);
+  if (range) out.push(`音域: ${range}`);
+  if (focus) out.push(`意識した点: ${focus}`);
+  if (unlabeled.length > 0) out.push(...unlabeled);
+
+  return out.length > 0 ? out : [raw.trim()];
 }
 
 function compactText(text: string, maxLen: number): string {

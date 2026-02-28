@@ -22,6 +22,7 @@ module Api
         :avatar_icon,
         ai_improvement_tags: []
       )
+      raw_long_term_profile = params.dig(:me, :ai_long_term_profile)
 
       current_password = permitted.delete(:current_password).to_s
       password = permitted[:password].to_s
@@ -35,16 +36,33 @@ module Api
         permitted.delete(:password_confirmation)
       end
 
-      if current_user.update(permitted)
-        render json: serialize_me(current_user)
-      else
-        render json: { error: current_user.errors.full_messages }, status: :unprocessable_entity
+      ActiveRecord::Base.transaction do
+        current_user.update!(permitted)
+        if raw_long_term_profile.is_a?(ActionController::Parameters) || raw_long_term_profile.is_a?(Hash)
+          normalized_overrides =
+            if raw_long_term_profile.is_a?(ActionController::Parameters)
+              raw_long_term_profile.to_unsafe_h
+            else
+              raw_long_term_profile
+            end
+          Ai::UserLongTermProfileManager.update_overrides!(user: current_user, overrides: normalized_overrides)
+        end
       end
+
+      render json: serialize_me(current_user)
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.record.errors.full_messages }, status: :unprocessable_entity
+    end
+
+    def recalculate_ai_profile
+      AiUserProfileRefreshJob.perform_later(current_user.id, true)
+      render json: { ok: true }, status: :accepted
     end
 
     private
 
     def serialize_me(user)
+      long_term_profile = Ai::UserLongTermProfileManager.effective_profile(user: user)
       {
         id: user.id,
         email: user.email,
@@ -54,6 +72,7 @@ module Api
         goal_text: user.goal_text,
         ai_custom_instructions: user.ai_custom_instructions,
         ai_improvement_tags: Array(user.ai_improvement_tags),
+        ai_long_term_profile: long_term_profile,
         public_profile_enabled: user.public_profile_enabled,
         public_goal_enabled: user.public_goal_enabled,
         ranking_participation_enabled: user.ranking_participation_enabled,

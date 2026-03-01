@@ -107,7 +107,7 @@ module Api
 
       current_range_start = month_start
       previous_range_start = previous_month_start
-      current_range_end = is_current_month ? [today, month_end].min : month_end
+      current_range_end = is_current_month ? [ today, month_end ].min : month_end
       previous_range_end = previous_month_end
       current_label = "今月(#{current_range_start.day}〜#{current_range_end.day}日)"
       previous_label = "先月(月全体)"

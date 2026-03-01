@@ -1007,7 +1007,7 @@ export default function LogPage() {
           onClick={openComparisonModal}
         >
           <div className="logPage__comparisonTriggerMain">
-            <div className="logPage__comparisonTriggerTitle">先月との比較（コーチ診断）</div>
+            <div className="logPage__comparisonTriggerTitle">今月のAI診断</div>
             <div className="logPage__comparisonTriggerSub">今月の成長を確認してみましょう！</div>
           </div>
           <div className="logPage__comparisonTriggerRight">

@@ -4,6 +4,203 @@
   overflow-x: hidden;
 }
 
+/* CSV export UI */
+.insightsHighlightsCard__topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.csvButton {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--surface) 92%, var(--card));
+  color: var(--ins-text-1);
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.csvButton:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.csvButton__icon {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.csvButton__icon svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.csvDialogOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(5, 10, 18, 0.48);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.csvDialog {
+  width: min(360px, 100%);
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: var(--card);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.csvDialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.csvDialog__title {
+  font-size: 15px;
+  font-weight: 950;
+  color: var(--ins-text-1);
+}
+
+.csvDialog__close {
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--surface) 90%, var(--card));
+  color: var(--ins-text-2);
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.csvDialog__section {
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 94%, var(--card));
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.csvDialog__label {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--ins-text-2);
+}
+
+.csvDialog__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ins-text-1);
+  cursor: pointer;
+}
+
+.csvDialog__option input {
+  accent-color: color-mix(in srgb, var(--accent) 78%, #3b82f6);
+}
+
+.csvDialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.csvDialog__btn {
+  min-height: 34px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.csvDialog__btn--secondary {
+  background: color-mix(in srgb, var(--surface) 92%, var(--card));
+  color: var(--ins-text-2);
+}
+
+.csvDialog__btn--primary {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  color: var(--ins-text-1);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+}
+
+:root[data-theme-mode="dark"] .csvButton {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .csvButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .csvDialog {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: #102033;
+}
+
+:root[data-theme-mode="dark"] .csvDialog__title {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme-mode="dark"] .csvDialog__close {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .csvDialog__section {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .csvDialog__label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:root[data-theme-mode="dark"] .csvDialog__option {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .csvDialog__btn--secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+:root[data-theme-mode="dark"] .csvDialog__btn--primary {
+  background: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.04));
+  color: rgba(255, 255, 255, 0.96);
+  border-color: color-mix(in srgb, var(--accent) 46%, rgba(255, 255, 255, 0.2));
+}
+
 /* Training-aligned visual system overrides */
 .insightsPage {
   --ins-card-radius: 24px;

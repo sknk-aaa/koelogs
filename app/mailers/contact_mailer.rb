@@ -12,7 +12,7 @@ class ContactMailer < ApplicationMailer
     mail(
       to: to_address,
       reply_to: @from_email,
-      subject: "【voice-app お問い合わせ】#{@category_label}: #{@subject_text}"
+      subject: "【Koelogs お問い合わせ】#{@category_label}: #{@subject_text}"
     )
   end
 end

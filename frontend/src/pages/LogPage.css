@@ -1269,6 +1269,13 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   box-shadow: none;
 }
 
+:root[data-theme-mode="dark"] .goalBar::before {
+  background-image:
+    linear-gradient(90deg, rgba(8, 13, 24, 0.9) 0%, rgba(9, 15, 28, 0.8) 50%, rgba(10, 17, 33, 0.62) 100%),
+    url("../assets/log/goal-hero.svg");
+  opacity: 0.9;
+}
+
 :root[data-theme-mode="dark"] .goalBar__text {
   color: var(--log-text-secondary);
 }
@@ -3353,6 +3360,26 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   background: var(--card);
   box-shadow: var(--shadow-sm);
   color: var(--cardText, var(--text));
+  position: relative;
+  overflow: hidden;
+}
+
+.goalBar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.86) 52%, rgba(255, 255, 255, 0.72) 100%),
+    url("../assets/log/goal-hero-light.svg");
+  background-size: auto, cover;
+  background-position: 0 0, right center;
+  opacity: 0.94;
+  pointer-events: none;
+}
+
+.goalBar > * {
+  position: relative;
+  z-index: 1;
 }
 
 .logPage__missionCard {

@@ -178,6 +178,27 @@
   white-space: nowrap;
   overflow: hidden;
   color: var(--cardText, var(--text));
+  position: relative;
+  isolation: isolate;
+}
+
+.communityPage__rankingGuide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.80) 56%, rgba(255, 255, 255, 0.62) 100%),
+    url("../assets/community/ranking-guide-light.svg");
+  background-size: auto, cover;
+  background-position: 0 0, right center;
+  opacity: 0.96;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.communityPage__rankingGuide > * {
+  position: relative;
+  z-index: 1;
 }
 
 .communityPage__rankingGuide:focus-visible {
@@ -1513,6 +1534,12 @@
   border: 1px solid var(--community-border);
   box-shadow: var(--community-shadow);
   color: var(--community-text);
+}
+:root[data-theme-mode="dark"] .communityPage__rankingGuide::before {
+  background-image:
+    linear-gradient(90deg, rgba(8, 13, 24, 0.90) 0%, rgba(10, 17, 30, 0.78) 56%, rgba(11, 21, 38, 0.56) 100%),
+    url("../assets/community/ranking-guide-dark.svg");
+  opacity: 0.92;
 }
 :root[data-theme-mode="dark"] .communityPage__rankingGuideDesc {
   color: var(--community-muted);

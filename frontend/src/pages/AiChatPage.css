@@ -284,9 +284,28 @@
   font-size: 11px;
 }
 
+.aiChatPage__searchField {
+  position: relative;
+}
+
+.aiChatPage__searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.aiChatPage__searchIcon--dark {
+  display: none;
+}
+
 .aiChatPage__searchInput {
   border-radius: 999px;
-  padding-inline: 12px;
+  padding-left: 42px;
+  padding-right: 12px;
 }
 
 .aiChatPage__threadList {
@@ -1254,9 +1273,22 @@
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
 }
 
+:root[data-theme-mode="dark"] .aiChatPage__searchIcon--light {
+  display: none;
+}
+
+:root[data-theme-mode="dark"] .aiChatPage__searchIcon--dark {
+  display: block;
+}
+
 :root[data-theme-mode="dark"] .aiChatPage__msgBubble {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.14);
+}
+
+:root[data-theme-mode="dark"] .aiChatPage__msgRow--assistant .aiChatPage__msgBubble {
+  background: transparent;
+  border-color: transparent;
 }
 
 :root[data-theme-mode="dark"] .aiChatPage__msgRow--user .aiChatPage__msgBubble {

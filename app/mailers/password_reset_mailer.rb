@@ -6,7 +6,7 @@ class PasswordResetMailer < ApplicationMailer
     token = params[:token].to_s
     @reset_url = build_reset_url(token)
 
-    mail(to: @user.email, subject: "【voice-app】パスワード再設定のご案内")
+    mail(to: @user.email, subject: "【Koelogs】パスワード再設定のご案内")
   end
 
   private

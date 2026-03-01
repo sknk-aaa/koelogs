@@ -10,6 +10,8 @@ import {
   updateAiChatThread,
 } from "../api/aiChat";
 import type { AiChatMessage, AiChatThread } from "../types/aiChat";
+import searchIconDark from "../assets/chat/search-dark.svg";
+import searchIconLight from "../assets/chat/search-light.svg";
 import "./AiChatPage.css";
 
 const QUICK_PROMPTS = [
@@ -20,8 +22,8 @@ const QUICK_PROMPTS = [
 ];
 const INITIAL_RECO_VISIBLE = 10;
 const RECO_VISIBLE_STEP = 10;
-const ASSISTANT_TYPING_INTERVAL_MS = 28;
-const ASSISTANT_TYPING_CHAR_STEP = 2;
+const ASSISTANT_TYPING_INTERVAL_MS = 14;
+const ASSISTANT_TYPING_CHAR_STEP = 6;
 
 function recommendationThreadTitle(date: string): string {
   return `${date} のおすすめに質問`;
@@ -286,6 +288,9 @@ export default function AiChatPage() {
 
       const seed = (state.seedMessage ?? "").trim();
       const recommendationText = (state.recommendationText ?? "").trim();
+      if (seed.length > 0) {
+        setDraft(seed);
+      }
 
       const threadRes = await fetchAiChatThreads();
       if (!threadRes.ok) {
@@ -553,13 +558,17 @@ export default function AiChatPage() {
           </div>
 
           <div className="aiChatPage__sideContent">
-            <input
-              className="aiChatPage__input aiChatPage__searchInput"
-              value={threadSearch}
-              onChange={(e) => setThreadSearch(e.target.value)}
-              placeholder="🔍 チャットを検索"
-              aria-label="チャット検索"
-            />
+            <div className="aiChatPage__searchField">
+              <img className="aiChatPage__searchIcon aiChatPage__searchIcon--light" src={searchIconLight} alt="" aria-hidden="true" />
+              <img className="aiChatPage__searchIcon aiChatPage__searchIcon--dark" src={searchIconDark} alt="" aria-hidden="true" />
+              <input
+                className="aiChatPage__input aiChatPage__searchInput"
+                value={threadSearch}
+                onChange={(e) => setThreadSearch(e.target.value)}
+                placeholder="チャットを検索"
+                aria-label="チャット検索"
+              />
+            </div>
 
             <div className="aiChatPage__threadSection">
               <div className="aiChatPage__threadSectionHead">

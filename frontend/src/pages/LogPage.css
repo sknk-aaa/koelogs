@@ -4,6 +4,10 @@
   isolation: isolate;
 }
 
+body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
+  display: none !important;
+}
+
 .logPage::before {
   content: "";
   position: absolute;
@@ -179,6 +183,244 @@
   background: color-mix(in srgb, var(--accent) 12%, var(--surface));
   border-radius: 999px;
   padding: 6px 10px;
+}
+
+.logPage__beginnerBar {
+  margin-bottom: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--surface) 90%, var(--card));
+}
+
+.logPage__beginnerBarToggle {
+  width: 100%;
+  min-height: 34px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logPage__beginnerBarTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--log-text-2);
+}
+
+.logPage__beginnerBarCount {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--log-text-3);
+}
+
+.logPage__beginnerBarCaret {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 62%, var(--text));
+  transition: color 140ms ease;
+}
+
+.logPage__beginnerBarList {
+  padding: 0 10px 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__beginnerBarItem {
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 88%, var(--card));
+  padding: 7px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logPage__beginnerBarItemMain {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.logPage__beginnerBarItemIcon {
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+.logPage__beginnerBarItemText {
+  min-width: 0;
+}
+
+.logPage__beginnerBarItemTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--log-text-2);
+  line-height: 1.4;
+}
+
+.logPage__beginnerBarItemDesc {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--log-text-3);
+  line-height: 1.5;
+}
+
+.logPage__beginnerBarItemAction {
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color: var(--log-text-2);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logPage__comparisonTrigger {
+  margin: 0 0 10px;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  border-radius: 13px;
+  background: color-mix(in srgb, #ffffff 86%, var(--card));
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.logPage__comparisonTrigger::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.82) 52%, rgba(255, 255, 255, 0.66) 100%),
+    url("../assets/log/comparison-hero-light.svg");
+  background-size: auto, cover;
+  background-position: 0 0, right center;
+  opacity: 0.96;
+  pointer-events: none;
+}
+
+.logPage__comparisonTrigger > * {
+  position: relative;
+  z-index: 1;
+}
+
+.logPage__comparisonTriggerMain {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.logPage__comparisonTriggerTitle {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+  text-shadow: none;
+}
+
+.logPage__comparisonTriggerSub {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.8);
+  text-shadow: none;
+}
+
+.logPage__comparisonTriggerRight {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.logPage__comparisonTriggerSummary {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.82);
+  text-shadow: none;
+}
+
+.logPage__comparisonTriggerArrow {
+  font-size: 14px;
+  font-weight: 900;
+  color: rgba(30, 64, 175, 0.92);
+  text-shadow: none;
+}
+
+.logPage__compareModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(4, 9, 16, 0.58);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.logPage__compareModal {
+  width: min(720px, 100%);
+  max-height: min(90vh, 900px);
+  overflow: auto;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: var(--card);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__compareModalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.logPage__compareModalTitle {
+  font-size: 16px;
+  font-weight: 950;
+  color: var(--log-text-1);
+}
+
+.logPage__compareModalClose {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  color: var(--log-text-2);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logPage__compareModalBody {
+  display: grid;
+  gap: 10px;
 }
 
 .logPage__guestHero {
@@ -662,6 +904,1133 @@
 
 :root[data-theme-mode="dark"] .logPage__sectionTitle {
   color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logPage {
+  --log-surface-0: #0b1220;
+  --log-surface-1: rgba(255, 255, 255, 0.04);
+  --log-surface-2: rgba(255, 255, 255, 0.08);
+  --log-border-weak: rgba(255, 255, 255, 0.12);
+  --log-border-strong: rgba(255, 255, 255, 0.24);
+  --log-text-primary: rgba(255, 255, 255, 0.94);
+  --log-text-secondary: rgba(255, 255, 255, 0.78);
+  --log-text-muted: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme-mode="dark"] .logPage__modeSwitch {
+  background: var(--log-surface-1);
+  border-color: var(--log-border-weak);
+}
+
+:root[data-theme-mode="dark"] .logPage__modeBtn {
+  background: var(--log-surface-1);
+  border-color: var(--log-border-weak);
+  color: var(--log-text-secondary);
+}
+
+:root[data-theme-mode="dark"] .logPage__modeBtn.is-active {
+  background: var(--log-surface-2);
+  border-color: var(--log-border-strong);
+  color: var(--log-text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav {
+  border: 1px solid var(--log-border-strong);
+  border-radius: 12px;
+  background: var(--log-surface-2);
+  padding: 4px;
+  gap: 6px;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekLabel {
+  background: var(--log-surface-1);
+  border-color: var(--log-border-weak);
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav .logPage__btn {
+  min-height: 34px;
+  height: 34px;
+  background: var(--log-surface-1);
+  border-color: var(--log-border-weak);
+  color: var(--log-text-secondary);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav .logPage__btn:hover {
+  border-color: var(--log-border-strong);
+  color: var(--log-text-primary);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav .logPage__monthBtn {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--log-border-strong));
+  background: color-mix(in srgb, var(--accent) 14%, var(--log-surface-2));
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav .logPage__monthBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--log-border-strong));
+  background: color-mix(in srgb, var(--accent) 22%, var(--log-surface-2));
+}
+
+:root[data-theme-mode="dark"] .logPage__title,
+:root[data-theme-mode="dark"] .goalBar__label {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__muted,
+:root[data-theme-mode="dark"] .goalBar__hint,
+:root[data-theme-mode="dark"] .goalBar__count {
+  color: var(--log-text-muted);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonHead {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonModeText,
+:root[data-theme-mode="dark"] .logPage__comparisonRange,
+:root[data-theme-mode="dark"] .logPage__comparisonCardMeta,
+:root[data-theme-mode="dark"] .logPage__comparisonHint {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonHeadSummary {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonCaret {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonInfoBtn {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonBody {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTrigger {
+  border-color: var(--log-border-strong);
+  background: var(--log-surface-2);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerTitle {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerSub {
+  color: var(--log-text-muted);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerSummary {
+  color: color-mix(in srgb, #ffffff 70%, transparent);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTrigger::before {
+  background-image:
+    linear-gradient(90deg, rgba(7, 12, 20, 0.74) 0%, rgba(7, 12, 20, 0.58) 52%, rgba(7, 12, 20, 0.42) 100%),
+    url("../assets/log/comparison-hero.svg");
+  opacity: 0.64;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerRight {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(7, 12, 20, 0.22);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerArrow {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme-mode="dark"] .logPage__compareModal {
+  border-color: var(--log-border-strong);
+  background: #0f1726;
+}
+
+:root[data-theme-mode="dark"] .logPage__compareModalTitle {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__compareModalClose {
+  border-color: var(--log-border-strong);
+  background: var(--log-surface-2);
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonToggle {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonToggleBtn {
+  color: rgba(255, 255, 255, 0.68);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonToggleBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--accent) 78%, #111827 22%);
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.26);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonWarning {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.42);
+  background: rgba(120, 53, 15, 0.32);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonCard {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonCardTitle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisCard {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisCard--improved {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.24), rgba(59, 130, 246, 0.18));
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisCard--declined {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.26), rgba(239, 68, 68, 0.14));
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisTitle,
+:root[data-theme-mode="dark"] .logPage__comparisonBlockTitle {
+  color: color-mix(in srgb, var(--accent) 72%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisSummary,
+:root[data-theme-mode="dark"] .logPage__comparisonIntensityCurrent {
+  color: rgba(255, 255, 255, 0.98);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisAdvice,
+:root[data-theme-mode="dark"] .logPage__comparisonReasonItem,
+:root[data-theme-mode="dark"] .logPage__comparisonActionItem,
+:root[data-theme-mode="dark"] .logPage__comparisonBucketTitle,
+:root[data-theme-mode="dark"] .logPage__comparisonDetailName {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisMeta {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisRef,
+:root[data-theme-mode="dark"] .logPage__comparisonDaysMeta,
+:root[data-theme-mode="dark"] .logPage__comparisonBucketSummary,
+:root[data-theme-mode="dark"] .logPage__comparisonDetailMeta,
+:root[data-theme-mode="dark"] .logPage__comparisonDetailMuted,
+:root[data-theme-mode="dark"] .logPage__comparisonDetailCount {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDetailValues {
+  color: rgba(255, 255, 255, 0.97);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDetailDelta.is-positive {
+  color: #4ade80;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDetailDelta.is-negative {
+  color: #f87171;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDetailDelta.is-neutral {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionCard {
+  border-color: rgba(148, 163, 184, 0.40);
+  background: rgba(46, 58, 82, 0.56);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionBadge {
+  color: #c7d2fe;
+  border-color: rgba(99, 102, 241, 0.44);
+  background: rgba(99, 102, 241, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionTitle {
+  color: rgba(255, 255, 255, 0.98);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionTitleIcon,
+:root[data-theme-mode="dark"] .logPage__comparisonActionIcon {
+  color: #93c5fd;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionItem {
+  color: rgba(255, 255, 255, 0.94);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonIntensity {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonBucket {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonBucketBody {
+  border-top-color: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonBucketCaret {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBar {
+  border-color: var(--log-border-strong);
+  background: var(--log-surface-2);
+  position: relative;
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 11px 0 0 11px;
+  background: color-mix(in srgb, var(--accent) 80%, #ffffff 20%);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBarTitle {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBarCount,
+:root[data-theme-mode="dark"] .logPage__beginnerBarItemDesc {
+  color: var(--log-text-muted);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBarCount {
+  border: 1px solid var(--log-border-strong);
+  border-radius: 999px;
+  min-height: 20px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--log-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBarCaret {
+  color: var(--log-text-secondary);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBarToggle:hover .logPage__beginnerBarCaret {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBarItem {
+  border-color: var(--log-border-weak);
+  background: var(--log-surface-1);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBarItemTitle,
+:root[data-theme-mode="dark"] .logPage__beginnerBarItemAction {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerBarItemAction {
+  border-color: var(--log-border-strong);
+  background: var(--log-surface-2);
+}
+
+:root[data-theme-mode="dark"] .goalBar {
+  border-color: var(--log-border-weak);
+  background: var(--log-surface-1);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .goalBar__text {
+  color: var(--log-text-secondary);
+}
+
+:root[data-theme-mode="dark"] .goalBar__btn {
+  border-color: var(--log-border-strong);
+  background: var(--log-surface-2);
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .goalBar__btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--log-border-strong));
+  background: color-mix(in srgb, var(--accent) 16%, var(--log-surface-2));
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonCurrent {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonPrevious {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiff.is-positive,
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth.is-positive {
+  color: #86efac;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiff.is-negative,
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth.is-negative {
+  color: #fca5a5;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiff.is-neutral,
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth.is-neutral {
+  color: #cbd5e1;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth.is-new {
+  color: #93c5fd;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementCompare {
+  border-top-color: rgba(255, 255, 255, 0.2);
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementCompareTitle,
+:root[data-theme-mode="dark"] .logPage__measurementName,
+:root[data-theme-mode="dark"] .logPage__measurementValues {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementCompareRow {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus.is-improved {
+  border-color: rgba(16, 185, 129, 0.48);
+  background: rgba(16, 185, 129, 0.2);
+  color: #86efac;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus.is-declined {
+  border-color: rgba(239, 68, 68, 0.52);
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus.is-stable {
+  border-color: rgba(148, 163, 184, 0.44);
+  background: rgba(148, 163, 184, 0.16);
+  color: #d1d5db;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus.is-new {
+  border-color: rgba(96, 165, 250, 0.56);
+  background: rgba(59, 130, 246, 0.24);
+  color: #bfdbfe;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementCounts,
+:root[data-theme-mode="dark"] .logPage__measurementNote {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.logPage__sectionTitle--comparison {
+  margin-bottom: 0;
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+}
+
+.logPage__comparisonHead {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.logPage__comparisonHeadLeft {
+  min-width: 0;
+}
+
+.logPage__comparisonModeText {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--log-text-3) 82%, transparent);
+}
+
+.logPage__comparisonHeadRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.logPage__comparisonHeadSummary {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--log-text-3);
+  max-width: 190px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logPage__comparisonCaret {
+  font-size: 11px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 52%, var(--text));
+}
+
+.logPage__comparisonInfoBtn {
+  width: 24px;
+  height: 24px;
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+}
+
+.logPage__comparisonInfoBody {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.logPage__comparisonBody {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 88%, var(--card));
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__comparisonToggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  padding: 4px;
+}
+
+.logPage__comparisonToggleBtn {
+  min-height: 32px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--surface) 92%, var(--card));
+  color: color-mix(in srgb, var(--text) 66%, transparent);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logPage__comparisonToggleBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  background: color-mix(in srgb, var(--accent) 70%, var(--card) 30%);
+  color: #ffffff;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.logPage__comparisonHint {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--log-text-2);
+}
+
+.logPage__comparisonWarning {
+  font-size: 12px;
+  font-weight: 900;
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(253, 230, 138, 0.42);
+  border-radius: 10px;
+  padding: 7px 9px;
+}
+
+.logPage__comparisonRange {
+  font-size: 12px;
+  font-weight: 850;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonDiagnosisCard {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__comparisonDiagnosisCard--improved {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 24%, #d1fae5), color-mix(in srgb, var(--accent) 16%, #ecfeff));
+}
+
+.logPage__comparisonDiagnosisCard--declined {
+  background: linear-gradient(135deg, color-mix(in srgb, #f59e0b 14%, var(--surface)), color-mix(in srgb, #fb7185 10%, var(--surface)));
+}
+
+.logPage__comparisonDiagnosisTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
+}
+
+.logPage__comparisonDiagnosisSummary {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--log-text-1);
+}
+
+.logPage__comparisonDiagnosisAdvice {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonDiagnosisMeta {
+  font-size: 10px;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--text) 56%, transparent);
+}
+
+.logPage__comparisonDiagnosisRef {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonReasonCard,
+.logPage__comparisonActionCard {
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonReasonList,
+.logPage__comparisonActionList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__comparisonReasonItem,
+.logPage__comparisonActionItem {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--log-text-2);
+  line-height: 1.5;
+}
+
+/* Rich coach card */
+.logPage__comparisonActionCard {
+  position: relative;
+  border-color: color-mix(in srgb, #f59e0b 34%, var(--border));
+  background: color-mix(in srgb, #fff7e6 30%, var(--card));
+  overflow: hidden;
+  gap: 8px;
+}
+
+.logPage__comparisonActionHead {
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonActionBadge {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--accent) 84%, var(--text));
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.logPage__comparisonActionTitleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.logPage__comparisonActionTitle {
+  font-size: 18px;
+  font-weight: 950;
+  color: var(--log-text-1);
+}
+
+.logPage__comparisonActionTitleIcon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 74%, var(--text));
+}
+
+.logPage__comparisonActionTitleIcon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__comparisonActionList {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonActionItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--log-text-1);
+  background: color-mix(in srgb, var(--surface) 92%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 10px;
+  padding: 7px 9px;
+}
+
+.logPage__comparisonActionIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+}
+
+.logPage__comparisonActionIcon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__comparisonIntensity {
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__comparisonBlockTitle {
+  font-size: 12px;
+  font-weight: 850;
+  color: color-mix(in srgb, var(--accent) 64%, var(--text));
+}
+
+.logPage__comparisonIntensityCurrent {
+  font-size: 18px;
+  font-weight: 950;
+  color: var(--log-text-1);
+}
+
+.logPage__comparisonDaysMeta {
+  font-size: 10px;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--text) 58%, transparent);
+}
+
+.logPage__comparisonCards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.logPage__comparisonCard {
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 78%, var(--card));
+  padding: 9px;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonCardTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--log-text-2);
+}
+
+.logPage__comparisonCardValueRow {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.logPage__comparisonCardMeta {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--log-text-3);
+  display: grid;
+  gap: 2px;
+}
+
+.logPage__comparisonCurrent {
+  color: color-mix(in srgb, var(--text) 80%, transparent);
+}
+
+.logPage__comparisonPrevious {
+  color: color-mix(in srgb, var(--text) 64%, transparent);
+}
+
+.logPage__comparisonDiff {
+  font-weight: 900;
+}
+
+.logPage__comparisonGrowth {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--text) 62%, transparent);
+}
+
+.logPage__comparisonDiff.is-positive,
+.logPage__comparisonGrowth.is-positive {
+  color: #16a34a;
+}
+
+.logPage__comparisonDiff.is-negative,
+.logPage__comparisonGrowth.is-negative {
+  color: #dc2626;
+}
+
+.logPage__comparisonDiff.is-neutral,
+.logPage__comparisonGrowth.is-neutral {
+  color: #6b7280;
+}
+
+.logPage__comparisonGrowth.is-new {
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+}
+
+.logPage__measurementCompare {
+  margin-top: 2px;
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 20%, var(--border));
+  padding-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__measurementCompareHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logPage__measurementCompareTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+}
+
+.logPage__measurementCompareList {
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__comparisonBuckets {
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__comparisonBucket {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--surface) 86%, var(--card));
+}
+
+.logPage__comparisonBucket.is-improved {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+.logPage__comparisonBucket.is-stable {
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.26);
+}
+
+.logPage__comparisonBucket.is-declined {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.24);
+}
+
+.logPage__comparisonBucketHead {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  min-height: 34px;
+  padding: 6px 8px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logPage__comparisonBucketHead.static {
+  cursor: default;
+  grid-template-columns: auto 1fr;
+}
+
+.logPage__comparisonBucketTitle {
+  font-size: 16px;
+  font-weight: 950;
+  color: var(--log-text-2);
+}
+
+.logPage__comparisonBucketSummary {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.logPage__comparisonBucketMore {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonBucketCaret {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonBucketBody {
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 16%, var(--border));
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonDetailRow {
+  display: grid;
+  gap: 2px;
+}
+
+.logPage__comparisonDetailMain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.logPage__comparisonDetailName {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--log-text-3);
+}
+
+.logPage__measurementTag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.logPage__comparisonDetailValues {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--log-text-1);
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.logPage__comparisonDetailDelta {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.logPage__comparisonDetailDelta.is-positive {
+  color: #16a34a;
+}
+
+.logPage__comparisonDetailDelta.is-negative {
+  color: #dc2626;
+}
+
+.logPage__comparisonDetailDelta.is-neutral {
+  color: #6b7280;
+}
+
+.logPage__comparisonDetailMeta,
+.logPage__comparisonDetailMuted {
+  font-size: 10px;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--text) 58%, transparent);
+}
+
+.logPage__comparisonDetailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.logPage__comparisonDetailCount {
+  color: color-mix(in srgb, var(--text) 56%, transparent);
+}
+
+.logPage__measurementCompareRow {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  padding: 8px 9px;
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__measurementCompareRowMain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.logPage__measurementName {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--log-text-2);
+}
+
+.logPage__measurementValues {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.logPage__measurementMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.logPage__measurementStatus {
+  font-size: 11px;
+  font-weight: 900;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  padding: 1px 8px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.logPage__measurementStatus.is-improved {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.logPage__measurementStatus.is-declined {
+  border-color: rgba(220, 38, 38, 0.34);
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.logPage__measurementStatus.is-stable {
+  border-color: rgba(107, 114, 128, 0.35);
+  background: rgba(107, 114, 128, 0.1);
+  color: #4b5563;
+}
+
+.logPage__measurementStatus.is-new {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 82%, var(--text));
+}
+
+.logPage__measurementStatus.is-empty {
+  opacity: 0.7;
+}
+
+.logPage__measurementCounts {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--log-text-3);
+}
+
+.logPage__measurementNote {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--log-text-3);
 }
 
 .logPage__tags {
@@ -1774,6 +3143,18 @@
 }
 
 @media (max-width: 700px) {
+  .logPage__comparisonCards {
+    grid-template-columns: 1fr;
+  }
+
+  .logPage__comparisonHead {
+    padding: 8px 10px;
+  }
+
+  .logPage__comparisonBody {
+    padding: 9px;
+  }
+
   .logAi__content {
     padding: 10px 8px;
   }

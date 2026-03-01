@@ -42,6 +42,13 @@
   margin-bottom: 12px;
 }
 
+.insightsCard__head--withMenu {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .insightsCard__title {
   font-size: 16px;
   font-weight: 950;
@@ -468,6 +475,84 @@
   padding: 10px 12px;
   font-size: 13px;
   font-weight: 800;
+}
+
+.insightsBestMenu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.insightsBestMenu__trigger {
+  min-width: 28px;
+  height: 24px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ins-text-2);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.insightsBestMenu__panel {
+  position: absolute;
+  right: 0;
+  top: 34px;
+  z-index: 12;
+  min-width: 220px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  padding: 6px;
+}
+
+.insightsBestMenu__item {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ins-text-2);
+  text-align: left;
+  padding: 9px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.insightsBestMenu__item:hover {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+.insightsExcludeToast {
+  position: sticky;
+  top: 8px;
+  z-index: 14;
+  margin: 0 0 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  color: var(--ins-text-1);
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.insightsExcludeToast__undo {
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--ins-text-1);
+  min-height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .insightsKeyValue {
@@ -1975,6 +2060,20 @@
 
 .insightsRangeTrend {
   position: relative;
+  --ins-range-plot-bg-start: #f5f9ff;
+  --ins-range-plot-bg-end: #eaf2ff;
+  --ins-range-band-start: #3b82f6;
+  --ins-range-band-end: #3b82f6;
+  --ins-range-high-line-start: #2563eb;
+  --ins-range-high-line-end: #3b82f6;
+  --ins-range-low-line: #93c5fd;
+  --ins-range-dot-strong: #2563eb;
+  --ins-range-dot: #3b82f6;
+  --ins-range-grid-major: #8eb7e8;
+  --ins-range-grid-minor: #c5daf2;
+  --ins-range-axis-line: #9fc2ea;
+  --ins-range-tick-line: #7ea8d8;
+  --ins-range-hover-line: #3b82f6;
 }
 
 .insightsRangeTrend__frame {
@@ -2036,6 +2135,23 @@
 :root[data-theme-mode="dark"] .insightsRangeTrend__yLabel,
 :root[data-theme-mode="dark"] .insightsRangeTrend__xLabel {
   fill: rgba(255, 255, 255, 0.85);
+}
+
+:root[data-theme-mode="dark"] .insightsRangeTrend {
+  --ins-range-plot-bg-start: rgba(255, 255, 255, 0.05);
+  --ins-range-plot-bg-end: rgba(255, 255, 255, 0.02);
+  --ins-range-band-start: #60a5fa;
+  --ins-range-band-end: #3b82f6;
+  --ins-range-high-line-start: #93c5fd;
+  --ins-range-high-line-end: #60a5fa;
+  --ins-range-low-line: #60a5fa;
+  --ins-range-dot-strong: #bfdbfe;
+  --ins-range-dot: #93c5fd;
+  --ins-range-grid-major: rgba(191, 219, 254, 0.45);
+  --ins-range-grid-minor: rgba(191, 219, 254, 0.24);
+  --ins-range-axis-line: rgba(191, 219, 254, 0.36);
+  --ins-range-tick-line: rgba(191, 219, 254, 0.44);
+  --ins-range-hover-line: rgba(147, 197, 253, 0.9);
 }
 
 .insightsRangeTrend__tooltip {
@@ -2186,6 +2302,37 @@
   --ins-link: #ffffff;
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme-mode="dark"] .insightsBestMenu__trigger {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsBestMenu__panel {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(8, 14, 24, 0.95);
+}
+
+:root[data-theme-mode="dark"] .insightsBestMenu__item {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .insightsBestMenu__item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .insightsExcludeToast {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsExcludeToast__undo {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
 }
 
 /* ==== Dark-mode final sweep: eliminate remaining light backgrounds on insights detail pages ==== */

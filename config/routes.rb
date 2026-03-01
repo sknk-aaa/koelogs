@@ -7,6 +7,7 @@ Rails.application.routes.draw do
     get "training_logs", to: "training_logs#index"
     post "training_logs", to: "training_logs#create"
     get "monthly_logs", to: "monthly_logs#show"
+    get "monthly_logs/comparison", to: "monthly_logs#comparison"
     post "monthly_logs", to: "monthly_logs#create"
 
     # training menus

@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
-import { fetchMonthlyLog, upsertMonthlyLog } from "../api/monthlyLogs";
+import { fetchMonthlyLog, fetchMonthlyLogComparison, upsertMonthlyLog } from "../api/monthlyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
 import { fetchInsights } from "../api/insights";
 import { fetchMissions } from "../api/missions";
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
-import type { MonthlyLogData } from "../types/monthlyLog";
+import type { MonthlyLogComparisonData, MonthlyLogData } from "../types/monthlyLog";
 import type { SaveRewards } from "../types/gamification";
 import type { MissionItem } from "../types/missions";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import { emitGamificationRewards } from "../features/gamification/rewardBus";
+import { improvementTagToneClass } from "../features/improvementTags/improvementTags";
 
 import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
 import ProcessingOverlay from "../components/ProcessingOverlay";
@@ -82,9 +83,234 @@ function toPercentText(count: number, total: number): string {
   return `${((count / total) * 100).toFixed(1)}%`;
 }
 
+function formatPctText(pct: number | null | undefined): string {
+  if (typeof pct !== "number" || Number.isNaN(pct) || !Number.isFinite(pct)) return "—";
+  const prefix = pct > 0 ? "+" : "";
+  return `${prefix}${pct.toFixed(1)}%`;
+}
+
+function formatGrowthText(current: number | null, previous: number | null, pct: number | null | undefined): string {
+  if (current == null || previous == null) return "—";
+  if (previous === 0) return current > 0 ? "新規" : "—";
+  return formatPctText(pct);
+}
+
+function diffToneClass(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value) || !Number.isFinite(value)) return "is-neutral";
+  if (value > 0) return "is-positive";
+  if (value < 0) return "is-negative";
+  return "is-neutral";
+}
+
+function growthToneClass(current: number | null, previous: number | null, pct: number | null | undefined): string {
+  if (current == null || previous == null) return "is-neutral";
+  if (previous === 0) return current > 0 ? "is-new" : "is-neutral";
+  if (typeof pct !== "number" || Number.isNaN(pct) || !Number.isFinite(pct)) return "is-neutral";
+  if (pct > 0) return "is-positive";
+  if (pct < 0) return "is-negative";
+  return "is-neutral";
+}
+
+function formatMinutesPerDay(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value) || !Number.isFinite(value)) return "—";
+  return `${value.toFixed(1)}分/日`;
+}
+
+function formatDiffMinutesPerDay(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value) || !Number.isFinite(value)) return "—";
+  const prefix = value > 0 ? "+" : "";
+  return `${prefix}${value.toFixed(1)}分`;
+}
+
+function movementArrow(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value) || !Number.isFinite(value)) return "→";
+  if (value > 0) return "↑";
+  if (value < 0) return "↓";
+  return "→";
+}
+
+function renderActionIcon(index: number): React.ReactNode {
+  const icons = [
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M20 7 10 17l-5-5" />
+    </svg>,
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M14 6h4v4" />
+      <path d="M10 18H6v-4" />
+      <path d="m18 6-6 6" />
+      <path d="m6 18 6-6" />
+    </svg>,
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M12 3v18" />
+      <path d="M5 10h14" />
+      <path d="M6 16c2.2-1.5 4-2.2 6-2.2s3.8.7 6 2.2" />
+    </svg>,
+  ];
+  return icons[index % icons.length];
+}
+
+type PracticeStatus = "improved" | "declined" | "stable" | "new";
+type PerformanceStatus = "improved" | "declined" | "insufficient";
+type DiagnosticBucketKey = "improved" | "declined";
+type MeasurementChangeItem = MonthlyLogComparisonData["measurement_changes"][number];
+
+type ComparisonDiagnosis = {
+  header: string;
+  summary: string;
+  advice: string;
+  reference: boolean;
+  practiceStatus: PracticeStatus;
+  performanceStatus: PerformanceStatus;
+  buckets: Record<DiagnosticBucketKey, MeasurementChangeItem[]>;
+  reasons: string[];
+  actions: string[];
+};
+
+function practiceStatusLabel(status: PracticeStatus): string {
+  if (status === "improved") return "改善";
+  if (status === "declined") return "低下";
+  if (status === "stable") return "横ばい";
+  return "判定中";
+}
+
+function performanceStatusLabel(status: PerformanceStatus): string {
+  if (status === "improved") return "改善傾向";
+  if (status === "declined") return "注意";
+  return "判定中";
+}
+
+function summarizeMeasurementNames(items: MeasurementChangeItem[]): string {
+  if (items.length === 0) return "なし";
+  const labels = items.slice(0, 3).map((item) => shortMeasurementLabel(item)).join(" / ");
+  const remain = items.length - 3;
+  return remain > 0 ? `${labels} +${remain}件` : labels;
+}
+
+function topLabel(items: MeasurementChangeItem[]): string | null {
+  return items[0] ? shortMeasurementLabel(items[0]) : null;
+}
+
+function shortMeasurementLabel(item: MeasurementChangeItem): string {
+  if (item.key === "long_tone_sustain_sec") return "ロングトーン";
+  if (item.key === "pitch_error_semitones") return "音程正確性";
+  if (item.key === "volume_stability_pct") return "音量安定性";
+  if (item.key === "chest_top_note") return "地声最高音";
+  if (item.key === "falsetto_top_note") return "裏声最高音";
+  return item.label;
+}
+
+function measurementTagKey(item: MeasurementChangeItem): string {
+  if (item.key === "long_tone_sustain_sec") return "long_tone_sustain";
+  if (item.key === "pitch_error_semitones") return "pitch_accuracy";
+  if (item.key === "volume_stability_pct") return "volume_stability";
+  if (item.key === "chest_top_note") return "high_note_ease";
+  if (item.key === "falsetto_top_note") return "passaggio_smoothness";
+  return "resonance_clarity";
+}
+
+function classifyMeasurementDirection(item: MeasurementChangeItem): DiagnosticBucketKey | null {
+  const diff = item.diff;
+  if (typeof diff !== "number" || !Number.isFinite(diff) || diff === 0) return null;
+  if (item.better === "lower") {
+    return diff < 0 ? "improved" : "declined";
+  }
+  return diff > 0 ? "improved" : "declined";
+}
+
+function measurementDiffToneClass(item: MeasurementChangeItem): "is-positive" | "is-negative" | "is-neutral" {
+  const diff = item.diff;
+  if (typeof diff !== "number" || !Number.isFinite(diff) || diff === 0) return "is-neutral";
+  if (item.better === "lower") {
+    return diff < 0 ? "is-positive" : "is-negative";
+  }
+  return diff > 0 ? "is-positive" : "is-negative";
+}
+
+function buildComparisonDiagnosis(data: MonthlyLogComparisonData): ComparisonDiagnosis {
+  const practice = data.practice_time;
+  const currentDays = practice.current_days ?? 0;
+  const previousValue = practice.previous;
+  const pct = practice.pct;
+  const practiceStatus: PracticeStatus =
+    previousValue == null || previousValue === 0
+      ? "new"
+      : typeof pct === "number" && pct >= 10
+        ? "improved"
+        : typeof pct === "number" && pct <= -10
+          ? "declined"
+          : "stable";
+
+  const buckets: Record<DiagnosticBucketKey, MeasurementChangeItem[]> = {
+    improved: [],
+    declined: [],
+  };
+  data.measurement_changes.forEach((item) => {
+    const direction = classifyMeasurementDirection(item);
+    if (direction) buckets[direction].push(item);
+  });
+
+  const improvedCount = buckets.improved.length;
+  const declinedCount = buckets.declined.length;
+  const performanceStatus: PerformanceStatus =
+    improvedCount + declinedCount === 0
+      ? "insufficient"
+      : declinedCount > improvedCount
+        ? "declined"
+        : "improved";
+
+  const currentMeasurementCount = data.measurement_changes.reduce((sum, item) => sum + item.current.count, 0);
+  const reference = currentDays < 3 || currentMeasurementCount < 2;
+
+  const summary =
+    reference
+      ? "今月の記録をもとに傾向を表示しています。"
+      : performanceStatus === "declined"
+        ? "実力は少し下がり気味です。"
+        : performanceStatus === "improved"
+          ? "実力は改善傾向です。"
+          : "測定データをもとに傾向を確認中です。";
+
+  const advice =
+    reference
+      ? ""
+      : performanceStatus === "declined"
+          ? "測定の「悪化」項目を優先的に見直しましょう。"
+          : performanceStatus === "improved"
+            ? "今月の良い流れを維持しましょう。"
+            : "重点項目を1つに絞って継続しましょう。";
+
+  const header = reference ? "練習：確認中 / 実力：確認中" : `練習：${practiceStatusLabel(practiceStatus)} / 実力：${performanceStatusLabel(performanceStatus)}`;
+
+  const reasons: string[] = [];
+  if (buckets.improved.length > 0) reasons.push(`${summarizeMeasurementNames(buckets.improved)} は改善傾向です。`);
+  if (buckets.declined.length > 0) reasons.push(`${summarizeMeasurementNames(buckets.declined)} は少し下がり気味です。`);
+  if (reasons.length === 0) reasons.push("今月の記録は全体的に安定しています。");
+
+  const actions: string[] = [];
+  const declinedTarget = topLabel(buckets.declined);
+  if (declinedTarget) actions.push(`${declinedTarget} を立て直すメニューを週2回だけ追加してみましょう。`);
+  const improvedTarget = topLabel(buckets.improved);
+  if (improvedTarget) actions.push(`${improvedTarget} は良い流れなので、今のメニューを維持しましょう。`);
+  if (actions.length === 0) actions.push("今月のペースを維持しながら、1項目だけ重点的に続けましょう。");
+
+  return {
+    header,
+    summary,
+    advice,
+    reference,
+    practiceStatus,
+    performanceStatus,
+    buckets,
+    reasons: reasons.slice(0, 3),
+    actions: actions.slice(0, 3),
+  };
+}
+
 const AI_PREVIEW_CHARS = 100;
 const GOAL_MAX = 50;
 const FIRST_LOGIN_GUIDE_KEY_PREFIX = "voice_app_log_first_guide_seen_user_";
+const BEGINNER_MISSIONS_OPEN_KEY = "koelogs:beginner_missions_open";
+const COACH_DIAGNOSIS_FREE_ACCESS = true;
 
 type LogMode = "day" | "month";
 type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
@@ -165,9 +391,20 @@ export default function LogPage() {
   const [monthError, setMonthError] = useState<string | null>(null);
   const [monthData, setMonthData] = useState<MonthlyLogData | null>(null);
   const [monthNotesDraft, setMonthNotesDraft] = useState("");
+  const [monthComparisonLoading, setMonthComparisonLoading] = useState(false);
+  const [monthComparisonError, setMonthComparisonError] = useState<string | null>(null);
+  const [monthComparisonData, setMonthComparisonData] = useState<MonthlyLogComparisonData | null>(null);
+  const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
   const [monthSaveLoading, setMonthSaveLoading] = useState(false);
   const [monthSaveError, setMonthSaveError] = useState<string | null>(null);
   const [beginnerMissions, setBeginnerMissions] = useState<MissionItem[]>([]);
+  const [beginnerMissionsOpen, setBeginnerMissionsOpen] = useState<boolean>(() => {
+    try {
+      return window.localStorage.getItem(BEGINNER_MISSIONS_OPEN_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
 
   // ===== Me / Goal =====
   const [me, setMe] = useState<Me | null>(null);
@@ -175,6 +412,11 @@ export default function LogPage() {
   const [goalDraft, setGoalDraft] = useState("");
   const [goalError, setGoalError] = useState<string | null>(null);
   const [goalSaving, setGoalSaving] = useState(false);
+
+  const openComparisonModal = () => {
+    if (!COACH_DIAGNOSIS_FREE_ACCESS) return;
+    setIsComparisonModalOpen(true);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -305,6 +547,37 @@ export default function LogPage() {
         setMonthNotesDraft(res.data?.notes ?? "");
       }
       setMonthLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedMonth, authMe, isMonthMode]);
+
+  // Monthly comparison fetch
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!authMe || !isMonthMode) {
+        setMonthComparisonLoading(false);
+        setMonthComparisonError(null);
+        setMonthComparisonData(null);
+        return;
+      }
+
+      setMonthComparisonLoading(true);
+      setMonthComparisonError(null);
+
+      const res = await fetchMonthlyLogComparison(selectedMonth);
+      if (cancelled) return;
+
+      if ("error" in res && res.error) {
+        setMonthComparisonData(null);
+        setMonthComparisonError(res.error);
+      } else {
+        setMonthComparisonData(res.data);
+      }
+      setMonthComparisonLoading(false);
     })();
 
     return () => {
@@ -604,6 +877,10 @@ export default function LogPage() {
   const monthTotalMenuCount = monthData?.summary.total_menu_count ?? 0;
   const monthMenuCounts = monthData?.summary.menu_counts ?? [];
   const monthPracticeDays = monthData?.daily_logs?.length ?? 0;
+  const comparisonDiagnosis = useMemo(
+    () => (monthComparisonData ? buildComparisonDiagnosis(monthComparisonData) : null),
+    [monthComparisonData]
+  );
 
   const goalText = me?.goal_text ?? null;
   const isWithinInitial7Days = isWithinFirst7Days(me?.created_at);
@@ -612,6 +889,23 @@ export default function LogPage() {
     [beginnerMissions]
   );
   const beginnerPendingCount = pendingBeginnerMissions.length;
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(BEGINNER_MISSIONS_OPEN_KEY, beginnerMissionsOpen ? "true" : "false");
+    } catch {
+      // localStorage未使用環境では永続化しない
+    }
+  }, [beginnerMissionsOpen]);
+
+  useEffect(() => {
+    const shouldHideFooterTabs = isMonthMode && isComparisonModalOpen;
+    document.body.classList.toggle("logPage--comparisonModalOpen", shouldHideFooterTabs);
+    return () => {
+      document.body.classList.remove("logPage--comparisonModalOpen");
+    };
+  }, [isMonthMode, isComparisonModalOpen]);
+
   const aiCreateButtonText =
     !guestMode && isWithinInitial7Days
       ? "今日のおすすめをAIに作成してもらう"
@@ -665,7 +959,7 @@ export default function LogPage() {
       ) : (
         <div className="logPage__weekHeader">
           <div className="logPage__weekHeaderLeft">
-            <div className="logPage__title">ログ</div>
+            <div className="logPage__title">月ログ</div>
             <div className="logPage__muted">月の振り返りを記録</div>
           </div>
 
@@ -704,6 +998,66 @@ export default function LogPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {!!authMe && isMonthMode && (
+        <button
+          type="button"
+          className="logPage__comparisonTrigger"
+          onClick={openComparisonModal}
+        >
+          <div className="logPage__comparisonTriggerMain">
+            <div className="logPage__comparisonTriggerTitle">先月との比較（コーチ診断）</div>
+            <div className="logPage__comparisonTriggerSub">今月の成長を確認してみましょう！</div>
+          </div>
+          <div className="logPage__comparisonTriggerRight">
+            <div className="logPage__comparisonTriggerSummary">
+              {monthComparisonLoading || monthComparisonError
+                ? "—"
+                : comparisonDiagnosis?.reference
+                  ? "—"
+                  : comparisonDiagnosis?.header ?? "—"}
+            </div>
+            <span className="logPage__comparisonTriggerArrow" aria-hidden="true">›</span>
+          </div>
+        </button>
+      )}
+
+      {!!authMe && isDayMode && beginnerPendingCount > 0 && (
+        <section className="logPage__beginnerBar" aria-label="初心者ミッション">
+          <button
+            type="button"
+            className="logPage__beginnerBarToggle"
+            onClick={() => setBeginnerMissionsOpen((prev) => !prev)}
+            aria-expanded={beginnerMissionsOpen}
+          >
+            <span className="logPage__beginnerBarTitle">初心者ミッション</span>
+            <span className="logPage__beginnerBarCount">残り{beginnerPendingCount}件</span>
+            <span className="logPage__beginnerBarCaret" aria-hidden="true">
+              {beginnerMissionsOpen ? "▾" : "▸"}
+            </span>
+          </button>
+          {beginnerMissionsOpen && (
+            <div className="logPage__beginnerBarList">
+              {pendingBeginnerMissions.map((mission) => (
+                <article key={mission.key} className="logPage__beginnerBarItem">
+                  <div className="logPage__beginnerBarItemMain">
+                    <span className="logPage__beginnerBarItemIcon" aria-hidden="true">
+                      {mission.done ? "✓" : "○"}
+                    </span>
+                    <div className="logPage__beginnerBarItemText">
+                      <div className="logPage__beginnerBarItemTitle">{mission.title}</div>
+                      <div className="logPage__beginnerBarItemDesc">{mission.description}</div>
+                    </div>
+                  </div>
+                  <Link to={mission.to} className="logPage__beginnerBarItemAction">
+                    開く
+                  </Link>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       )}
 
       <WelcomeGuideModal
@@ -754,29 +1108,7 @@ export default function LogPage() {
         </section>
       )}
 
-      {!!authMe && beginnerPendingCount > 0 && (
-        <section className="card logPage__beginnerMissions">
-          <div className="logPage__beginnerMissionsHead">
-            <div className="logPage__beginnerMissionsTitle">初心者ミッション</div>
-            <span className="logPage__beginnerMissionsCount">残り {beginnerPendingCount} 件</span>
-          </div>
-          <div className="logPage__beginnerMissionsList">
-            {pendingBeginnerMissions.map((mission) => (
-              <article key={mission.key} className="logPage__beginnerMissionItem">
-                <div className="logPage__beginnerMissionText">
-                  <div className="logPage__beginnerMissionItemTitle">{mission.title}</div>
-                  <div className="logPage__beginnerMissionItemDesc">{mission.description}</div>
-                </div>
-                <Link to={mission.to} className="logPage__beginnerMissionAction">
-                  開く
-                </Link>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {!!me && (
+      {!!me && isDayMode && (
         <div className="goalBar">
           {!goalEditing ? (
             goalText ? (
@@ -855,6 +1187,160 @@ export default function LogPage() {
             setParams({ mode: "day", date: d });
           }}
         />
+      )}
+
+      {isMonthMode && isComparisonModalOpen && (
+        <div className="logPage__compareModalOverlay" role="presentation" onClick={() => setIsComparisonModalOpen(false)}>
+          <section
+            className="logPage__compareModal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="先月との比較"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="logPage__compareModalHead">
+              <div className="logPage__compareModalTitle">先月との比較</div>
+              <button type="button" className="logPage__compareModalClose" onClick={() => setIsComparisonModalOpen(false)}>
+                閉じる
+              </button>
+            </div>
+
+            {monthComparisonLoading && <div className="logPage__muted">比較データを読み込み中…</div>}
+            {!monthComparisonLoading && monthComparisonError && (
+              <div className="logPage__error">比較データの取得に失敗しました: {monthComparisonError}</div>
+            )}
+            {!monthComparisonLoading && !monthComparisonError && monthComparisonData && (
+              <div className="logPage__compareModalBody">
+                <section className="logPage__comparisonIntensity">
+                  <div className="logPage__comparisonBlockTitle">📈 練習強度（一日あたりの練習時間）</div>
+                  <div className="logPage__comparisonIntensityCurrent">今月 {formatMinutesPerDay(monthComparisonData.practice_time.current)}</div>
+                  <div className="logPage__comparisonCardMeta">
+                    <span className={`logPage__comparisonDiff ${diffToneClass(monthComparisonData.practice_time.diff)}`}>
+                      {movementArrow(monthComparisonData.practice_time.diff)} {formatDiffMinutesPerDay(monthComparisonData.practice_time.diff)}
+                      <span className={`logPage__comparisonGrowth ${growthToneClass(
+                        monthComparisonData.practice_time.current,
+                        monthComparisonData.practice_time.previous,
+                        monthComparisonData.practice_time.pct
+                      )}`}>
+                        （{formatGrowthText(
+                          monthComparisonData.practice_time.current,
+                          monthComparisonData.practice_time.previous,
+                          monthComparisonData.practice_time.pct
+                        )}）
+                      </span>
+                    </span>
+                  </div>
+                  <div className="logPage__comparisonDaysMeta">
+                    （今月 {monthComparisonData.practice_time.current_days ?? 0}日 / 先月 {monthComparisonData.practice_time.previous_days ?? 0}日）
+                  </div>
+                </section>
+
+                <section className="logPage__measurementCompare">
+                  <div className="logPage__measurementCompareHead">
+                    <div className="logPage__measurementCompareTitle">🎤 実力の変化（測定平均）</div>
+                  </div>
+                  {monthComparisonData.measurement_changes.length === 0 ? (
+                    <div className="logPage__muted">対象期間の測定データがありません。</div>
+                  ) : (
+                    <div className="logPage__comparisonBuckets">
+                      {(
+                        [
+                          { key: "improved", label: "改善" },
+                          { key: "declined", label: "悪化" },
+                        ] as const
+                      ).map((bucket) => {
+                        const items = comparisonDiagnosis?.buckets[bucket.key] ?? [];
+                        return (
+                          <section key={`bucket-${bucket.key}`} className={`logPage__comparisonBucket is-${bucket.key}`}>
+                            <div className="logPage__comparisonBucketHead static">
+                              <span className="logPage__comparisonBucketTitle">{bucket.label}（{items.length}）</span>
+                              <div className="logPage__comparisonBucketSummary">
+                                {items.length === 0 ? (
+                                  <span className="logPage__comparisonBucketMore">なし</span>
+                                ) : (
+                                  <>
+                                    {items.slice(0, 3).map((summaryItem) => (
+                                      <span
+                                        key={`summary-${bucket.key}-${summaryItem.key}`}
+                                        className={`logPage__measurementTag ${improvementTagToneClass(measurementTagKey(summaryItem))}`}
+                                      >
+                                        {shortMeasurementLabel(summaryItem)}
+                                      </span>
+                                    ))}
+                                    {items.length > 3 && (
+                                      <span className="logPage__comparisonBucketMore">+{items.length - 3}件</span>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="logPage__comparisonBucketBody">
+                              {items.length === 0 ? (
+                                <div className="logPage__comparisonDetailMuted">該当なし</div>
+                              ) : (
+                                items.map((item) => (
+                                  <div key={`detail-${bucket.key}-${item.key}`} className="logPage__comparisonDetailRow">
+                                    <div className="logPage__comparisonDetailMeta">
+                                      <span className="logPage__comparisonDetailCount">
+                                        今月{item.current.count}回 / 先月{item.previous.count}回
+                                      </span>
+                                    </div>
+                                    <div className="logPage__comparisonDetailMain">
+                                      <span className="logPage__comparisonDetailName">{shortMeasurementLabel(item)}</span>
+                                      <span className="logPage__comparisonDetailValues">
+                                        <span>{item.previous.display} → {item.current.display}</span>
+                                        <span className={`logPage__comparisonDetailDelta ${measurementDiffToneClass(item)}`}>
+                                          {movementArrow(item.diff)} {item.diff_display}
+                                        </span>
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </section>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <section className="logPage__comparisonActionCard">
+                  <div className="logPage__comparisonActionHead">
+                    <span className="logPage__comparisonActionBadge">AI COACH</span>
+                    <div className="logPage__comparisonActionTitleRow">
+                      <span className="logPage__comparisonActionTitleIcon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                          <path d="m12 3 2.4 4.8L19 10l-4.6 2.2L12 17l-2.4-4.8L5 10l4.6-2.2Z" />
+                        </svg>
+                      </span>
+                      <span className="logPage__comparisonActionTitle">今月のAI診断</span>
+                    </div>
+                  </div>
+                  <div className="logPage__comparisonDiagnosisSummary">{comparisonDiagnosis?.summary ?? "比較データを確認中です。"}</div>
+                  {!!comparisonDiagnosis?.advice && (
+                    <div className="logPage__comparisonDiagnosisAdvice">{comparisonDiagnosis.advice}</div>
+                  )}
+                  {!!comparisonDiagnosis?.reasons?.length && (
+                    <div className="logPage__comparisonDiagnosisMeta">
+                      {comparisonDiagnosis.reasons.slice(0, 2).join(" / ")}
+                    </div>
+                  )}
+                  <ul className="logPage__comparisonActionList">
+                    {(comparisonDiagnosis?.actions ?? ["今月の記録を続けながら、1つの項目に集中してみましょう。"]).map((action, index) => (
+                      <li key={`action-${action}`} className="logPage__comparisonActionItem">
+                        <span className="logPage__comparisonActionIcon" aria-hidden="true">
+                          {renderActionIcon(index)}
+                        </span>
+                        <span>{action}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+            )}
+          </section>
+        </div>
       )}
 
       {guestMode && isDayMode && (

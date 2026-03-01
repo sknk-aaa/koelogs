@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   fetchLatestMeasurements,
@@ -11,6 +11,8 @@ import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
 import ExportCsvDialog, { type CsvExportPeriod, type CsvMetricFilter } from "../features/insights/components/ExportCsvDialog";
 import InsightsCardHeader from "../features/insights/components/InsightsCardHeader";
+import PremiumUpsellModal from "../components/PremiumUpsellModal";
+import premiumPreviewInsights from "../assets/premium/preview-insights.svg";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -309,11 +311,14 @@ function ClickableCard({
 
 export default function InsightsPage() {
   const { me, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
   const [csvPeriod, setCsvPeriod] = useState<CsvExportPeriod>("latest");
   const [csvMetric, setCsvMetric] = useState<CsvMetricFilter>("all");
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const guestMode = !authLoading && !me;
+  const isPremium = me?.plan_tier === "premium";
 
   useEffect(() => {
     if (authLoading) return;
@@ -438,7 +443,13 @@ export default function InsightsPage() {
           <button
             type="button"
             className="csvButton"
-            onClick={() => setCsvDialogOpen(true)}
+            onClick={() => {
+              if (!isPremium) {
+                setPremiumModalOpen(true);
+                return;
+              }
+              setCsvDialogOpen(true);
+            }}
             aria-haspopup="dialog"
             aria-expanded={csvDialogOpen}
           >
@@ -538,6 +549,33 @@ export default function InsightsPage() {
         metric={csvMetric}
         setMetric={setCsvMetric}
         onDownload={onDownloadCsv}
+      />
+      <PremiumUpsellModal
+        open={premiumModalOpen}
+        onClose={() => setPremiumModalOpen(false)}
+        variant="lp"
+        previewImageSrc={premiumPreviewInsights}
+        previewImageAlt="分析とCSV出力のプレビュー"
+        previewCaption="期間・指標を選んでCSV出力"
+        title="CSV出力を解放する"
+        description="無料プランではCSV出力は利用できません。"
+        flowTitle="解放される体験"
+        flowSteps={[
+          { title: "期間を選択", sub: "最新 / 30日 / 90日で集計範囲を切替", pill: "期間指定" },
+          { title: "指標を絞り込み", sub: "必要な測定だけを抽出して整理", pill: "指標選択" },
+          { title: "CSVで保存", sub: "分析結果をそのまま出力して共有", pill: "出力" },
+        ]}
+        note="プレミアムプランで、必要な期間・指標を選んで書き出せます。"
+        benefits={[
+          "期間（最新 / 30日 / 90日）を選択",
+          "指標フィルタ（すべて / 各測定）に対応",
+          "分析データをCSVで保存・共有",
+        ]}
+        ctaLabel="CSVを解放する"
+        onCta={() => {
+          setPremiumModalOpen(false);
+          navigate("/premium");
+        }}
       />
     </div>
   );

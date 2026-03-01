@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   fetchLatestMeasurements,
@@ -10,6 +10,8 @@ import {
 import type { MeasurementPoint } from "../types/insights";
 import { useAuth } from "../features/auth/useAuth";
 import MetronomeLoader from "../components/MetronomeLoader";
+import PremiumUpsellModal from "../components/PremiumUpsellModal";
+import premiumPreviewInsights from "../assets/premium/preview-insights.svg";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -31,7 +33,9 @@ type LatestMeasurements = {
   pitch_accuracy: MeasurementRun | null;
 };
 
-const PERIODS = [30, 90, 365] as const;
+const PERIODS = [7, 30, 90, 365] as const;
+const FREE_MINI_GRAPH_DAYS = 7;
+const FREE_HISTORY_LIMIT = 1;
 const METRIC_TABS = [
   { key: "range", label: "音域" },
   { key: "long_tone", label: "ロングトーン" },
@@ -471,6 +475,7 @@ const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
 
 export default function InsightsNotesPage() {
   const { me, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
   const [monthFilter, setMonthFilter] = useState<string>("all");
@@ -484,9 +489,19 @@ export default function InsightsNotesPage() {
     metric: ExcludableMetric;
     run: MeasurementRun;
   } | null>(null);
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const excludeToastTimerRef = useRef<number | null>(null);
 
   const guestMode = !authLoading && !me;
+  const isPremium = me?.plan_tier === "premium";
+  const isFreeLimited = !guestMode && !authLoading && !isPremium;
+
+  useEffect(() => {
+    if (!isFreeLimited) return;
+    if (days !== FREE_MINI_GRAPH_DAYS) {
+      setDays(FREE_MINI_GRAPH_DAYS);
+    }
+  }, [days, isFreeLimited]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -568,32 +583,51 @@ export default function InsightsNotesPage() {
       setMonthFilter("all");
     }
   }, [monthFilter, availableMonths]);
+  const effectiveMonthFilter = isFreeLimited ? "all" : monthFilter;
 
   const monthFilteredRangeRuns = useMemo(() => {
     if (state.kind !== "ready") return [] as MeasurementRun[];
-    if (monthFilter === "all") return state.rangeRuns;
-    return state.rangeRuns.filter((run) => run.recorded_at.slice(0, 7) === monthFilter);
-  }, [state, monthFilter]);
+    if (effectiveMonthFilter === "all") return state.rangeRuns;
+    return state.rangeRuns.filter((run) => run.recorded_at.slice(0, 7) === effectiveMonthFilter);
+  }, [state, effectiveMonthFilter]);
   const monthFilteredLongToneRuns = useMemo(() => {
     if (state.kind !== "ready") return [] as MeasurementRun[];
-    if (monthFilter === "all") return state.longToneRuns;
-    return state.longToneRuns.filter((run) => run.recorded_at.slice(0, 7) === monthFilter);
-  }, [state, monthFilter]);
+    if (effectiveMonthFilter === "all") return state.longToneRuns;
+    return state.longToneRuns.filter((run) => run.recorded_at.slice(0, 7) === effectiveMonthFilter);
+  }, [state, effectiveMonthFilter]);
   const monthFilteredVolumeRuns = useMemo(() => {
     if (state.kind !== "ready") return [] as MeasurementRun[];
-    if (monthFilter === "all") return state.volumeRuns;
-    return state.volumeRuns.filter((run) => run.recorded_at.slice(0, 7) === monthFilter);
-  }, [state, monthFilter]);
+    if (effectiveMonthFilter === "all") return state.volumeRuns;
+    return state.volumeRuns.filter((run) => run.recorded_at.slice(0, 7) === effectiveMonthFilter);
+  }, [state, effectiveMonthFilter]);
   const monthFilteredPitchAccuracyRuns = useMemo(() => {
     if (state.kind !== "ready") return [] as MeasurementRun[];
-    if (monthFilter === "all") return state.pitchAccuracyRuns;
-    return state.pitchAccuracyRuns.filter((run) => run.recorded_at.slice(0, 7) === monthFilter);
-  }, [state, monthFilter]);
-
+    if (effectiveMonthFilter === "all") return state.pitchAccuracyRuns;
+    return state.pitchAccuracyRuns.filter((run) => run.recorded_at.slice(0, 7) === effectiveMonthFilter);
+  }, [state, effectiveMonthFilter]);
+  const displayedRangeRuns = useMemo(
+    () => (isFreeLimited ? trimRunsToRecentDays(monthFilteredRangeRuns, FREE_MINI_GRAPH_DAYS) : monthFilteredRangeRuns),
+    [isFreeLimited, monthFilteredRangeRuns]
+  );
+  const displayedLongToneRuns = useMemo(
+    () => (isFreeLimited ? trimRunsToRecentDays(monthFilteredLongToneRuns, FREE_MINI_GRAPH_DAYS) : monthFilteredLongToneRuns),
+    [isFreeLimited, monthFilteredLongToneRuns]
+  );
+  const displayedVolumeRuns = useMemo(
+    () => (isFreeLimited ? trimRunsToRecentDays(monthFilteredVolumeRuns, FREE_MINI_GRAPH_DAYS) : monthFilteredVolumeRuns),
+    [isFreeLimited, monthFilteredVolumeRuns]
+  );
+  const displayedPitchAccuracyRuns = useMemo(
+    () =>
+      isFreeLimited
+        ? trimRunsToRecentDays(monthFilteredPitchAccuracyRuns, FREE_MINI_GRAPH_DAYS)
+        : monthFilteredPitchAccuracyRuns,
+    [isFreeLimited, monthFilteredPitchAccuracyRuns]
+  );
   const rangeBandPointsTotal = useMemo<RangeBandPoint[]>(() => {
-    if (monthFilteredRangeRuns.length === 0) return [];
+    if (displayedRangeRuns.length === 0) return [];
     const byDate = new Map<string, { low: number[]; high: number[] }>();
-    monthFilteredRangeRuns.forEach((run) => {
+    displayedRangeRuns.forEach((run) => {
       const result = asRangeResult(run.result);
       const date = run.recorded_at.slice(0, 10);
       const lowMidi = noteToMidi(result?.lowest_note ?? null);
@@ -611,11 +645,11 @@ export default function InsightsNotesPage() {
         low: v.low.length ? Math.min(...v.low) : null,
         high: v.high.length ? Math.max(...v.high) : null,
       }));
-  }, [monthFilteredRangeRuns]);
+  }, [displayedRangeRuns]);
   const rangeBandPointsChest = useMemo<RangeBandPoint[]>(() => {
-    if (monthFilteredRangeRuns.length === 0) return [];
+    if (displayedRangeRuns.length === 0) return [];
     const byDate = new Map<string, { low: number[]; high: number[] }>();
-    monthFilteredRangeRuns.forEach((run) => {
+    displayedRangeRuns.forEach((run) => {
       const result = asRangeResult(run.result);
       const date = run.recorded_at.slice(0, 10);
       const lowMidi = noteToMidi(result?.lowest_note ?? null);
@@ -629,11 +663,11 @@ export default function InsightsNotesPage() {
     return Array.from(byDate.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([date, values]) => ({ date, low: Math.min(...values.low), high: Math.max(...values.high) }));
-  }, [monthFilteredRangeRuns]);
+  }, [displayedRangeRuns]);
   const rangeBandPointsFalsetto = useMemo<RangeBandPoint[]>(() => {
-    if (monthFilteredRangeRuns.length === 0) return [];
+    if (displayedRangeRuns.length === 0) return [];
     const byDate = new Map<string, { low: number[]; high: number[] }>();
-    monthFilteredRangeRuns.forEach((run) => {
+    displayedRangeRuns.forEach((run) => {
       const result = asRangeResult(run.result);
       const date = run.recorded_at.slice(0, 10);
       const lowMidi = transposeNoteToMidi(result?.lowest_note ?? null, 10);
@@ -647,36 +681,36 @@ export default function InsightsNotesPage() {
     return Array.from(byDate.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([date, values]) => ({ date, low: Math.min(...values.low), high: Math.max(...values.high) }));
-  }, [monthFilteredRangeRuns]);
+  }, [displayedRangeRuns]);
 
   const longTonePoints = useMemo(() => {
-    return monthFilteredLongToneRuns.map((run) => {
+    return displayedLongToneRuns.map((run) => {
       const result = asLongToneResult(run.result);
       return {
         date: run.recorded_at.slice(0, 10),
         value: result?.sustain_sec ?? null,
       };
     });
-  }, [monthFilteredLongToneRuns]);
+  }, [displayedLongToneRuns]);
 
   const volumePoints = useMemo(() => {
-    return monthFilteredVolumeRuns.map((run) => {
+    return displayedVolumeRuns.map((run) => {
       const result = asVolumeResult(run.result);
       return {
         date: run.recorded_at.slice(0, 10),
         value: result?.loudness_range_pct ?? null,
       };
     });
-  }, [monthFilteredVolumeRuns]);
+  }, [displayedVolumeRuns]);
   const pitchAccuracySemitonePoints = useMemo(() => {
-    return monthFilteredPitchAccuracyRuns.map((run) => {
+    return displayedPitchAccuracyRuns.map((run) => {
       const result = asPitchAccuracyResult(run.result);
       return {
         date: run.recorded_at.slice(0, 10),
         value: result?.avg_cents_error != null ? Math.max(0, result.avg_cents_error / 100) : null,
       };
     });
-  }, [monthFilteredPitchAccuracyRuns]);
+  }, [displayedPitchAccuracyRuns]);
 
   const rangeBandPoints =
     rangeVoiceTab === "chest"
@@ -684,6 +718,7 @@ export default function InsightsNotesPage() {
       : rangeVoiceTab === "falsetto"
         ? rangeBandPointsFalsetto
         : rangeBandPointsTotal;
+
   const rangePoints = rangeBandPoints.map((p) => ({ date: p.date, value: p.high }));
   const metricPoints =
     metricTab === "range"
@@ -847,26 +882,45 @@ export default function InsightsNotesPage() {
                 <button
                   key={p}
                   type="button"
-                  onClick={() => setDays(p)}
-                  className={`insightsSegment__btn${active ? " is-active" : ""}`}
+                  onClick={() => {
+                    if (isFreeLimited && p !== days) {
+                      setPremiumModalOpen(true);
+                      return;
+                    }
+                    setDays(p);
+                  }}
+                  className={`insightsSegment__btn${active ? " is-active" : ""}${
+                    isFreeLimited && p !== FREE_MINI_GRAPH_DAYS ? " is-locked" : ""
+                  }`}
                 >
-                  {p}
+                  {p}日
                 </button>
               );
             })}
           </div>
-          <label className="insightsMonthFilter">
-            <span>月</span>
-            <select value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} className="insightsSelect insightsSelect--month">
-              <option value="all">すべて</option>
-              {availableMonths.map((m) => (
-                <option key={m} value={m}>
-                  {formatMonthLabel(m)}
-                </option>
-              ))}
-            </select>
-          </label>
+          {!isFreeLimited && (
+            <label className="insightsMonthFilter">
+              <span>月</span>
+              <select
+                value={monthFilter}
+                onChange={(e) => {
+                  setMonthFilter(e.target.value);
+                }}
+                className="insightsSelect insightsSelect--month"
+              >
+                <option value="all">すべて</option>
+                {availableMonths.map((m) => (
+                  <option key={m} value={m}>
+                    {formatMonthLabel(m)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
+        {isFreeLimited && (
+          <div className="insightsFreeMiniPill">無料プランは7日まで表示。期間拡張はプレミアムで解放されます。</div>
+        )}
       </section>
 
       {guestMode && (
@@ -954,6 +1008,7 @@ export default function InsightsNotesPage() {
                 <div className="insightsCard__head">
                   <div className="insightsCard__title">{metricLabel}の成長推移</div>
                 </div>
+                {isFreeLimited && <div className="insightsGraphWindowHint">7日間のグラフを表示中</div>}
                 {metricTab === "range" ? (
                   <>
                     <div className="insightsSegment" style={{ marginBottom: 8 }}>
@@ -979,7 +1034,7 @@ export default function InsightsNotesPage() {
                         裏声
                       </button>
                     </div>
-                    <RangeBandTrendChart points={rangeBandPoints} />
+                    <RangeBandTrendChart points={rangeBandPoints} compact={isFreeLimited} />
                     <MetricScoreHistoryList
                       runs={monthFilteredRangeRuns}
                       latestLabel={formatMetricValue(metricLatest, metricTab)}
@@ -988,16 +1043,19 @@ export default function InsightsNotesPage() {
                       detailRenderer={(run) => formatRangeHistoryDetail(asRangeResult(run.result), rangeVoiceTab)}
                       valueFormatter={(v) => midiToNote(Math.round(v))}
                       deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}半音`}
+                      lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                      onRequestUnlock={() => setPremiumModalOpen(true)}
                     />
                   </>
                 ) : metricTab === "long_tone" ? (
-                  <LongToneTrendChart points={metricPoints} />
+                  <LongToneTrendChart points={metricPoints} compact={isFreeLimited} />
                 ) : metricTab === "volume_stability" ? (
                   <ScoreTrendChart
                     points={metricPoints}
                     color="#f0c419"
                     unit="%"
                     tickFormatter={(v) => `${v.toFixed(0)}%`}
+                    compact={isFreeLimited}
                     autoScale={{
                       hardMin: 0,
                       hardMax: 100,
@@ -1014,6 +1072,7 @@ export default function InsightsNotesPage() {
                     unit="半音"
                     tickFormatter={(v) => `${v.toFixed(1)}半音`}
                     higherIsBetter={false}
+                    compact={isFreeLimited}
                     autoScale={{
                       hardMin: 0,
                       minSpan: 0.2,
@@ -1023,13 +1082,15 @@ export default function InsightsNotesPage() {
                     }}
                   />
                 ) : (
-                  <SimpleTrendChart points={metricPoints} />
+                  <SimpleTrendChart points={metricPoints} compact={isFreeLimited} />
                 )}
                 {metricTab === "long_tone" && (
                   <LongToneHistoryList
                     runs={monthFilteredLongToneRuns}
                     latestLabel={formatMetricValue(metricLatest, metricTab)}
                     bestLabel={formatMetricValue(metricBest, metricTab)}
+                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                    onRequestUnlock={() => setPremiumModalOpen(true)}
                   />
                 )}
                 {metricTab === "volume_stability" && (
@@ -1047,6 +1108,8 @@ export default function InsightsNotesPage() {
                     }}
                     valueFormatter={(v) => `${v.toFixed(1)}%`}
                     deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`}
+                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                    onRequestUnlock={() => setPremiumModalOpen(true)}
                   />
                 )}
                 {metricTab === "pitch_accuracy" && (
@@ -1068,6 +1131,8 @@ export default function InsightsNotesPage() {
                     valueFormatter={(v) => `${v.toFixed(2)}半音`}
                     deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}半音`}
                     higherIsBetter={false}
+                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                    onRequestUnlock={() => setPremiumModalOpen(true)}
                   />
                 )}
                 {metricTab !== "range" && metricTab !== "long_tone" && metricTab !== "volume_stability" && metricTab !== "pitch_accuracy" && (
@@ -1091,6 +1156,7 @@ export default function InsightsNotesPage() {
                 <div className="insightsCard__head">
                   <div className="insightsCard__title">成長推移</div>
                 </div>
+                {isFreeLimited && <div className="insightsGraphWindowHint">7日間のグラフを表示中</div>}
                 <div className="insightsSegment" style={{ marginBottom: 10 }}>
                   {METRIC_TABS.map((tab) => {
                     const active = tab.key === metricTab;
@@ -1137,7 +1203,7 @@ export default function InsightsNotesPage() {
                         裏声
                       </button>
                     </div>
-                    <RangeBandTrendChart points={rangeBandPoints} />
+                    <RangeBandTrendChart points={rangeBandPoints} compact={isFreeLimited} />
                     <MetricScoreHistoryList
                       runs={monthFilteredRangeRuns}
                       latestLabel={formatMetricValue(metricLatest, metricTab)}
@@ -1146,16 +1212,19 @@ export default function InsightsNotesPage() {
                       detailRenderer={(run) => formatRangeHistoryDetail(asRangeResult(run.result), rangeVoiceTab)}
                       valueFormatter={(v) => midiToNote(Math.round(v))}
                       deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}半音`}
+                      lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                      onRequestUnlock={() => setPremiumModalOpen(true)}
                     />
                   </>
                 ) : metricTab === "long_tone" ? (
-                  <LongToneTrendChart points={metricPoints} />
+                  <LongToneTrendChart points={metricPoints} compact={isFreeLimited} />
                 ) : metricTab === "volume_stability" ? (
                   <ScoreTrendChart
                     points={metricPoints}
                     color="#f0c419"
                     unit="%"
                     tickFormatter={(v) => `${v.toFixed(0)}%`}
+                    compact={isFreeLimited}
                     autoScale={{
                       hardMin: 0,
                       hardMax: 100,
@@ -1172,6 +1241,7 @@ export default function InsightsNotesPage() {
                     unit="半音"
                     tickFormatter={(v) => `${v.toFixed(1)}半音`}
                     higherIsBetter={false}
+                    compact={isFreeLimited}
                     autoScale={{
                       hardMin: 0,
                       minSpan: 0.2,
@@ -1181,7 +1251,7 @@ export default function InsightsNotesPage() {
                     }}
                   />
                 ) : (
-                  <SimpleTrendChart points={metricPoints} />
+                  <SimpleTrendChart points={metricPoints} compact={isFreeLimited} />
                 )}
 
                 {metricTab === "long_tone" && (
@@ -1189,6 +1259,8 @@ export default function InsightsNotesPage() {
                     runs={monthFilteredLongToneRuns}
                     latestLabel={formatMetricValue(metricLatest, metricTab)}
                     bestLabel={formatMetricValue(metricBest, metricTab)}
+                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                    onRequestUnlock={() => setPremiumModalOpen(true)}
                   />
                 )}
                 {metricTab === "volume_stability" && (
@@ -1206,6 +1278,8 @@ export default function InsightsNotesPage() {
                     }}
                     valueFormatter={(v) => `${v.toFixed(1)}%`}
                     deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`}
+                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                    onRequestUnlock={() => setPremiumModalOpen(true)}
                   />
                 )}
                 {metricTab === "pitch_accuracy" && (
@@ -1227,6 +1301,8 @@ export default function InsightsNotesPage() {
                     valueFormatter={(v) => `${v.toFixed(2)}半音`}
                     deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}半音`}
                     higherIsBetter={false}
+                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                    onRequestUnlock={() => setPremiumModalOpen(true)}
                   />
                 )}
                 {metricTab !== "range" && metricTab !== "long_tone" && metricTab !== "volume_stability" && metricTab !== "pitch_accuracy" && (
@@ -1240,8 +1316,49 @@ export default function InsightsNotesPage() {
           )}
         </div>
       )}
+      <PremiumUpsellModal
+        open={premiumModalOpen}
+        onClose={() => setPremiumModalOpen(false)}
+        variant="lp"
+        previewImageSrc={premiumPreviewInsights}
+        previewImageAlt="分析詳細のプレビュー"
+        previewCaption="全期間グラフと全履歴をまとめて確認"
+        title="分析詳細をフル表示する"
+        onCta={() => {
+          setPremiumModalOpen(false);
+          navigate("/premium");
+        }}
+        description="無料プランは7日グラフと一部履歴まで表示されます。"
+        flowTitle="解放される体験"
+        flowSteps={[
+          { title: "全期間の推移を確認", sub: "30日 / 90日 / 365日 / 月で比較", pill: "全期間" },
+          { title: "履歴を深掘り", sub: "測定履歴を時系列でまとめて確認", pill: "全履歴" },
+          { title: "変化を判断", sub: "細かな差分を見て改善の優先度を決定", pill: "分析強化" },
+        ]}
+        note="プレミアムプランで全期間の推移と履歴を確認できます。"
+        benefits={[
+          "30日/90日/365日/月の全期間グラフ",
+          "測定履歴を全件表示",
+          "細かな変化を時系列で確認",
+        ]}
+        ctaLabel="分析を解放する"
+      />
     </div>
   );
+}
+
+function trimRunsToRecentDays(runs: MeasurementRun[], days: number): MeasurementRun[] {
+  if (runs.length <= 1 || days <= 0) return runs;
+  const latestDate = runs[runs.length - 1]?.recorded_at?.slice(0, 10) ?? null;
+  if (!latestDate) return runs;
+  const latestMs = Date.parse(`${latestDate}T00:00:00Z`);
+  if (!Number.isFinite(latestMs)) return runs;
+  const cutoff = latestMs - (days - 1) * 24 * 60 * 60 * 1000;
+  return runs.filter((run) => {
+    const runDate = run.recorded_at.slice(0, 10);
+    const runMs = Date.parse(`${runDate}T00:00:00Z`);
+    return Number.isFinite(runMs) && runMs >= cutoff;
+  });
 }
 
 function nextRunsAfterExcluding(runs: MeasurementRun[], runId: number): MeasurementRun[] {
@@ -1698,8 +1815,16 @@ function formatMetricValue(v: number | null, key: (typeof METRIC_TABS)[number]["
   return `${Number(v).toFixed(1)}点`;
 }
 
-function SimpleTrendChart({ points, yMode = "number" }: { points: MeasurementPoint[]; yMode?: "number" | "note" }) {
-  const width = 760;
+function SimpleTrendChart({
+  points,
+  yMode = "number",
+  compact = false,
+}: {
+  points: MeasurementPoint[];
+  yMode?: "number" | "note";
+  compact?: boolean;
+}) {
+  const width = compact ? Math.max(280, 92 + points.length * 30) : 760;
   const height = 220;
   const padTop = 14;
   const padBottom = 34;
@@ -1738,7 +1863,7 @@ function SimpleTrendChart({ points, yMode = "number" }: { points: MeasurementPoi
 
   return (
     <div style={{ overflowX: "auto" }}>
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", minWidth: 520, height: 220 }} aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", minWidth: compact ? width : 520, height: 220 }} aria-hidden="true">
         <line x1={padLeft} y1={height - padBottom} x2={width - padRight} y2={height - padBottom} stroke="rgba(40,79,130,0.36)" />
         <line x1={padLeft} y1={padTop} x2={padLeft} y2={height - padBottom} stroke="rgba(40,79,130,0.36)" />
         {yMode === "note" &&
@@ -1774,10 +1899,10 @@ function SimpleTrendChart({ points, yMode = "number" }: { points: MeasurementPoi
   );
 }
 
-function LongToneTrendChart({ points }: { points: MeasurementPoint[] }) {
-  const width = 760;
+function LongToneTrendChart({ points, compact = false }: { points: MeasurementPoint[]; compact?: boolean }) {
+  const width = compact ? Math.max(290, 100 + points.length * 32) : 760;
   const height = 260;
-  const axisWidth = 40;
+  const axisWidth = compact ? 34 : 40;
   const padTop = 18;
   const padBottom = 36;
   const padLeft = 18;
@@ -1936,6 +2061,7 @@ function ScoreTrendChart({
   tickFormatter,
   higherIsBetter = true,
   autoScale,
+  compact = false,
 }: {
   points: MeasurementPoint[];
   color: string;
@@ -1953,10 +2079,11 @@ function ScoreTrendChart({
     minPaddingRatio?: number;
     maxPaddingRatio?: number;
   };
+  compact?: boolean;
 }) {
-  const width = 760;
+  const width = compact ? Math.max(290, 100 + points.length * 32) : 760;
   const height = 260;
-  const axisWidth = 40;
+  const axisWidth = compact ? 34 : 40;
   const padTop = 18;
   const padBottom = 36;
   const padLeft = 18;
@@ -2109,7 +2236,7 @@ function ScoreTrendChart({
   );
 }
 
-function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
+function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoint[]; compact?: boolean }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const frameRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -2126,7 +2253,8 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
     return () => media.removeEventListener("change", update);
   }, []);
 
-  const layout = isMobile
+  const compactMode = compact || isMobile;
+  const layout = compactMode
     ? {
         height: 420,
         padTop: 42,
@@ -2135,7 +2263,7 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
         plotPadLeft: 16,
         plotPadRight: 26,
         plotEdgeInset: 16,
-        pxPerPoint: 54,
+        pxPerPoint: 34,
         yTickMax: 6,
         yTickMinGap: 34,
         bgTickMax: 6,
@@ -2170,7 +2298,7 @@ function RangeBandTrendChart({ points }: { points: RangeBandPoint[] }) {
         bestFont: 7.6,
       };
 
-  const minPlotWidth = isMobile ? 660 : 760;
+  const minPlotWidth = compactMode ? 300 : 760;
   const width = Math.max(
     minPlotWidth,
     layout.plotPadLeft + layout.plotPadRight + layout.plotEdgeInset * 2 + Math.max(0, points.length - 1) * layout.pxPerPoint
@@ -2716,10 +2844,14 @@ function LongToneHistoryList({
   runs,
   latestLabel,
   bestLabel,
+  lockedFromIndex = null,
+  onRequestUnlock,
 }: {
   runs: MeasurementRun[];
   latestLabel: string;
   bestLabel: string;
+  lockedFromIndex?: number | null;
+  onRequestUnlock?: () => void;
 }) {
   const rows = runs
     .map((run) => {
@@ -2756,7 +2888,7 @@ function LongToneHistoryList({
     return acc;
   }, []);
 
-  const displayRows = [...rowsWithCompare].reverse();
+  const displayRows = [...rowsWithCompare].reverse().map((row, index) => ({ ...row, listIndex: index }));
   const bestSec = rowsWithCompare.length === 0 ? null : Math.max(...rowsWithCompare.map((row) => row.sec));
   const latestRow = rowsWithCompare.length ? rowsWithCompare[rowsWithCompare.length - 1] : null;
   const showLatestBestBadge = latestRow != null && bestSec != null && latestRow.sec === bestSec;
@@ -2812,33 +2944,61 @@ function LongToneHistoryList({
             </div>
             {!collapsedMonths[group.month] && (
               <div className="insightsHistoryMonth__rows">
-                {group.rows.slice(0, 30).map(({ run, sec, note, deltaSec, bestRatio, isNewBest }) => {
+                {group.rows.slice(0, 30).map(({ run, sec, note, deltaSec, bestRatio, isNewBest, listIndex }) => {
                   const isUp = deltaSec != null && deltaSec > 0;
                   const isDown = deltaSec != null && deltaSec < 0;
+                  const locked = lockedFromIndex != null && listIndex >= lockedFromIndex;
+                  const showUnlockCta = locked && listIndex === lockedFromIndex;
                   return (
-                    <div key={`long-tone-run-${run.id}`} className="insightsHistoryRow insightsLongToneHistoryRow">
-                      <div className="insightsHistoryRow__date">{run.recorded_at.slice(5, 10)}</div>
-                      <div className="insightsLongToneHistoryRow__main">
-                        <span className="insightsLongToneHistoryRow__sec">{sec.toFixed(1)}秒</span>
-                        <span className="insightsLongToneHistoryRow__note">{note ?? "-"}</span>
-                      </div>
-                      <div className="insightsLongToneHistoryRow__compare">
-                        <span className="insightsLongToneHistoryRow__ratio">ベスト比 {bestRatio != null ? `${bestRatio}%` : "—"}</span>
-                        {deltaSec != null && (
-                          <span
-                            className={`insightsLongToneHistoryRow__delta${isUp ? " is-up" : ""}${isDown ? " is-down" : ""}`}
-                          >
-                            Δ {deltaSec >= 0 ? "+" : ""}
-                            {deltaSec.toFixed(1)}s
-                          </span>
-                        )}
-                        <div className="insightsLongToneHistoryRow__badges">
-                          {isNewBest && <span className="insightsLongToneHistoryRow__badge is-best">NEW BEST</span>}
-                          {isUp && <span className="insightsLongToneHistoryRow__badge is-up">↑</span>}
-                          {isDown && <span className="insightsLongToneHistoryRow__badge is-down">↓</span>}
+                    <>
+                      {showUnlockCta && (
+                        <button type="button" className="insightsHistoryLockBanner" onClick={onRequestUnlock}>
+                          <span className="insightsHistoryLockBanner__kicker">PREMIUM</span>
+                          <span className="insightsHistoryLockBanner__title">プレミアムプランで全期間閲覧可能になります</span>
+                          <span className="insightsHistoryLockBanner__sub">詳細</span>
+                        </button>
+                      )}
+                      <div
+                        key={`long-tone-run-${run.id}`}
+                        className={`insightsHistoryRow insightsLongToneHistoryRow${locked ? " is-locked" : ""}`}
+                        role={locked ? "button" : undefined}
+                        tabIndex={locked ? 0 : undefined}
+                        onClick={locked ? onRequestUnlock : undefined}
+                        onKeyDown={
+                          locked
+                            ? (e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  onRequestUnlock?.();
+                                }
+                              }
+                            : undefined
+                        }
+                      >
+                        {locked && <div className="insightsHistoryRow__lock" />}
+                        <div className="insightsHistoryRow__date">{run.recorded_at.slice(5, 10)}</div>
+                        <div className="insightsLongToneHistoryRow__main">
+                          <span className="insightsLongToneHistoryRow__sec">{sec.toFixed(1)}秒</span>
+                          <span className="insightsLongToneHistoryRow__note">{note ?? "-"}</span>
+                        </div>
+                        <div className="insightsLongToneHistoryRow__compare">
+                          <span className="insightsLongToneHistoryRow__ratio">ベスト比 {bestRatio != null ? `${bestRatio}%` : "—"}</span>
+                          {deltaSec != null && (
+                            <span
+                              className={`insightsLongToneHistoryRow__delta${isUp ? " is-up" : ""}${isDown ? " is-down" : ""}`}
+                            >
+                              Δ {deltaSec >= 0 ? "+" : ""}
+                              {deltaSec.toFixed(1)}s
+                            </span>
+                          )}
+                          <div className="insightsLongToneHistoryRow__badges">
+                            {isNewBest && <span className="insightsLongToneHistoryRow__badge is-best">NEW BEST</span>}
+                            {isUp && <span className="insightsLongToneHistoryRow__badge is-up">↑</span>}
+                            {isDown && <span className="insightsLongToneHistoryRow__badge is-down">↓</span>}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </>
                   );
                 })}
               </div>
@@ -2859,6 +3019,8 @@ function MetricScoreHistoryList({
   valueFormatter = (v) => `${v.toFixed(1)}点`,
   deltaFormatter = (v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}点`,
   higherIsBetter = true,
+  lockedFromIndex = null,
+  onRequestUnlock,
 }: {
   runs: MeasurementRun[];
   latestLabel: string;
@@ -2868,6 +3030,8 @@ function MetricScoreHistoryList({
   valueFormatter?: (value: number) => string;
   deltaFormatter?: (delta: number) => string;
   higherIsBetter?: boolean;
+  lockedFromIndex?: number | null;
+  onRequestUnlock?: () => void;
 }) {
   const rows = runs
     .map((run) => ({ run, score: valueExtractor(run), detail: detailRenderer(run) }))
@@ -2893,7 +3057,7 @@ function MetricScoreHistoryList({
     return acc;
   }, []);
 
-  const displayRows = [...rowsWithCompare].reverse();
+  const displayRows = [...rowsWithCompare].reverse().map((row, index) => ({ ...row, listIndex: index }));
   const bestScore = rowsWithCompare.length
     ? higherIsBetter
       ? Math.max(...rowsWithCompare.map((row) => row.score))
@@ -2949,30 +3113,58 @@ function MetricScoreHistoryList({
             </div>
             {!collapsedMonths[group.month] && (
               <div className="insightsHistoryMonth__rows">
-                {group.rows.slice(0, 30).map(({ run, score, delta, ratio, detail, isNewBest }) => {
+                {group.rows.slice(0, 30).map(({ run, score, delta, ratio, detail, isNewBest, listIndex }) => {
                   const isUp = delta != null && (higherIsBetter ? delta > 0 : delta < 0);
                   const isDown = delta != null && (higherIsBetter ? delta < 0 : delta > 0);
+                  const locked = lockedFromIndex != null && listIndex >= lockedFromIndex;
+                  const showUnlockCta = locked && listIndex === lockedFromIndex;
                   return (
-                    <div key={`score-run-${run.id}`} className="insightsHistoryRow insightsLongToneHistoryRow">
-                      <div className="insightsHistoryRow__date">{run.recorded_at.slice(5, 10)}</div>
-                      <div className="insightsLongToneHistoryRow__main">
-                        <span className="insightsLongToneHistoryRow__sec">{valueFormatter(score)}</span>
-                        <span className="insightsLongToneHistoryRow__note">{detail}</span>
-                      </div>
-                      <div className="insightsLongToneHistoryRow__compare">
-                        <span className="insightsLongToneHistoryRow__ratio">ベスト比 {ratio != null ? `${ratio}%` : "—"}</span>
-                        {delta != null && (
-                          <span className={`insightsLongToneHistoryRow__delta${isUp ? " is-up" : ""}${isDown ? " is-down" : ""}`}>
-                            Δ {deltaFormatter(delta)}
-                          </span>
-                        )}
-                        <div className="insightsLongToneHistoryRow__badges">
-                          {isNewBest && <span className="insightsLongToneHistoryRow__badge is-best">NEW BEST</span>}
-                          {isUp && <span className="insightsLongToneHistoryRow__badge is-up">↑</span>}
-                          {isDown && <span className="insightsLongToneHistoryRow__badge is-down">↓</span>}
+                    <>
+                      {showUnlockCta && (
+                        <button type="button" className="insightsHistoryLockBanner" onClick={onRequestUnlock}>
+                          <span className="insightsHistoryLockBanner__kicker">PREMIUM</span>
+                          <span className="insightsHistoryLockBanner__title">プレミアムプランで全期間閲覧可能になります</span>
+                          <span className="insightsHistoryLockBanner__sub">詳細</span>
+                        </button>
+                      )}
+                      <div
+                        key={`score-run-${run.id}`}
+                        className={`insightsHistoryRow insightsLongToneHistoryRow${locked ? " is-locked" : ""}`}
+                        role={locked ? "button" : undefined}
+                        tabIndex={locked ? 0 : undefined}
+                        onClick={locked ? onRequestUnlock : undefined}
+                        onKeyDown={
+                          locked
+                            ? (e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  onRequestUnlock?.();
+                                }
+                              }
+                            : undefined
+                        }
+                      >
+                        {locked && <div className="insightsHistoryRow__lock" />}
+                        <div className="insightsHistoryRow__date">{run.recorded_at.slice(5, 10)}</div>
+                        <div className="insightsLongToneHistoryRow__main">
+                          <span className="insightsLongToneHistoryRow__sec">{valueFormatter(score)}</span>
+                          <span className="insightsLongToneHistoryRow__note">{detail}</span>
+                        </div>
+                        <div className="insightsLongToneHistoryRow__compare">
+                          <span className="insightsLongToneHistoryRow__ratio">ベスト比 {ratio != null ? `${ratio}%` : "—"}</span>
+                          {delta != null && (
+                            <span className={`insightsLongToneHistoryRow__delta${isUp ? " is-up" : ""}${isDown ? " is-down" : ""}`}>
+                              Δ {deltaFormatter(delta)}
+                            </span>
+                          )}
+                          <div className="insightsLongToneHistoryRow__badges">
+                            {isNewBest && <span className="insightsLongToneHistoryRow__badge is-best">NEW BEST</span>}
+                            {isUp && <span className="insightsLongToneHistoryRow__badge is-up">↑</span>}
+                            {isDown && <span className="insightsLongToneHistoryRow__badge is-down">↓</span>}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </>
                   );
                 })}
               </div>

@@ -76,6 +76,8 @@ module Api
         public_profile_enabled: user.public_profile_enabled,
         public_goal_enabled: user.public_goal_enabled,
         ranking_participation_enabled: user.ranking_participation_enabled,
+        plan_tier: user.plan_tier,
+        billing_cycle: user.billing_cycle,
         ai_contribution_count: user.ai_contribution_events.distinct.count(:ai_recommendation_id),
         created_at: user.created_at&.iso8601
       }

@@ -4,6 +4,139 @@
   overflow-x: hidden;
 }
 
+.insightsFreeMiniPill {
+  margin-top: 8px;
+  display: block;
+  min-height: 32px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--surface) 86%, var(--card));
+  color: var(--ins-text-2);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+:root[data-theme-mode="dark"] .insightsFreeMiniPill {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.insightsHistoryRow.is-locked {
+  position: relative;
+}
+
+.insightsHistoryRow__lock {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.insightsHistoryRow__lock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.74)),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.46) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.46) 50%, rgba(255, 255, 255, 0.46) 75%, transparent 75%, transparent);
+  background-size: auto, 6px 6px;
+  backdrop-filter: blur(3.2px) saturate(0.76);
+  z-index: 1;
+}
+
+.insightsHistoryLockBanner {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 68px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--surface) 78%, var(--card));
+  color: var(--ins-text-1);
+  line-height: 1.35;
+  text-align: left;
+  padding: 10px 12px 10px 48px;
+  cursor: pointer;
+  display: grid;
+  gap: 1px;
+}
+
+.insightsHistoryLockBanner::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: url("../assets/premium/lock-badge.svg") center / contain no-repeat;
+}
+
+.insightsHistoryLockBanner__kicker {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  font-weight: 900;
+  color: var(--ins-text-3);
+}
+
+.insightsHistoryLockBanner__title {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--ins-text-1);
+}
+
+.insightsHistoryLockBanner__sub {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.66;
+  color: var(--ins-text-3);
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow__lock {
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow__lock::before {
+  background:
+    linear-gradient(120deg, rgba(4, 9, 18, 0.78), rgba(4, 9, 18, 0.9)),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.34) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.34) 50%, rgba(255, 255, 255, 0.34) 75%, transparent 75%, transparent);
+  background-size: auto, 6px 6px;
+  backdrop-filter: blur(4px) saturate(0.68);
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryLockBanner {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryLockBanner__kicker,
+:root[data-theme-mode="dark"] .insightsHistoryLockBanner__sub {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryLockBanner__title {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow.is-locked .insightsHistoryRow__date,
+:root[data-theme-mode="dark"] .insightsHistoryRow.is-locked .insightsLongToneHistoryRow__main,
+:root[data-theme-mode="dark"] .insightsHistoryRow.is-locked .insightsLongToneHistoryRow__compare {
+  opacity: 0.42;
+}
+
+.insightsGraphWindowHint {
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ins-text-3);
+}
+
 /* CSV export UI */
 .insightsHighlightsCard__topRow {
   display: flex;
@@ -363,10 +496,21 @@
   background: color-mix(in srgb, var(--accent) 20%, var(--card));
 }
 
+.insightsSegment__btn.is-locked {
+  opacity: 0.46;
+  color: var(--ins-text-3);
+  cursor: not-allowed;
+}
+
 .insightsInput,
 .insightsSelect {
   border-radius: 12px;
   background: var(--surface);
+}
+
+.insightsSelect.is-locked {
+  opacity: 0.68;
+  border-color: color-mix(in srgb, var(--accent) 16%, var(--border));
 }
 
 :root[data-theme-mode="dark"] .insightsInput,
@@ -374,6 +518,11 @@
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
   color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsSegment__btn.is-locked {
+  opacity: 0.42;
+  color: rgba(255, 255, 255, 0.58);
 }
 
 :root[data-theme-mode="dark"] .insightsInput::placeholder {

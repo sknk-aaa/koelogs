@@ -10,8 +10,11 @@ import {
   updateAiChatThread,
 } from "../api/aiChat";
 import type { AiChatMessage, AiChatThread } from "../types/aiChat";
+import { useAuth } from "../features/auth/useAuth";
+import PremiumUpsellModal from "../components/PremiumUpsellModal";
 import searchIconDark from "../assets/chat/search-dark.svg";
 import searchIconLight from "../assets/chat/search-light.svg";
+import premiumPreviewChat from "../assets/premium/preview-chat.svg";
 import "./AiChatPage.css";
 
 const QUICK_PROMPTS = [
@@ -99,6 +102,7 @@ function renderChatMessageText(text: string, role: "user" | "assistant") {
 export default function AiChatPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { me } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -115,6 +119,8 @@ export default function AiChatPage() {
   const [sideCollapsed, setSideCollapsed] = useState(false);
   const [threadMenuOpenId, setThreadMenuOpenId] = useState<number | null>(null);
   const [recoVisibleCount, setRecoVisibleCount] = useState(INITIAL_RECO_VISIBLE);
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
+  const [recommendationLimitReached, setRecommendationLimitReached] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
@@ -124,6 +130,7 @@ export default function AiChatPage() {
   const typingTimerRef = useRef<number | null>(null);
   const navSeedHandledRef = useRef(false);
   const recommendationBootingRef = useRef(false);
+  const isPremium = me?.plan_tier === "premium";
 
   const generalThreads = useMemo(
     () => threads.filter((thread) => thread.source_kind !== "ai_recommendation"),
@@ -149,12 +156,25 @@ export default function AiChatPage() {
     if (!keyword) return generalThreads;
     return generalThreads.filter((thread) => thread.title.toLowerCase().includes(keyword));
   }, [threadSearch, generalThreads]);
+  const isRecommendationThread = activeThread?.source_kind === "ai_recommendation";
+  const recommendationUserMessageCount = useMemo(
+    () => messages.filter((message) => message.role === "user").length,
+    [messages]
+  );
+  const isRecommendationFollowupLocked =
+    !isPremium &&
+    isRecommendationThread &&
+    (recommendationUserMessageCount >= 1 || recommendationLimitReached);
 
   const clearTypingTimer = () => {
     if (typingTimerRef.current) {
       window.clearInterval(typingTimerRef.current);
       typingTimerRef.current = null;
     }
+  };
+
+  const openPremiumModal = () => {
+    setPremiumModalOpen(true);
   };
 
   const animateAssistantMessage = (tempId: number, finalMessage: AiChatMessage): Promise<void> => {
@@ -319,6 +339,11 @@ export default function AiChatPage() {
           source_date: recommendationDate,
         });
         if (!created.ok) {
+          if (created.status === 402) {
+            openPremiumModal();
+            recommendationBootingRef.current = false;
+            return;
+          }
           setError(created.errors.join("\n"));
           recommendationBootingRef.current = false;
           return;
@@ -352,6 +377,7 @@ export default function AiChatPage() {
     if (!activeThreadId) {
       setActiveThread(null);
       setMessages([]);
+      setRecommendationLimitReached(false);
       return;
     }
 
@@ -378,6 +404,12 @@ export default function AiChatPage() {
   }, [activeThreadId]);
 
   useEffect(() => {
+    if (!isRecommendationThread || isPremium) {
+      setRecommendationLimitReached(false);
+    }
+  }, [isRecommendationThread, isPremium]);
+
+  useEffect(() => {
     if (!shouldAutoScrollRef.current) return;
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, activeThreadId, threadLoading]);
@@ -390,9 +422,17 @@ export default function AiChatPage() {
   }, [draft, activeThreadId]);
 
   const onCreateThread = async () => {
+    if (!isPremium) {
+      openPremiumModal();
+      return;
+    }
     setError(null);
     const res = await createAiChatThread();
     if (!res.ok) {
+      if (res.status === 402) {
+        openPremiumModal();
+        return;
+      }
       setError(res.errors.join("\n"));
       return;
     }
@@ -457,7 +497,15 @@ export default function AiChatPage() {
 
     const res = await postAiChatMessage(threadId, text);
     if (!res.ok) {
-      setError(res.errors.join("\n"));
+      if (res.status === 402) {
+        if (!isPremium && isRecommendationThread) {
+          setRecommendationLimitReached(true);
+        } else {
+          openPremiumModal();
+        }
+      } else {
+        setError(res.errors.join("\n"));
+      }
       setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       if (options?.restoreDraftOnError) setDraft(text);
       setSending(false);
@@ -484,7 +532,7 @@ export default function AiChatPage() {
   };
 
   const sendCurrentDraft = async () => {
-    if (!activeThreadId || sending) return;
+    if (!activeThreadId || sending || isRecommendationFollowupLocked) return;
     await sendMessageToThread(activeThreadId, draft, { restoreDraftOnError: true });
   };
 
@@ -553,7 +601,19 @@ export default function AiChatPage() {
               )}
             </div>
             <div className="aiChatPage__sideTopActions">
-              <button type="button" className="aiChatPage__newChatBtn" onClick={onCreateThread}>+ 新しいチャット</button>
+              <button
+                type="button"
+                className={`aiChatPage__newChatBtn ${!isPremium ? "is-premium-locked" : ""}`}
+                onClick={onCreateThread}
+              >
+                <span>+ 新しいチャット</span>
+                {!isPremium && (
+                  <span className="aiChatPage__premiumLockLabel">
+                    <span className="aiChatPage__premiumLockIcon" aria-hidden="true" />
+                    <span>プレミアムプラン限定</span>
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 
@@ -746,30 +806,43 @@ export default function AiChatPage() {
               </div>
 
               <form className="aiChatPage__composerWrap" onSubmit={onSend}>
-                <div className="aiChatPage__composer">
-                  <textarea
-                    ref={textareaRef}
-                    className="aiChatPage__textarea"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        if (!activeThreadId || sending || draft.trim().length === 0) return;
-                        void sendCurrentDraft();
-                      }
-                    }}
-                    rows={1}
-                    maxLength={2000}
-                    placeholder="質問してみましょう"
-                    disabled={!activeThreadId || sending}
-                  />
+                <div className={`aiChatPage__composer ${isRecommendationFollowupLocked ? "is-locked" : ""}`}>
+                  {isRecommendationFollowupLocked ? (
+                    <div className="aiChatPage__textareaLock" role="status" aria-live="polite">
+                      <span className="aiChatPage__textareaLockIcon" aria-hidden="true" />
+                      <div className="aiChatPage__textareaLockBody">
+                        <div className="aiChatPage__textareaLockTitle">本日の無料質問は完了しました</div>
+                        <div className="aiChatPage__textareaLockText">プレミアムなら、このまま無制限で質問できます。</div>
+                      </div>
+                      <button type="button" className="aiChatPage__textareaLockCta" onClick={openPremiumModal}>
+                        プレミアムを見る
+                      </button>
+                    </div>
+                  ) : (
+                    <textarea
+                      ref={textareaRef}
+                      className="aiChatPage__textarea"
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          if (!activeThreadId || sending || draft.trim().length === 0) return;
+                          void sendCurrentDraft();
+                        }
+                      }}
+                      rows={1}
+                      maxLength={2000}
+                      placeholder="質問してみましょう"
+                      disabled={!activeThreadId || sending}
+                    />
+                  )}
                   <button
                     type="submit"
                     className="aiChatPage__sendBtn"
-                    disabled={!activeThreadId || sending || draft.trim().length === 0}
+                    disabled={!activeThreadId || sending || draft.trim().length === 0 || isRecommendationFollowupLocked}
                   >
-                    {sending ? "送信中…" : "送信"}
+                    {isRecommendationFollowupLocked ? "送信済み" : sending ? "送信中…" : "送信"}
                   </button>
                 </div>
               </form>
@@ -803,9 +876,21 @@ export default function AiChatPage() {
               placeholder="相談したい内容を入力"
               disabled={sending}
             />
-            <div className="aiChatPage__heroComposerFoot">
-              <div className="aiChatPage__heroTools">
-                <button type="button" className="aiChatPage__toolBtn" onClick={onCreateThread}>+ 新規チャット</button>
+              <div className="aiChatPage__heroComposerFoot">
+                <div className="aiChatPage__heroTools">
+                <button
+                  type="button"
+                  className={`aiChatPage__toolBtn ${!isPremium ? "is-premium-locked" : ""}`}
+                  onClick={onCreateThread}
+                >
+                  <span>+ 新規チャット</span>
+                  {!isPremium && (
+                    <span className="aiChatPage__premiumLockLabel">
+                      <span className="aiChatPage__premiumLockIcon" aria-hidden="true" />
+                      <span>プレミアムプラン限定</span>
+                    </span>
+                  )}
+                </button>
                 <span className="aiChatPage__toolDot" aria-hidden="true">•</span>
                 <span className="aiChatPage__toolHint">Enterで送信 / Shift+Enterで改行</span>
               </div>
@@ -814,9 +899,17 @@ export default function AiChatPage() {
                 className="aiChatPage__sendBtn"
                 disabled={sending || draft.trim().length === 0}
                 onClick={async () => {
+                  if (!isPremium) {
+                    openPremiumModal();
+                    return;
+                  }
                   const created = await createAiChatThread();
                   if (!created.ok) {
-                    setError(created.errors.join("\n"));
+                    if (created.status === 402) {
+                      openPremiumModal();
+                    } else {
+                      setError(created.errors.join("\n"));
+                    }
                     return;
                   }
                   await loadThreads(created.data.id);
@@ -841,6 +934,33 @@ export default function AiChatPage() {
           </div>
         </section>
       )}
+      <PremiumUpsellModal
+        open={premiumModalOpen}
+        onClose={() => setPremiumModalOpen(false)}
+        variant="lp"
+        previewImageSrc={premiumPreviewChat}
+        previewImageAlt="AIチャットのプレビュー"
+        previewCaption="会話の継続・深掘りはプレミアムで解放"
+        title="AIチャットを無制限で使う"
+        onCta={() => {
+          setPremiumModalOpen(false);
+          navigate("/premium");
+        }}
+        description="無料プランでは、おすすめへの質問は1日1回までです。"
+        flowTitle="解放される体験"
+        flowSteps={[
+          { title: "会話を継続", sub: "おすすめの続き質問をそのまま深掘り", pill: "無制限" },
+          { title: "文脈を維持", sub: "前の相談内容を引き継いで調整", pill: "継続会話" },
+          { title: "次の一手を具体化", sub: "その日の改善ポイントを即決定", pill: "実践向け" },
+        ]}
+        note="プレミアムプランならそのまま会話を続けられます。"
+        benefits={[
+          "おすすめへの質問を回数制限なしで継続",
+          "新しいチャットを自由に作成",
+          "改善したいポイントを深掘り相談",
+        ]}
+        ctaLabel="プレミアムを見る"
+      />
     </div>
   );
 }

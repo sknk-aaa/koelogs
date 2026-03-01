@@ -10,6 +10,8 @@ class User < ApplicationRecord
     wave_purple
     heart_red
   ].freeze
+  PLAN_TIERS = %w[free premium].freeze
+  BILLING_CYCLES = %w[monthly yearly].freeze
 
   has_secure_password
 
@@ -54,6 +56,16 @@ class User < ApplicationRecord
   validates :public_goal_enabled, inclusion: { in: [ true, false ] }
   validates :ranking_participation_enabled, inclusion: { in: [ true, false ] }
   validates :avatar_icon, inclusion: { in: AVATAR_ICON_VALUES }
+  validates :plan_tier, inclusion: { in: PLAN_TIERS }
+  validates :billing_cycle, inclusion: { in: BILLING_CYCLES }, allow_nil: true
+
+  def premium_plan?
+    plan_tier == "premium"
+  end
+
+  def free_plan?
+    !premium_plan?
+  end
 
   def can_send_password_reset_email?
     password_reset_sent_at.nil? || password_reset_sent_at < PASSWORD_RESET_REQUEST_INTERVAL.ago

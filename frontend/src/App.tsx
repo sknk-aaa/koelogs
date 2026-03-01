@@ -26,6 +26,7 @@ import CommunityRankingPage from "./pages/CommunityRankingPage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
 import HelpContactPage from "./pages/HelpContactPage";
+import PremiumPlanPage from "./pages/PremiumPlanPage";
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/community/rankings" element={<CommunityRankingPage />} />
             <Route path="/community/profile/:userId" element={<CommunityProfilePage />} />
+            <Route path="/premium" element={<PremiumPlanPage />} />
 
             {/* 認証が必要なページ */}
             <Route element={<RequireAuth />}>

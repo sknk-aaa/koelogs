@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_28_201500) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_01_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -320,6 +320,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_201500) do
     t.jsonb "ai_improvement_tags", default: [], null: false
     t.string "avatar_icon", default: "note_blue", null: false
     t.text "avatar_image_url"
+    t.string "billing_cycle"
     t.datetime "created_at", null: false
     t.string "display_name"
     t.string "email", null: false
@@ -327,6 +328,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_201500) do
     t.string "password_digest", null: false
     t.datetime "password_reset_sent_at"
     t.string "password_reset_token_digest"
+    t.string "plan_tier", default: "free", null: false
     t.boolean "public_goal_enabled", default: false, null: false
     t.boolean "public_profile_enabled", default: false, null: false
     t.boolean "ranking_participation_enabled", default: false, null: false
@@ -335,6 +337,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_201500) do
     t.index ["display_name"], name: "index_users_on_display_name"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["password_reset_token_digest"], name: "index_users_on_password_reset_token_digest", unique: true
+    t.index ["plan_tier"], name: "index_users_on_plan_tier"
   end
 
   create_table "xp_events", force: :cascade do |t|

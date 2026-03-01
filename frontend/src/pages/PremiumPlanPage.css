@@ -1,0 +1,107 @@
+.premiumPlanPage {
+  display: grid;
+  gap: 14px;
+}
+
+.premiumPlanPage__hero {
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--surface) 82%, var(--card));
+  padding: 16px;
+}
+
+.premiumPlanPage__kicker {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-light-3);
+}
+
+.premiumPlanPage__title {
+  margin: 4px 0 6px;
+  font-size: 24px;
+  font-weight: 950;
+  color: var(--on-light-1);
+}
+
+.premiumPlanPage__sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--on-light-2);
+}
+
+.premiumPlanPage__grid {
+  display: grid;
+  gap: 10px;
+}
+
+.premiumPlanPage__card {
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--surface) 90%, var(--card));
+}
+
+.premiumPlanPage__cardTitle {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--on-light-1);
+}
+
+.premiumPlanPage__list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--on-light-2);
+  font-size: 13px;
+}
+
+.premiumPlanPage__actions {
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--surface) 90%, var(--card));
+  display: grid;
+  gap: 8px;
+}
+
+.premiumPlanPage__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 900;
+  color: #fff;
+  background: color-mix(in srgb, var(--accent) 64%, #245fbb);
+}
+
+.premiumPlanPage__note {
+  font-size: 12px;
+  color: var(--on-light-3);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__hero,
+:root[data-theme-mode="dark"] .premiumPlanPage__card,
+:root[data-theme-mode="dark"] .premiumPlanPage__actions {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__title {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__sub,
+:root[data-theme-mode="dark"] .premiumPlanPage__list,
+:root[data-theme-mode="dark"] .premiumPlanPage__cardTitle {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__kicker,
+:root[data-theme-mode="dark"] .premiumPlanPage__note {
+  color: rgba(255, 255, 255, 0.72);
+}

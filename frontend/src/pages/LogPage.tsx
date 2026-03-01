@@ -29,6 +29,7 @@ import { setLastLogPath } from "../features/log/logNavigation";
 import { fetchMe, updateMeGoalText, type Me } from "../api/auth";
 import ColoredTag from "../components/ColoredTag";
 import InfoModal from "../components/InfoModal";
+import PremiumUpsellModal from "../components/PremiumUpsellModal";
 
 function pad(v: number): string {
   return String(v).padStart(2, "0");
@@ -310,7 +311,6 @@ const AI_PREVIEW_CHARS = 100;
 const GOAL_MAX = 50;
 const FIRST_LOGIN_GUIDE_KEY_PREFIX = "voice_app_log_first_guide_seen_user_";
 const BEGINNER_MISSIONS_OPEN_KEY = "koelogs:beginner_missions_open";
-const COACH_DIAGNOSIS_FREE_ACCESS = true;
 
 type LogMode = "day" | "month";
 type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
@@ -395,6 +395,7 @@ export default function LogPage() {
   const [monthComparisonError, setMonthComparisonError] = useState<string | null>(null);
   const [monthComparisonData, setMonthComparisonData] = useState<MonthlyLogComparisonData | null>(null);
   const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [monthSaveLoading, setMonthSaveLoading] = useState(false);
   const [monthSaveError, setMonthSaveError] = useState<string | null>(null);
   const [beginnerMissions, setBeginnerMissions] = useState<MissionItem[]>([]);
@@ -414,9 +415,13 @@ export default function LogPage() {
   const [goalSaving, setGoalSaving] = useState(false);
 
   const openComparisonModal = () => {
-    if (!COACH_DIAGNOSIS_FREE_ACCESS) return;
+    if (authMe?.plan_tier !== "premium") {
+      setPremiumModalOpen(true);
+      return;
+    }
     setIsComparisonModalOpen(true);
   };
+  const isComparisonPremiumUnlocked = authMe?.plan_tier === "premium";
 
   useEffect(() => {
     let cancelled = false;
@@ -1010,15 +1015,26 @@ export default function LogPage() {
             <div className="logPage__comparisonTriggerTitle">今月のAI診断</div>
             <div className="logPage__comparisonTriggerSub">今月の成長を確認してみましょう！</div>
           </div>
-          <div className="logPage__comparisonTriggerRight">
-            <div className="logPage__comparisonTriggerSummary">
-              {monthComparisonLoading || monthComparisonError
-                ? "—"
-                : comparisonDiagnosis?.reference
-                  ? "—"
-                  : comparisonDiagnosis?.header ?? "—"}
+          <div
+            className={`logPage__comparisonTriggerRight ${
+              isComparisonPremiumUnlocked ? "is-premium" : "is-free"
+            }`}
+          >
+            {!isComparisonPremiumUnlocked && (
+              <span className="logPage__comparisonTriggerPremiumHint">
+                <span>プレミアムプランで</span>
+                <span>閲覧可能になります。</span>
+              </span>
+            )}
+            <div className="logPage__comparisonTriggerSummaryRow">
+              {isComparisonPremiumUnlocked && (
+                <div className="logPage__comparisonTriggerSummary">
+                  {monthComparisonLoading || monthComparisonError
+                    ? "—"
+                    : comparisonDiagnosis?.header ?? "—"}
+                </div>
+              )}
             </div>
-            <span className="logPage__comparisonTriggerArrow" aria-hidden="true">›</span>
           </div>
         </button>
       )}
@@ -1342,6 +1358,35 @@ export default function LogPage() {
           </section>
         </div>
       )}
+
+      <PremiumUpsellModal
+        open={premiumModalOpen}
+        onClose={() => setPremiumModalOpen(false)}
+        previewMode="screenshot"
+        variant="lp"
+        kicker="PREMIUM"
+        title="今月、ちゃんと伸びていますか？"
+        description="やった気の1ヶ月で終わらせない。"
+        growthTitle="今月の成長（実例）"
+        growthItems={[
+          { label: "音程精度", before: "88.2%", after: "91.4%", delta: "↑ +3.2%", tone: "up" },
+          { label: "裏声最高音", before: "B4", after: "C#5", delta: "↑ +2半音", tone: "up" },
+          { label: "ロングトーン", before: "24.1s", after: "14.7s", delta: "↓ -9.4s", tone: "down" },
+        ]}
+        flowTitle="成長の仕組み"
+        flowSteps={[
+          { title: "停滞を検出", sub: "裏声最高音の推移を解析", pill: "停滞あり" },
+          { title: "要因を特定", sub: "ログと測定データを横断分析", pill: "要因解析" },
+          { title: "最適なトレーニングを提示", sub: "今月の優先項目を決定", pill: "メニュー提案" },
+        ]}
+        note="比較だけで終わらせず、理由に基づいた改善アクションまでサポートします。"
+        noteVariant="default"
+        ctaLabel="プレミアムプランの詳細を見る"
+        onCta={() => {
+          setPremiumModalOpen(false);
+          navigate("/premium");
+        }}
+      />
 
       {guestMode && isDayMode && (
         <>

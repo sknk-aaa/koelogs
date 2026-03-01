@@ -170,6 +170,40 @@
   cursor: pointer;
   text-align: left;
   padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aiChatPage__newChatBtn.is-premium-locked,
+.aiChatPage__toolBtn.is-premium-locked {
+  border-color: color-mix(in srgb, var(--chat-accent) 54%, var(--border));
+  background: color-mix(in srgb, var(--chat-accent) 16%, var(--surface));
+}
+
+.aiChatPage__premiumLockIcon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  background: url("../assets/premium/lock-badge.svg") center / contain no-repeat;
+}
+
+.aiChatPage__premiumLockLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 1px 7px 1px 5px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--chat-accent) 54%, var(--border));
+  background: color-mix(in srgb, var(--chat-accent) 14%, var(--surface));
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(8, 16, 28, 0.1);
+  pointer-events: none;
 }
 
 .aiChatPage__sideTopActions {
@@ -876,6 +910,10 @@
   align-items: end;
 }
 
+.aiChatPage__composer.is-locked {
+  grid-template-columns: 1fr;
+}
+
 .aiChatPage__shell.is-collapsed .aiChatPage__messagesInner,
 .aiChatPage__shell.is-collapsed .aiChatPage__composer {
   max-width: var(--conversation-max-width);
@@ -887,6 +925,60 @@
   resize: none;
   padding: 10px 12px;
   line-height: 1.6;
+}
+
+.aiChatPage__textareaLock {
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--chat-accent) 32%, var(--border));
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--chat-accent) 8%, var(--surface));
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.aiChatPage__textareaLockIcon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  background: url("../assets/premium/lock-badge.svg") center / contain no-repeat;
+}
+
+.aiChatPage__textareaLockBody {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  flex: 1 1 auto;
+}
+
+.aiChatPage__textareaLockTitle {
+  font-size: 14px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--chat-accent) 88%, var(--text));
+  line-height: 1.2;
+}
+
+.aiChatPage__textareaLockText {
+  font-size: 12px;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--text) 64%, transparent);
+  line-height: 1.35;
+}
+
+.aiChatPage__textareaLockCta {
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--chat-accent) 48%, var(--border));
+  background: color-mix(in srgb, var(--chat-accent) 20%, var(--surface));
+  color: color-mix(in srgb, var(--chat-accent) 92%, var(--text));
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 0 12px;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .aiChatPage__sendBtn {
@@ -998,6 +1090,9 @@
   color: var(--text);
   padding: 7px 11px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .aiChatPage__toolDot {
@@ -1305,4 +1400,29 @@
 :root[data-theme-mode="dark"] .aiChatPage__toolBtn {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .aiChatPage__textareaLock {
+  border-color: color-mix(in srgb, var(--accent) 38%, rgba(255, 255, 255, 0.18));
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.03));
+}
+
+:root[data-theme-mode="dark"] .aiChatPage__textareaLockTitle {
+  color: color-mix(in srgb, var(--accent) 72%, #ffffff 28%);
+}
+
+:root[data-theme-mode="dark"] .aiChatPage__textareaLockText {
+  color: color-mix(in srgb, #ffffff 66%, transparent);
+}
+
+:root[data-theme-mode="dark"] .aiChatPage__textareaLockCta {
+  border-color: color-mix(in srgb, var(--accent) 42%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.06));
+  color: color-mix(in srgb, var(--accent) 72%, #ffffff 28%);
+}
+
+:root[data-theme-mode="dark"] .aiChatPage__newChatBtn.is-premium-locked,
+:root[data-theme-mode="dark"] .aiChatPage__toolBtn.is-premium-locked {
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.06));
+  border-color: color-mix(in srgb, var(--accent) 42%, rgba(255, 255, 255, 0.2));
 }

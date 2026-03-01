@@ -32,6 +32,8 @@ export type Me = {
   public_profile_enabled: boolean;
   public_goal_enabled: boolean;
   ranking_participation_enabled: boolean;
+  plan_tier?: "free" | "premium";
+  billing_cycle?: "monthly" | "yearly" | null;
   ai_contribution_count: number;
   created_at: string;
 };

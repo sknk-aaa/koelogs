@@ -1,0 +1,60 @@
+.premiumLock {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 94%, var(--card));
+  position: relative;
+  overflow: hidden;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.premiumLock__mosaic {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.12) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.12) 75%, transparent 75%, transparent),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.06) 75%, transparent 75%, transparent);
+  background-size: 18px 18px, 18px 18px;
+  opacity: 0.6;
+}
+
+.premiumLock__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.premiumLock__title {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--cardText, var(--text));
+}
+
+.premiumLock__sub {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+:root[data-theme-mode="dark"] .premiumLock {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, #0f1a2e 88%, var(--card));
+}
+
+:root[data-theme-mode="dark"] .premiumLock__mosaic {
+  background-image:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent),
+    linear-gradient(135deg, rgba(125, 152, 195, 0.14) 25%, transparent 25%, transparent 50%, rgba(125, 152, 195, 0.14) 50%, rgba(125, 152, 195, 0.14) 75%, transparent 75%, transparent);
+  opacity: 0.72;
+}
+
+:root[data-theme-mode="dark"] .premiumLock__title {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .premiumLock__sub {
+  color: rgba(255, 255, 255, 0.74);
+}

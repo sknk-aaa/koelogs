@@ -74,6 +74,9 @@ module Api
       title = "新しい会話" if title.blank?
       seed_assistant_message = params[:seed_assistant_message].to_s.strip
       source_kind = params[:source_kind].presence
+      if current_user.free_plan? && source_kind != "ai_recommendation"
+        return render_premium_required!("AIチャットの新規作成はプレミアムプランで解放されます")
+      end
       source_date = begin
         Date.iso8601(params[:source_date].to_s)
       rescue ArgumentError, TypeError
@@ -153,6 +156,16 @@ module Api
 
       if message_text.length > 2000
         return render json: { errors: [ "message is too long (max 2000 chars)" ] }, status: :unprocessable_entity
+      end
+
+      if current_user.free_plan?
+        if @thread.source_kind != "ai_recommendation"
+          return render_premium_required!("AIチャットはプレミアムプランで解放されます")
+        end
+
+        if free_followup_daily_limit_reached?
+          return render_premium_required!("おすすめへの質問は1日1回までです。プレミアムプランで回数無制限になります")
+        end
       end
 
       if @thread.messages.count > (AiChatThread::MAX_MESSAGES - 2)
@@ -237,6 +250,21 @@ module Api
         content: message.content,
         created_at: message.created_at.iso8601
       }
+    end
+
+    def free_followup_daily_limit_reached?
+      start_at = Time.zone.now.beginning_of_day
+      used_count = AiChatMessage
+        .joins(:thread)
+        .where(role: "user")
+        .where("ai_chat_messages.created_at >= ?", start_at)
+        .where(ai_chat_threads: { user_id: current_user.id, source_kind: "ai_recommendation" })
+        .count
+      used_count >= 1
+    end
+
+    def render_premium_required!(message)
+      render json: { errors: [ message ], code: "premium_required" }, status: :payment_required
     end
   end
 end

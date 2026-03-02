@@ -1,0 +1,36 @@
+<svg width="360" height="220" viewBox="0 0 360 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="chatGlow" x1="40" y1="28" x2="314" y2="198" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7CD8FF" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#66FFC2" stop-opacity="0.10"/>
+    </linearGradient>
+    <linearGradient id="chatLine" x1="70" y1="58" x2="292" y2="178" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8FC9FF" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#80F5CF" stop-opacity="0.78"/>
+    </linearGradient>
+    <filter id="soft" x="0" y="0" width="360" height="220" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="190" cy="112" rx="128" ry="66" fill="url(#chatGlow)" filter="url(#soft)"/>
+
+  <rect x="56" y="40" width="154" height="76" rx="16" fill="#D2E9FF" fill-opacity="0.18" stroke="#A8D2FF" stroke-opacity="0.46"/>
+  <path d="M92 116L80 132L114 118" fill="#D2E9FF" fill-opacity="0.16" stroke="#A8D2FF" stroke-opacity="0.42"/>
+  <rect x="86" y="62" width="94" height="8" rx="4" fill="#C8E1FF" fill-opacity="0.46"/>
+  <rect x="86" y="78" width="70" height="8" rx="4" fill="#C8E1FF" fill-opacity="0.34"/>
+  <circle cx="165" cy="94" r="5" fill="#9FD2FF" fill-opacity="0.62"/>
+
+  <rect x="162" y="112" width="146" height="72" rx="16" fill="#C7FFF0" fill-opacity="0.14" stroke="#9BEFD7" stroke-opacity="0.42"/>
+  <path d="M278 184L288 200L255 186" fill="#C7FFF0" fill-opacity="0.12" stroke="#9BEFD7" stroke-opacity="0.4"/>
+  <rect x="186" y="134" width="92" height="8" rx="4" fill="#BEF7E8" fill-opacity="0.44"/>
+  <rect x="186" y="150" width="66" height="8" rx="4" fill="#BEF7E8" fill-opacity="0.30"/>
+  <circle cx="270" cy="167" r="5" fill="#8DF0D0" fill-opacity="0.58"/>
+
+  <path d="M158 106C174 114 186 120 204 128" stroke="url(#chatLine)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="2 8"/>
+  <circle cx="205" cy="128" r="3.2" fill="#8CEFD0"/>
+  <circle cx="150" cy="102" r="2.7" fill="#90C6FF"/>
+
+  <path d="M238 54L241 61L248 64L241 67L238 74L235 67L228 64L235 61L238 54Z" fill="#89C5FF" fill-opacity="0.72"/>
+  <path d="M124 144L126 149L132 151L126 153L124 158L122 153L116 151L122 149L124 144Z" fill="#85EED0" fill-opacity="0.6"/>
+</svg>

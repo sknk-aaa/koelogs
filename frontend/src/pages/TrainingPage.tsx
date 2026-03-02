@@ -16,7 +16,7 @@ import type { SaveRewards } from "../types/gamification";
 import ProcessingOverlay from "../components/ProcessingOverlay";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
 import { RANGE_MISSION_FLAG } from "../features/missions/constants";
-import premiumPreviewTraining from "../assets/premium/preview-training.svg";
+import premiumAmbientReplayUi from "../assets/premium/ambient-replay-ui.svg";
 
 import "./TrainingPage.css";
 
@@ -1387,6 +1387,12 @@ export default function TrainingPage() {
                 : measurementInstantResult.title === "ロングトーン" || measurementInstantResult.title === "音程精度"
                   ? " is-long-tone"
                   : " is-volume"
+            }${
+              measurementInstantResult.source === "recording" &&
+              !!measurementRecordedAudioUrl &&
+              !measurementReplayPanelOpen
+                ? " is-replay-collapsed"
+                : ""
             }`}
             role="dialog"
             aria-modal="true"
@@ -1493,103 +1499,103 @@ export default function TrainingPage() {
               )}
               {measurementInstantResult.source === "recording" && measurementRecordedAudioUrl && (
                 <div
-                  className={`trainingPage__resultReplay${!isPremium ? " trainingPage__resultReplay--locked" : ""}`}
+                  className={`trainingPage__resultReplay${!isPremium ? " trainingPage__resultReplay--locked" : ""}${!measurementReplayPanelOpen ? " trainingPage__resultReplay--collapsed" : ""}`}
                   ref={measurementReplaySectionRef}
                 >
                   <div className="trainingPage__resultReplayHead">
                     <div className="trainingPage__resultReplayTitle">録音の再生プレビュー</div>
-                    {isPremium && (
-                      <button
-                        type="button"
-                        className="trainingPage__resultReplayToggle"
-                        onClick={() => {
-                          setMeasurementReplayPanelOpen((prev) => {
-                            const next = !prev;
-                            if (!next) stopReplayAudio();
-                            return next;
-                          });
-                        }}
-                        aria-expanded={measurementReplayPanelOpen}
-                        aria-label={measurementReplayPanelOpen ? "再生プレビューを閉じる" : "再生プレビューを開く"}
-                      >
-                        <span className="trainingPage__resultReplayToggleIcon" aria-hidden="true">
-                          <span className={measurementReplayPanelOpen ? "is-open" : "is-closed"} />
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                  {(measurementReplayPanelOpen || !isPremium) && (
-                    <div className="trainingPage__resultReplayMonitor">
-                      {measurementInstantResult.measurementKey === "volume_stability" ? (
-                        <RealtimeDbMonitor
-                          dbValues={measurementInstantResult.replayDbValues ?? []}
-                          currentDb={
-                            measurementInstantResult.replayDbValues && measurementInstantResult.replayDbValues.length > 0
-                              ? measurementInstantResult.replayDbValues[
-                                  Math.min(
-                                    measurementInstantResult.replayDbValues.length - 1,
-                                    Math.floor(
-                                      (measurementReplayElapsedSec /
-                                        Math.max(0.001, measurementInstantResult.replayDurationSec ?? 1)) *
-                                        measurementInstantResult.replayDbValues.length
-                                    )
-                                  )
-                                ]
-                              : null
-                          }
-                          elapsedSec={measurementReplayElapsedSec}
-                          durationSec={measurementInstantResult.replayDurationSec ?? undefined}
-                          showPlayhead
-                        />
-                      ) : (
-                        <RealtimePitchMonitor
-                          points={measurementInstantResult.replayPitchPoints ?? []}
-                          currentMidi={replayCurrentMidi}
-                          systemKey={measurementInstantResult.measurementKey}
-                          pitchGuide={
-                            measurementInstantResult.measurementKey === "pitch_accuracy"
-                              ? buildPitchGuide(measurementInstantResult.replayGuideRange ?? "mid")
-                              : null
-                          }
-                          pitchGuideRange={measurementInstantResult.replayGuideRange ?? "mid"}
-                          elapsedSec={measurementReplayElapsedSec}
-                          totalDurationSec={measurementInstantResult.replayDurationSec ?? undefined}
-                          showPlayhead
-                        />
-                      )}
-                    </div>
-                  )}
-                  <div className="trainingPage__resultReplayActions">
-                    {isPremium && (
-                      <button
-                        type="button"
-                        className="trainingPage__resultModalBtn trainingPage__resultModalBtn--replay-primary trainingPage__resultReplayActionBtn"
-                        onClick={() => void toggleReplayAudio()}
-                      >
-                        {measurementReplayPlaying ? "録音プレビューを停止" : "録音プレビューを再生"}
-                      </button>
-                    )}
                     <button
                       type="button"
-                      className="trainingPage__resultModalBtn trainingPage__resultModalBtn--download trainingPage__resultReplayActionBtn"
-                      onClick={() => void downloadRecordedAudio()}
-                      disabled={measurementWavConverting || !isPremium}
+                      className="trainingPage__resultReplayToggle"
+                      onClick={() => {
+                        setMeasurementReplayPanelOpen((prev) => {
+                          const next = !prev;
+                          if (!next) stopReplayAudio();
+                          return next;
+                        });
+                      }}
+                      aria-expanded={measurementReplayPanelOpen}
+                      aria-label={measurementReplayPanelOpen ? "再生プレビューを閉じる" : "再生プレビューを開く"}
                     >
-                      {measurementWavConverting ? "WAV変換中..." : "音声のみをWAV保存"}
-                    </button>
-                  </div>
-                  {!isPremium && (
-                    <button
-                      type="button"
-                      className="trainingPage__resultReplayLockOverlay"
-                      onClick={() => setPremiumModalOpen(true)}
-                    >
-                      <span className="trainingPage__resultReplayLockOverlayText">
-                        <span className="trainingPage__resultReplayLockOverlayKicker">PREMIUM</span>
-                        <span className="trainingPage__resultReplayLockOverlayTitle">プレミアムプランで解放されます</span>
-                        <span className="trainingPage__resultReplayLockOverlaySub">詳細</span>
+                      <span className="trainingPage__resultReplayToggleIcon" aria-hidden="true">
+                        <span className={measurementReplayPanelOpen ? "is-open" : "is-closed"} />
                       </span>
                     </button>
+                  </div>
+                  {measurementReplayPanelOpen && (
+                    <>
+                      <div className="trainingPage__resultReplayMonitor">
+                        {measurementInstantResult.measurementKey === "volume_stability" ? (
+                          <RealtimeDbMonitor
+                            dbValues={measurementInstantResult.replayDbValues ?? []}
+                            currentDb={
+                              measurementInstantResult.replayDbValues && measurementInstantResult.replayDbValues.length > 0
+                                ? measurementInstantResult.replayDbValues[
+                                    Math.min(
+                                      measurementInstantResult.replayDbValues.length - 1,
+                                      Math.floor(
+                                        (measurementReplayElapsedSec /
+                                          Math.max(0.001, measurementInstantResult.replayDurationSec ?? 1)) *
+                                          measurementInstantResult.replayDbValues.length
+                                      )
+                                    )
+                                  ]
+                                : null
+                            }
+                            elapsedSec={measurementReplayElapsedSec}
+                            durationSec={measurementInstantResult.replayDurationSec ?? undefined}
+                            showPlayhead
+                          />
+                        ) : (
+                          <RealtimePitchMonitor
+                            points={measurementInstantResult.replayPitchPoints ?? []}
+                            currentMidi={replayCurrentMidi}
+                            systemKey={measurementInstantResult.measurementKey}
+                            pitchGuide={
+                              measurementInstantResult.measurementKey === "pitch_accuracy"
+                                ? buildPitchGuide(measurementInstantResult.replayGuideRange ?? "mid")
+                                : null
+                            }
+                            pitchGuideRange={measurementInstantResult.replayGuideRange ?? "mid"}
+                            elapsedSec={measurementReplayElapsedSec}
+                            totalDurationSec={measurementInstantResult.replayDurationSec ?? undefined}
+                            showPlayhead
+                          />
+                        )}
+                      </div>
+                      <div className="trainingPage__resultReplayActions">
+                        {isPremium && (
+                          <button
+                            type="button"
+                            className="trainingPage__resultModalBtn trainingPage__resultModalBtn--replay-primary trainingPage__resultReplayActionBtn"
+                            onClick={() => void toggleReplayAudio()}
+                          >
+                            {measurementReplayPlaying ? "録音プレビューを停止" : "録音プレビューを再生"}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="trainingPage__resultModalBtn trainingPage__resultModalBtn--download trainingPage__resultReplayActionBtn"
+                          onClick={() => void downloadRecordedAudio()}
+                          disabled={measurementWavConverting || !isPremium}
+                        >
+                          {measurementWavConverting ? "WAV変換中..." : "音声を端末に保存"}
+                        </button>
+                      </div>
+                      {!isPremium && (
+                        <button
+                          type="button"
+                          className="trainingPage__resultReplayLockOverlay"
+                          onClick={() => setPremiumModalOpen(true)}
+                        >
+                          <span className="trainingPage__resultReplayLockOverlayText">
+                            <span className="trainingPage__resultReplayLockOverlayKicker">PREMIUM</span>
+                            <span className="trainingPage__resultReplayLockOverlayTitle">プレミアムプランで解放されます</span>
+                            <span className="trainingPage__resultReplayLockOverlaySub">詳細</span>
+                          </span>
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -1977,24 +1983,17 @@ export default function TrainingPage() {
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
         variant="lp"
-        previewImageSrc={premiumPreviewTraining}
-        previewImageAlt="録音測定のプレビュー"
-        previewCaption="録音の重ね再生とWAV保存で復習を強化"
         title="録音リプレイ機能を解放する"
         description="無料プランでは録音の重ね再生と音声ダウンロードは利用できません。"
-        flowTitle="解放される体験"
-        flowSteps={[
-          { title: "重ね再生で確認", sub: "音源と自分の声を並べて比較", pill: "再生" },
-          { title: "課題を見つける", sub: "違和感のある箇所をその場で特定", pill: "復習" },
-          { title: "音声を保存", sub: "WAVで端末に保存して振り返り", pill: "保存" },
-        ]}
-        note="プレミアムプランで、測定結果を聞き直して改善ポイントを確認できます。"
         benefits={[
-          "音源 + 自分の声を重ねて再生",
-          "録音音声を端末へWAV保存",
-          "結果モーダル内でそのまま復習",
+          "音源＋自分の声を重ねて再生",
+          "録音音声をWAVで保存",
+          "そのまま聞き直して復習",
         ]}
-        ctaLabel="録音機能を解放する"
+        benefitsPanel
+        ambientArtSrc={premiumAmbientReplayUi}
+        ambientArtOpacity={0.17}
+        ctaLabel="プレミアムを見る"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");

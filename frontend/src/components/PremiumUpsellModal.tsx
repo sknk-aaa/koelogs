@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type CSSProperties } from "react";
 import "./PremiumUpsellModal.css";
 
 type GrowthTone = "up" | "down" | "flat";
@@ -25,12 +25,17 @@ type Props = {
   noteVariant?: "default" | "quote";
   footerNote?: string;
   benefits?: string[];
+  benefitsPanel?: boolean;
+  ambientArtSrc?: string;
+  ambientArtOpacity?: number;
   growthTitle?: string;
   growthItems?: GrowthItem[];
   statsTitle?: string;
   statsLines?: string[];
   flowTitle?: string;
   flowSteps?: FlowStep[];
+  flowBackgroundImageSrc?: string;
+  flowBackgroundOpacity?: number;
   previewImageSrc?: string;
   previewImageAlt?: string;
   previewCaption?: string;
@@ -51,12 +56,17 @@ export default function PremiumUpsellModal({
   noteVariant = "default",
   footerNote,
   benefits,
+  benefitsPanel = false,
+  ambientArtSrc,
+  ambientArtOpacity,
   growthTitle,
   growthItems,
   statsTitle,
   statsLines,
   flowTitle,
   flowSteps,
+  flowBackgroundImageSrc,
+  flowBackgroundOpacity,
   previewImageSrc,
   previewImageAlt = "",
   previewCaption,
@@ -66,6 +76,19 @@ export default function PremiumUpsellModal({
   onClose,
   onCta,
 }: Props) {
+  const flowSectionStyle: CSSProperties | undefined = flowBackgroundImageSrc
+    ? ({
+        "--premium-flow-bg": `url("${flowBackgroundImageSrc}")`,
+        "--premium-flow-opacity": String(flowBackgroundOpacity ?? 0.18),
+      } as CSSProperties)
+    : undefined;
+  const cardStyle: CSSProperties | undefined = ambientArtSrc
+    ? ({
+        "--premium-ambient-art": `url("${ambientArtSrc}")`,
+        "--premium-ambient-opacity": String(ambientArtOpacity ?? 0.08),
+      } as CSSProperties)
+    : undefined;
+
   useEffect(() => {
     document.body.classList.toggle("premiumModal--open", open);
     return () => {
@@ -78,10 +101,11 @@ export default function PremiumUpsellModal({
   return (
     <div className="premiumModal__overlay" role="presentation" onClick={onClose}>
       <section
-        className={`premiumModal__card ${variant === "lp" ? "is-lp" : ""}`}
+        className={`premiumModal__card ${variant === "lp" ? "is-lp" : ""}${ambientArtSrc ? " premiumModal__card--ambient" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-label="プレミアムプランの案内"
+        style={cardStyle}
         onClick={(e) => e.stopPropagation()}
       >
         {!!previewImageSrc && (
@@ -129,9 +153,12 @@ export default function PremiumUpsellModal({
             )}
           </section>
         )}
-        {(variant === "lp" && flowTitle && flowSteps?.length) && (
-          <section className="premiumModal__lpSection premiumModal__lpSection--features">
-            <div className="premiumModal__lpSectionTitle">{flowTitle}</div>
+        {(variant === "lp" && flowSteps?.length) && (
+          <section
+            className={`premiumModal__lpSection premiumModal__lpSection--features${!flowTitle ? " premiumModal__lpSection--noTitle" : ""}`}
+            style={flowSectionStyle}
+          >
+            {!!flowTitle && <div className="premiumModal__lpSectionTitle">{flowTitle}</div>}
             <ol className="premiumModal__lpFlow" aria-label="Premiumで起きること">
               {flowSteps.slice(0, 3).map((step, index) => (
                 <li key={`${step.title}-${step.sub}`} className="premiumModal__lpFlowItem">
@@ -152,11 +179,13 @@ export default function PremiumUpsellModal({
         )}
         {!!note && <div className={`premiumModal__note ${noteVariant === "quote" ? "is-quote" : ""}`}>{note}</div>}
         {!!benefits?.length && (
-          <ul className="premiumModal__benefits">
-            {benefits.slice(0, 3).map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <div className={`premiumModal__benefitsWrap${benefitsPanel ? " premiumModal__benefitsWrap--panel" : ""}`}>
+            <ul className="premiumModal__benefits">
+              {benefits.slice(0, 3).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
         )}
         <div className="premiumModal__actions">
           <button type="button" className="premiumModal__btn premiumModal__btn--primary" onClick={onCta}>

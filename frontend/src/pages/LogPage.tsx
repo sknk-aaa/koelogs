@@ -1381,7 +1381,7 @@ export default function LogPage() {
         ]}
         note="比較だけで終わらせず、理由に基づいた改善アクションまでサポートします。"
         noteVariant="default"
-        ctaLabel="プレミアムプランの詳細を見る"
+        ctaLabel="プレミアムを見る"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");

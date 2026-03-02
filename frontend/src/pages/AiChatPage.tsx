@@ -14,7 +14,7 @@ import { useAuth } from "../features/auth/useAuth";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
 import searchIconDark from "../assets/chat/search-dark.svg";
 import searchIconLight from "../assets/chat/search-light.svg";
-import premiumPreviewChat from "../assets/premium/preview-chat.svg";
+import premiumFlowChatAi from "../assets/premium/flow-chat-ai.svg";
 import "./AiChatPage.css";
 
 const QUICK_PROMPTS = [
@@ -938,22 +938,19 @@ export default function AiChatPage() {
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
         variant="lp"
-        previewImageSrc={premiumPreviewChat}
-        previewImageAlt="AIチャットのプレビュー"
-        previewCaption="会話の継続・深掘りはプレミアムで解放"
         title="AIチャットを無制限で使う"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");
         }}
         description="無料プランでは、おすすめへの質問は1日1回までです。"
-        flowTitle="解放される体験"
+        flowBackgroundImageSrc={premiumFlowChatAi}
+        flowBackgroundOpacity={0.24}
         flowSteps={[
-          { title: "会話を継続", sub: "おすすめの続き質問をそのまま深掘り", pill: "無制限" },
-          { title: "文脈を維持", sub: "前の相談内容を引き継いで調整", pill: "継続会話" },
-          { title: "次の一手を具体化", sub: "その日の改善ポイントを即決定", pill: "実践向け" },
+          { title: "あなたの記録を根拠化", sub: "練習ログ・測定データをもとに回答", pill: "個人ログ" },
+          { title: "集合知を活用", sub: "Koelogs独自のコミュニティ投稿データも反映", pill: "コミュニティ知見" },
+          { title: "ボイトレ相談を自由に", sub: "自由に会話を作成して談可能", pill: "無制限" },
         ]}
-        note="プレミアムプランならそのまま会話を続けられます。"
         benefits={[
           "おすすめへの質問を回数制限なしで継続",
           "新しいチャットを自由に作成",

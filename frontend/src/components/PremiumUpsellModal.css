@@ -25,6 +25,11 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
   gap: 10px;
 }
 
+.premiumModal__card--ambient {
+  position: relative;
+  overflow: hidden;
+}
+
 .premiumModal__card.is-lp {
   width: min(460px, 100%);
   padding: 16px 16px 14px;
@@ -135,6 +140,8 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
 }
 
 .premiumModal__lpSection--features {
+  --premium-flow-bg: url("../assets/premium/flow-graph.svg");
+  --premium-flow-opacity: 0.18;
   position: relative;
   overflow: hidden;
   padding: 14px 14px 12px;
@@ -173,14 +180,22 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
   right: -18px;
   width: 58%;
   height: calc(100% - 10px);
-  background: url("../assets/premium/flow-graph.svg") right center / contain no-repeat;
-  opacity: 0.18;
+  background: var(--premium-flow-bg) right center / contain no-repeat;
+  opacity: var(--premium-flow-opacity);
   pointer-events: none;
 }
 
 .premiumModal__lpSection--features .premiumModal__lpSectionTitle {
   position: relative;
   z-index: 1;
+}
+
+.premiumModal__lpSection--features.premiumModal__lpSection--noTitle {
+  padding-top: 12px;
+}
+
+.premiumModal__lpSection--features.premiumModal__lpSection--noTitle::before {
+  display: none;
 }
 
 .premiumModal__lpStats {
@@ -492,6 +507,47 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
   gap: 7px;
 }
 
+.premiumModal__benefitsWrap--panel {
+  position: relative;
+  overflow: hidden;
+  margin: 4px 0 8px;
+  padding: 10px 11px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #ffffff 5%, transparent) 0%,
+      color-mix(in srgb, #ffffff 2%, transparent) 100%
+    ),
+    color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.03));
+}
+
+.premiumModal__card--ambient .premiumModal__benefitsWrap--panel::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  width: min(62%, 210px);
+  height: min(78%, 152px);
+  background: var(--premium-ambient-art) right bottom / contain no-repeat;
+  opacity: var(--premium-ambient-opacity, 0.08);
+  filter: blur(0.6px) saturate(0.9);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.premiumModal__card--ambient .premiumModal__benefitsWrap--panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.premiumModal__benefitsWrap--panel .premiumModal__benefits li {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
 .premiumModal__benefits li {
   position: relative;
   font-size: 13px;
@@ -547,19 +603,31 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
   font-weight: 900;
   padding: 0 12px;
   cursor: pointer;
+  transition: transform 140ms ease, box-shadow 160ms ease, border-color 160ms ease, filter 140ms ease, background-color 160ms ease;
 }
 
 .premiumModal__btn--primary {
-  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
-  background: color-mix(in srgb, var(--accent) 24%, #0f1a2c);
-  color: #eef6ff;
+  border-color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.38));
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 44%, #1f4d8f) 0%,
+      color-mix(in srgb, var(--accent) 30%, #132e56) 100%
+    );
+  color: #f3f8ff;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 8px 18px color-mix(in srgb, var(--accent) 34%, transparent);
 }
 
 .premiumModal__card.is-lp .premiumModal__btn--primary {
   width: min(78%, 320px);
   height: 46px;
   font-size: 14px;
-  box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 24%, transparent);
+  font-weight: 950;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 22px color-mix(in srgb, var(--accent) 36%, transparent);
 }
 
 .premiumModal__card.is-lp .premiumModal__btn {
@@ -569,10 +637,32 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
 .premiumModal__card.is-lp .premiumModal__btn:not(.premiumModal__btn--primary) {
   width: min(52%, 220px);
   height: 32px;
-  border-color: color-mix(in srgb, #ffffff 18%, transparent);
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-  color: color-mix(in srgb, #ffffff 72%, transparent);
+  border-color: color-mix(in srgb, #ffffff 14%, transparent);
+  background: color-mix(in srgb, #ffffff 4%, transparent);
+  color: color-mix(in srgb, #ffffff 64%, transparent);
   font-weight: 700;
+}
+
+.premiumModal__btn:not(.premiumModal__btn--primary) {
+  border-color: color-mix(in srgb, #ffffff 15%, transparent);
+  background: color-mix(in srgb, #ffffff 4%, transparent);
+  color: color-mix(in srgb, #ffffff 68%, transparent);
+}
+
+.premiumModal__btn--primary:hover:not(:disabled),
+.premiumModal__btn--primary:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 12px 24px color-mix(in srgb, var(--accent) 44%, transparent);
+}
+
+.premiumModal__btn:not(.premiumModal__btn--primary):hover:not(:disabled),
+.premiumModal__btn:not(.premiumModal__btn--primary):focus-visible {
+  transform: none;
+  filter: brightness(1.02);
+  box-shadow: none;
 }
 
 .premiumModal__footerNote {
@@ -594,7 +684,7 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
   .premiumModal__lpGrowthList {
     grid-template-columns: none;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(228px, 82%);
+    grid-auto-columns: minmax(172px, 66%);
     gap: 8px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;

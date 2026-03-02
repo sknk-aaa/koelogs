@@ -12,7 +12,7 @@ import { useAuth } from "../features/auth/useAuth";
 import ExportCsvDialog, { type CsvExportPeriod, type CsvMetricFilter } from "../features/insights/components/ExportCsvDialog";
 import InsightsCardHeader from "../features/insights/components/InsightsCardHeader";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
-import premiumPreviewInsights from "../assets/premium/preview-insights.svg";
+import premiumFlowCsvExport from "../assets/premium/flow-csv-export.svg";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -310,8 +310,8 @@ function ClickableCard({
 }
 
 export default function InsightsPage() {
-  const { me, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { me, isLoading: authLoading } = useAuth();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
   const [csvPeriod, setCsvPeriod] = useState<CsvExportPeriod>("latest");
@@ -554,24 +554,16 @@ export default function InsightsPage() {
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
         variant="lp"
-        previewImageSrc={premiumPreviewInsights}
-        previewImageAlt="分析とCSV出力のプレビュー"
-        previewCaption="期間・指標を選んでCSV出力"
         title="CSV出力を解放する"
         description="無料プランではCSV出力は利用できません。"
-        flowTitle="解放される体験"
+        flowBackgroundImageSrc={premiumFlowCsvExport}
+        flowBackgroundOpacity={0.24}
         flowSteps={[
-          { title: "期間を選択", sub: "最新 / 30日 / 90日で集計範囲を切替", pill: "期間指定" },
-          { title: "指標を絞り込み", sub: "必要な測定だけを抽出して整理", pill: "指標選択" },
-          { title: "CSVで保存", sub: "分析結果をそのまま出力して共有", pill: "出力" },
+          { title: "期間を選択", sub: "最新 / 30日 / 90日", pill: "期間指定" },
+          { title: "指標を絞り込み", sub: "必要な測定のみ抽出", pill: "指標選択" },
+          { title: "CSVで保存", sub: "分析結果をそのまま出力", pill: "出力" },
         ]}
-        note="プレミアムプランで、必要な期間・指標を選んで書き出せます。"
-        benefits={[
-          "期間（最新 / 30日 / 90日）を選択",
-          "指標フィルタ（すべて / 各測定）に対応",
-          "分析データをCSVで保存・共有",
-        ]}
-        ctaLabel="CSVを解放する"
+        ctaLabel="プレミアムを見る"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");

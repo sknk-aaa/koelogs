@@ -474,8 +474,8 @@ const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
 ];
 
 export default function InsightsNotesPage() {
-  const { me, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { me, isLoading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
   const [monthFilter, setMonthFilter] = useState<string>("all");
@@ -1322,26 +1322,18 @@ export default function InsightsNotesPage() {
         variant="lp"
         previewImageSrc={premiumPreviewInsights}
         previewImageAlt="分析詳細のプレビュー"
-        previewCaption="全期間グラフと全履歴をまとめて確認"
         title="分析詳細をフル表示する"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");
         }}
         description="無料プランは7日グラフと一部履歴まで表示されます。"
-        flowTitle="解放される体験"
         flowSteps={[
           { title: "全期間の推移を確認", sub: "30日 / 90日 / 365日 / 月で比較", pill: "全期間" },
-          { title: "履歴を深掘り", sub: "測定履歴を時系列でまとめて確認", pill: "全履歴" },
-          { title: "変化を判断", sub: "細かな差分を見て改善の優先度を決定", pill: "分析強化" },
+          { title: "履歴を深掘り", sub: "測定履歴を全表示して確認", pill: "全履歴" },
+          { title: "変化を判断", sub: "差分を見て改善の優先度を決定", pill: "分析強化" },
         ]}
-        note="プレミアムプランで全期間の推移と履歴を確認できます。"
-        benefits={[
-          "30日/90日/365日/月の全期間グラフ",
-          "測定履歴を全件表示",
-          "細かな変化を時系列で確認",
-        ]}
-        ctaLabel="分析を解放する"
+        ctaLabel="プレミアムを見る"
       />
     </div>
   );

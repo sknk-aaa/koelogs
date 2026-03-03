@@ -61,6 +61,11 @@
   --premium-blue: #2f74be;
   --premium-blue-deep: #255d99;
   --premium-soft-blue: #edf5ff;
+  --premium-white-zone-bg: #ffffff;
+  --premium-wave-hero-top: #f3f9ff;
+  --premium-wave-hero-bottom: #ffffff;
+  --premium-wave-mid-top: var(--premium-white-zone-bg);
+  --premium-wave-mid-bottom: #eef5ff;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   color: var(--premium-text);
@@ -207,8 +212,8 @@
 .premiumPlanPage__waveDivider svg {
   display: block;
   width: 100%;
-  height: calc(100% + 2px);
-  margin-top: -1px;
+  height: 100%;
+  margin-top: 0;
 }
 
 .premiumPlanPage__waveDivider path {
@@ -222,11 +227,12 @@
 
 .premiumPlanPage__whiteZone {
   padding: 0 var(--premium-page-x);
-  background: #ffffff;
+  background: var(--premium-white-zone-bg);
+  display: flow-root;
 }
 
 .premiumPlanPage__benefits {
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .premiumPlanPage__benefitList {
@@ -753,4 +759,263 @@
   bottom: auto;
   border-radius: 18px;
   margin-top: 12px;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanShell {
+  background: #0b1220;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanHeader {
+  background: linear-gradient(180deg, #eef4fb 0%, #e8f0fa 100%);
+  border-bottom-color: #c8d6e8;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanHeader__back {
+  color: #446080;
+  background: transparent;
+  border: none;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanHeader__title {
+  color: #2a3e57;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage {
+  --premium-line: rgba(157, 186, 220, 0.26);
+  --premium-text: #d4e4fa;
+  --premium-text-muted: #9eb5d1;
+  --premium-blue: #72aef3;
+  --premium-blue-deep: #9bcbff;
+  --premium-soft-blue: #0f1e34;
+  --premium-white-zone-bg: #0e1a30;
+  --premium-wave-hero-top: #11233f;
+  --premium-wave-hero-bottom: #0e1a30;
+  --premium-wave-mid-top: var(--premium-white-zone-bg);
+  --premium-wave-mid-bottom: #0f1d34;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroZone {
+  background: linear-gradient(180deg, #0d172b 0%, #0f1d35 58%, #11233f 100%);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__badge {
+  border-color: rgba(142, 175, 213, 0.28);
+  background: rgba(135, 176, 224, 0.12);
+  color: #9eb8d6;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroOrnament::before {
+  border-color: rgba(130, 166, 207, 0.72);
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroMark {
+  border-color: rgba(113, 159, 207, 0.5);
+  background: linear-gradient(180deg, #0f243f 0%, #113154 58%, #143c65 100%);
+  color: #8dcbff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroLineBase {
+  stroke: #83b9ef;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroBar {
+  fill: #7ec2ff;
+  stroke: #6eb5f7;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroBar--2 {
+  fill: #67b5fb;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroBar--3 {
+  fill: #4ea4f1;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroTrend {
+  stroke: #8fd0ff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heading {
+  color: #dce9fb;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroLine {
+  color: #d7e7fa;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroSub {
+  color: #a7bfdc;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__benefitIcon {
+  color: #9ab6d7;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__benefitAccent {
+  stroke: #6ec3ff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__benefitTitle {
+  color: #d2e4fb;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__assurance {
+  border-color: rgba(136, 169, 207, 0.34);
+  background: linear-gradient(180deg, #142943 0%, #17365a 100%);
+  box-shadow: 0 8px 18px rgba(24, 58, 96, 0.24);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__assuranceIcon {
+  border-color: rgba(133, 171, 213, 0.42);
+  background: rgba(200, 225, 255, 0.1);
+  color: #9fc8f1;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__assuranceMain {
+  color: #beddff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__assuranceSub {
+  color: #9cb7d7;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__blueZone {
+  background: linear-gradient(180deg, #0f1d34 0%, #10243f 100%);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareHeading {
+  color: #d6e7fb;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareWrap::after {
+  background: linear-gradient(180deg, #2e7dcb 0%, #225f9c 100%);
+  box-shadow: inset 0 0 0 1px rgba(201, 228, 255, 0.16);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable thead th {
+  color: #a7bfdc;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable thead th:nth-child(2) {
+  color: #9cb6d5;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable thead th:last-child {
+  color: #eff7ff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody th,
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody td.premiumPlanPage__freeCell {
+  border-bottom-color: rgba(149, 180, 214, 0.22);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody tr:nth-child(odd) th,
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody tr:nth-child(odd) td.premiumPlanPage__freeCell {
+  background: #14253f;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody tr:nth-child(even) th,
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody tr:nth-child(even) td.premiumPlanPage__freeCell {
+  background: #102039;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody th {
+  color: #c8ddf8;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__freeCell {
+  color: #8aa5c6;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__freeCell.is-value {
+  color: #a5bdd8;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__summaryCard {
+  border-color: rgba(143, 173, 207, 0.35);
+  background: linear-gradient(180deg, #12253f 0%, #10213a 100%);
+  box-shadow: 0 12px 24px rgba(2, 8, 18, 0.36);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__summaryTitle {
+  color: #d2e5fb;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__summaryText {
+  color: #a2bbd8;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__pricing {
+  border-top-color: rgba(142, 172, 205, 0.34);
+  background: linear-gradient(180deg, #101f36 0%, #0d1b31 100%);
+  box-shadow: 0 -12px 30px rgba(3, 8, 18, 0.5);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard {
+  border-color: rgba(138, 170, 204, 0.34);
+  background: #12243d;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard:focus-visible {
+  outline-color: rgba(129, 185, 255, 0.54);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planHead {
+  color: #aac3df;
+  background: #183353;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planPrice {
+  color: #d6e7fb;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planPrice span {
+  color: #96b0cc;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planSub {
+  color: #8bc4ff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planFoot {
+  border-color: rgba(136, 168, 202, 0.34);
+  background: rgba(162, 196, 233, 0.08);
+  color: #a4bfdc;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard--highlight {
+  border-color: #5b9ce2;
+  background: linear-gradient(180deg, #173255 0%, #153050 100%);
+  box-shadow: 0 10px 20px rgba(8, 18, 36, 0.46);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard--highlight .premiumPlanPage__planHead {
+  background: #1f426b;
+  color: #d6e9ff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard--highlight .premiumPlanPage__planPrice {
+  color: #d8ebff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard.is-selected {
+  border-color: #77b2ef;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planBadge {
+  border-color: rgba(139, 179, 223, 0.6);
+  background: rgba(109, 165, 224, 0.22);
+  color: #d5e9ff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__cta {
+  border-color: #63a7ea;
+  background: linear-gradient(180deg, #4a94dd 0%, #3179c5 100%);
+  box-shadow: 0 8px 18px rgba(10, 22, 40, 0.48);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__secondary {
+  color: #9cb5d1;
 }

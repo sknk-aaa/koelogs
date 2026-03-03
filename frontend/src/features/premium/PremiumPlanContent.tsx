@@ -146,7 +146,10 @@ export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimary
           </div>
         </section>
 
-        <WaveDivider topColor="#f3f9ff" bottomColor="#ffffff" />
+        <WaveDivider
+          topColor="var(--premium-wave-hero-top)"
+          bottomColor="var(--premium-wave-hero-bottom)"
+        />
 
         <section className="premiumPlanPage__whiteZone">
           <section className="premiumPlanPage__benefits" aria-label="ベネフィット一覧">
@@ -177,7 +180,11 @@ export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimary
           </section>
         </section>
 
-        <WaveDivider topColor="#ffffff" bottomColor="#eef5ff" flipped />
+        <WaveDivider
+          topColor="var(--premium-wave-mid-top)"
+          bottomColor="var(--premium-wave-mid-bottom)"
+          flipped
+        />
 
         <section className="premiumPlanPage__blueZone">
           <section className="premiumPlanPage__compare" aria-label="無料とPremiumの比較">

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { fetchMe, recalculateAiLongTermProfile, updateMe, type AiLongTermProfileCustomItem } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
@@ -61,6 +61,7 @@ function aiRangeTrendLabel(days: 14 | 30 | 90): string {
 }
 
 export default function AiSettingsPage() {
+  const navigate = useNavigate();
   const { refresh } = useAuth();
   const { settings, patchSettings } = useSettings();
 
@@ -108,7 +109,7 @@ export default function AiSettingsPage() {
         const strengths = lineArrayToText(profile?.strengths ?? []);
         const challenges = lineArrayToText(profile?.challenges ?? []);
         const growth = lineArrayToText(profile?.growth_journey ?? []);
-        const items = normalizeCustomItems(profile?.custom_items ?? []);
+        const items = normalizeCustomItems(me.ai_long_term_profile_user_custom_items ?? []);
         setCustomInstructions(custom);
         setSelectedTags(tags);
         setInitialCustomInstructions(custom);
@@ -239,7 +240,7 @@ export default function AiSettingsPage() {
       const nextStrengths = lineArrayToText(profile?.strengths ?? []);
       const nextChallenges = lineArrayToText(profile?.challenges ?? []);
       const nextGrowth = lineArrayToText(profile?.growth_journey ?? []);
-      const nextItems = normalizeCustomItems(profile?.custom_items ?? normalizedCustomItems);
+      const nextItems = normalizeCustomItems(updated.ai_long_term_profile_user_custom_items ?? normalizedCustomItems);
       setCustomInstructions(nextCustom);
       setSelectedTags(nextTags);
       setInitialCustomInstructions(nextCustom);
@@ -254,8 +255,12 @@ export default function AiSettingsPage() {
       setInitialCustomItems(nextItems);
       setComputedAt(profile?.meta?.computed_at ?? null);
       setWindowDays(profile?.meta?.source_window_days ?? 90);
-      setStatus("AIカスタム指示を保存しました");
       void refresh().catch(() => undefined);
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      navigate(`/log?mode=day&date=${yyyy}-${mm}-${dd}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "保存に失敗しました");
     } finally {

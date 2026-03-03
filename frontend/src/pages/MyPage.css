@@ -156,6 +156,136 @@
   font-weight: 900;
 }
 
+.myPage__missionBtn.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.myPage__missionGuideCard,
+.myPage__missionBtn.is-guided {
+  position: relative;
+}
+
+.myPage__missionGuideCard {
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid #d7dee8;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(31, 64, 122, 0.08);
+  padding: 14px 14px 12px;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.myPage__missionGuideTitle {
+  font-size: 18px;
+  font-weight: 950;
+  color: #4b5567;
+  line-height: 1.35;
+}
+
+.myPage__missionGuideMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.myPage__missionGuideLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5e6d86;
+}
+
+.myPage__missionGuideCount {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 900;
+  color: #2cb2c9;
+}
+
+.myPage__missionGuideArrow {
+  font-size: 38px;
+  line-height: 0.6;
+  color: #b9c4d7;
+}
+
+.myPage__missionGuideProgressTrack {
+  height: 16px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #dce4ef;
+  display: block;
+}
+
+.myPage__missionGuideProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #42c7da, #2da6cb);
+}
+
+.myPage__missionGuideCard.is-guided,
+.myPage__missionBtn.is-guided {
+  z-index: 910;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.24);
+  animation: myPageGuidePulse 1.2s ease-in-out infinite;
+}
+
+.myPage__tapGuide {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, #ffffff);
+  color: var(--on-light-1);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.myPage__tapGuide--inline {
+  margin-left: 6px;
+  position: relative;
+  z-index: 960;
+}
+
+.myPage__tapGuideFinger {
+  display: block;
+  animation: myPageGuideFinger 0.85s ease-in-out infinite alternate;
+}
+
+.myPage__tapGuideImage {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+@keyframes myPageGuidePulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes myPageGuideFinger {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2px);
+  }
+}
+
 .myPage__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -376,6 +506,7 @@
 }
 
 .myPage__modalCard {
+  position: relative;
   width: min(680px, 100%);
   max-height: min(80vh, 760px);
   overflow: auto;
@@ -428,6 +559,76 @@
 
 .myPage__modalMission.is-done {
   opacity: 0.75;
+}
+
+.myPage__modalMission.is-locked {
+  opacity: 0.5;
+}
+
+.myPage__missionActionWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.myPage__modalCard.is-guide {
+  z-index: 940;
+  pointer-events: none;
+}
+
+.myPage__modalClickBlocker {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(11, 18, 32, 0.62);
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.myPage__missionBtn.is-guided {
+  position: relative;
+  z-index: 960;
+  pointer-events: auto;
+}
+
+.myPage__guideOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(8, 12, 22, 0.72);
+  pointer-events: auto;
+}
+
+.myPage__guideHand {
+  position: fixed;
+  z-index: 920;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  background: transparent;
+  border: none;
+  pointer-events: none;
+}
+
+.myPage__guideHandIcon {
+  display: block;
+  animation: myPageGuideFinger 0.85s ease-in-out infinite alternate;
+}
+
+.myPage__guideHandImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.42));
+}
+
+.myPage__missionGroups.is-guide-hidden {
+  display: none;
 }
 
 .myPage__modalMissionTop {
@@ -571,6 +772,47 @@
   border-color: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.18));
   background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.04));
   color: var(--on-dark-1);
+}
+
+:root[data-theme-mode="dark"] .myPage__tapGuide {
+  border-color: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.2));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.06));
+  color: var(--on-dark-1);
+}
+
+:root[data-theme-mode="dark"] .myPage__missionGuideCard {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: #172033;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.36);
+}
+
+:root[data-theme-mode="dark"] .myPage__missionGuideTitle {
+  color: #e5edff;
+}
+
+:root[data-theme-mode="dark"] .myPage__missionGuideLabel {
+  color: rgba(219, 231, 255, 0.82);
+}
+
+:root[data-theme-mode="dark"] .myPage__missionGuideCount {
+  color: #7dd3fc;
+}
+
+:root[data-theme-mode="dark"] .myPage__missionGuideArrow {
+  color: rgba(203, 213, 225, 0.78);
+}
+
+:root[data-theme-mode="dark"] .myPage__missionGuideProgressTrack {
+  background: rgba(148, 163, 184, 0.28);
+}
+
+:root[data-theme-mode="dark"] .myPage__guideHand {
+  background: transparent;
+  border: none;
+}
+
+body[data-mypage-tutorial-lock-footer="true"] nav[aria-label="mode tabs"] {
+  pointer-events: none;
 }
 
 /* バッジ（ロック時の視認性を落としすぎない） */

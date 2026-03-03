@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
 import { fetchMonthlyLog, fetchMonthlyLogComparison, upsertMonthlyLog } from "../api/monthlyLogs";
@@ -23,8 +23,10 @@ import "./LogPage.css";
 import LogHeader from "../features/log/components/LogHeader";
 import SummaryCard from "../features/log/components/SummaryCard";
 import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
-import WelcomeGuideModal from "../features/log/components/WelcomeGuideModal";
 import { setLastLogPath } from "../features/log/logNavigation";
+import TutorialModal from "../components/TutorialModal";
+import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
+import handPointerImage from "../assets/tutorial/pointer.png";
 
 import { fetchMe, updateMeGoalText, type Me } from "../api/auth";
 import ColoredTag from "../components/ColoredTag";
@@ -309,8 +311,8 @@ function buildComparisonDiagnosis(data: MonthlyLogComparisonData): ComparisonDia
 
 const AI_PREVIEW_CHARS = 100;
 const GOAL_MAX = 50;
-const FIRST_LOGIN_GUIDE_KEY_PREFIX = "voice_app_log_first_guide_seen_user_";
-const BEGINNER_MISSIONS_OPEN_KEY = "koelogs:beginner_missions_open";
+const BEGINNER_COMPLETE_MODAL_SEEN_KEY_PREFIX = "koelogs:beginner_complete_modal_seen:user_";
+const BEGINNER_LAST_PENDING_KEY_PREFIX = "koelogs:beginner_last_pending:user_";
 
 type LogMode = "day" | "month";
 type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
@@ -374,6 +376,10 @@ export default function LogPage() {
     : `/log?mode=day&date=${encodeURIComponent(selectedDate)}`;
 
   const isToday = selectedDate === today;
+  const missionGuide = params.get("missionGuide");
+  const forceGuideDailyLog = missionGuide === "beginner_daily_log" && isDayMode && isToday && !guestMode;
+  const aiCustomDoneParam = params.get("aiCustomDone");
+  const shouldRunAiMissionGuide = missionGuide === "beginner_ai" && isDayMode && !guestMode;
   const currentMonth = useMemo(() => today.slice(0, 7), [today]);
   const canGoNextMonth = selectedMonth < currentMonth;
 
@@ -382,10 +388,15 @@ export default function LogPage() {
   const [log, setLog] = useState<TrainingLog | null>(null);
   const [currentStreakDays, setCurrentStreakDays] = useState<number | null>(null);
   const [longestStreakDays, setLongestStreakDays] = useState<number | null>(null);
-  const [totalPracticeDaysCount, setTotalPracticeDaysCount] = useState<number | null>(null);
   const [saveToast, setSaveToast] = useState<SaveRewards | null>(null);
-  const [firstGuideOpen, setFirstGuideOpen] = useState(false);
-  const [showGuideHintBanner, setShowGuideHintBanner] = useState(false);
+  const [tutorialWelcomeOpen, setTutorialWelcomeOpen] = useState(false);
+  const [beginnerCompletionModalStep, setBeginnerCompletionModalStep] = useState<"congrats" | "unlocked" | null>(null);
+  const [aiMissionGuideStep, setAiMissionGuideStep] = useState<"intro" | "references" | "customization" | "pointer" | null>(null);
+  const aiCtaCardRef = useRef<HTMLElement | null>(null);
+  const aiGenerateBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [aiGenerateGuidePos, setAiGenerateGuidePos] = useState<{ left: number; top: number } | null>(null);
+  const forceGuideAiGenerate = aiMissionGuideStep === "pointer";
+  const goalGuideRowRef = useRef<HTMLDivElement | null>(null);
 
   const [monthLoading, setMonthLoading] = useState(false);
   const [monthError, setMonthError] = useState<string | null>(null);
@@ -399,13 +410,7 @@ export default function LogPage() {
   const [monthSaveLoading, setMonthSaveLoading] = useState(false);
   const [monthSaveError, setMonthSaveError] = useState<string | null>(null);
   const [beginnerMissions, setBeginnerMissions] = useState<MissionItem[]>([]);
-  const [beginnerMissionsOpen, setBeginnerMissionsOpen] = useState<boolean>(() => {
-    try {
-      return window.localStorage.getItem(BEGINNER_MISSIONS_OPEN_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
+  const [beginnerMissionModalOpen, setBeginnerMissionModalOpen] = useState(false);
 
   // ===== Me / Goal =====
   const [me, setMe] = useState<Me | null>(null);
@@ -470,6 +475,10 @@ export default function LogPage() {
       const updated = await updateMeGoalText(v);
       setMe(updated);
       setGoalEditing(false);
+      const missionsRes = await fetchMissions();
+      if (!missionsRes.error && missionsRes.data) {
+        setBeginnerMissions(missionsRes.data.beginner ?? []);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "保存できませんでした";
       setGoalError(msg);
@@ -597,7 +606,6 @@ export default function LogPage() {
       if (!authMe) {
         setCurrentStreakDays(null);
         setLongestStreakDays(null);
-        setTotalPracticeDaysCount(null);
         return;
       }
       const res = await fetchInsights(30);
@@ -605,12 +613,10 @@ export default function LogPage() {
       if ("error" in res && res.error) {
         setCurrentStreakDays(null);
         setLongestStreakDays(null);
-        setTotalPracticeDaysCount(null);
         return;
       }
       setCurrentStreakDays(res.data?.streaks.current_days ?? null);
       setLongestStreakDays(res.data?.streaks.longest_days ?? null);
-      setTotalPracticeDaysCount(res.data?.total_practice_days_count ?? 0);
     })();
 
     return () => {
@@ -687,23 +693,69 @@ export default function LogPage() {
 
   useEffect(() => {
     if (authLoading || !authMe) {
-      setFirstGuideOpen(false);
+      setTutorialWelcomeOpen(false);
       return;
     }
-    if (totalPracticeDaysCount === null) {
-      setFirstGuideOpen(false);
-      return;
-    }
+    const stage = loadTutorialStage(authMe.id);
+    setTutorialWelcomeOpen(stage === "log_welcome");
+  }, [authLoading, authMe]);
 
-    const key = `${FIRST_LOGIN_GUIDE_KEY_PREFIX}${authMe.id}`;
-    let seen = false;
-    try {
-      seen = window.localStorage.getItem(key) === "1";
-    } catch {
-      seen = false;
+  useEffect(() => {
+    if (!shouldRunAiMissionGuide) {
+      setAiMissionGuideStep(null);
+      setAiGenerateGuidePos(null);
+      return;
     }
-    setFirstGuideOpen(!seen && totalPracticeDaysCount === 0);
-  }, [authLoading, authMe, totalPracticeDaysCount]);
+    setAiMissionGuideStep("intro");
+    const id = window.setTimeout(() => {
+      aiCtaCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+    return () => window.clearTimeout(id);
+  }, [shouldRunAiMissionGuide]);
+
+  useEffect(() => {
+    if (!forceGuideAiGenerate) {
+      setAiGenerateGuidePos(null);
+      return;
+    }
+    aiCtaCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const target = aiGenerateBtnRef.current;
+    if (!target) return;
+    const update = () => {
+      const rect = target.getBoundingClientRect();
+      setAiGenerateGuidePos({
+        left: rect.left + rect.width * 0.5 + 22,
+        top: rect.top + rect.height + 130,
+      });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [forceGuideAiGenerate]);
+
+  useEffect(() => {
+    if (!forceGuideDailyLog && !forceGuideAiGenerate) {
+      delete document.body.dataset.logMissionGuideLockFooter;
+      return;
+    }
+    document.body.dataset.logMissionGuideLockFooter = "true";
+    return () => {
+      delete document.body.dataset.logMissionGuideLockFooter;
+    };
+  }, [forceGuideAiGenerate, forceGuideDailyLog]);
+
+  const clearMissionGuideQuery = () => {
+    setParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("missionGuide");
+      next.delete("aiCustomDone");
+      return next;
+    });
+  };
 
   const onChangeDate = (next: string) => {
     setParams({ mode: "day", date: next });
@@ -727,7 +779,8 @@ export default function LogPage() {
       goLogin();
       return;
     }
-    navigate(`/log/new?date=${encodeURIComponent(selectedDate)}`);
+    const suffix = forceGuideDailyLog ? "&missionGuide=beginner_daily_log" : "";
+    navigate(`/log/new?date=${encodeURIComponent(selectedDate)}${suffix}`);
   };
 
   const onSaveMonthlyLog = async (payload: { notes: string | null }) => {
@@ -762,6 +815,10 @@ export default function LogPage() {
       return;
     }
     if (aiLoading) return;
+    if (forceGuideAiGenerate) {
+      setAiMissionGuideStep(null);
+      clearMissionGuideQuery();
+    }
 
     setAiLoading(true);
     setAiError(null);
@@ -781,6 +838,10 @@ export default function LogPage() {
     emitGamificationRewards(res.rewards);
     setAiLoading(false);
     setAiExpanded(true);
+    const missionsRes = await fetchMissions();
+    if (!missionsRes.error && missionsRes.data) {
+      setBeginnerMissions(missionsRes.data.beginner ?? []);
+    }
   };
 
   const openAiChat = (initialMessage?: string) => {
@@ -794,19 +855,6 @@ export default function LogPage() {
         recommendationText: effectiveAiRec.recommendation_text,
       },
     });
-  };
-
-  const closeFirstGuide = (showHintBanner: boolean) => {
-    if (authMe) {
-      const key = `${FIRST_LOGIN_GUIDE_KEY_PREFIX}${authMe.id}`;
-      try {
-        window.localStorage.setItem(key, "1");
-      } catch {
-        // localStorage未使用環境では保存しない
-      }
-    }
-    setFirstGuideOpen(false);
-    setShowGuideHintBanner(showHintBanner);
   };
 
   const previewLog: TrainingLog = {
@@ -889,19 +937,81 @@ export default function LogPage() {
 
   const goalText = me?.goal_text ?? null;
   const isWithinInitial7Days = isWithinFirst7Days(me?.created_at);
+  const forceGuideGoalSetting =
+    !!me && missionGuide === "beginner_goal" && isDayMode && !guestMode && !goalText && !goalEditing;
   const pendingBeginnerMissions = useMemo(
     () => beginnerMissions.filter((mission) => !mission.done),
     [beginnerMissions]
   );
+  const beginnerTotalCount = beginnerMissions.length;
   const beginnerPendingCount = pendingBeginnerMissions.length;
+  const beginnerDoneCount = Math.max(0, beginnerTotalCount - beginnerPendingCount);
+  const beginnerProgressPercent =
+    beginnerTotalCount > 0 ? Math.round((beginnerDoneCount / beginnerTotalCount) * 100) : 0;
+  const beginnerAiCustomizationDone = useMemo(() => {
+    if (aiCustomDoneParam === "1") return true;
+    if (aiCustomDoneParam === "0") return false;
+    return beginnerMissions.find((mission) => mission.key === "beginner_ai_customization")?.done === true;
+  }, [aiCustomDoneParam, beginnerMissions]);
 
   useEffect(() => {
+    const current = beginnerPendingCount;
+    if (!authMe || beginnerTotalCount === 0) return;
+
+    const seenKey = `${BEGINNER_COMPLETE_MODAL_SEEN_KEY_PREFIX}${authMe.id}`;
+    const lastPendingKey = `${BEGINNER_LAST_PENDING_KEY_PREFIX}${authMe.id}`;
+    let lastPending: number | null = null;
+    let alreadyShown = false;
+
     try {
-      window.localStorage.setItem(BEGINNER_MISSIONS_OPEN_KEY, beginnerMissionsOpen ? "true" : "false");
+      const raw = window.localStorage.getItem(lastPendingKey);
+      lastPending = raw == null ? null : Number.parseInt(raw, 10);
+      alreadyShown = window.localStorage.getItem(seenKey) === "1";
     } catch {
-      // localStorage未使用環境では永続化しない
+      lastPending = null;
+      alreadyShown = false;
     }
-  }, [beginnerMissionsOpen]);
+
+    if (current === 0 && !alreadyShown && lastPending != null && lastPending > 0) {
+      setBeginnerCompletionModalStep("congrats");
+      try {
+        window.localStorage.setItem(seenKey, "1");
+      } catch {
+        // no-op
+      }
+    }
+
+    if (current > 0) {
+      try {
+        window.localStorage.removeItem(seenKey);
+      } catch {
+        // no-op
+      }
+    }
+
+    try {
+      window.localStorage.setItem(lastPendingKey, String(current));
+    } catch {
+      // no-op
+    }
+  }, [authMe, beginnerPendingCount, beginnerTotalCount]);
+
+  useEffect(() => {
+    if (!beginnerMissionModalOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [beginnerMissionModalOpen]);
+
+  useEffect(() => {
+    if (!forceGuideGoalSetting) return;
+    const id = window.setTimeout(() => {
+      goalGuideRowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+    return () => window.clearTimeout(id);
+  }, [forceGuideGoalSetting]);
 
   useEffect(() => {
     const shouldHideFooterTabs = isMonthMode && isComparisonModalOpen;
@@ -1040,81 +1150,174 @@ export default function LogPage() {
       )}
 
       {!!authMe && isDayMode && beginnerPendingCount > 0 && (
-        <section className="logPage__beginnerBar" aria-label="初心者ミッション">
+        <section className="logPage__beginnerGuide" aria-label="ビギナーミッション">
           <button
             type="button"
-            className="logPage__beginnerBarToggle"
-            onClick={() => setBeginnerMissionsOpen((prev) => !prev)}
-            aria-expanded={beginnerMissionsOpen}
+            className="logPage__missionGuideCard"
+            onClick={() => setBeginnerMissionModalOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={beginnerMissionModalOpen}
           >
-            <span className="logPage__beginnerBarTitle">初心者ミッション</span>
-            <span className="logPage__beginnerBarCount">残り{beginnerPendingCount}件</span>
-            <span className="logPage__beginnerBarCaret" aria-hidden="true">
-              {beginnerMissionsOpen ? "▾" : "▸"}
+            <div className="logPage__missionGuideTitle">ミッションをクリアしよう</div>
+            <div className="logPage__missionGuideMetaRow">
+              <span className="logPage__missionGuideLabel">ビギナーミッション</span>
+              <span className="logPage__missionGuideCount">
+                {beginnerDoneCount} / {beginnerTotalCount}
+              </span>
+              <span className="logPage__missionGuideArrow" aria-hidden="true">
+                ›
+              </span>
+            </div>
+            <span className="logPage__missionGuideProgressTrack" aria-hidden="true">
+              <span
+                className="logPage__missionGuideProgressFill"
+                style={{ width: `${beginnerProgressPercent}%` }}
+              />
             </span>
           </button>
-          {beginnerMissionsOpen && (
-            <div className="logPage__beginnerBarList">
+        </section>
+      )}
+
+      {beginnerMissionModalOpen && (
+        <div
+          className="logPage__missionModalOverlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="ビギナーミッション"
+          onClick={() => setBeginnerMissionModalOpen(false)}
+        >
+          <section className="card logPage__missionModalCard" onClick={(event) => event.stopPropagation()}>
+            <div className="logPage__missionModalHead">
+              <div className="logPage__missionModalTitle">ビギナーミッション</div>
+              <button
+                type="button"
+                className="logPage__missionModalClose"
+                onClick={() => setBeginnerMissionModalOpen(false)}
+                aria-label="閉じる"
+              >
+                ×
+              </button>
+            </div>
+            <div className="logPage__missionModalStatus">残り {beginnerPendingCount} 件</div>
+            <div className="logPage__beginnerGuideList">
               {pendingBeginnerMissions.map((mission) => (
-                <article key={mission.key} className="logPage__beginnerBarItem">
-                  <div className="logPage__beginnerBarItemMain">
-                    <span className="logPage__beginnerBarItemIcon" aria-hidden="true">
-                      {mission.done ? "✓" : "○"}
+                <article key={mission.key} className="logPage__beginnerGuideItem">
+                  <div className="logPage__beginnerGuideItemMain">
+                    <span className="logPage__beginnerGuideItemIcon" aria-hidden="true">
+                      ○
                     </span>
-                    <div className="logPage__beginnerBarItemText">
-                      <div className="logPage__beginnerBarItemTitle">{mission.title}</div>
-                      <div className="logPage__beginnerBarItemDesc">{mission.description}</div>
+                    <div className="logPage__beginnerGuideItemText">
+                      <div className="logPage__beginnerGuideItemTitle">{mission.title}</div>
+                      <div className="logPage__beginnerGuideItemDesc">{mission.description}</div>
                     </div>
                   </div>
-                  <Link to={mission.to} className="logPage__beginnerBarItemAction">
+                  <Link
+                    to={
+                      mission.key === "beginner_ai"
+                        ? `${mission.to}${mission.to.includes("?") ? "&" : "?"}aiCustomDone=${beginnerAiCustomizationDone ? "1" : "0"}`
+                        : mission.to
+                    }
+                    className="logPage__beginnerGuideItemAction"
+                    onClick={() => setBeginnerMissionModalOpen(false)}
+                  >
                     開く
                   </Link>
                 </article>
               ))}
             </div>
-          )}
-        </section>
+          </section>
+        </div>
       )}
 
-      <WelcomeGuideModal
-        open={firstGuideOpen}
-        onClose={() => closeFirstGuide(true)}
-        onOpenGuide={() => {
-          closeFirstGuide(false);
-          navigate("/help/guide");
+      <TutorialModal
+        open={tutorialWelcomeOpen}
+        badge="WELCOME"
+        title="はじめまして、Koelogsへようこそ！"
+        paragraphs={[
+          "このアプリは、あなたの「練習記録」と「測定データ」をもとに、AIが次の練習メニューを提案するボイストレーニング支援アプリです。",
+          "まずは基本の流れを体験してみましょう。",
+        ]}
+        primaryLabel="ビギナーミッションをはじめる"
+        onPrimary={() => {
+          if (!authMe) return;
+          saveTutorialStage(authMe.id, "mypage_intro");
+          setTutorialWelcomeOpen(false);
+          navigate("/mypage");
         }}
-        onStartRecord={() => {
-          closeFirstGuide(false);
-          navigate(`/log/new?date=${encodeURIComponent(selectedDate)}`, {
-            state: { quickFromWelcome: true },
-          });
-        }}
+        onClose={() => {}}
       />
 
-      {showGuideHintBanner && (
-        <section className="card logPage__guideHint" role="status">
-          <div className="logPage__guideHintText">迷ったら使い方を見る</div>
-          <div className="logPage__guideHintActions">
-            <button
-              type="button"
-              className="logPage__btn logPage__btn--subtle"
-              onClick={() => {
-                setShowGuideHintBanner(false);
-                navigate("/help/guide");
-              }}
-            >
-              使い方を見る
-            </button>
-            <button
-              type="button"
-              className="logPage__btn logPage__btn--subtle"
-              onClick={() => setShowGuideHintBanner(false)}
-            >
-              閉じる
-            </button>
-          </div>
-        </section>
-      )}
+      <TutorialModal
+        open={aiMissionGuideStep === "intro"}
+        badge="MISSION"
+        title="AIおすすめについて"
+        paragraphs={["このアプリでは、今日のおすすめトレーニング内容をAIが提案してくれます。"]}
+        primaryLabel="次へ"
+        onPrimary={() => setAiMissionGuideStep("references")}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={aiMissionGuideStep === "references"}
+        badge="MISSION"
+        title="AIおすすめの参照データ"
+        paragraphs={[
+          "AIのお勧め生成では、主に次のデータを参照します：",
+          "・ユーザーのAIカスタム指示",
+          "・ログで記録したデータ",
+          "・測定データ",
+        ]}
+        primaryLabel={beginnerAiCustomizationDone ? "AIおすすめを生成する" : "次へ"}
+        onPrimary={() => {
+          if (beginnerAiCustomizationDone) {
+            setAiMissionGuideStep("pointer");
+            return;
+          }
+          setAiMissionGuideStep("customization");
+        }}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={aiMissionGuideStep === "customization"}
+        badge="MISSION"
+        title="まずはAIカスタム指示を設定しましょう"
+        paragraphs={["まずはAIカスタム指示を作成し、あなたの現在の状況や回答のスタイルを設定しましょう。"]}
+        primaryLabel="AIカスタム指示を作成"
+        onPrimary={() => {
+          setAiMissionGuideStep(null);
+          clearMissionGuideQuery();
+          navigate("/settings/ai");
+        }}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={beginnerCompletionModalStep === "congrats"}
+        badge="MISSION CLEAR"
+        title="おめでとうございます！"
+        paragraphs={["ビギナーミッションをすべてクリアしました。"]}
+        primaryLabel="次へ"
+        onPrimary={() => setBeginnerCompletionModalStep("unlocked")}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={beginnerCompletionModalStep === "unlocked"}
+        badge="UNLOCKED"
+        title="AIチャット機能が解放されました"
+        paragraphs={[
+          "ここでは、自由な会話の作成やAIおすすめに対しての質問が可能になります。",
+        ]}
+        primaryLabel="さっそく使ってみる"
+        secondaryLabel="あとで"
+        onPrimary={() => {
+          setBeginnerCompletionModalStep(null);
+          navigate("/chat");
+        }}
+        onSecondary={() => setBeginnerCompletionModalStep(null)}
+        onClose={() => setBeginnerCompletionModalStep(null)}
+      />
 
       {toastLines.length > 0 && (
         <section className="logPage__rewardToast" role="status" aria-live="polite">
@@ -1124,8 +1327,28 @@ export default function LogPage() {
         </section>
       )}
 
+      {(forceGuideDailyLog || forceGuideAiGenerate || forceGuideGoalSetting) && (
+        <>
+          <div
+            className={`logPage__guideOverlay ${forceGuideGoalSetting ? "is-goal" : ""}`.trim()}
+            aria-hidden="true"
+          />
+          {forceGuideAiGenerate && aiGenerateGuidePos && (
+            <div
+              className="logPage__guideHand"
+              style={{ left: `${aiGenerateGuidePos.left}px`, top: `${aiGenerateGuidePos.top}px` }}
+              role="status"
+              aria-live="polite"
+              aria-label="ここをタップ"
+            >
+              <img src={handPointerImage} alt="" className="logPage__guideHandImage" aria-hidden="true" />
+            </div>
+          )}
+        </>
+      )}
+
       {!!me && isDayMode && (
-        <div className="goalBar">
+        <div className={`goalBar ${forceGuideGoalSetting ? "is-guided" : ""}`.trim()}>
           {!goalEditing ? (
             goalText ? (
               <div className="goalBar__view">
@@ -1139,7 +1362,10 @@ export default function LogPage() {
               </div>
             ) : (
               <div className="goalBar__view">
-                <div className="goalBar__row">
+                <div
+                  ref={forceGuideGoalSetting ? goalGuideRowRef : undefined}
+                  className={`goalBar__row ${forceGuideGoalSetting ? "is-guided" : ""}`.trim()}
+                >
                   <div className="goalBar__label">
                     {isWithinInitial7Days
                       ? "目標を設定する（最大50文字・AIおすすめに反映）"
@@ -1451,6 +1677,7 @@ export default function LogPage() {
             }
             onClickRecord={goNew}
             currentStreakDays={guestMode ? 3 : currentStreakDays}
+            recordButtonClassName={forceGuideDailyLog ? "is-guided" : undefined}
           />
         ) : (
           <section className="card logPage__card">
@@ -1556,7 +1783,7 @@ export default function LogPage() {
             expanded={aiExpanded}
             onToggleExpanded={() => setAiExpanded((v) => !v)}
             collectiveSummary={effectiveAiRec?.collective_summary}
-            showFollowupButton={!guestMode && !!effectiveAiRec}
+            showFollowupButton={!guestMode && !!effectiveAiRec && beginnerPendingCount === 0}
             onOpenFollowup={(message) => void openAiChat(message)}
           />
         )}
@@ -1564,7 +1791,7 @@ export default function LogPage() {
 
       <div className="logPage__actions">
         {(showAiButton || (guestMode && isDayMode)) && (
-          <section className="logAi logPage__card logPage__aiCtaCard logAi--empty">
+          <section ref={aiCtaCardRef} className="logAi logPage__card logPage__aiCtaCard logAi--empty">
             <div className="logAi__header">
               <div>
                 <div className="logAi__title">AIトレーニング提案</div>
@@ -1618,7 +1845,11 @@ export default function LogPage() {
 
             <div className="logAi__content">
               <div className="logPage__aiCtaActions">
-                <button onClick={onAskAi} className="logPage__btn logPage__aiCtaBtn">
+                <button
+                  ref={aiGenerateBtnRef}
+                  onClick={onAskAi}
+                  className={`logPage__btn logPage__aiCtaBtn ${forceGuideAiGenerate ? "is-guided" : ""}`.trim()}
+                >
                   {guestMode && isDayMode
                     ? "ログインしてAI提案を作成"
                     : aiCreateButtonText}

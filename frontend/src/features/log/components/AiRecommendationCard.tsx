@@ -214,6 +214,7 @@ function parseAiSections(text: string): AiSection[] {
     const first = lines[0];
     const m = first.match(/^(\d)\)\s*(.+)$/);
     if (!m) continue;
+    if (m[2].includes("補足")) continue;
     sections.push({
       order: m[1],
       title: m[2],

@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { fetchMe } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
+import {
+  fetchBeginnerMissionGate,
+  hasSeenFirstLoginLanding,
+  markFirstLoginLandingSeen,
+} from "../features/missions/beginnerMissionGate";
+import { saveTutorialStage } from "../features/tutorial/tutorialFlow";
 
 import "./AuthPages.css";
 
@@ -22,7 +29,16 @@ export default function SignupPage() {
 
     try {
       await signup(email, password, passwordConfirmation);
-      navigate("/log", { replace: true });
+      let destination = "/log";
+      const meAfterSignup = await fetchMe();
+      if (meAfterSignup && !hasSeenFirstLoginLanding(meAfterSignup.id)) {
+        const beginnerGate = await fetchBeginnerMissionGate();
+        markFirstLoginLandingSeen(meAfterSignup.id);
+        if (beginnerGate && !beginnerGate.completed) {
+          saveTutorialStage(meAfterSignup.id, "log_welcome");
+        }
+      }
+      navigate(destination, { replace: true });
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

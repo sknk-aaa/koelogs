@@ -29,9 +29,11 @@ export type Me = {
   ai_custom_instructions: string | null;
   ai_improvement_tags: string[];
   ai_long_term_profile?: AiLongTermProfile;
+  ai_long_term_profile_user_custom_items?: AiLongTermProfileCustomItem[];
   public_profile_enabled: boolean;
   public_goal_enabled: boolean;
   ranking_participation_enabled: boolean;
+  beginner_missions_completed?: boolean;
   plan_tier?: "free" | "premium";
   billing_cycle?: "monthly" | "yearly" | null;
   ai_contribution_count: number;

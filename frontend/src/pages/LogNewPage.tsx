@@ -11,6 +11,7 @@ import type { TrainingMenu } from "../types/trainingMenu";
 import { useSettings } from "../features/settings/useSettings";
 import { mergeRewards } from "../features/gamification/rewardBus";
 import ColoredTag from "../components/ColoredTag";
+import TutorialModal from "../components/TutorialModal";
 
 import "./LogNewPage.css";
 
@@ -75,7 +76,13 @@ export default function LogNewPage() {
   const [showAiPromptOnSave, setShowAiPromptOnSave] = useState(false);
   const [pendingRewards, setPendingRewards] = useState<SaveRewards | null>(null);
   const [initialLoading, setInitialLoading] = useState(false);
+  const [missionDailyLogIntroOpen, setMissionDailyLogIntroOpen] = useState(false);
   const selectedMenuIdsArray = useMemo(() => Array.from(selectedMenuIds), [selectedMenuIds]);
+  const isMissionGuideDailyLog = params.get("missionGuide") === "beginner_daily_log";
+
+  useEffect(() => {
+    setMissionDailyLogIntroOpen(isMissionGuideDailyLog);
+  }, [isMissionGuideDailyLog]);
 
   // 初期ロード：メニュー一覧を取得（archived=falseのみ）
   useEffect(() => {
@@ -96,6 +103,10 @@ export default function LogNewPage() {
   // 初回保存時のみ AI生成ポップアップを出す
   useEffect(() => {
     if (menuManageMode) return;
+    if (isMissionGuideDailyLog) {
+      setShowAiPromptOnSave(false);
+      return;
+    }
     let cancelled = false;
     (async () => {
       const res = await fetchInsights(30);
@@ -113,7 +124,7 @@ export default function LogNewPage() {
     return () => {
       cancelled = true;
     };
-  }, [menuManageMode]);
+  }, [isMissionGuideDailyLog, menuManageMode]);
 
   // 初期表示で既存ログを読み込み、あればフォームに反映
   useEffect(() => {
@@ -482,6 +493,19 @@ export default function LogNewPage() {
           </section>
         </div>
       )}
+
+      <TutorialModal
+        open={!menuManageMode && missionDailyLogIntroOpen}
+        badge="MISSION"
+        title="日ログを記録してみましょう"
+        paragraphs={[
+          "ここでは、今日の練習内容を記録できます。",
+          "時間・メニュー・メモを入力して保存すると、分析とAI提案に反映されます。",
+        ]}
+        primaryLabel="記録をはじめる"
+        onPrimary={() => setMissionDailyLogIntroOpen(false)}
+        onClose={() => setMissionDailyLogIntroOpen(false)}
+      />
 
       <div className="logNew__stickyBar">
         <div className="logNew__stickyInner">

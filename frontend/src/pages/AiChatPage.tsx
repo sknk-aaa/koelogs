@@ -9,9 +9,11 @@ import {
   postAiChatMessage,
   updateAiChatThread,
 } from "../api/aiChat";
+import { fetchAiRecommendationByDate, fetchAiRecommendationHistory } from "../api/aiRecommendations";
 import type { AiChatMessage, AiChatThread } from "../types/aiChat";
 import { useAuth } from "../features/auth/useAuth";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
+import TutorialModal from "../components/TutorialModal";
 import searchIconDark from "../assets/chat/search-dark.svg";
 import searchIconLight from "../assets/chat/search-light.svg";
 import premiumFlowChatAi from "../assets/premium/flow-chat-ai.svg";
@@ -27,6 +29,8 @@ const INITIAL_RECO_VISIBLE = 10;
 const RECO_VISIBLE_STEP = 10;
 const ASSISTANT_TYPING_INTERVAL_MS = 14;
 const ASSISTANT_TYPING_CHAR_STEP = 6;
+const NEW_THREAD_TITLE = "新しい会話";
+const AI_CHAT_FIRST_VISIT_SEEN_KEY_PREFIX = "koelogs:ai_chat_first_visit_seen:user_";
 
 function recommendationThreadTitle(date: string): string {
   return `${date} のおすすめに質問`;
@@ -121,6 +125,7 @@ export default function AiChatPage() {
   const [recoVisibleCount, setRecoVisibleCount] = useState(INITIAL_RECO_VISIBLE);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [recommendationLimitReached, setRecommendationLimitReached] = useState(false);
+  const [firstRecoGuideOpen, setFirstRecoGuideOpen] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
@@ -130,6 +135,7 @@ export default function AiChatPage() {
   const typingTimerRef = useRef<number | null>(null);
   const navSeedHandledRef = useRef(false);
   const recommendationBootingRef = useRef(false);
+  const initialLoadStartedRef = useRef(false);
   const isPremium = me?.plan_tier === "premium";
 
   const generalThreads = useMemo(
@@ -165,6 +171,24 @@ export default function AiChatPage() {
     !isPremium &&
     isRecommendationThread &&
     (recommendationUserMessageCount >= 1 || recommendationLimitReached);
+
+  const isFirstVisit = useMemo(() => {
+    if (!me) return false;
+    try {
+      return window.localStorage.getItem(`${AI_CHAT_FIRST_VISIT_SEEN_KEY_PREFIX}${me.id}`) !== "1";
+    } catch {
+      return true;
+    }
+  }, [me]);
+
+  const markFirstVisitSeen = () => {
+    if (!me) return;
+    try {
+      window.localStorage.setItem(`${AI_CHAT_FIRST_VISIT_SEEN_KEY_PREFIX}${me.id}`, "1");
+    } catch {
+      // no-op
+    }
+  };
 
   const clearTypingTimer = () => {
     if (typingTimerRef.current) {
@@ -268,12 +292,118 @@ export default function AiChatPage() {
       return;
     }
 
+    if (isFirstVisit) {
+      const latestRecoThread = threadRes.data
+        .filter((thread) => thread.source_kind === "ai_recommendation")
+        .sort((a, b) => {
+          const aRef = a.source_date ?? a.created_at;
+          const bRef = b.source_date ?? b.created_at;
+          return bRef.localeCompare(aRef);
+        })[0] ?? null;
+
+      if (latestRecoThread) {
+        setThreads(threadRes.data);
+        setActiveThreadId(latestRecoThread.id);
+        setFirstRecoGuideOpen(true);
+        markFirstVisitSeen();
+        setLoading(false);
+        return;
+      }
+
+      const latestHistory = await fetchAiRecommendationHistory(1);
+      if (!latestHistory.error && latestHistory.data.length > 0) {
+        const latest = latestHistory.data[0];
+        const recommendationRes = await fetchAiRecommendationByDate(
+          latest.generated_for_date,
+          (latest.range_days === 30 || latest.range_days === 90 ? latest.range_days : 14) as 14 | 30 | 90
+        );
+        const created = await createAiChatThread({
+          title: recommendationThreadTitle(latest.generated_for_date),
+          seed_assistant_message:
+            recommendationRes.data?.recommendation_text?.trim() ||
+            latest.recommendation_text_preview?.trim() ||
+            undefined,
+          source_kind: "ai_recommendation",
+          source_date: latest.generated_for_date,
+        });
+        if (created.ok) {
+          setThreads([created.data, ...threadRes.data]);
+          setActiveThreadId(created.data.id);
+          setFirstRecoGuideOpen(true);
+          markFirstVisitSeen();
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
+    const existingNewThread = threadRes.data.find(
+      (thread) => thread.source_kind !== "ai_recommendation" && thread.title === NEW_THREAD_TITLE
+    );
+    if (existingNewThread) {
+      setThreads(threadRes.data);
+      setActiveThreadId(existingNewThread.id);
+      setLoading(false);
+      return;
+    }
+
+    if (isPremium) {
+      const created = await createAiChatThread();
+      if (!created.ok) {
+        if (created.status === 402) {
+          openPremiumModal();
+        } else {
+          setError(created.errors.join("\n"));
+        }
+        setLoading(false);
+        return;
+      }
+
+      setThreads([created.data, ...threadRes.data]);
+      setActiveThreadId(created.data.id);
+      setLoading(false);
+      return;
+    }
+
+    if (threadRes.data.length === 0) {
+      const latestHistory = await fetchAiRecommendationHistory(1);
+      if (!latestHistory.error && latestHistory.data.length > 0) {
+        const latest = latestHistory.data[0];
+        const recommendationRes = await fetchAiRecommendationByDate(
+          latest.generated_for_date,
+          (latest.range_days === 30 || latest.range_days === 90 ? latest.range_days : 14) as 14 | 30 | 90
+        );
+        const created = await createAiChatThread({
+          title: recommendationThreadTitle(latest.generated_for_date),
+          seed_assistant_message:
+            recommendationRes.data?.recommendation_text?.trim() ||
+            latest.recommendation_text_preview?.trim() ||
+            undefined,
+          source_kind: "ai_recommendation",
+          source_date: latest.generated_for_date,
+        });
+        if (created.ok) {
+          setThreads([created.data]);
+          setActiveThreadId(created.data.id);
+          setLoading(false);
+          return;
+        }
+        if (created.status === 402) {
+          openPremiumModal();
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
     setThreads(threadRes.data);
     setActiveThreadId(threadRes.data[0]?.id ?? null);
     setLoading(false);
   };
 
   useEffect(() => {
+    if (initialLoadStartedRef.current) return () => clearTypingTimer();
+    initialLoadStartedRef.current = true;
     void loadInitial();
     return () => clearTypingTimer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -567,7 +697,7 @@ export default function AiChatPage() {
   };
 
   return (
-    <div className={`page aiChatPage ${activeThreadId ? "is-chat-open" : ""}`}>
+    <div className={`page aiChatPage ${activeThreadId ? "is-chat-open" : "is-empty"}`}>
       {error && <section className="aiChatPage__error" role="alert">{error}</section>}
 
       <section className={`aiChatPage__shell ${sideCollapsed ? "is-collapsed" : ""}`} aria-label="AIチャット">
@@ -746,8 +876,45 @@ export default function AiChatPage() {
 
         <section className="aiChatPage__chatPane" aria-label="チャット本文">
           {!activeThreadId ? (
-            <div className="aiChatPage__emptyStatePane">
-              新規チャットを作成すると、ここに会話が表示されます。
+            <div className={`aiChatPage__emptyStatePane ${loading ? "is-booting" : ""}`}>
+              {loading ? (
+                <div className="aiChatPage__bootCard" role="status" aria-live="polite">
+                  <span className="aiChatPage__bootDot" aria-hidden="true" />
+                  <div className="aiChatPage__bootTitle">新しい会話を準備中…</div>
+                  <div className="aiChatPage__bootText">あなた専用のチャットを開いています</div>
+                </div>
+              ) : (
+                <div className="aiChatPage__emptyActionCard">
+                  <div className="aiChatPage__emptyActionTitle">何から始めますか？</div>
+                  <p className="aiChatPage__emptyActionText">
+                    新しい会話を作成して、AIコーチに相談できます。
+                  </p>
+                  <div className="aiChatPage__emptyActionButtons">
+                    <button type="button" className="aiChatPage__sendBtn" onClick={() => void onCreateThread()}>
+                      <span>新しい会話を作成</span>
+                      <span className="aiChatPage__emptyPremiumTag">PREMIUM</span>
+                    </button>
+                    <Link to="/log" className="aiChatPage__logLink aiChatPage__logLink--empty">
+                      ログページへ
+                    </Link>
+                  </div>
+                  <div className="aiChatPage__heroChips">
+                    {QUICK_PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        className="aiChatPage__chip"
+                        onClick={() => {
+                          setDraft(prompt);
+                          void onCreateThread();
+                        }}
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -856,84 +1023,6 @@ export default function AiChatPage() {
         onClick={() => setSideOpen(false)}
         aria-label="メニューを閉じる"
       />
-
-      {!activeThreadId && (
-        <section className="aiChatPage__hero">
-          <div className="aiChatPage__heroGreeting">
-            <span className="aiChatPage__heroSpark" aria-hidden="true">✦</span>
-            <span>Koelogs AIコーチ</span>
-          </div>
-          <h2 className="aiChatPage__heroTitle">何から始めますか？</h2>
-
-          <div className="aiChatPage__heroComposer">
-            <textarea
-              ref={textareaRef}
-              className="aiChatPage__textarea aiChatPage__textarea--hero"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              rows={1}
-              maxLength={2000}
-              placeholder="相談したい内容を入力"
-              disabled={sending}
-            />
-              <div className="aiChatPage__heroComposerFoot">
-                <div className="aiChatPage__heroTools">
-                <button
-                  type="button"
-                  className={`aiChatPage__toolBtn ${!isPremium ? "is-premium-locked" : ""}`}
-                  onClick={onCreateThread}
-                >
-                  <span>+ 新規チャット</span>
-                  {!isPremium && (
-                    <span className="aiChatPage__premiumLockLabel">
-                      <span className="aiChatPage__premiumLockIcon" aria-hidden="true" />
-                      <span>プレミアムプラン限定</span>
-                    </span>
-                  )}
-                </button>
-                <span className="aiChatPage__toolDot" aria-hidden="true">•</span>
-                <span className="aiChatPage__toolHint">Enterで送信 / Shift+Enterで改行</span>
-              </div>
-              <button
-                type="button"
-                className="aiChatPage__sendBtn"
-                disabled={sending || draft.trim().length === 0}
-                onClick={async () => {
-                  if (!isPremium) {
-                    openPremiumModal();
-                    return;
-                  }
-                  const created = await createAiChatThread();
-                  if (!created.ok) {
-                    if (created.status === 402) {
-                      openPremiumModal();
-                    } else {
-                      setError(created.errors.join("\n"));
-                    }
-                    return;
-                  }
-                  await loadThreads(created.data.id);
-                }}
-              >
-                送信
-              </button>
-            </div>
-          </div>
-
-          <div className="aiChatPage__heroChips">
-            {QUICK_PROMPTS.map((prompt) => (
-              <button
-                key={prompt}
-                type="button"
-                className="aiChatPage__chip"
-                onClick={() => setDraft(prompt)}
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
       <PremiumUpsellModal
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
@@ -957,6 +1046,15 @@ export default function AiChatPage() {
           "改善したいポイントを深掘り相談",
         ]}
         ctaLabel="プレミアムを見る"
+      />
+      <TutorialModal
+        open={firstRecoGuideOpen}
+        badge="AI GUIDE"
+        title="AIおすすめメニューの相談をしてみましょう"
+        paragraphs={["AIおすすめメニューで分からないことや不安な点があれば、質問してみましょう。"]}
+        primaryLabel="わかった"
+        onPrimary={() => setFirstRecoGuideOpen(false)}
+        onClose={() => setFirstRecoGuideOpen(false)}
       />
     </div>
   );

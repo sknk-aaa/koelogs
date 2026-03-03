@@ -41,7 +41,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeKey, setThemeKeyState] = useState<ThemeKey>(() => {
     return loadThemeKey() ?? "rose";
   });
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => loadThemeMode() ?? "system");
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => loadThemeMode() ?? "dark");
   const [systemDark, setSystemDark] = useState<boolean>(() => systemPrefersDark());
 
   const resolvedMode: "light" | "dark" = themeMode === "system" ? (systemDark ? "dark" : "light") : themeMode;

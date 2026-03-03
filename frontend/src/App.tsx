@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
 import RequireAuth from "./features/auth/RequireAuth";
+import RequireBeginnerMissionsCompleted from "./features/missions/RequireBeginnerMissionsCompleted";
 import AppLayout from "./components/AppLayout";
 
 import LogPage from "./pages/LogPage";
@@ -60,7 +61,9 @@ export default function App() {
               <Route path="/settings/ai" element={<AiSettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/mypage" element={<MyPage />} />
-              <Route path="/chat" element={<AiChatPage />} />
+              <Route element={<RequireBeginnerMissionsCompleted />}>
+                <Route path="/chat" element={<AiChatPage />} />
+              </Route>
             </Route>
 
             {/* ヘルプはログイン不要 */}

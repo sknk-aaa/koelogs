@@ -15,7 +15,8 @@ import { emitGamificationRewards } from "../features/gamification/rewardBus";
 import type { SaveRewards } from "../types/gamification";
 import ProcessingOverlay from "../components/ProcessingOverlay";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
-import { RANGE_MISSION_FLAG } from "../features/missions/constants";
+import TutorialModal from "../components/TutorialModal";
+import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
 import premiumAmbientReplayUi from "../assets/premium/ambient-replay-ui.svg";
 
 import "./TrainingPage.css";
@@ -203,8 +204,12 @@ export default function TrainingPage() {
     previousSec: null,
     bestSec: null,
   });
+  const [tutorialModalStage, setTutorialModalStage] = useState<
+    "training_range_intro" | "range_measured" | "tutorial_completed" | null
+  >(null);
+  const [tutorialRangeDonePending, setTutorialRangeDonePending] = useState(false);
+  const [rangeChestGuideOpen, setRangeChestGuideOpen] = useState(false);
   const [rangePhase, setRangePhase] = useState<RangePhase | null>(null);
-  const [missionRangeAutoInclude, setMissionRangeAutoInclude] = useState(false);
 
   const measurementAudioContextRef = useStateRef<AudioContext | null>(null);
   const measurementAnalyserRef = useStateRef<AnalyserNode | null>(null);
@@ -239,6 +244,7 @@ export default function TrainingPage() {
   const measurementResultBodyRef = useRef<HTMLDivElement | null>(null);
   const replayAudioRef = useStateRef<HTMLAudioElement | null>(null);
   const replayRafRef = useStateRef<number | null>(null);
+  const rangeChestGuideShownRef = useRef(false);
 
   const selected: ScaleTrack | null = useMemo(() => {
     return tracks.find((t) => t.scale_type === scaleType && t.range_type === rangeType) ?? null;
@@ -303,6 +309,49 @@ export default function TrainingPage() {
   const goLogin = () => {
     navigate("/login", { state: { fromPath: "/training" } });
   };
+
+  useEffect(() => {
+    if (!me) {
+      setTutorialModalStage(null);
+      return;
+    }
+    const stage = loadTutorialStage(me.id);
+    if (stage === "training_range_intro" || stage === "range_measured" || stage === "tutorial_completed") {
+      setTutorialModalStage(stage);
+      return;
+    }
+    setTutorialModalStage(null);
+  }, [me]);
+
+  useEffect(() => {
+    if (!tutorialRangeDonePending || measurementResultModalOpen) return;
+    setTutorialModalStage("range_measured");
+    setTutorialRangeDonePending(false);
+  }, [tutorialRangeDonePending, measurementResultModalOpen]);
+
+  useEffect(() => {
+    if (!me) {
+      setRangeChestGuideOpen(false);
+      rangeChestGuideShownRef.current = false;
+      return;
+    }
+    const stage = loadTutorialStage(me.id);
+    if (
+      measurementRecording &&
+      activeMeasurementKey === "range" &&
+      rangePhase === "chest" &&
+      stage === "awaiting_range_measurement" &&
+      !rangeChestGuideShownRef.current
+    ) {
+      rangeChestGuideShownRef.current = true;
+      setRangeChestGuideOpen(true);
+      return;
+    }
+    if (!measurementRecording) {
+      setRangeChestGuideOpen(false);
+      rangeChestGuideShownRef.current = false;
+    }
+  }, [activeMeasurementKey, me, measurementRecording, rangePhase]);
 
   const stopPitchGuideAudio = useCallback(() => {
     const audio = measurementPitchGuideAudioRef.current;
@@ -418,7 +467,6 @@ export default function TrainingPage() {
     const missionParam = searchParams.get("mission");
     if (missionParam === "range") {
       setActiveMeasurementKey("range");
-      setMissionRangeAutoInclude(true);
       const next = new URLSearchParams(searchParams);
       next.delete("mission");
       setSearchParams(next, { replace: true });
@@ -858,6 +906,10 @@ export default function TrainingPage() {
     if (!created) return;
     setMeasurementInstantResult(created);
     setMeasurementResultModalOpen(true);
+    if (me && created.measurementKey === "range" && loadTutorialStage(me.id) === "awaiting_range_measurement") {
+      saveTutorialStage(me.id, "range_measured");
+      setTutorialRangeDonePending(true);
+    }
   };
 
   const onUploadMeasurementFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -951,6 +1003,10 @@ export default function TrainingPage() {
       if (saved) {
         setMeasurementInstantResult(saved);
         setMeasurementResultModalOpen(true);
+        if (me && saved.measurementKey === "range" && loadTutorialStage(me.id) === "awaiting_range_measurement") {
+          saveTutorialStage(me.id, "range_measured");
+          setTutorialRangeDonePending(true);
+        }
       }
     } catch (err) {
       setMeasurementError(errorMessage(err, "音声ファイルの解析に失敗しました"));
@@ -1096,7 +1152,6 @@ export default function TrainingPage() {
 
     try {
       setMeasurementSessionSaving(true);
-      const shouldAutoIncludeRange = missionRangeAutoInclude && activeMeasurementKey === "range";
       const saved = await persistMeasurement({
         systemKey: activeMeasurementKey,
         peakNote,
@@ -1111,16 +1166,9 @@ export default function TrainingPage() {
         pitchAccuracyScore,
         pitchAvgCentsError,
         pitchNoteCount,
-        includeInInsights: shouldAutoIncludeRange,
+        includeInInsights: false,
       });
       emitGamificationRewards(saved.rewards);
-      if (shouldAutoIncludeRange) {
-        setMissionRangeAutoInclude(false);
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(RANGE_MISSION_FLAG, "1");
-          window.dispatchEvent(new CustomEvent("insights:update"));
-        }
-      }
       return buildMeasurementInstantResult({
         runId: saved.run.id,
         measurementKey: activeMeasurementKey,
@@ -1998,6 +2046,73 @@ export default function TrainingPage() {
           setPremiumModalOpen(false);
           navigate("/premium");
         }}
+      />
+      <TutorialModal
+        open={tutorialModalStage === "training_range_intro"}
+        badge="MISSION"
+        title="最初の一歩：音域測定"
+        paragraphs={[
+          "まずはあなたの現在の音域を測ってみましょう。",
+          "このデータは、成長の推移表示とAIおすすめメニューの精度向上に活用されます。",
+          "正確でなくても大丈夫です。今の状態を知ることが目的です。",
+        ]}
+        primaryLabel="▶ 測定を開始する"
+        onPrimary={() => {
+          if (!me) return;
+          setActiveMeasurementKey("range");
+          saveTutorialStage(me.id, "awaiting_range_measurement");
+          setTutorialModalStage(null);
+          void startMeasurementRecording();
+        }}
+        secondaryLabel="あとで"
+        onSecondary={() => setTutorialModalStage(null)}
+        onClose={() => setTutorialModalStage(null)}
+      />
+      <TutorialModal
+        open={rangeChestGuideOpen}
+        badge="GUIDE"
+        title="まずは地声を測ってみましょう！"
+        paragraphs={[
+          "低い音から高い音まで、出してみましょう。",
+          "無理せず、出せる範囲でOKです。",
+        ]}
+        primaryLabel="わかりました"
+        onPrimary={() => setRangeChestGuideOpen(false)}
+        onClose={() => setRangeChestGuideOpen(false)}
+      />
+      <TutorialModal
+        open={tutorialModalStage === "range_measured"}
+        badge="TUTORIAL"
+        title="音域測定が完了しました。"
+        paragraphs={[
+          "お疲れさまでした。",
+          "今日の結果は自動で保存されています。これがあなたの「現在地」です。",
+          "ここから成長の記録が始まります！",
+        ]}
+        primaryLabel="次へ"
+        onPrimary={() => {
+          if (!me) return;
+          saveTutorialStage(me.id, "tutorial_completed");
+          setTutorialModalStage("tutorial_completed");
+        }}
+        onClose={() => setTutorialModalStage(null)}
+      />
+      <TutorialModal
+        open={tutorialModalStage === "tutorial_completed"}
+        badge="TUTORIAL"
+        title="チュートリアル完了"
+        paragraphs={[
+          "これで基本の流れは体験できました。",
+          "次は、今日の練習を記録してみましょう。続けるほど、AIの提案も賢くなります。",
+          "あなたの声の成長を、ここで積み重ねていきましょう。",
+        ]}
+        primaryLabel="▶ Koelogsをはじめる"
+        onPrimary={() => {
+          if (me) saveTutorialStage(me.id, "completed");
+          setTutorialModalStage(null);
+          navigate("/mypage");
+        }}
+        onClose={() => setTutorialModalStage(null)}
       />
     </div>
   );

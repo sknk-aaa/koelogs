@@ -72,6 +72,56 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   color: var(--text);
 }
 
+.logPage__recordBtn.is-guided {
+  position: relative;
+  z-index: 970;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.24);
+}
+
+.logPage__guideOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 940;
+  background: rgba(8, 12, 22, 0.68);
+  pointer-events: auto;
+}
+
+.logPage__guideOverlay.is-goal {
+  background: rgba(8, 12, 22, 0.74);
+}
+
+.logPage__guideHand {
+  position: fixed;
+  z-index: 950;
+  transform: translateX(-50%);
+  width: 104px;
+  height: 104px;
+  pointer-events: none;
+}
+
+.logPage__guideHandImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.42));
+  animation: logPageGuideHandBounce 0.85s ease-in-out infinite alternate;
+}
+
+@keyframes logPageGuideHandBounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2px);
+  }
+}
+
+body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
+  pointer-events: none;
+}
+
 .logPage__guideHint {
   margin-bottom: 12px;
   display: flex;
@@ -185,54 +235,144 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   padding: 6px 10px;
 }
 
-.logPage__beginnerBar {
-  margin-bottom: 8px;
-  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
-  border-radius: 11px;
-  background: color-mix(in srgb, var(--surface) 90%, var(--card));
+.logPage__beginnerGuide {
+  margin-bottom: 10px;
+  display: grid;
+  gap: 8px;
 }
 
-.logPage__beginnerBarToggle {
-  width: 100%;
-  min-height: 34px;
-  border: 0;
-  border-radius: 11px;
-  background: transparent;
+.logPage__missionModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(8, 13, 24, 0.52);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.logPage__missionModalCard {
+  width: min(620px, 100%);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, #ffffff 95%, var(--card));
+  box-shadow: 0 22px 52px rgba(8, 17, 33, 0.2);
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.logPage__missionModalHead {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.logPage__missionModalTitle {
+  font-size: 20px;
+  font-weight: 950;
+  color: var(--text);
+}
+
+.logPage__missionModalClose {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--surface) 95%, var(--card));
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.logPage__missionModalStatus {
+  justify-self: start;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logPage__missionGuideCard {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid #d7dee8;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(31, 64, 122, 0.08);
+  padding: 14px 14px 12px;
+  display: grid;
+  gap: 10px;
   text-align: left;
   cursor: pointer;
 }
 
-.logPage__beginnerBarTitle {
+.logPage__missionGuideTitle {
+  font-size: 18px;
+  font-weight: 950;
+  color: #4b5567;
+  line-height: 1.35;
+}
+
+.logPage__missionGuideMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logPage__missionGuideLabel {
   font-size: 12px;
-  font-weight: 900;
-  color: var(--log-text-2);
+  font-weight: 700;
+  color: #5e6d86;
 }
 
-.logPage__beginnerBarCount {
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--log-text-3);
-}
-
-.logPage__beginnerBarCaret {
+.logPage__missionGuideCount {
   margin-left: auto;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 900;
-  color: color-mix(in srgb, var(--accent) 62%, var(--text));
-  transition: color 140ms ease;
+  color: #2cb2c9;
 }
 
-.logPage__beginnerBarList {
-  padding: 0 10px 8px;
+.logPage__missionGuideArrow {
+  font-size: 34px;
+  line-height: 0.6;
+  color: #b9c4d7;
+}
+
+.logPage__missionGuideProgressTrack {
+  height: 16px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #dce4ef;
+  display: block;
+}
+
+.logPage__missionGuideProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #42c7da, #2da6cb);
+}
+
+.logPage__beginnerGuideList {
   display: grid;
   gap: 6px;
 }
 
-.logPage__beginnerBarItem {
+.logPage__beginnerGuideItem {
   border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
   border-radius: 10px;
   background: color-mix(in srgb, var(--surface) 88%, var(--card));
@@ -243,14 +383,14 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   gap: 8px;
 }
 
-.logPage__beginnerBarItemMain {
+.logPage__beginnerGuideItemMain {
   min-width: 0;
   display: flex;
   align-items: flex-start;
   gap: 6px;
 }
 
-.logPage__beginnerBarItemIcon {
+.logPage__beginnerGuideItemIcon {
   font-size: 12px;
   font-weight: 900;
   color: color-mix(in srgb, var(--accent) 72%, var(--text));
@@ -258,25 +398,25 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   margin-top: 1px;
 }
 
-.logPage__beginnerBarItemText {
+.logPage__beginnerGuideItemText {
   min-width: 0;
 }
 
-.logPage__beginnerBarItemTitle {
+.logPage__beginnerGuideItemTitle {
   font-size: 12px;
   font-weight: 900;
   color: var(--log-text-2);
   line-height: 1.4;
 }
 
-.logPage__beginnerBarItemDesc {
+.logPage__beginnerGuideItemDesc {
   font-size: 11px;
   font-weight: 700;
   color: var(--log-text-3);
   line-height: 1.5;
 }
 
-.logPage__beginnerBarItemAction {
+.logPage__beginnerGuideItemAction {
   flex: 0 0 auto;
   min-height: 26px;
   padding: 0 9px;
@@ -1251,62 +1391,73 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   color: rgba(255, 255, 255, 0.74);
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBar {
-  border-color: var(--log-border-strong);
-  background: var(--log-surface-2);
-  position: relative;
+:root[data-theme-mode="dark"] .logPage__missionGuideCard {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: #172033;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.36);
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBar::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  border-radius: 11px 0 0 11px;
-  background: color-mix(in srgb, var(--accent) 80%, #ffffff 20%);
+:root[data-theme-mode="dark"] .logPage__missionModalOverlay {
+  background: rgba(2, 6, 16, 0.7);
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBarTitle {
-  color: var(--log-text-primary);
+:root[data-theme-mode="dark"] .logPage__missionModalCard {
+  border-color: rgba(148, 163, 184, 0.34);
+  background: #172033;
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.5);
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBarCount,
-:root[data-theme-mode="dark"] .logPage__beginnerBarItemDesc {
-  color: var(--log-text-muted);
+:root[data-theme-mode="dark"] .logPage__missionModalTitle {
+  color: #e5edff;
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBarCount {
-  border: 1px solid var(--log-border-strong);
-  border-radius: 999px;
-  min-height: 20px;
-  padding: 0 8px;
-  display: inline-flex;
-  align-items: center;
-  color: var(--log-text-primary);
+:root[data-theme-mode="dark"] .logPage__missionModalClose {
+  border-color: rgba(255, 255, 255, 0.24);
   background: rgba(255, 255, 255, 0.08);
+  color: #e2ecff;
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBarCaret {
-  color: var(--log-text-secondary);
+:root[data-theme-mode="dark"] .logPage__missionModalStatus {
+  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.22));
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.04));
+  color: #cfe7ff;
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBarToggle:hover .logPage__beginnerBarCaret {
-  color: var(--log-text-primary);
+:root[data-theme-mode="dark"] .logPage__missionGuideTitle {
+  color: #e5edff;
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBarItem {
+:root[data-theme-mode="dark"] .logPage__missionGuideLabel {
+  color: rgba(219, 231, 255, 0.82);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideCount {
+  color: #7dd3fc;
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideArrow {
+  color: rgba(203, 213, 225, 0.78);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideProgressTrack {
+  background: rgba(148, 163, 184, 0.28);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItem {
   border-color: var(--log-border-weak);
   background: var(--log-surface-1);
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBarItemTitle,
-:root[data-theme-mode="dark"] .logPage__beginnerBarItemAction {
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItemTitle,
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItemAction {
   color: var(--log-text-primary);
 }
 
-:root[data-theme-mode="dark"] .logPage__beginnerBarItemAction {
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItemDesc {
+  color: var(--log-text-muted);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItemAction {
   border-color: var(--log-border-strong);
   background: var(--log-surface-2);
 }
@@ -1315,6 +1466,13 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   border-color: var(--log-border-weak);
   background: var(--log-surface-1);
   box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .goalBar.is-guided {
+  border-color: color-mix(in srgb, var(--accent) 60%, rgba(255, 255, 255, 0.28));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 14px 28px rgba(0, 0, 0, 0.44);
 }
 
 :root[data-theme-mode="dark"] .goalBar::before {
@@ -2160,6 +2318,14 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
 
 .logPage__aiCtaBtn {
   min-height: 40px;
+}
+
+.logPage__aiCtaBtn.is-guided {
+  position: relative;
+  z-index: 970;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.24);
 }
 
 .logPage__aiCtaHint {
@@ -3638,6 +3804,27 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   gap: 10px;
 }
 
+.goalBar.is-guided {
+  position: relative;
+  z-index: 968;
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 14px 26px rgba(59, 130, 246, 0.22);
+}
+
+.goalBar__row.is-guided {
+  position: relative;
+  z-index: 970;
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.18);
+  background: color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.86));
+  animation: logPageGoalGuidePulse 1.2s ease-in-out infinite;
+}
+
 .goalBar__label {
   font: inherit;
   font-size: 13px;
@@ -3733,6 +3920,16 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   background: rgba(255, 107, 154, 0.12);
   font-size: 12px;
   font-weight: 900;
+}
+
+@keyframes logPageGoalGuidePulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
 }
 
 .weekCal {

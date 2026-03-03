@@ -1,5 +1,9 @@
-import { NavLink } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { getLastLogPath } from "../features/log/logNavigation";
+import { useAuth } from "../features/auth/useAuth";
+import { fetchBeginnerMissionGate } from "../features/missions/beginnerMissionGate";
+import TutorialModal from "./TutorialModal";
 
 // 画像をimport（ViteならこれでOK）
 import logActive from "../assets/tabs/log_active.png";
@@ -13,7 +17,19 @@ import aiChatInactive from "../assets/tabs/ai_chat_inactive.svg";
 import communityActive from "../assets/tabs/community_active.svg";
 import communityInactive from "../assets/tabs/community_inactive.svg";
 
-type TabKey = "log" | "training" | "insights" | "chat" | "community";
+type TabKey = "log" | "chat" | "training" | "community" | "insights";
+const BEGINNER_LAST_PENDING_KEY_PREFIX = "koelogs:beginner_last_pending:user_";
+
+function readBeginnerLastPending(userId: number): number | null {
+  try {
+    const raw = window.localStorage.getItem(`${BEGINNER_LAST_PENDING_KEY_PREFIX}${userId}`);
+    if (raw == null) return null;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  } catch {
+    return null;
+  }
+}
 
 const BASE_TABS: {
   key: TabKey;
@@ -30,18 +46,18 @@ const BASE_TABS: {
     iconInactive: logInactive,
   },
   {
-    key: "training",
-    label: "トレーニング",
-    to: "/training",
-    iconActive: trainingActive,
-    iconInactive: trainingInactive,
-  },
-  {
     key: "chat",
     label: "AIチャット",
     to: "/chat",
     iconActive: aiChatActive,
     iconInactive: aiChatInactive,
+  },
+  {
+    key: "training",
+    label: "トレーニング",
+    to: "/training",
+    iconActive: trainingActive,
+    iconInactive: trainingInactive,
   },
   {
     key: "community",
@@ -60,39 +76,128 @@ const BASE_TABS: {
 ];
 
 export default function AppFooterTabs() {
+  const navigate = useNavigate();
+  const { me } = useAuth();
+  const [beginnerCompleted, setBeginnerCompleted] = useState<boolean>(false);
+  const [chatLockedModalOpen, setChatLockedModalOpen] = useState(false);
   const logTabTo = getLastLogPath();
-  const tabs = BASE_TABS.map((tab) => ({
-    ...tab,
-    to: tab.key === "log" ? logTabTo : tab.to,
-  }));
+  const lastUserIdRef = useRef<number | null>(null);
+  const applyBeginnerCompleted = (next: boolean) => {
+    setBeginnerCompleted((prev) => (prev ? true : next));
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!me) {
+      setBeginnerCompleted(true);
+      lastUserIdRef.current = null;
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (lastUserIdRef.current !== me.id) {
+      lastUserIdRef.current = me.id;
+      setBeginnerCompleted(false);
+    }
+
+    const lastPending = readBeginnerLastPending(me.id);
+    if (lastPending === 0) {
+      applyBeginnerCompleted(true);
+    } else if (typeof me.beginner_missions_completed === "boolean") {
+      applyBeginnerCompleted(me.beginner_missions_completed);
+    }
+
+    void (async () => {
+      const gate = await fetchBeginnerMissionGate();
+      if (cancelled || !gate) return;
+      applyBeginnerCompleted(gate.completed);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [me?.id, me?.beginner_missions_completed]);
+
+  const chatLocked = !!me && !beginnerCompleted;
+  const tabs = useMemo(
+    () =>
+      BASE_TABS.map((tab) => {
+        if (tab.key === "log") return { ...tab, to: logTabTo };
+        return tab;
+      }),
+    [logTabTo]
+  );
 
   return (
-    <nav style={styles.nav} aria-label="mode tabs">
+    <nav style={{ ...styles.nav, gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }} aria-label="mode tabs">
       {tabs.map((t) => (
         <NavLink
           key={t.key}
           to={t.to}
+          aria-disabled={t.key === "chat" && chatLocked ? true : undefined}
+          onClick={(event) => {
+            if (t.key === "chat" && chatLocked) {
+              event.preventDefault();
+              setChatLockedModalOpen(true);
+            }
+          }}
           style={({ isActive }) => ({
             ...styles.tab,
+            ...(t.key === "chat" && chatLocked ? styles.tabLocked : null),
             ...(isActive ? styles.tabActive : null),
           })}
         >
           {({ isActive }) => (
             <>
-              <img
-                src={isActive ? t.iconActive : t.iconInactive}
-                alt=""
-                aria-hidden="true"
-                style={{
-                  ...styles.iconImg,
-                  ...(isActive ? styles.iconImgActive : null),
-                }}
-              />
-              <div style={styles.label}>{t.label}</div>
+              <div style={styles.iconWrap}>
+                <img
+                  src={isActive ? t.iconActive : t.iconInactive}
+                  alt=""
+                  aria-hidden="true"
+                  style={{
+                    ...styles.iconImg,
+                    ...(t.key === "chat" && chatLocked ? styles.iconImgLocked : null),
+                    ...(isActive ? styles.iconImgActive : null),
+                  }}
+                />
+                {t.key === "chat" && chatLocked && (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      ...styles.lockBadge,
+                    }}
+                  >
+                    🔒
+                  </span>
+                )}
+              </div>
+              <div style={styles.labelWrap}>
+                <div style={{ ...styles.label, ...(t.key === "chat" && chatLocked ? styles.labelLocked : null) }}>
+                  {t.label}
+                </div>
+              </div>
             </>
           )}
         </NavLink>
       ))}
+      <TutorialModal
+        open={chatLockedModalOpen}
+        badge="LOCKED"
+        title="AIチャットはビギナーミッション完了で解放されます"
+        paragraphs={[
+          "まずはビギナーミッションを進めましょう。",
+          "完了すると、AIチャットを利用できるようになります。",
+        ]}
+        primaryLabel="ビギナーミッションへ"
+        onPrimary={() => {
+          setChatLockedModalOpen(false);
+          navigate("/mypage");
+        }}
+        secondaryLabel="あとで"
+        onSecondary={() => setChatLockedModalOpen(false)}
+        onClose={() => setChatLockedModalOpen(false)}
+      />
     </nav>
   );
 }
@@ -135,6 +240,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     WebkitTapHighlightColor: "transparent",
   },
+  tabLocked: {
+    opacity: 0.86,
+  },
 
   tabActive: { color: "#ff3b45" },
 
@@ -144,6 +252,39 @@ const styles: Record<string, React.CSSProperties> = {
     objectFit: "contain",
     display: "block",
   },
+  iconWrap: {
+    position: "relative",
+    width: 24,
+    height: 24,
+  },
+  iconImgLocked: {
+    filter: "grayscale(0.38)",
+  },
+  lockBadge: {
+    position: "absolute",
+    right: -9,
+    top: -8,
+    width: 20,
+    height: 20,
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.9)",
+    backgroundColor: "#2f6fb7",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.24)",
+    color: "#ffffff",
+    fontSize: 13,
+    lineHeight: "20px",
+    textAlign: "center",
+    fontWeight: 900,
+  },
 
+  labelWrap: {
+    display: "grid",
+    justifyItems: "center",
+    gap: 1,
+    lineHeight: 1.1,
+  },
   label: { fontSize: 11, whiteSpace: "nowrap" },
+  labelLocked: {
+    color: "#75849b",
+  },
 };

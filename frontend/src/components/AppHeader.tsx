@@ -97,6 +97,12 @@ export default function AppHeader() {
           title: "アカウント",
           items: [
             {
+              label: "マイページ",
+              to: "/mypage",
+              match: "exact",
+              onClick: () => navigate("/mypage"),
+            },
+            {
               label: "プロフィール（表示名）",
               to: "/profile",
               match: "exact",

@@ -1,3 +1,4 @@
+import type { RefObject } from "react";
 import type { TrainingLog } from "../../../types/trainingLog";
 import ColoredTag from "../../../components/ColoredTag";
 import { Card } from "../../ui";
@@ -16,6 +17,8 @@ type Props = {
   // ✅ 追加：記録ボタンをカード近くに置く
   recordLabel: string;
   onClickRecord: () => void;
+  recordButtonRef?: RefObject<HTMLButtonElement | null>;
+  recordButtonClassName?: string;
 };
 
 export default function SummaryCard({
@@ -28,6 +31,8 @@ export default function SummaryCard({
   sampleMode = false,
   recordLabel,
   onClickRecord,
+  recordButtonRef,
+  recordButtonClassName,
 }: Props) {
   return (
     <Card className="logPage__card">
@@ -43,7 +48,11 @@ export default function SummaryCard({
           )}
 
           {/* ✅ サマリーの近くに配置（常に見える） */}
-          <button className="logPage__btn logPage__recordBtn" onClick={onClickRecord}>
+          <button
+            ref={recordButtonRef}
+            className={`logPage__btn logPage__recordBtn ${recordButtonClassName ?? ""}`.trim()}
+            onClick={onClickRecord}
+          >
             {recordLabel}
           </button>
         </div>

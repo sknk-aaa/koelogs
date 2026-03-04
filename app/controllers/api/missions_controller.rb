@@ -83,6 +83,7 @@ module Api
     def ai_customization_configured?
       current_user.ai_custom_instructions.present? ||
         Array(current_user.ai_improvement_tags).any? ||
+        Ai::ResponseStylePreferences.customized?(current_user.ai_response_style_prefs) ||
         long_term_profile_overrides_present?
     end
 

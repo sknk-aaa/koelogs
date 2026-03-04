@@ -8,7 +8,7 @@
   margin-top: 8px;
   display: block;
   min-height: 32px;
-  padding: 8px 10px;
+  padding: 9px 12px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
   background: color-mix(in srgb, var(--surface) 86%, var(--card));
@@ -146,7 +146,7 @@
 }
 
 .csvButton {
-  min-height: 30px;
+  min-height: 36px;
   padding: 0 10px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
@@ -682,7 +682,7 @@
   border-radius: 12px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.74);
-  padding: 8px 10px;
+  padding: 9px 12px;
   font-size: 12px;
   font-weight: 900;
   flex-shrink: 0;
@@ -800,6 +800,10 @@
   text-decoration-color: color-mix(in srgb, var(--ins-link) 55%, transparent);
 }
 
+.insightsCard__hintTextMobile {
+  display: none;
+}
+
 .insightsCard__hintSub {
   font-size: 10px;
   color: var(--ins-text-3);
@@ -894,7 +898,7 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 16%, var(--surface));
   color: var(--ins-text-1);
-  min-height: 30px;
+  min-height: 36px;
   padding: 0 12px;
   font-size: 12px;
   font-weight: 900;
@@ -1024,7 +1028,7 @@
 
 .insightsSelect--month {
   min-width: 124px;
-  padding: 8px 10px;
+  padding: 9px 12px;
   font-size: 12px;
   border-radius: 12px;
 }
@@ -1191,7 +1195,7 @@
   grid-template-columns: 54px 1fr auto;
   align-items: center;
   column-gap: 10px;
-  padding: 8px 10px;
+  padding: 9px 12px;
 }
 
 .insightsHistoryRow__date {
@@ -1429,6 +1433,20 @@
 
 .insightsGaugeCard .insightsCard__hintText {
   white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .insightsGaugeCard .insightsCard__hintTextDesktop {
+    display: none;
+  }
+
+  .insightsGaugeCard .insightsCard__hintTextMobile {
+    display: inline;
+  }
+
+  .insightsGaugeCard .insightsCard__hint {
+    gap: 2px;
+  }
 }
 
 .insightsStopwatchCard {
@@ -2084,7 +2102,7 @@
   border-radius: 12px;
   border: 1px solid rgba(54, 74, 100, 0.12);
   background: rgba(242, 246, 252, 0.9);
-  padding: 8px 10px;
+  padding: 9px 12px;
   text-align: center;
   font-size: 12px;
   font-weight: 900;
@@ -2510,7 +2528,7 @@
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 8px 22px rgba(16, 54, 89, 0.14);
   color: #223547;
-  padding: 8px 10px;
+  padding: 9px 12px;
   font-size: 11px;
   font-weight: 800;
   line-height: 1.45;
@@ -3052,5 +3070,22 @@
   .insightsLongToneHistoryRow__ratio,
   .insightsLongToneHistoryRow__delta {
     font-size: 10px;
+  }
+}
+
+@media (max-width: 430px) {
+  .insightsCirclePair {
+    grid-template-columns: 1fr;
+  }
+
+  .insightsTwinGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .insightsRangeTrend__tooltip {
+    white-space: normal;
+    max-width: min(72vw, 240px);
+    word-break: break-word;
   }
 }

@@ -280,6 +280,8 @@ export default function LogNewPage() {
     });
   };
 
+  const canAddMenu = menuToAdd.trim().length > 0;
+
   return (
     <div className="page logNew">
       <form id="log-new-form" onSubmit={onSubmit} className="logNew__form">
@@ -359,13 +361,13 @@ export default function LogNewPage() {
               })}
             </div>
 
-            <div className="logNew__previewRow">
-              <div className="logNew__subLabel">プレビュー</div>
-              <ColoredTag text="タグ表示" color={menuColorToAdd} />
-            </div>
-
             <div className="logNew__panelActions">
-              <button type="button" onClick={addMenu} disabled={!menuToAdd.trim()} className="logNew__btn logNew__btn--ghost">
+              <button
+                type="button"
+                onClick={addMenu}
+                disabled={!canAddMenu}
+                className={`logNew__btn ${canAddMenu ? "logNew__btn--addReady" : "logNew__btn--disabledState"}`}
+              >
                 この色で追加
               </button>
               <div className="logNew__muted">※ 選んだ色はメニュータグとして保存されます</div>
@@ -521,7 +523,7 @@ export default function LogNewPage() {
                 form?.requestSubmit();
               }}
               disabled={submitting}
-              className="logNew__btn logNew__btn--primary"
+              className="logNew__btn logNew__btn--savePrimary"
             >
               {submitting ? "保存中…" : "保存"}
             </button>

@@ -78,7 +78,7 @@ module Ai
         lines << "強み: #{Array(profile['strengths']).first(3).join(' / ')}"
         lines << "課題: #{Array(profile['challenges']).first(3).join(' / ')}"
         lines << "成長過程: #{Array(profile['growth_journey']).first(3).join(' / ')}"
-        Array(profile["custom_items"]).first(3).each do |item|
+        Array(profile["custom_items"]).first(6).each do |item|
           title = item["title"].to_s.strip
           content = item["content"].to_s.strip
           next if title.blank? || content.blank?
@@ -101,7 +101,8 @@ module Ai
           "settings_signature" => Digest::SHA256.hexdigest([
             user.goal_text.to_s,
             user.ai_custom_instructions.to_s,
-            Array(user.ai_improvement_tags).join("|")
+            Array(user.ai_improvement_tags).join("|"),
+            Ai::ResponseStylePreferences.normalize(user.ai_response_style_prefs).to_json
           ].join("\n"))
         }
       end

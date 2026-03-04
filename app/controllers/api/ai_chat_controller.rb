@@ -173,11 +173,36 @@ module Api
       end
 
       user_message = @thread.messages.create!(role: "user", content: message_text)
+      memory_decision = parse_memory_candidate_decision(message_text)
+      if memory_decision
+        decision_text = apply_memory_candidate_decision(memory_decision)
+        assistant_message = @thread.messages.create!(role: "assistant", content: decision_text)
+        if @thread.title == "新しい会話"
+          @thread.title = message_text.tr("\n", " ").slice(0, 40)
+        end
+        @thread.last_message_at = Time.current
+        @thread.save!
+
+        return render json: {
+          data: {
+            thread: serialize_thread(@thread),
+            user_message: serialize_message(user_message),
+            assistant_message: serialize_message(assistant_message)
+          }
+        }, status: :created
+      end
+
+      created_candidate = Ai::ChatMemoryCandidateRecorder.record_from_message!(
+        user: current_user,
+        thread: @thread,
+        user_message: user_message
+      )
       response_text = Ai::GeneralChatResponder.call(
         user: current_user,
         thread: @thread,
         messages: @thread.messages.order(:created_at).last(12)
       )
+      response_text = append_memory_candidate_prompt(response_text, created_candidate: created_candidate)
       assistant_message = @thread.messages.create!(role: "assistant", content: response_text.to_s.strip)
       if @thread.title == "新しい会話"
         @thread.title = message_text.tr("\n", " ").slice(0, 40)
@@ -265,6 +290,90 @@ module Api
 
     def render_premium_required!(message)
       render json: { errors: [ message ], code: "premium_required" }, status: :payment_required
+    end
+
+    def parse_memory_candidate_decision(text)
+      normalized = text.to_s.strip
+      return nil if normalized.blank?
+      corrected = parse_corrected_memory_decision(normalized)
+      return corrected if corrected.present?
+
+      compact = normalized.gsub(/\s+/, "")
+      compact = compact.sub(/\A[・\-*]+/, "")
+      return { action: "dismiss" } if compact.match?(/\A(?:スキップ|保存しない|見送り)\z/)
+
+      return { action: "save", destination: "voice" } if compact.match?(/\A(?:保存|保存する)?[（(：:]?声に関して(?:へ保存|に保存)?[）)]?\z/)
+      return { action: "save", destination: "voice" } if compact.include?("声に関して") && compact.include?("保存")
+
+      return { action: "save" } if compact.match?(/\A(?:保存|保存する)\z/)
+
+      nil
+    end
+
+    def parse_corrected_memory_decision(text)
+      return nil unless text.start_with?("保存（訂正）") || text.start_with?("訂正保存")
+
+      saved_text = text[/保存内容[:：]\s*([^\n]+)/, 1].to_s.strip
+      section_label = text[/保存先[:：]\s*AIが参照する長期プロフィール\s*-\s*([^\n]+)/, 1].to_s.strip
+      return nil if saved_text.blank?
+
+      {
+        action: "save_corrected",
+        destination: "voice",
+        corrected_text: saved_text,
+        section_label: section_label
+      }
+    end
+
+    def apply_memory_candidate_decision(decision)
+      candidate = current_user.ai_profile_memory_candidates.pending_active.order(created_at: :desc).first
+      return "現在、保存候補はありません。" if candidate.nil?
+
+      case decision[:action]
+      when "dismiss"
+        candidate.dismiss!
+        "保存候補をスキップしました。"
+      when "save"
+        destination = decision[:destination].presence || "voice"
+        result = candidate.save_to_long_term_profile!(destination: destination)
+        saved_text = result[:saved_text].to_s
+        section_label = result[:profile_section_label].to_s.presence || "課題"
+        lines = []
+        lines << "ユーザーデータを更新しました。"
+        lines << "保存内容：#{saved_text.presence || candidate.candidate_text}"
+        lines << "保存先：AIが参照する長期プロフィール - #{section_label}"
+        lines.join("\n")
+      when "save_corrected"
+        destination = decision[:destination].presence || "voice"
+        result = candidate.save_corrected_to_long_term_profile!(
+          destination: destination,
+          corrected_text: decision[:corrected_text].to_s,
+          section_label: decision[:section_label].to_s
+        )
+        saved_text = result[:saved_text].to_s
+        section_label = result[:profile_section_label].to_s.presence || "課題"
+        lines = []
+        lines << "ユーザーデータを更新しました。"
+        lines << "保存内容：#{saved_text.presence || candidate.candidate_text}"
+        lines << "保存先：AIが参照する長期プロフィール - #{section_label}"
+        lines.join("\n")
+      else
+        "保存候補の操作を受け取れませんでした。"
+      end
+    end
+
+    def append_memory_candidate_prompt(base_text, created_candidate:)
+      return base_text if created_candidate.nil?
+
+      saved_text = created_candidate.preview_saved_text.to_s
+      section_label = created_candidate.preview_profile_section_label.to_s.presence || "課題"
+      prompt_lines = []
+      prompt_lines << ""
+      prompt_lines << "保存候補を検出しました。"
+      prompt_lines << "保存内容：#{saved_text}"
+      prompt_lines << "保存先：AIが参照する長期プロフィール - #{section_label}"
+
+      [ base_text.to_s.strip, prompt_lines.join("\n") ].join("\n")
     end
   end
 end

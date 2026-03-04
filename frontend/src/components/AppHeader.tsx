@@ -221,7 +221,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: "grid",
     gridTemplateColumns: "auto minmax(0, 1fr) auto",
     alignItems: "center",
-    padding: "0 14px",
+    padding: "0 16px",
     position: "relative",
   },
 
@@ -265,7 +265,7 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: 220,
   },
   authBtn: {
-    height: 34,
+    height: 38,
     borderRadius: 10,
     border: "1px solid var(--border)",
     background: "var(--surface)",

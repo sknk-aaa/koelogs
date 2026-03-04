@@ -31,6 +31,31 @@ const ASSISTANT_TYPING_INTERVAL_MS = 14;
 const ASSISTANT_TYPING_CHAR_STEP = 6;
 const NEW_THREAD_TITLE = "新しい会話";
 const AI_CHAT_FIRST_VISIT_SEEN_KEY_PREFIX = "koelogs:ai_chat_first_visit_seen:user_";
+const MEMORY_SECTION_OPTIONS = ["課題", "強み", "成長過程", "避けたい練習/注意点"] as const;
+type MemoryCandidatePromptInfo = { savedText: string; sectionLabel: string };
+
+function splitMemoryCandidatePrompt(text: string): { bodyText: string; promptInfo: MemoryCandidatePromptInfo | null } {
+  const normalized = text.replace(/\r\n?/g, "\n");
+  const detailedMatch = normalized.match(
+    /\n?保存候補を検出しました。\n保存内容：([^\n]+)\n保存先：AIが参照する長期プロフィール - ([^\n]+)\s*$/
+  );
+  if (detailedMatch) {
+    const bodyText = normalized.slice(0, detailedMatch.index ?? normalized.length).trimEnd();
+    return {
+      bodyText,
+      promptInfo: {
+        savedText: detailedMatch[1].trim(),
+        sectionLabel: detailedMatch[2].trim(),
+      },
+    };
+  }
+
+  if (/\n?保存候補を検出しました。\s*$/.test(normalized)) {
+    return { bodyText: normalized.replace(/\n?保存候補を検出しました。\s*$/, "").trimEnd(), promptInfo: null };
+  }
+
+  return { bodyText: text, promptInfo: null };
+}
 
 function recommendationThreadTitle(date: string): string {
   return `${date} のおすすめに質問`;
@@ -126,6 +151,10 @@ export default function AiChatPage() {
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [recommendationLimitReached, setRecommendationLimitReached] = useState(false);
   const [firstRecoGuideOpen, setFirstRecoGuideOpen] = useState(false);
+  const [showJumpToLatest, setShowJumpToLatest] = useState(false);
+  const [memoryEditOpen, setMemoryEditOpen] = useState(false);
+  const [memoryEditText, setMemoryEditText] = useState("");
+  const [memoryEditSection, setMemoryEditSection] = useState<(typeof MEMORY_SECTION_OPTIONS)[number]>("課題");
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
@@ -167,6 +196,16 @@ export default function AiChatPage() {
     () => messages.filter((message) => message.role === "user").length,
     [messages]
   );
+  const latestAssistantMessage = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === "assistant") return messages[i];
+    }
+    return null;
+  }, [messages]);
+  const memoryCandidatePrompt = useMemo(() => {
+    if (!latestAssistantMessage) return null;
+    return splitMemoryCandidatePrompt(latestAssistantMessage.content).promptInfo;
+  }, [latestAssistantMessage]);
   const isRecommendationFollowupLocked =
     !isPremium &&
     isRecommendationThread &&
@@ -508,6 +547,7 @@ export default function AiChatPage() {
       setActiveThread(null);
       setMessages([]);
       setRecommendationLimitReached(false);
+      setShowJumpToLatest(false);
       return;
     }
 
@@ -540,8 +580,27 @@ export default function AiChatPage() {
   }, [isRecommendationThread, isPremium]);
 
   useEffect(() => {
+    if (!memoryCandidatePrompt) {
+      setMemoryEditOpen(false);
+      return;
+    }
+    setMemoryEditText(memoryCandidatePrompt.savedText);
+    if (
+      MEMORY_SECTION_OPTIONS.includes(
+        memoryCandidatePrompt.sectionLabel as (typeof MEMORY_SECTION_OPTIONS)[number]
+      )
+    ) {
+      setMemoryEditSection(memoryCandidatePrompt.sectionLabel as (typeof MEMORY_SECTION_OPTIONS)[number]);
+    } else {
+      setMemoryEditSection("課題");
+    }
+    setMemoryEditOpen(false);
+  }, [memoryCandidatePrompt]);
+
+  useEffect(() => {
     if (!shouldAutoScrollRef.current) return;
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    setShowJumpToLatest(false);
+    bottomRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
   }, [messages, activeThreadId, threadLoading]);
 
   useEffect(() => {
@@ -620,6 +679,8 @@ export default function AiChatPage() {
       created_at: new Date().toISOString(),
     };
 
+    shouldAutoScrollRef.current = true;
+    setShowJumpToLatest(false);
     setMessages((prev) => [...prev, optimisticMessage]);
     setDraft("");
     setSending(true);
@@ -665,6 +726,22 @@ export default function AiChatPage() {
     if (!activeThreadId || sending || isRecommendationFollowupLocked) return;
     await sendMessageToThread(activeThreadId, draft, { restoreDraftOnError: true });
   };
+  const onSelectMemoryCandidateAction = async (action: "save_voice" | "skip") => {
+    if (!activeThreadId || sending) return;
+    const command = action === "save_voice" ? "保存（声に関して）" : "スキップ";
+    await sendMessageToThread(activeThreadId, command);
+  };
+  const onSaveCorrectedMemoryCandidate = async () => {
+    if (!activeThreadId || sending) return;
+    const text = memoryEditText.replace(/\s+/g, " ").trim();
+    if (!text) return;
+    const command = [
+      "保存（訂正）",
+      `保存内容：${text}`,
+      `保存先：AIが参照する長期プロフィール - ${memoryEditSection}`,
+    ].join("\n");
+    await sendMessageToThread(activeThreadId, command);
+  };
 
   const onSend = async (e: FormEvent) => {
     e.preventDefault();
@@ -681,16 +758,26 @@ export default function AiChatPage() {
 
   const isMobileViewport =
     typeof window !== "undefined" && window.matchMedia("(max-width: 980px)").matches;
+  const isMobileInputMode =
+    typeof window !== "undefined" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
   const isSidebarOpen = isMobileViewport ? sideOpen : !sideCollapsed;
   const onMessagesScroll = () => {
     const el = messagesScrollRef.current;
     if (!el) return;
     const thresholdPx = 80;
     const distanceFromBottom = el.scrollHeight - (el.scrollTop + el.clientHeight);
-    shouldAutoScrollRef.current = distanceFromBottom <= thresholdPx;
+    const nearBottom = distanceFromBottom <= thresholdPx;
+    shouldAutoScrollRef.current = nearBottom;
+    setShowJumpToLatest((prev) => (prev === !nearBottom ? prev : !nearBottom));
+  };
+  const onJumpToLatest = () => {
+    shouldAutoScrollRef.current = true;
+    setShowJumpToLatest(false);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   };
   const selectThread = (threadId: number) => {
     shouldAutoScrollRef.current = true;
+    setShowJumpToLatest(false);
     setActiveThreadId(threadId);
     setSideOpen(false);
     setThreadMenuOpenId(null);
@@ -959,20 +1046,136 @@ export default function AiChatPage() {
                   ) : messages.length === 0 ? (
                     <div className="aiChatPage__muted">質問を送ると会話が始まります。</div>
                   ) : (
-                    messages.map((message) => (
-                      <article key={message.id} className={`aiChatPage__msgRow aiChatPage__msgRow--${message.role}`}>
-                        <div className="aiChatPage__msgBubble">
-                          <div className="aiChatPage__msgRole">{message.role === "user" ? "あなた" : "AIコーチ"}</div>
-                          <div className="aiChatPage__msgText">{renderChatMessageText(message.content, message.role)}</div>
+                    messages.map((message) => {
+                      const messageText =
+                        message.role === "assistant"
+                          ? splitMemoryCandidatePrompt(message.content).bodyText
+                          : message.content;
+                      return (
+                        <article
+                          key={message.id}
+                          data-message-id={message.id}
+                          className={`aiChatPage__msgRow aiChatPage__msgRow--${message.role}`}
+                        >
+                          <div className="aiChatPage__msgBubble">
+                            <div className="aiChatPage__msgRole">{message.role === "user" ? "あなた" : "AIコーチ"}</div>
+                            <div className="aiChatPage__msgText">{renderChatMessageText(messageText, message.role)}</div>
+                          </div>
+                        </article>
+                      );
+                    })
+                  )}
+                  {sending && (
+                    <article className="aiChatPage__msgRow aiChatPage__msgRow--assistant aiChatPage__msgRow--thinking" aria-live="polite">
+                      <div className="aiChatPage__thinkingInline">AIが考え中…</div>
+                    </article>
+                  )}
+                  {memoryCandidatePrompt && (
+                    <div className="aiChatPage__memoryActionsWrap">
+                      <p className="aiChatPage__memoryActionsLead">このデータをユーザー情報として保存しますか？</p>
+                      {memoryEditOpen ? (
+                        <div className="aiChatPage__memoryEditBox">
+                          <label className="aiChatPage__memoryEditLabel">
+                            保存先
+                            <select
+                              className="aiChatPage__memoryEditSelect"
+                              value={memoryEditSection}
+                              onChange={(e) =>
+                                setMemoryEditSection(e.target.value as (typeof MEMORY_SECTION_OPTIONS)[number])
+                              }
+                              disabled={sending}
+                            >
+                              {MEMORY_SECTION_OPTIONS.map((section) => (
+                                <option key={section} value={section}>
+                                  {section}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="aiChatPage__memoryEditLabel">
+                            保存内容
+                            <textarea
+                              className="aiChatPage__memoryEditTextarea"
+                              value={memoryEditText}
+                              onChange={(e) => setMemoryEditText(e.target.value)}
+                              rows={3}
+                              maxLength={220}
+                              disabled={sending}
+                            />
+                          </label>
                         </div>
-                      </article>
-                    ))
+                      ) : (
+                        <>
+                          <p className="aiChatPage__memoryActionsMeta">保存内容：{memoryCandidatePrompt.savedText}</p>
+                          <p className="aiChatPage__memoryActionsMeta">
+                            保存先：AIが参照する長期プロフィール - {memoryCandidatePrompt.sectionLabel}
+                          </p>
+                        </>
+                      )}
+                      <div className="aiChatPage__memoryActions" role="group" aria-label="保存候補の操作">
+                        {memoryEditOpen ? (
+                          <>
+                            <button
+                              type="button"
+                              className="aiChatPage__memoryActionBtn is-primary"
+                              onClick={() => void onSaveCorrectedMemoryCandidate()}
+                              disabled={sending || !activeThreadId || memoryEditText.trim().length === 0}
+                            >
+                              訂正内容で保存
+                            </button>
+                            <button
+                              type="button"
+                              className="aiChatPage__memoryActionBtn"
+                              onClick={() => setMemoryEditOpen(false)}
+                              disabled={sending}
+                            >
+                              キャンセル
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className="aiChatPage__memoryActionBtn is-primary"
+                              onClick={() => void onSelectMemoryCandidateAction("save_voice")}
+                              disabled={sending || !activeThreadId}
+                            >
+                              保存
+                            </button>
+                            <button
+                              type="button"
+                              className="aiChatPage__memoryActionBtn"
+                              onClick={() => setMemoryEditOpen(true)}
+                              disabled={sending}
+                            >
+                              訂正
+                            </button>
+                            <button
+                              type="button"
+                              className="aiChatPage__memoryActionBtn"
+                              onClick={() => void onSelectMemoryCandidateAction("skip")}
+                              disabled={sending || !activeThreadId}
+                            >
+                              スキップ
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {showJumpToLatest && (
+                    <div className="aiChatPage__jumpLatestWrap">
+                      <button type="button" className="aiChatPage__jumpLatestBtn" onClick={onJumpToLatest}>
+                        最新へ
+                      </button>
+                    </div>
                   )}
                   <div ref={bottomRef} />
                 </div>
               </div>
 
               <form className="aiChatPage__composerWrap" onSubmit={onSend}>
+                {sending && <div className="aiChatPage__composerStatus" role="status" aria-live="polite">生成中（数秒〜）</div>}
                 <div className={`aiChatPage__composer ${isRecommendationFollowupLocked ? "is-locked" : ""}`}>
                   {isRecommendationFollowupLocked ? (
                     <div className="aiChatPage__textareaLock" role="status" aria-live="polite">
@@ -992,7 +1195,7 @@ export default function AiChatPage() {
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
+                        if (!isMobileInputMode && e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
                           if (!activeThreadId || sending || draft.trim().length === 0) return;
                           void sendCurrentDraft();
@@ -1001,7 +1204,7 @@ export default function AiChatPage() {
                       rows={1}
                       maxLength={2000}
                       placeholder="質問してみましょう"
-                      disabled={!activeThreadId || sending}
+                      disabled={!activeThreadId}
                     />
                   )}
                   <button

@@ -24,9 +24,10 @@
   - 集合知（コミュニティ投稿）は補助根拠として利用
   - 集合知集計は `Rails.cache` でキャッシュ（6時間）
 - AI設定（`/settings/ai`）
-  - 回答スタイル指示（`ai_custom_instructions`）
+  - 回答スタイル（カスタム指示 + 選択式: style/tone, 温かみ, 熱量, 絵文字）
   - 改善したい項目（`ai_improvement_tags`）
-  - AIが参照する長期プロフィール（自動要約 + ユーザー編集オーバーライド）
+  - AIが参照する長期プロフィール（声に関して: 強み/課題/成長過程/避けたい練習・注意点）
+  - AIおすすめ参照期間（14 / 30 / 90）
 - AIおすすめへのフォローアップ会話
   - 当日おすすめに対する質問・調整会話
   - 1スレッド最大20メッセージ、履歴は保持
@@ -34,6 +35,7 @@
   - 汎用のトレーニング相談チャット
   - 通常会話と「AIおすすめへの質問」スレッドを同一UIで管理
   - 外部知識（Web検索）とKoelogs内データ（ログ/長期プロフィール/おすすめ履歴）を併用
+  - チャット由来の保存候補（保存/訂正/スキップ）を表示し、確定時に長期プロフィールへ保存
 - コミュニティ（`/community`）
   - 投稿 / お気に入り / ランキング / 公開プロフィール
 
@@ -136,6 +138,9 @@ npm --prefix frontend run dev
   - `POST /api/auth/password_resets`
   - `GET /api/me`
   - `PATCH /api/me`
+  - `POST /api/me/ai_profile/recalculate`
+  - `GET /api/me/ai_memory_candidates`
+  - `PATCH /api/me/ai_memory_candidates/:id`
 - ログ/メニュー
   - `GET /api/training_logs`
   - `POST /api/training_logs`
@@ -222,6 +227,7 @@ npm --prefix frontend run dev
 - 保存対象
   - `users.ai_custom_instructions`（回答スタイル要求）
   - `users.ai_improvement_tags`
+  - `users.ai_response_style_prefs`（`style_tone`, `warmth`, `energy`, `emoji`）
   - `ai_user_profiles`（長期プロフィール）
 - 長期プロフィール構造
   - `auto_profile`（AI自動要約）
@@ -234,6 +240,10 @@ npm --prefix frontend run dev
 - AI投入
   - `Ai::UserLongTermProfileManager.profile_text_for_prompt` を通して
     AIおすすめ・AIチャットへ投入
+- チャット由来の保存候補
+  - `ai_profile_memory_candidates` に `pending` で保存（期限7日）
+  - `/chat` で「保存内容/保存先」を確認し `保存 / 訂正 / スキップ`
+  - 2026-03-05時点で新規保存先は `voice` のみ（`profile` は新規受付しない）
 
 ## AIチャット仕様（現行）
 
@@ -248,11 +258,15 @@ npm --prefix frontend run dev
   - `Ai::WebSearchDecision` で検索発火判定
   - `Gemini::Client` の `web_search` 有効時に参照URLを抽出
   - 取得できた場合は回答末尾に `参考情報:` を追記
+- メモリ保存候補フロー
+  - 候補抽出/分類はAI判定（失敗時は軽量ルールへフォールバック）
+  - 「保存」確定時にAI正規化（1文・事実追加禁止）し、失敗時はルール整形へフォールバック
+  - 重複チェック（完全一致 + 類似）後に長期プロフィールへ追記
 
 ## 主要テーブル（抜粋）
 
 - `users`
-  - `goal_text`, `ai_custom_instructions`, `ai_improvement_tags`
+  - `goal_text`, `ai_custom_instructions`, `ai_improvement_tags`, `ai_response_style_prefs`
 - `training_logs`, `training_log_menus`, `training_menus`
 - `monthly_logs`
 - `measurement_runs`
@@ -260,6 +274,7 @@ npm --prefix frontend run dev
 - `measurement_long_tone_results`
 - `measurement_volume_stability_results`
 - `measurement_pitch_accuracy_results`
+- `ai_user_profiles`, `ai_profile_memory_candidates`
 - `community_posts`, `community_post_favorites`
 - `ai_recommendations`
   - `generated_for_date`, `range_days`, `recommendation_text`

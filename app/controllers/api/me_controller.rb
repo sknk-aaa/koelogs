@@ -20,7 +20,8 @@ module Api
         :password_confirmation,
         :avatar_image_url,
         :avatar_icon,
-        ai_improvement_tags: []
+        ai_improvement_tags: [],
+        ai_response_style_prefs: [ :style_tone, :warmth, :energy, :emoji ]
       )
       raw_long_term_profile = params.dig(:me, :ai_long_term_profile)
 
@@ -78,6 +79,7 @@ module Api
         goal_text: user.goal_text,
         ai_custom_instructions: user.ai_custom_instructions,
         ai_improvement_tags: Array(user.ai_improvement_tags),
+        ai_response_style_prefs: Ai::ResponseStylePreferences.normalize(user.ai_response_style_prefs),
         ai_long_term_profile: long_term_profile,
         ai_long_term_profile_user_custom_items: user_custom_items,
         public_profile_enabled: user.public_profile_enabled,
@@ -106,7 +108,10 @@ module Api
     def beginner_missions_completed?(user)
       daily_log_done = user.training_logs.exists?
       goal_done = user.goal_text.present?
-      ai_customization_done = user.ai_custom_instructions.present? || Array(user.ai_improvement_tags).any?
+      ai_customization_done =
+        user.ai_custom_instructions.present? ||
+        Array(user.ai_improvement_tags).any? ||
+        Ai::ResponseStylePreferences.customized?(user.ai_response_style_prefs)
       measurement_done = user.measurement_runs.exists?
       ai_recommendation_done = user.ai_recommendations.exists?
 

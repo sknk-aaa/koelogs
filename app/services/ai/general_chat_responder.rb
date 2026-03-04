@@ -96,6 +96,13 @@ module Ai
 
         ルール:
         - 回答は日本語のプレーンテキスト（Markdown禁止）。
+        - 回答は基本的に優しい口調で行い、安心感のある言い回しを優先する。
+        - ユーザーのカスタム指示がある場合、回答スタイルはその指示を最優先する。
+        - ユーザーへの呼びかけが必要な場合は「#{user_call_name}」を使う。display_name未設定時は「あなた」を使う。
+        - 構造化された回答スタイル設定がある場合、カスタム指示で不足する部分のみ補助的に反映する。
+        - 構造化スタイル設定:
+          #{Ai::ResponseStylePreferences.summary_text(user.ai_response_style_prefs).lines.map { |line| "  #{line}" }.join}
+        #{Ai::ResponseStylePreferences.prompt_rules(user.ai_response_style_prefs).map { |line| "  #{line}" }.join("\n")}
         - まず質問意図を短く要約し、次に実行しやすい提案を2〜4点で出す。
         - 常に敬意ある口調で回答する。侮辱・高圧・断罪表現（例: お前、怠け、無能 など）を使わない。
         - 医療診断・治療の断定はしない。危険な内容は拒否して安全な代替案を示す。
@@ -123,8 +130,13 @@ module Ai
       lines << (allow_practice_plan? ? "- 練習提案を含めてよい" : "- 用語/概念の説明を優先し、練習提案はしない")
       lines << ""
       lines << "ユーザー情報:"
+      lines << "- call_name: #{user_call_name}"
       lines << "- goal_text: #{user.goal_text.presence || '(未設定)'}"
       lines << "- ai_custom_instructions: #{user.ai_custom_instructions.to_s.presence || '(未設定)'}"
+      lines << "- ai_response_style_prefs:"
+      Ai::ResponseStylePreferences.summary_text(user.ai_response_style_prefs).each_line do |line|
+        lines << "  #{line.chomp}"
+      end
       lines << "- ai_improvement_tags: #{Array(user.ai_improvement_tags).join(' / ').presence || '(未設定)'}"
       long_profile_text = Ai::UserLongTermProfileManager.profile_text_for_prompt(user: user)
       lines << "- long_term_profile: #{long_profile_text.presence || '(未設定)'}"
@@ -411,6 +423,10 @@ module Ai
       v = v.gsub("お前", "あなた")
       v = v.gsub("怠け", "無理をしない")
       v
+    end
+
+    def user_call_name
+      Ai::UserCallName.resolve(user)
     end
   end
 end

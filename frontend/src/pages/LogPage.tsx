@@ -313,6 +313,7 @@ const AI_PREVIEW_CHARS = 100;
 const GOAL_MAX = 50;
 const BEGINNER_COMPLETE_MODAL_SEEN_KEY_PREFIX = "koelogs:beginner_complete_modal_seen:user_";
 const BEGINNER_LAST_PENDING_KEY_PREFIX = "koelogs:beginner_last_pending:user_";
+const BEGINNER_COMPLETED_ONCE_KEY_PREFIX = "koelogs:beginner_completed_once:user_";
 
 type LogMode = "day" | "month";
 type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
@@ -411,6 +412,7 @@ export default function LogPage() {
   const [monthSaveError, setMonthSaveError] = useState<string | null>(null);
   const [beginnerMissions, setBeginnerMissions] = useState<MissionItem[]>([]);
   const [beginnerMissionModalOpen, setBeginnerMissionModalOpen] = useState(false);
+  const [beginnerCompletedOnce, setBeginnerCompletedOnce] = useState(false);
 
   // ===== Me / Goal =====
   const [me, setMe] = useState<Me | null>(null);
@@ -948,6 +950,7 @@ export default function LogPage() {
   const beginnerDoneCount = Math.max(0, beginnerTotalCount - beginnerPendingCount);
   const beginnerProgressPercent =
     beginnerTotalCount > 0 ? Math.round((beginnerDoneCount / beginnerTotalCount) * 100) : 0;
+  const hasPendingBeginnerMissions = !beginnerCompletedOnce && beginnerPendingCount > 0;
   const beginnerAiCustomizationDone = useMemo(() => {
     if (aiCustomDoneParam === "1") return true;
     if (aiCustomDoneParam === "0") return false;
@@ -955,35 +958,51 @@ export default function LogPage() {
   }, [aiCustomDoneParam, beginnerMissions]);
 
   useEffect(() => {
+    if (!authMe) {
+      setBeginnerCompletedOnce(false);
+      return;
+    }
+    const completedOnceKey = `${BEGINNER_COMPLETED_ONCE_KEY_PREFIX}${authMe.id}`;
+    try {
+      setBeginnerCompletedOnce(window.localStorage.getItem(completedOnceKey) === "1");
+    } catch {
+      setBeginnerCompletedOnce(false);
+    }
+  }, [authMe]);
+
+  useEffect(() => {
     const current = beginnerPendingCount;
     if (!authMe || beginnerTotalCount === 0) return;
 
     const seenKey = `${BEGINNER_COMPLETE_MODAL_SEEN_KEY_PREFIX}${authMe.id}`;
     const lastPendingKey = `${BEGINNER_LAST_PENDING_KEY_PREFIX}${authMe.id}`;
+    const completedOnceKey = `${BEGINNER_COMPLETED_ONCE_KEY_PREFIX}${authMe.id}`;
     let lastPending: number | null = null;
     let alreadyShown = false;
+    let alreadyCompletedOnce = false;
 
     try {
       const raw = window.localStorage.getItem(lastPendingKey);
       lastPending = raw == null ? null : Number.parseInt(raw, 10);
       alreadyShown = window.localStorage.getItem(seenKey) === "1";
+      alreadyCompletedOnce = window.localStorage.getItem(completedOnceKey) === "1";
     } catch {
       lastPending = null;
       alreadyShown = false;
+      alreadyCompletedOnce = false;
+    }
+
+    if (alreadyCompletedOnce) {
+      if (!beginnerCompletedOnce) setBeginnerCompletedOnce(true);
+      return;
     }
 
     if (current === 0 && !alreadyShown && lastPending != null && lastPending > 0) {
       setBeginnerCompletionModalStep("congrats");
       try {
         window.localStorage.setItem(seenKey, "1");
-      } catch {
-        // no-op
-      }
-    }
-
-    if (current > 0) {
-      try {
-        window.localStorage.removeItem(seenKey);
+        window.localStorage.setItem(completedOnceKey, "1");
+        setBeginnerCompletedOnce(true);
       } catch {
         // no-op
       }
@@ -994,7 +1013,7 @@ export default function LogPage() {
     } catch {
       // no-op
     }
-  }, [authMe, beginnerPendingCount, beginnerTotalCount]);
+  }, [authMe, beginnerCompletedOnce, beginnerPendingCount, beginnerTotalCount]);
 
   useEffect(() => {
     if (!beginnerMissionModalOpen) return;
@@ -1004,6 +1023,11 @@ export default function LogPage() {
       document.body.style.overflow = prev;
     };
   }, [beginnerMissionModalOpen]);
+
+  useEffect(() => {
+    if (!beginnerCompletedOnce) return;
+    setBeginnerMissionModalOpen(false);
+  }, [beginnerCompletedOnce]);
 
   useEffect(() => {
     if (!forceGuideGoalSetting) return;
@@ -1149,7 +1173,7 @@ export default function LogPage() {
         </button>
       )}
 
-      {!!authMe && isDayMode && beginnerPendingCount > 0 && (
+      {!!authMe && isDayMode && hasPendingBeginnerMissions && (
         <section className="logPage__beginnerGuide" aria-label="ビギナーミッション">
           <button
             type="button"
@@ -1198,7 +1222,7 @@ export default function LogPage() {
                 ×
               </button>
             </div>
-            <div className="logPage__missionModalStatus">残り {beginnerPendingCount} 件</div>
+            <div className="logPage__missionModalStatus">残り {pendingBeginnerMissions.length} 件</div>
             <div className="logPage__beginnerGuideList">
               {pendingBeginnerMissions.map((mission) => (
                 <article key={mission.key} className="logPage__beginnerGuideItem">
@@ -1783,7 +1807,7 @@ export default function LogPage() {
             expanded={aiExpanded}
             onToggleExpanded={() => setAiExpanded((v) => !v)}
             collectiveSummary={effectiveAiRec?.collective_summary}
-            showFollowupButton={!guestMode && !!effectiveAiRec && beginnerPendingCount === 0}
+            showFollowupButton={!guestMode && !!effectiveAiRec && (beginnerCompletedOnce || beginnerPendingCount === 0)}
             onOpenFollowup={(message) => void openAiChat(message)}
           />
         )}

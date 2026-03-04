@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { fetchMe, recalculateAiLongTermProfile, updateMe, type AiLongTermProfileCustomItem } from "../api/auth";
+import {
+  fetchMe,
+  recalculateAiLongTermProfile,
+  updateMe,
+  type AiLongTermProfile,
+  type AiLongTermProfileCustomItem,
+  type AiResponseStyleLevel,
+  type AiResponseStylePrefs,
+} from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
 import { useSettings } from "../features/settings/useSettings";
 import {
@@ -13,10 +21,42 @@ import { IMPROVEMENT_TAG_OPTIONS } from "../types/community";
 import "./AiSettingsPage.css";
 
 const CUSTOM_MAX = 600;
-const TEMPLATE = "回答トーン：\n説明の粒度：\n厳しさ：\n形式（箇条書き/手順など）：";
 const LONG_PROFILE_ITEM_MAX = 6;
 const LONG_PROFILE_LINE_MAX = 6;
 const LONG_PROFILE_TEXT_MAX = 220;
+
+const FIXED_ITEM_TITLE_AVOID = "避けたい練習/注意点";
+
+const DEFAULT_STYLE_PREFS: AiResponseStylePrefs = {
+  style_tone: "default",
+  warmth: "default",
+  energy: "default",
+  emoji: "default",
+};
+
+const STYLE_TONE_OPTIONS: Array<{
+  value: AiResponseStylePrefs["style_tone"];
+  label: string;
+  description: string;
+}> = [
+  { value: "default", label: "デフォルト", description: "標準のスタイルとトーン" },
+  { value: "professional", label: "プロフェッショナル", description: "正確で落ち着いた文体" },
+  { value: "friendly", label: "フレンドリー", description: "親しみやすく柔らかい文体" },
+  { value: "candid", label: "率直", description: "回りくどさを抑えて要点重視" },
+  { value: "unique", label: "個性的", description: "少し印象的な表現を許容" },
+  { value: "efficient", label: "効率的", description: "結論と手順を優先" },
+  { value: "curious", label: "好奇心旺盛", description: "深掘りの問いを入れやすい" },
+  { value: "cynical", label: "シニカル", description: "批評寄りで辛口" },
+];
+
+const STYLE_LEVEL_OPTIONS: Array<{
+  value: AiResponseStyleLevel;
+  label: string;
+}> = [
+  { value: "high", label: "多め" },
+  { value: "default", label: "デフォルト" },
+  { value: "low", label: "少なめ" },
+];
 
 function normalizeInstructions(value: string): string {
   return value.trim();
@@ -54,10 +94,67 @@ function sameCustomItems(a: AiLongTermProfileCustomItem[], b: AiLongTermProfileC
   return a.every((item, i) => item.title === b[i]?.title && item.content === b[i]?.content);
 }
 
-function aiRangeTrendLabel(days: 14 | 30 | 90): string {
-  if (days === 30) return "傾向=直近1か月の月ログ";
-  if (days === 90) return "傾向=直近3か月の月ログ";
-  return "傾向=月ログ参照なし";
+function normalizeStyleTone(value: unknown): AiResponseStylePrefs["style_tone"] {
+  const options = new Set(STYLE_TONE_OPTIONS.map((opt) => opt.value));
+  const candidate = String(value ?? "").trim() as AiResponseStylePrefs["style_tone"];
+  return options.has(candidate) ? candidate : DEFAULT_STYLE_PREFS.style_tone;
+}
+
+function normalizeStyleLevel(value: unknown): AiResponseStyleLevel {
+  if (value === "high" || value === "low" || value === "default") return value;
+  return "default";
+}
+
+function normalizeResponseStylePrefs(value: unknown): AiResponseStylePrefs {
+  const raw = typeof value === "object" && value !== null ? (value as Partial<AiResponseStylePrefs>) : {};
+  return {
+    style_tone: normalizeStyleTone(raw.style_tone),
+    warmth: normalizeStyleLevel(raw.warmth),
+    energy: normalizeStyleLevel(raw.energy),
+    emoji: normalizeStyleLevel(raw.emoji),
+  };
+}
+
+function sameResponseStylePrefs(a: AiResponseStylePrefs, b: AiResponseStylePrefs): boolean {
+  return (
+    a.style_tone === b.style_tone &&
+    a.warmth === b.warmth &&
+    a.energy === b.energy &&
+    a.emoji === b.emoji
+  );
+}
+
+function splitFixedCustomItems(items: AiLongTermProfileCustomItem[]): {
+  avoidPractice: string;
+  extras: AiLongTermProfileCustomItem[];
+} {
+  let avoidPractice = "";
+  const extras: AiLongTermProfileCustomItem[] = [];
+
+  items.forEach((item) => {
+    if (item.title === FIXED_ITEM_TITLE_AVOID) {
+      avoidPractice = item.content;
+      return;
+    }
+    extras.push(item);
+  });
+
+  return { avoidPractice, extras: normalizeCustomItems(extras) };
+}
+
+function buildCustomItemsFromInputs(input: {
+  avoidPractice: string;
+  extras: AiLongTermProfileCustomItem[];
+}): AiLongTermProfileCustomItem[] {
+  const fixed: AiLongTermProfileCustomItem[] = [];
+  if (input.avoidPractice.trim()) fixed.push({ title: FIXED_ITEM_TITLE_AVOID, content: input.avoidPractice.trim() });
+
+  return normalizeCustomItems([ ...fixed, ...normalizeCustomItems(input.extras) ]);
+}
+
+function formatComputedAt(value: string | null): string {
+  if (!value) return "";
+  return value.slice(0, 16).replace("T", " ");
 }
 
 export default function AiSettingsPage() {
@@ -72,15 +169,18 @@ export default function AiSettingsPage() {
 
   const [customInstructions, setCustomInstructions] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [responseStylePrefs, setResponseStylePrefs] = useState<AiResponseStylePrefs>(DEFAULT_STYLE_PREFS);
 
   const [initialCustomInstructions, setInitialCustomInstructions] = useState("");
   const [initialSelectedTags, setInitialSelectedTags] = useState<string[]>([]);
+  const [initialResponseStylePrefs, setInitialResponseStylePrefs] = useState<AiResponseStylePrefs>(DEFAULT_STYLE_PREFS);
 
   const [recalcLoading, setRecalcLoading] = useState(false);
 
   const [strengthsText, setStrengthsText] = useState("");
   const [challengesText, setChallengesText] = useState("");
   const [growthJourneyText, setGrowthJourneyText] = useState("");
+  const [avoidPracticeText, setAvoidPracticeText] = useState("");
   const [customItems, setCustomItems] = useState<AiLongTermProfileCustomItem[]>([]);
   const [computedAt, setComputedAt] = useState<string | null>(null);
   const [windowDays, setWindowDays] = useState<number>(90);
@@ -88,7 +188,35 @@ export default function AiSettingsPage() {
   const [initialStrengthsText, setInitialStrengthsText] = useState("");
   const [initialChallengesText, setInitialChallengesText] = useState("");
   const [initialGrowthJourneyText, setInitialGrowthJourneyText] = useState("");
+  const [initialAvoidPracticeText, setInitialAvoidPracticeText] = useState("");
   const [initialCustomItems, setInitialCustomItems] = useState<AiLongTermProfileCustomItem[]>([]);
+
+  const applyLongTermProfileState = (
+    profile: AiLongTermProfile | undefined,
+    userCustomItems: AiLongTermProfileCustomItem[]
+  ) => {
+    const strengths = lineArrayToText(profile?.strengths ?? []);
+    const challenges = lineArrayToText(profile?.challenges ?? []);
+    const growth = lineArrayToText(profile?.growth_journey ?? []);
+
+    const normalizedAllItems = normalizeCustomItems(userCustomItems ?? []);
+    const split = splitFixedCustomItems(normalizedAllItems);
+
+    setStrengthsText(strengths);
+    setChallengesText(challenges);
+    setGrowthJourneyText(growth);
+    setAvoidPracticeText(split.avoidPractice);
+    setCustomItems(split.extras);
+
+    setInitialStrengthsText(strengths);
+    setInitialChallengesText(challenges);
+    setInitialGrowthJourneyText(growth);
+    setInitialAvoidPracticeText(split.avoidPractice);
+    setInitialCustomItems(split.extras);
+
+    setComputedAt(profile?.meta?.computed_at ?? null);
+    setWindowDays(profile?.meta?.source_window_days ?? 90);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -105,25 +233,18 @@ export default function AiSettingsPage() {
 
         const custom = me.ai_custom_instructions ?? "";
         const tags = normalizeImprovementTags(me.ai_improvement_tags ?? []);
-        const profile = me.ai_long_term_profile;
-        const strengths = lineArrayToText(profile?.strengths ?? []);
-        const challenges = lineArrayToText(profile?.challenges ?? []);
-        const growth = lineArrayToText(profile?.growth_journey ?? []);
-        const items = normalizeCustomItems(me.ai_long_term_profile_user_custom_items ?? []);
+        const stylePrefs = normalizeResponseStylePrefs(me.ai_response_style_prefs);
         setCustomInstructions(custom);
         setSelectedTags(tags);
+        setResponseStylePrefs(stylePrefs);
         setInitialCustomInstructions(custom);
         setInitialSelectedTags(tags);
-        setStrengthsText(strengths);
-        setChallengesText(challenges);
-        setGrowthJourneyText(growth);
-        setCustomItems(items);
-        setInitialStrengthsText(strengths);
-        setInitialChallengesText(challenges);
-        setInitialGrowthJourneyText(growth);
-        setInitialCustomItems(items);
-        setComputedAt(profile?.meta?.computed_at ?? null);
-        setWindowDays(profile?.meta?.source_window_days ?? 90);
+        setInitialResponseStylePrefs(stylePrefs);
+
+        applyLongTermProfileState(
+          me.ai_long_term_profile,
+          normalizeCustomItems(me.ai_long_term_profile_user_custom_items ?? [])
+        );
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : "読み込みに失敗しました");
@@ -156,9 +277,11 @@ export default function AiSettingsPage() {
   const isDirty =
     normalizedDraftInstructions !== normalizeInstructions(initialCustomInstructions) ||
     !sameStringArray(normalizedDraftTags, initialSelectedTags) ||
+    !sameResponseStylePrefs(responseStylePrefs, initialResponseStylePrefs) ||
     strengthsText.trim() !== initialStrengthsText.trim() ||
     challengesText.trim() !== initialChallengesText.trim() ||
     growthJourneyText.trim() !== initialGrowthJourneyText.trim() ||
+    avoidPracticeText.trim() !== initialAvoidPracticeText.trim() ||
     !sameCustomItems(normalizeCustomItems(customItems), initialCustomItems);
   const canSave = !loading && !saving && !isOverLimit;
 
@@ -171,29 +294,6 @@ export default function AiSettingsPage() {
 
   const clearTags = () => {
     setSelectedTags([]);
-  };
-
-  const insertTemplate = () => {
-    setCustomInstructions((prev) => {
-      if (!prev.trim()) return TEMPLATE;
-      const suffix = prev.endsWith("\n") ? "" : "\n";
-      return `${prev}${suffix}${TEMPLATE}`;
-    });
-  };
-
-  const updateCustomItem = (index: number, key: "title" | "content", value: string) => {
-    setCustomItems((prev) => prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)));
-  };
-
-  const removeCustomItem = (index: number) => {
-    setCustomItems((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const addCustomItem = () => {
-    setCustomItems((prev) => {
-      if (prev.length >= LONG_PROFILE_ITEM_MAX) return prev;
-      return [ ...prev, { title: "", content: "" } ];
-    });
   };
 
   const onRecalculateProfile = async () => {
@@ -221,10 +321,15 @@ export default function AiSettingsPage() {
     setError(null);
 
     try {
-      const normalizedCustomItems = normalizeCustomItems(customItems);
+      const normalizedCustomItems = buildCustomItemsFromInputs({
+        avoidPractice: avoidPracticeText,
+        extras: customItems,
+      });
+
       const updated = await updateMe({
         ai_custom_instructions: normalizedDraftInstructions,
         ai_improvement_tags: normalizedDraftTags,
+        ai_response_style_prefs: responseStylePrefs,
         ai_long_term_profile: {
           strengths: normalizeLineArray(strengthsText),
           challenges: normalizeLineArray(challengesText),
@@ -232,30 +337,24 @@ export default function AiSettingsPage() {
           custom_items: normalizedCustomItems,
         },
       });
-      await refresh();
 
       const nextCustom = updated.ai_custom_instructions ?? "";
       const nextTags = normalizeImprovementTags(updated.ai_improvement_tags ?? []);
+      const nextStylePrefs = normalizeResponseStylePrefs(updated.ai_response_style_prefs);
       const profile = updated.ai_long_term_profile;
-      const nextStrengths = lineArrayToText(profile?.strengths ?? []);
-      const nextChallenges = lineArrayToText(profile?.challenges ?? []);
-      const nextGrowth = lineArrayToText(profile?.growth_journey ?? []);
-      const nextItems = normalizeCustomItems(updated.ai_long_term_profile_user_custom_items ?? normalizedCustomItems);
+      const nextItems = normalizeCustomItems(
+        updated.ai_long_term_profile_user_custom_items ?? normalizedCustomItems
+      );
+
       setCustomInstructions(nextCustom);
       setSelectedTags(nextTags);
+      setResponseStylePrefs(nextStylePrefs);
       setInitialCustomInstructions(nextCustom);
       setInitialSelectedTags(nextTags);
-      setStrengthsText(nextStrengths);
-      setChallengesText(nextChallenges);
-      setGrowthJourneyText(nextGrowth);
-      setCustomItems(nextItems);
-      setInitialStrengthsText(nextStrengths);
-      setInitialChallengesText(nextChallenges);
-      setInitialGrowthJourneyText(nextGrowth);
-      setInitialCustomItems(nextItems);
-      setComputedAt(profile?.meta?.computed_at ?? null);
-      setWindowDays(profile?.meta?.source_window_days ?? 90);
-      void refresh().catch(() => undefined);
+      setInitialResponseStylePrefs(nextStylePrefs);
+      applyLongTermProfileState(profile, nextItems);
+
+      await refresh();
       const now = new Date();
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, "0");
@@ -275,7 +374,7 @@ export default function AiSettingsPage() {
       <section className="card aiSettingsPage__hero">
         <div className="aiSettingsPage__kicker">AI Custom</div>
         <h1 className="aiSettingsPage__title">AIカスタム指示</h1>
-        <p className="aiSettingsPage__sub">回答スタイル指示（どう答えてほしいか）と改善したい項目を設定できます。</p>
+        <p className="aiSettingsPage__sub">回答スタイル・長期プロフィール・改善項目・参照期間を設定できます。</p>
       </section>
 
       {status && (
@@ -294,68 +393,168 @@ export default function AiSettingsPage() {
           </button>
         </div>
         <p className="aiSettingsPage__hint aiSettingsPage__hint--profile">
-          自分の状態・課題・成長過程はここに記入してください。直近{windowDays}日の要約をもとに、必要に応じて修正できます（修正内容が優先されます）。
-          {computedAt ? ` 最終更新: ${computedAt.slice(0, 16).replace("T", " ")}` : ""}
+          直近{windowDays}日の要約をもとに、ここで上書きできます（修正内容が優先されます）。
+          {computedAt ? ` 最終更新: ${formatComputedAt(computedAt)}` : ""}
         </p>
 
-        <div className="aiSettingsPage__longProfileGrid">
-          <div>
-            <div className="aiSettingsPage__previewLabel">強み（改行で複数）</div>
-            <textarea className="aiSettingsPage__textarea aiSettingsPage__textarea--sm" rows={4} value={strengthsText} onChange={(e) => setStrengthsText(e.target.value)} />
-          </div>
-          <div>
-            <div className="aiSettingsPage__previewLabel">課題（改行で複数）</div>
-            <textarea className="aiSettingsPage__textarea aiSettingsPage__textarea--sm" rows={4} value={challengesText} onChange={(e) => setChallengesText(e.target.value)} />
-          </div>
-          <div>
-            <div className="aiSettingsPage__previewLabel">成長過程（改行で複数）</div>
-            <textarea className="aiSettingsPage__textarea aiSettingsPage__textarea--sm" rows={4} value={growthJourneyText} onChange={(e) => setGrowthJourneyText(e.target.value)} />
+        <div className="aiSettingsPage__subsection">
+          <h3 className="aiSettingsPage__subTitle">声に関して</h3>
+          <div className="aiSettingsPage__voiceEditor" role="group" aria-label="声に関して入力">
+            <div className="aiSettingsPage__voiceField">
+              <div className="aiSettingsPage__voiceFieldHead">
+                <span className="aiSettingsPage__voiceFieldTitle">強み</span>
+              </div>
+              <textarea
+                className="aiSettingsPage__voiceTextarea"
+                rows={4}
+                value={strengthsText}
+                onChange={(e) => setStrengthsText(e.target.value)}
+              />
+            </div>
+
+            <div className="aiSettingsPage__voiceField">
+              <div className="aiSettingsPage__voiceFieldHead">
+                <span className="aiSettingsPage__voiceFieldTitle">課題</span>
+              </div>
+              <textarea
+                className="aiSettingsPage__voiceTextarea"
+                rows={4}
+                value={challengesText}
+                onChange={(e) => setChallengesText(e.target.value)}
+              />
+            </div>
+
+            <div className="aiSettingsPage__voiceField">
+              <div className="aiSettingsPage__voiceFieldHead">
+                <span className="aiSettingsPage__voiceFieldTitle">成長過程</span>
+              </div>
+              <textarea
+                className="aiSettingsPage__voiceTextarea"
+                rows={4}
+                value={growthJourneyText}
+                onChange={(e) => setGrowthJourneyText(e.target.value)}
+              />
+            </div>
+
+            <div className="aiSettingsPage__voiceField">
+              <div className="aiSettingsPage__voiceFieldHead">
+                <span className="aiSettingsPage__voiceFieldTitle">避けたい練習/注意点</span>
+              </div>
+              <textarea
+                className="aiSettingsPage__voiceTextarea"
+                rows={4}
+                value={avoidPracticeText}
+                onChange={(e) => setAvoidPracticeText(e.target.value)}
+                placeholder="喉締めしやすい練習は短めに、など"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="aiSettingsPage__sectionHead" style={{ marginTop: 12 }}>
-          <div className="aiSettingsPage__previewLabel">自由項目</div>
-          <button type="button" className="aiSettingsPage__ghostBtn" onClick={addCustomItem} disabled={customItems.length >= LONG_PROFILE_ITEM_MAX}>
-            項目追加
-          </button>
-        </div>
-        <div className="aiSettingsPage__customItems">
-          {customItems.length === 0 && <div className="aiSettingsPage__previewEmpty">未設定</div>}
-          {customItems.map((item, index) => (
-            <div key={`long-custom-${index}`} className="aiSettingsPage__customItemRow">
-              <input
-                className="aiSettingsPage__customTitle"
-                value={item.title}
-                onChange={(e) => updateCustomItem(index, "title", e.target.value)}
-                placeholder="項目名"
-                maxLength={40}
-              />
-              <textarea
-                className="aiSettingsPage__textarea aiSettingsPage__textarea--sm"
-                rows={3}
-                value={item.content}
-                onChange={(e) => updateCustomItem(index, "content", e.target.value)}
-                placeholder="内容"
-                maxLength={LONG_PROFILE_TEXT_MAX}
-              />
-              <button type="button" className="aiSettingsPage__ghostBtn" onClick={() => removeCustomItem(index)}>
-                削除
-              </button>
-            </div>
-          ))}
-        </div>
       </section>
 
       <section className="card aiSettingsPage__card">
         <div className="aiSettingsPage__sectionHead">
-          <h2 className="aiSettingsPage__sectionTitle aiSettingsPage__sectionTitle--style">回答スタイル指示</h2>
-          <button type="button" className="aiSettingsPage__ghostBtn" onClick={insertTemplate}>
-            テンプレ挿入
-          </button>
+          <h2 className="aiSettingsPage__sectionTitle aiSettingsPage__sectionTitle--style">回答スタイル</h2>
         </div>
         <p className="aiSettingsPage__hint aiSettingsPage__hint--style">
-          回答トーン・説明の粒度・厳しさ・表現形式などを指定してください。あなたの状態や課題は上の「AIが参照する長期プロフィール」に記入します。
+          回答スタイル指示が最優先で使われます。未指定部分を選択式で補完します。
         </p>
+
+        <div className="aiSettingsPage__styleRows">
+          <div className="aiSettingsPage__styleRow">
+            <div>
+              <div className="aiSettingsPage__previewLabel">基本のスタイルとトーン</div>
+            </div>
+            <select
+              className="aiSettingsPage__styleSelect"
+              value={responseStylePrefs.style_tone}
+              onChange={(e) =>
+                setResponseStylePrefs((prev) => ({
+                  ...prev,
+                  style_tone: normalizeStyleTone(e.target.value),
+                }))
+              }
+            >
+              {STYLE_TONE_OPTIONS.map((opt) => (
+                <option key={`style-tone-${opt.value}`} value={opt.value}>
+                  {opt.label} - {opt.description}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="aiSettingsPage__styleRow">
+            <div>
+              <div className="aiSettingsPage__previewLabel">温かみ</div>
+              <p className="aiSettingsPage__hint">共感や寄り添いの強さ</p>
+            </div>
+            <select
+              className="aiSettingsPage__styleSelect"
+              value={responseStylePrefs.warmth}
+              onChange={(e) =>
+                setResponseStylePrefs((prev) => ({
+                  ...prev,
+                  warmth: normalizeStyleLevel(e.target.value),
+                }))
+              }
+            >
+              {STYLE_LEVEL_OPTIONS.map((opt) => (
+                <option key={`style-warmth-${opt.value}`} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="aiSettingsPage__styleRow">
+            <div>
+              <div className="aiSettingsPage__previewLabel">熱量</div>
+              <p className="aiSettingsPage__hint">励ましや勢いの強さ</p>
+            </div>
+            <select
+              className="aiSettingsPage__styleSelect"
+              value={responseStylePrefs.energy}
+              onChange={(e) =>
+                setResponseStylePrefs((prev) => ({
+                  ...prev,
+                  energy: normalizeStyleLevel(e.target.value),
+                }))
+              }
+            >
+              {STYLE_LEVEL_OPTIONS.map((opt) => (
+                <option key={`style-energy-${opt.value}`} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="aiSettingsPage__styleRow">
+            <div>
+              <div className="aiSettingsPage__previewLabel">絵文字</div>
+              <p className="aiSettingsPage__hint">文中の絵文字量</p>
+            </div>
+            <select
+              className="aiSettingsPage__styleSelect"
+              value={responseStylePrefs.emoji}
+              onChange={(e) =>
+                setResponseStylePrefs((prev) => ({
+                  ...prev,
+                  emoji: normalizeStyleLevel(e.target.value),
+                }))
+              }
+            >
+              {STYLE_LEVEL_OPTIONS.map((opt) => (
+                <option key={`style-emoji-${opt.value}`} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="aiSettingsPage__previewLabel">カスタム指示</div>
         <div className="aiSettingsPage__textareaWrap">
           <textarea
             value={customInstructions}
@@ -407,7 +606,6 @@ export default function AiSettingsPage() {
         <div className="aiSettingsPage__sectionHead">
           <h2 className="aiSettingsPage__sectionTitle">AIおすすめの参照期間</h2>
         </div>
-        <p className="aiSettingsPage__hint">14 / 30 / 90 から選択できます。</p>
         <div className="aiSettingsPage__rangeOptions">
           {[ 14, 30, 90 ].map((days) => (
             <button
@@ -421,9 +619,6 @@ export default function AiSettingsPage() {
             </button>
           ))}
         </div>
-        <p className="aiSettingsPage__hint aiSettingsPage__hint--range">
-          詳細=直近14日 / {aiRangeTrendLabel(settings.aiRangeDays)}
-        </p>
       </section>
 
       <div className="aiSettingsPage__saveDock" role="region" aria-label="保存操作">

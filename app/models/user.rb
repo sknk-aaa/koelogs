@@ -23,6 +23,7 @@ class User < ApplicationRecord
   has_many :ai_token_usages, dependent: :destroy
   has_many :ai_chat_projects, dependent: :destroy
   has_many :ai_chat_threads, dependent: :destroy
+  has_many :ai_profile_memory_candidates, dependent: :destroy
   has_one :ai_user_profile, dependent: :destroy
   has_many :community_posts, dependent: :destroy
   has_many :community_post_favorites, dependent: :destroy
@@ -46,8 +47,10 @@ class User < ApplicationRecord
   validates :goal_text, length: { maximum: 50 }, allow_nil: true
   before_validation :normalize_ai_custom_instructions
   before_validation :normalize_ai_improvement_tags
+  before_validation :normalize_ai_response_style_prefs
   validates :ai_custom_instructions, length: { maximum: 600 }, allow_nil: true
   validate :ai_improvement_tags_are_allowed
+  validate :ai_response_style_prefs_are_allowed
   before_validation :normalize_avatar_image_url
   after_commit :enqueue_ai_profile_refresh_if_ai_preferences_changed
   # data URL (base64) での保存を許容するため、上限は十分大きくする
@@ -130,6 +133,10 @@ class User < ApplicationRecord
     self.ai_improvement_tags = Array(ai_improvement_tags).map(&:to_s).map(&:strip).reject(&:blank?).uniq
   end
 
+  def normalize_ai_response_style_prefs
+    self.ai_response_style_prefs = Ai::ResponseStylePreferences.normalize(ai_response_style_prefs)
+  end
+
   def ai_improvement_tags_are_allowed
     invalid = Array(ai_improvement_tags) - ImprovementTagCatalog::TAGS
     return if invalid.empty?
@@ -137,9 +144,19 @@ class User < ApplicationRecord
     errors.add(:ai_improvement_tags, "contains invalid tags: #{invalid.join(', ')}")
   end
 
+  def ai_response_style_prefs_are_allowed
+    prefs = ai_response_style_prefs.is_a?(Hash) ? ai_response_style_prefs : {}
+    return if prefs.keys.all? { |key| Ai::ResponseStylePreferences::DEFAULT_PREFS.key?(key.to_s) }
+
+    errors.add(:ai_response_style_prefs, "contains invalid keys")
+  end
+
   def enqueue_ai_profile_refresh_if_ai_preferences_changed
     changed = previous_changes
-    return unless changed.key?("goal_text") || changed.key?("ai_custom_instructions") || changed.key?("ai_improvement_tags")
+    return unless changed.key?("goal_text") ||
+                  changed.key?("ai_custom_instructions") ||
+                  changed.key?("ai_improvement_tags") ||
+                  changed.key?("ai_response_style_prefs")
 
     AiUserProfileRefreshJob.perform_later(id)
   end

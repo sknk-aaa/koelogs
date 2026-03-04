@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_01_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_05_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -63,6 +63,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_180000) do
     t.index ["ai_recommendation_id"], name: "index_ai_contribution_events_on_ai_recommendation_id"
     t.index ["user_id", "ai_recommendation_id"], name: "idx_ai_contrib_unique_user_recommendation", unique: true
     t.index ["user_id"], name: "index_ai_contribution_events_on_user_id"
+  end
+
+  create_table "ai_profile_memory_candidates", force: :cascade do |t|
+    t.text "candidate_text", null: false
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "resolved_at"
+    t.string "resolved_destination"
+    t.string "source_kind", default: "ai_chat", null: false
+    t.bigint "source_message_id"
+    t.text "source_text", null: false
+    t.bigint "source_thread_id"
+    t.string "status", default: "pending", null: false
+    t.string "suggested_destination", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "created_at"], name: "idx_ai_memory_candidates_user_created"
+    t.index ["user_id", "status", "expires_at"], name: "idx_ai_memory_candidates_user_status_expires"
+    t.index ["user_id"], name: "index_ai_profile_memory_candidates_on_user_id"
   end
 
   create_table "ai_recommendation_messages", force: :cascade do |t|
@@ -318,6 +337,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_180000) do
   create_table "users", force: :cascade do |t|
     t.text "ai_custom_instructions"
     t.jsonb "ai_improvement_tags", default: [], null: false
+    t.jsonb "ai_response_style_prefs", default: {}, null: false
     t.string "avatar_icon", default: "note_blue", null: false
     t.text "avatar_image_url"
     t.string "billing_cycle"
@@ -359,6 +379,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_180000) do
   add_foreign_key "ai_chat_threads", "users"
   add_foreign_key "ai_contribution_events", "ai_recommendations"
   add_foreign_key "ai_contribution_events", "users"
+  add_foreign_key "ai_profile_memory_candidates", "users"
   add_foreign_key "ai_recommendation_messages", "ai_recommendation_threads"
   add_foreign_key "ai_recommendation_threads", "ai_recommendations"
   add_foreign_key "ai_recommendation_threads", "users"

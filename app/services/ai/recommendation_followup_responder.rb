@@ -74,6 +74,13 @@ module Ai
         この会話の役割は「当日のおすすめ」の具体化・調整に限定します。
 
         ルール:
+        - 回答は基本的に優しい口調で行い、安心感のある言い回しを優先する。
+        - ユーザーのカスタム指示がある場合、回答スタイルはその指示を最優先する。
+        - ユーザーへの呼びかけが必要な場合は「#{user_call_name}」を使う。display_name未設定時は「あなた」を使う。
+        - 構造化された回答スタイル設定がある場合、カスタム指示で不足する部分のみ補助的に反映する。
+        - 構造化スタイル設定:
+          #{Ai::ResponseStylePreferences.summary_text(recommendation.user&.ai_response_style_prefs).lines.map { |line| "  #{line}" }.join}
+        #{Ai::ResponseStylePreferences.prompt_rules(recommendation.user&.ai_response_style_prefs).map { |line| "  #{line}" }.join("\n")}
         - 元のおすすめの方針を保ったまま、時間配分・順序・注意点・代替メニューを具体化する。
         - 全面的な作り直し要求には対応せず、再生成導線を案内する。
         - 医療的な診断・治療の断定はしない。
@@ -95,6 +102,13 @@ module Ai
       lines << "最優先質問:"
       lines << latest_user_message.presence || "(なし)"
       lines << ""
+      lines << "ユーザー呼称: #{user_call_name}"
+      lines << "ユーザーAI設定（カスタム指示）: #{user_custom_instructions.presence || '(未設定)'}"
+      lines << "ユーザーAI設定（回答スタイル）:"
+      Ai::ResponseStylePreferences.summary_text(recommendation.user&.ai_response_style_prefs).each_line do |line|
+        lines << line.chomp
+      end
+      lines << ""
       lines << "おすすめ対象日: #{recommendation.generated_for_date.iso8601}"
       lines << "元のおすすめ:"
       lines << recommendation.recommendation_text.to_s
@@ -113,6 +127,14 @@ module Ai
 
     def recent_messages
       messages.last(12)
+    end
+
+    def user_custom_instructions
+      recommendation.user&.ai_custom_instructions.to_s.gsub(/\s+/, " ").strip
+    end
+
+    def user_call_name
+      Ai::UserCallName.resolve(recommendation.user)
     end
 
     def finalize_text(text, sources: [])

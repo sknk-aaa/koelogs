@@ -291,19 +291,33 @@ const CSV_MEASUREMENT_TYPES: MeasurementType[] = ["range", "long_tone", "volume_
 function ClickableCard({
   title,
   to,
+  hintText = "詳細を見る",
+  mobileHintText,
   hintSub,
   className,
   children,
 }: {
   title: string;
   to: string;
+  hintText?: string;
+  mobileHintText?: string;
   hintSub?: string;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
     <Link to={to} className={`insightsCard insightsCard--link${className ? ` ${className}` : ""}`}>
-      <InsightsCardHeader title={title} hintText="詳細を見る" hintSub={hintSub} withChevron />
+      <InsightsCardHeader
+        title={title}
+        hintText={(
+          <>
+            <span className="insightsCard__hintTextDesktop">{hintText}</span>
+            <span className="insightsCard__hintTextMobile">{mobileHintText ?? hintText}</span>
+          </>
+        )}
+        hintSub={hintSub}
+        withChevron
+      />
       {children}
     </Link>
   );
@@ -471,7 +485,12 @@ export default function InsightsPage() {
         </ClickableCard>
 
         <div className="insightsTwinGrid">
-          <ClickableCard title="音量安定性" to="/insights/notes?metric=volume_stability" className="insightsGaugeCard">
+          <ClickableCard
+            title="音量安定性"
+            to="/insights/notes?metric=volume_stability"
+            mobileHintText="詳細"
+            className="insightsGaugeCard"
+          >
             <div className="insightsGaugePanel">
               <CircleGauge
                 label="許容幅内率（±3dB）"
@@ -487,7 +506,12 @@ export default function InsightsPage() {
             </div>
           </ClickableCard>
 
-          <ClickableCard title="ロングトーン" to="/insights/notes?metric=long_tone" className="insightsGaugeCard">
+          <ClickableCard
+            title="ロングトーン"
+            to="/insights/notes?metric=long_tone"
+            mobileHintText="詳細"
+            className="insightsGaugeCard"
+          >
             <div className="insightsGaugePanel">
               <CircleGauge
                 label="ロングトーン"

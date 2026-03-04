@@ -61,7 +61,7 @@
 }
 
 .myPage__missionMoreBtn {
-  min-height: 30px;
+  min-height: 36px;
   padding: 0 10px;
   border-radius: 9px;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));

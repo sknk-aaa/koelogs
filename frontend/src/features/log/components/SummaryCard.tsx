@@ -43,9 +43,6 @@ export default function SummaryCard({
           {sampleMode && (
             <div className="logPage__cardBadge logPage__cardBadge--sample">サンプル</div>
           )}
-          {!log && !loading && !error && (
-            <div className="logPage__cardBadge logPage__cardBadge--empty">未記録</div>
-          )}
 
           {/* ✅ サマリーの近くに配置（常に見える） */}
           <button

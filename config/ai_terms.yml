@@ -1,0 +1,241 @@
+# AI用語辞書（Koelogs内部定義）
+#
+# 使い方:
+# - 1語ごとに `key` を作り、`aliases` に表記ゆれを追加します。
+# - `definition` は短く正確に（1〜2文）。
+# - `how_to` は手順を配列で記載（2〜5行程度）。
+# - `effects` は期待効果を配列で記載。
+# - `cautions` は注意点を配列で記載。
+#
+# 運用:
+# - このファイルはGit管理されるため、Renderデプロイ後も再入力は不要です。
+# - 誤答が出た用語をここに追記して辞書を育ててください。
+#
+# 例:
+# mum_buzz:
+#   aliases:
+#     - mum+buzz
+#     - mum buzz
+#   definition: >
+#     （ここに定義）
+#   how_to:
+#     - （手順1）
+#     - （手順2）
+#   effects:
+#     - （効果1）
+#   cautions:
+#     - （注意1）
+#   source_type: internal
+
+mum_buzz:
+  aliases:
+    - mum+buzz
+    - mum buzz
+    - Mum+Buzz
+  definition: >
+    「mum+buzz」は、"mum"（マム）発音と "buzz"（バズ感＝前方共鳴の感覚）を組み合わせて、
+    過度な声量を上げずに声帯閉鎖と共鳴バランスを整えるための発声練習です。
+  how_to:
+    - 軽い声量で「mum」を発音し、喉を締めずに前方の響きを感じる。
+    - 音程を小さく上下し、響き（buzz感）が抜けない範囲で持続する。
+    - 力みが出たら音域を下げ、息と響きのバランスを優先する。
+  effects:
+    - 声量を上げすぎずに発声の安定を作りやすい
+    - ミドル付近での過緊張を減らしやすい
+    - 声の前方共鳴を保ちやすい
+  cautions:
+    - 押し出すような大声にしない
+    - 喉の詰まりや痛みが出たら中断する
+  source_type: internal
+
+  lip_roll:
+  aliases:
+    - リップロール
+    - liproll
+    - lip roll
+  definition: >
+    唇を閉じた状態で息を流し、ブルルルと振動させながら発声するウォーミングアップ練習。
+    声帯と息のバランスを安全に整えるために用いられる。
+  how_to:
+    - 唇を軽く閉じ、息で振動させる。
+    - 小さな音量で母音を乗せる。
+    - 音程をゆっくり上下させる。
+  effects:
+    - 息と声帯のバランス改善
+    - 力みの軽減
+    - ウォームアップ効果
+  cautions:
+    - 息だけにならないよう注意する
+    - 強く吹きすぎない
+  source_type: internal
+
+straw_phonation:
+  aliases:
+    - ストロー発声
+    - straw voice
+    - straw phonation
+    - SOVT
+  definition: >
+    ストローをくわえて発声する半閉鎖発声（SOVT）練習。
+    声帯への負担を減らしつつ共鳴効率を高める。
+  how_to:
+    - 細めのストローをくわえる。
+    - 小さな声量で母音を発声する。
+    - 音程を滑らかに上下させる。
+  effects:
+    - 声帯への負担軽減
+    - 共鳴効率向上
+  cautions:
+    - 大声で行わない
+    - めまいを感じたら中止する
+  source_type: internal
+
+nay_voice:
+  aliases:
+    - ネイ発声
+    - nay
+    - ネイ
+  definition: >
+    「nay（ネイ）」という明るく前方寄りの音色を用いて、
+    声帯閉鎖とエッジ感を強化する練習法。
+  how_to:
+    - 明るい声色で「ネイ」と発声する。
+    - 少し鼻腔寄りの響きを意識する。
+    - 小さな音域で繰り返す。
+  effects:
+    - 声帯閉鎖の改善
+    - 高音の通り向上
+  cautions:
+    - 叫ぶようにしない
+    - 喉を締めない
+  source_type: internal
+
+ng_hum:
+  aliases:
+    - NGハミング
+    - ng
+    - エヌジー
+  definition: >
+    「ng（ング）」の鼻音で共鳴を感じながら行うハミング練習。
+  how_to:
+    - 口を軽く閉じる。
+    - 「ング」と発声する。
+    - 音程を小さく上下する。
+  effects:
+    - 共鳴位置の確認
+    - 喉の脱力
+  cautions:
+    - 鼻詰まり時は避ける
+  source_type: internal
+
+mix_voice:
+  aliases:
+    - ミックスボイス
+    - mix
+    - mixed voice
+  definition: >
+    地声と裏声の特性を滑らかに統合した声区。
+    明確な境界を感じさせない発声状態を指す。
+  how_to:
+    - 地声寄りから徐々に裏声方向へ移行する。
+    - 音量を抑えて滑らかに繋ぐ。
+  effects:
+    - 音域拡張
+    - ブリッジの安定
+  cautions:
+    - 無理に太くしない
+  source_type: internal
+
+chest_voice:
+  aliases:
+    - 地声
+    - chest
+  definition: >
+    日常会話に近い自然な発声で、低〜中音域で使われる声区。
+  how_to:
+    - 無理のない音域で発声する。
+    - 響きを下方向に落とさない。
+  effects:
+    - 力強さの獲得
+  cautions:
+    - 高音で押し上げない
+  source_type: internal
+
+head_voice:
+  aliases:
+    - ヘッドボイス
+    - 頭声
+  definition: >
+    共鳴が頭部方向に感じられる裏声寄りの声区。
+  how_to:
+    - 息を保ちながら軽く発声する。
+    - 声を細くしすぎない。
+  effects:
+    - 高音の安定
+  cautions:
+    - 息漏れ過多に注意
+  source_type: internal
+
+falsetto:
+  aliases:
+    - 裏声
+    - ファルセット
+  definition: >
+    声帯の接触が少ない軽い声区。
+  how_to:
+    - 息を多めに使う。
+    - 力まず高音を出す。
+  effects:
+    - 音域拡張
+  cautions:
+    - 地声と混同しない
+  source_type: internal
+
+
+
+octave_repeat:
+  aliases:
+    - オクターブリピート
+    - octave repeat
+  definition: >
+    1 3 5 8 8 8 8 5 3 1 の形で、頂点音（8）を連続で反復するスケール練習。
+    高音保持の安定性と声区統合を目的とする。
+    Cメジャースケールで、ドミソ ドドドド（高）ソミドの音型を発声する。
+  how_to:
+    - 1 3 5 8 8 8 8 5 3 1 の音型でゆっくり発声する。
+    - 8（頂点音）を同じ音程で4回安定して繰り返す。
+    - 音量を上げず、響きと支えを一定に保つ。
+  effects:
+    - 高音の安定性向上
+    - 声区移行後の保持力向上
+    - ピッチ安定性の向上
+  cautions:
+    - 8で押し上げない
+    - 苦しくなったらキーを下げる
+    - 音程が下がる場合は音量を上げない
+  source_type: internal
+
+
+broken_scale:
+  aliases:
+    - ブロークンスケール
+    - broken scale
+  definition: >
+    ドを1とすると「1 5 3 8 5 3 1（1538531）」を繰り返すスケール練習。
+    跳躍（1→5→3→8）と下降（8→5→3→1）を往復させ、音程の狙い・声区統合・響きの切り替え安定を目的とする。
+    Cメジャーなら「ドソミド（高）ソミド」の音型で発声する。:contentReference[oaicite:0]{index=0}
+  how_to:
+    - 1 5 3 8 5 3 1（1538531）の音型を、まずはゆっくり・小さめの声量で発声する。
+    - 1→5、3→8 の跳躍で音程を“当てにいく”意識を持ち、口の形・響き（母音）を崩さずに移動する。
+    - 8（頂点音）は一瞬で“置く”だけにして、押し上げずに 8→5→3→1 を同じ響きのまま滑らかに戻す。
+    - 慣れたらテンポを少しずつ上げ、同じ音型を2〜4回連続で繰り返す（疲労が出る前に止める）。:contentReference[oaicite:1]{index=1}
+  effects:
+    - 跳躍時のピッチ命中率向上
+    - 高音への移行（声区の切り替え）の安定
+    - フレーズ内での響き・フォーム維持（音色の一貫性）:contentReference[oaicite:2]{index=2}
+  cautions:
+    - 8で押し上げない（喉を締めて音程を作らない）
+    - 跳躍で音程が外れるときに音量で誤魔化さない（むしろ少し小さくする）
+    - 苦しくなる/8が荒れるなら、キーを下げるか、8を短くして反復回数を減らす
+    - 1→5で重くなりやすい人は、1を軽めに開始して“上に引っ張らない”:contentReference[oaicite:3]{index=3}
+  source_type: internal

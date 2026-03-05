@@ -1,0 +1,20 @@
+<svg width="1200" height="240" viewBox="0 0 1200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgL3" x1="0" y1="0" x2="1200" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FCFDFF"/>
+      <stop offset="1" stop-color="#EEF5FF"/>
+    </linearGradient>
+    <linearGradient id="waveL3" x1="680" y1="20" x2="1140" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7CB8FF" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#5ED7B8" stop-opacity="0.11"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="240" fill="url(#bgL3)"/>
+  <path d="M640 212C720 160 768 86 846 86C914 86 958 150 1042 150C1092 150 1130 132 1160 112V240H640V212Z" fill="url(#waveL3)"/>
+  <rect x="770" y="96" width="54" height="114" rx="10" fill="#9FC2EF" fill-opacity="0.55"/>
+  <rect x="834" y="76" width="54" height="134" rx="10" fill="#7DA8E2" fill-opacity="0.58"/>
+  <rect x="898" y="110" width="54" height="100" rx="10" fill="#A9CBEF" fill-opacity="0.52"/>
+  <path d="M862 52L875 69H849L862 52Z" fill="#5E92D1" fill-opacity="0.65"/>
+  <circle cx="1028" cy="72" r="8" fill="#9CB8E4" fill-opacity="0.52"/>
+  <circle cx="1092" cy="96" r="6" fill="#8ED8CE" fill-opacity="0.52"/>
+</svg>

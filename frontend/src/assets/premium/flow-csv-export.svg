@@ -1,0 +1,39 @@
+<svg width="360" height="220" viewBox="0 0 360 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="csvGlow" x1="58" y1="24" x2="308" y2="194" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8CC7FF" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#73FFD2" stop-opacity="0.1"/>
+    </linearGradient>
+    <linearGradient id="csvLine" x1="82" y1="66" x2="284" y2="162" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A7D2FF" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#8CF7DB" stop-opacity="0.82"/>
+    </linearGradient>
+    <filter id="csvSoft" x="0" y="0" width="360" height="220" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="186" cy="112" rx="126" ry="66" fill="url(#csvGlow)" filter="url(#csvSoft)"/>
+
+  <rect x="70" y="42" width="172" height="124" rx="16" fill="#D7E9FF" fill-opacity="0.14" stroke="#A7CAEE" stroke-opacity="0.46"/>
+  <rect x="86" y="64" width="140" height="86" rx="8" fill="#0D2036" fill-opacity="0.5" stroke="#8AB5D8" stroke-opacity="0.36"/>
+
+  <path d="M86 88H226M86 112H226M86 136H226" stroke="#9DC5E6" stroke-opacity="0.32"/>
+  <path d="M122 64V150M160 64V150M198 64V150" stroke="#9DC5E6" stroke-opacity="0.32"/>
+
+  <rect x="88" y="66" width="32" height="20" rx="4" fill="#9EC8F6" fill-opacity="0.32"/>
+  <rect x="124" y="90" width="34" height="20" rx="4" fill="#84E5C9" fill-opacity="0.34"/>
+  <rect x="162" y="114" width="34" height="20" rx="4" fill="#9EC8F6" fill-opacity="0.28"/>
+  <rect x="200" y="90" width="24" height="20" rx="4" fill="#84E5C9" fill-opacity="0.3"/>
+
+  <circle cx="266" cy="96" r="24" fill="#D8FFF3" fill-opacity="0.14" stroke="#A2F0D9" stroke-opacity="0.42"/>
+  <path d="M266 82V102M266 102L257 93M266 102L275 93" stroke="#90F0D2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="252" y="106" width="28" height="8" rx="4" fill="#9AEFD8" fill-opacity="0.44"/>
+
+  <path d="M242 88C251 86 258 86 266 88" stroke="url(#csvLine)" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 7"/>
+  <path d="M274 120C282 124 289 129 295 136" stroke="url(#csvLine)" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 7"/>
+  <circle cx="295" cy="136" r="3.3" fill="#93F3D7"/>
+
+  <path d="M300 52L302 57L307 59L302 61L300 66L298 61L293 59L298 57L300 52Z" fill="#9FC8FF" fill-opacity="0.66"/>
+  <path d="M246 148L248 153L253 155L248 157L246 162L244 157L239 155L244 153L246 148Z" fill="#8AF0D3" fill-opacity="0.58"/>
+</svg>

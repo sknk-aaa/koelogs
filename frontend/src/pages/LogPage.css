@@ -4,6 +4,10 @@
   isolation: isolate;
 }
 
+body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
+  display: none !important;
+}
+
 .logPage::before {
   content: "";
   position: absolute;
@@ -36,6 +40,10 @@
   gap: 16px;
 }
 
+.logPage__stack > .logAi.logPage__card {
+  margin-top: 24px;
+}
+
 .logPage__modeSwitch {
   margin-bottom: 10px;
   display: inline-flex;
@@ -62,6 +70,56 @@
   border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
   background: color-mix(in srgb, var(--accent) 18%, var(--card));
   color: var(--text);
+}
+
+.logPage__recordBtn.is-guided {
+  position: relative;
+  z-index: 970;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.24);
+}
+
+.logPage__guideOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 940;
+  background: rgba(8, 12, 22, 0.68);
+  pointer-events: auto;
+}
+
+.logPage__guideOverlay.is-goal {
+  background: rgba(8, 12, 22, 0.74);
+}
+
+.logPage__guideHand {
+  position: fixed;
+  z-index: 950;
+  transform: translateX(-50%);
+  width: 104px;
+  height: 104px;
+  pointer-events: none;
+}
+
+.logPage__guideHandImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.42));
+  animation: logPageGuideHandBounce 0.85s ease-in-out infinite alternate;
+}
+
+@keyframes logPageGuideHandBounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2px);
+  }
+}
+
+body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
+  pointer-events: none;
 }
 
 .logPage__guideHint {
@@ -104,6 +162,445 @@
 .logPage__rewardToastLine {
   font-size: 12px;
   font-weight: 900;
+}
+
+.logPage__beginnerMissions {
+  margin-bottom: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__beginnerMissionsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logPage__beginnerMissionsTitle {
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.logPage__beginnerMissionsCount {
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 66%, var(--text));
+}
+
+.logPage__beginnerMissionsList {
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__beginnerMissionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  padding: 10px 12px;
+}
+
+.logPage__beginnerMissionText {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.logPage__beginnerMissionItemTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.logPage__beginnerMissionItemDesc {
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.76;
+}
+
+.logPage__beginnerMissionAction {
+  flex: 0 0 auto;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+.logPage__beginnerGuide {
+  margin-bottom: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__missionModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(8, 13, 24, 0.52);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.logPage__missionModalCard {
+  width: min(620px, 100%);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, #ffffff 95%, var(--card));
+  box-shadow: 0 22px 52px rgba(8, 17, 33, 0.2);
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.logPage__missionModalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.logPage__missionModalTitle {
+  font-size: 20px;
+  font-weight: 950;
+  color: var(--text);
+}
+
+.logPage__missionModalClose {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--surface) 95%, var(--card));
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.logPage__missionModalStatus {
+  justify-self: start;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logPage__missionGuideCard {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid #d7dee8;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(31, 64, 122, 0.08);
+  padding: 14px 14px 12px;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logPage__missionGuideTitle {
+  font-size: 18px;
+  font-weight: 950;
+  color: #4b5567;
+  line-height: 1.35;
+}
+
+.logPage__missionGuideMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logPage__missionGuideLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5e6d86;
+}
+
+.logPage__missionGuideCount {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 900;
+  color: #2cb2c9;
+}
+
+.logPage__missionGuideArrow {
+  font-size: 34px;
+  line-height: 0.6;
+  color: #b9c4d7;
+}
+
+.logPage__missionGuideProgressTrack {
+  height: 16px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #dce4ef;
+  display: block;
+}
+
+.logPage__missionGuideProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #42c7da, #2da6cb);
+}
+
+.logPage__beginnerGuideList {
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__beginnerGuideItem {
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 88%, var(--card));
+  padding: 7px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logPage__beginnerGuideItemMain {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.logPage__beginnerGuideItemIcon {
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+.logPage__beginnerGuideItemText {
+  min-width: 0;
+}
+
+.logPage__beginnerGuideItemTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--log-text-2);
+  line-height: 1.4;
+}
+
+.logPage__beginnerGuideItemDesc {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--log-text-3);
+  line-height: 1.5;
+}
+
+.logPage__beginnerGuideItemAction {
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color: var(--log-text-2);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logPage__comparisonTrigger {
+  margin: 0 0 10px;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  border-radius: 13px;
+  background: color-mix(in srgb, #ffffff 86%, var(--card));
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.logPage__comparisonTrigger::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.82) 52%, rgba(255, 255, 255, 0.66) 100%),
+    url("../assets/log/comparison-hero-light.svg");
+  background-size: auto, cover;
+  background-position: 0 0, right center;
+  opacity: 0.96;
+  pointer-events: none;
+}
+
+.logPage__comparisonTrigger > * {
+  position: relative;
+  z-index: 1;
+}
+
+.logPage__comparisonTriggerMain {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.logPage__comparisonTriggerTitle {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+  text-shadow: none;
+}
+
+.logPage__comparisonTriggerSub {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.8);
+  text-shadow: none;
+}
+
+.logPage__comparisonTriggerRight {
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.logPage__comparisonTriggerRight.is-free {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  gap: 4px;
+}
+
+.logPage__comparisonTriggerPremiumHint {
+  display: inline-grid;
+  grid-template-columns: 20px auto;
+  align-items: center;
+  justify-items: start;
+  column-gap: 7px;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 10px 5px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 64%, #ffffff 36%);
+  background: color-mix(in srgb, var(--accent) 22%, #ffffff 78%);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--accent) 90%, #0f172a 10%);
+  line-height: 1.2;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.46);
+}
+
+.logPage__comparisonTriggerPremiumHint::before {
+  content: "";
+  width: 20px;
+  height: 20px;
+  grid-row: 1 / span 2;
+  background: url("../assets/premium/lock-badge.svg") center / contain no-repeat;
+}
+
+.logPage__comparisonTriggerPremiumHint > span {
+  display: block;
+}
+
+.logPage__comparisonTriggerSummaryRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logPage__comparisonTriggerSummary {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.82);
+  text-shadow: none;
+}
+
+.logPage__compareModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(4, 9, 16, 0.58);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.logPage__compareModal {
+  width: min(720px, 100%);
+  max-height: min(90vh, 900px);
+  overflow: auto;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: var(--card);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__compareModalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.logPage__compareModalTitle {
+  font-size: 16px;
+  font-weight: 950;
+  color: var(--log-text-1);
+}
+
+.logPage__compareModalClose {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  color: var(--log-text-2);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logPage__compareModalBody {
+  display: grid;
+  gap: 10px;
 }
 
 .logPage__guestHero {
@@ -195,8 +692,8 @@
   display: grid;
   grid-template-columns: auto minmax(240px, 320px) auto;
   align-items: end;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .logPage__weekHeader {
@@ -317,7 +814,7 @@
 }
 
 .logPage__title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 950;
   letter-spacing: 0.3px;
 }
@@ -460,7 +957,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .logPage__kpi {
@@ -574,7 +1071,7 @@
 }
 
 .logPage__section {
-  margin-top: 10px;
+  margin-top: 20px;
 }
 
 .logPage__sectionTitle {
@@ -589,6 +1086,1189 @@
   color: #ffffff;
 }
 
+:root[data-theme-mode="dark"] .logPage {
+  --log-surface-0: #0b1220;
+  --log-surface-1: rgba(255, 255, 255, 0.04);
+  --log-surface-2: rgba(255, 255, 255, 0.08);
+  --log-border-weak: rgba(255, 255, 255, 0.12);
+  --log-border-strong: rgba(255, 255, 255, 0.24);
+  --log-text-primary: rgba(255, 255, 255, 0.94);
+  --log-text-secondary: rgba(255, 255, 255, 0.78);
+  --log-text-muted: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme-mode="dark"] .logPage__modeSwitch {
+  background: var(--log-surface-1);
+  border-color: var(--log-border-weak);
+}
+
+:root[data-theme-mode="dark"] .logPage__modeBtn {
+  background: var(--log-surface-1);
+  border-color: var(--log-border-weak);
+  color: var(--log-text-secondary);
+}
+
+:root[data-theme-mode="dark"] .logPage__modeBtn.is-active {
+  background: var(--log-surface-2);
+  border-color: var(--log-border-strong);
+  color: var(--log-text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav {
+  border: 1px solid var(--log-border-strong);
+  border-radius: 12px;
+  background: var(--log-surface-2);
+  padding: 4px;
+  gap: 6px;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekLabel {
+  background: var(--log-surface-1);
+  border-color: var(--log-border-weak);
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav .logPage__btn {
+  min-height: 36px;
+  height: 34px;
+  background: var(--log-surface-1);
+  border-color: var(--log-border-weak);
+  color: var(--log-text-secondary);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav .logPage__btn:hover {
+  border-color: var(--log-border-strong);
+  color: var(--log-text-primary);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav .logPage__monthBtn {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--log-border-strong));
+  background: color-mix(in srgb, var(--accent) 14%, var(--log-surface-2));
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__weekNav .logPage__monthBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--log-border-strong));
+  background: color-mix(in srgb, var(--accent) 22%, var(--log-surface-2));
+}
+
+:root[data-theme-mode="dark"] .logPage__title,
+:root[data-theme-mode="dark"] .goalBar__label {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__muted,
+:root[data-theme-mode="dark"] .goalBar__hint,
+:root[data-theme-mode="dark"] .goalBar__count {
+  color: var(--log-text-muted);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonHead {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonModeText,
+:root[data-theme-mode="dark"] .logPage__comparisonRange,
+:root[data-theme-mode="dark"] .logPage__comparisonCardMeta,
+:root[data-theme-mode="dark"] .logPage__comparisonHint {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonHeadSummary {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonCaret {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonInfoBtn {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonBody {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTrigger {
+  border-color: var(--log-border-strong);
+  background: var(--log-surface-2);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerTitle {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerSub {
+  color: var(--log-text-muted);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerSummary {
+  color: color-mix(in srgb, #ffffff 70%, transparent);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerPremiumHint {
+  border-color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.42));
+  background: color-mix(in srgb, var(--accent) 26%, rgba(8, 12, 20, 0.74));
+  color: color-mix(in srgb, var(--accent) 62%, #ffffff 38%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTrigger::before {
+  background-image:
+    linear-gradient(90deg, rgba(7, 12, 20, 0.74) 0%, rgba(7, 12, 20, 0.58) 52%, rgba(7, 12, 20, 0.42) 100%),
+    url("../assets/log/comparison-hero.svg");
+  opacity: 0.64;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerRight {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(7, 12, 20, 0.22);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonTriggerRight.is-free {
+  border: 0;
+  background: transparent;
+}
+
+:root[data-theme-mode="dark"] .logPage__compareModal {
+  border-color: var(--log-border-strong);
+  background: #0f1726;
+}
+
+:root[data-theme-mode="dark"] .logPage__compareModalTitle {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__compareModalClose {
+  border-color: var(--log-border-strong);
+  background: var(--log-surface-2);
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonToggle {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonToggleBtn {
+  color: rgba(255, 255, 255, 0.68);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonToggleBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--accent) 78%, #111827 22%);
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.26);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonWarning {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.42);
+  background: rgba(120, 53, 15, 0.32);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonCard {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonCardTitle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisCard {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisCard--improved {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.24), rgba(59, 130, 246, 0.18));
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisCard--declined {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.26), rgba(239, 68, 68, 0.14));
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisTitle,
+:root[data-theme-mode="dark"] .logPage__comparisonBlockTitle {
+  color: color-mix(in srgb, var(--accent) 72%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisSummary,
+:root[data-theme-mode="dark"] .logPage__comparisonIntensityCurrent {
+  color: rgba(255, 255, 255, 0.98);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisAdvice,
+:root[data-theme-mode="dark"] .logPage__comparisonReasonItem,
+:root[data-theme-mode="dark"] .logPage__comparisonActionItem,
+:root[data-theme-mode="dark"] .logPage__comparisonBucketTitle,
+:root[data-theme-mode="dark"] .logPage__comparisonDetailName {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisMeta {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiagnosisRef,
+:root[data-theme-mode="dark"] .logPage__comparisonDaysMeta,
+:root[data-theme-mode="dark"] .logPage__comparisonBucketSummary,
+:root[data-theme-mode="dark"] .logPage__comparisonDetailMeta,
+:root[data-theme-mode="dark"] .logPage__comparisonDetailMuted,
+:root[data-theme-mode="dark"] .logPage__comparisonDetailCount {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDetailValues {
+  color: rgba(255, 255, 255, 0.97);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDetailDelta.is-positive {
+  color: #4ade80;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDetailDelta.is-negative {
+  color: #f87171;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDetailDelta.is-neutral {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionCard {
+  border-color: rgba(148, 163, 184, 0.40);
+  background: rgba(46, 58, 82, 0.56);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionBadge {
+  color: #c7d2fe;
+  border-color: rgba(99, 102, 241, 0.44);
+  background: rgba(99, 102, 241, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionTitle {
+  color: rgba(255, 255, 255, 0.98);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionTitleIcon,
+:root[data-theme-mode="dark"] .logPage__comparisonActionIcon {
+  color: #93c5fd;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonActionItem {
+  color: rgba(255, 255, 255, 0.94);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonIntensity {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonBucket {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonBucketBody {
+  border-top-color: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonBucketCaret {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideCard {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: #172033;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.36);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionModalOverlay {
+  background: rgba(2, 6, 16, 0.7);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionModalCard {
+  border-color: rgba(148, 163, 184, 0.34);
+  background: #172033;
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionModalTitle {
+  color: #e5edff;
+}
+
+:root[data-theme-mode="dark"] .logPage__missionModalClose {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2ecff;
+}
+
+:root[data-theme-mode="dark"] .logPage__missionModalStatus {
+  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.22));
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.04));
+  color: #cfe7ff;
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideTitle {
+  color: #e5edff;
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideLabel {
+  color: rgba(219, 231, 255, 0.82);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideCount {
+  color: #7dd3fc;
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideArrow {
+  color: rgba(203, 213, 225, 0.78);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideProgressTrack {
+  background: rgba(148, 163, 184, 0.28);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItem {
+  border-color: var(--log-border-weak);
+  background: var(--log-surface-1);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItemTitle,
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItemAction {
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItemDesc {
+  color: var(--log-text-muted);
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerGuideItemAction {
+  border-color: var(--log-border-strong);
+  background: var(--log-surface-2);
+}
+
+:root[data-theme-mode="dark"] .goalBar {
+  border-color: var(--log-border-weak);
+  background: var(--log-surface-1);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .goalBar.is-guided {
+  border-color: color-mix(in srgb, var(--accent) 60%, rgba(255, 255, 255, 0.28));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 14px 28px rgba(0, 0, 0, 0.44);
+}
+
+:root[data-theme-mode="dark"] .goalBar::before {
+  background-image:
+    linear-gradient(90deg, rgba(8, 13, 24, 0.9) 0%, rgba(9, 15, 28, 0.8) 50%, rgba(10, 17, 33, 0.62) 100%),
+    url("../assets/log/goal-hero.svg");
+  opacity: 0.9;
+}
+
+:root[data-theme-mode="dark"] .goalBar__text {
+  color: var(--log-text-secondary);
+}
+
+:root[data-theme-mode="dark"] .goalBar__btn {
+  border-color: var(--log-border-strong);
+  background: var(--log-surface-2);
+  color: var(--log-text-primary);
+}
+
+:root[data-theme-mode="dark"] .goalBar__btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--log-border-strong));
+  background: color-mix(in srgb, var(--accent) 16%, var(--log-surface-2));
+}
+
+:root[data-theme-mode="dark"] .goalBar__input {
+  background: color-mix(in srgb, var(--log-surface-2) 78%, #ffffff 22%);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--log-border-strong));
+  color: var(--log-text-primary);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 16%, transparent),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transition: border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+:root[data-theme-mode="dark"] .goalBar__input::placeholder {
+  color: color-mix(in srgb, var(--log-text-muted) 78%, #ffffff 22%);
+}
+
+:root[data-theme-mode="dark"] .goalBar__input:focus {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--log-border-strong));
+  outline: 2px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  outline-offset: 1px;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonCurrent {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonPrevious {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiff.is-positive,
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth.is-positive {
+  color: #86efac;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiff.is-negative,
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth.is-negative {
+  color: #fca5a5;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonDiff.is-neutral,
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth.is-neutral {
+  color: #cbd5e1;
+}
+
+:root[data-theme-mode="dark"] .logPage__comparisonGrowth.is-new {
+  color: #93c5fd;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementCompare {
+  border-top-color: rgba(255, 255, 255, 0.2);
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementCompareTitle,
+:root[data-theme-mode="dark"] .logPage__measurementName,
+:root[data-theme-mode="dark"] .logPage__measurementValues {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementCompareRow {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus.is-improved {
+  border-color: rgba(16, 185, 129, 0.48);
+  background: rgba(16, 185, 129, 0.2);
+  color: #86efac;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus.is-declined {
+  border-color: rgba(239, 68, 68, 0.52);
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus.is-stable {
+  border-color: rgba(148, 163, 184, 0.44);
+  background: rgba(148, 163, 184, 0.16);
+  color: #d1d5db;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementStatus.is-new {
+  border-color: rgba(96, 165, 250, 0.56);
+  background: rgba(59, 130, 246, 0.24);
+  color: #bfdbfe;
+}
+
+:root[data-theme-mode="dark"] .logPage__measurementCounts,
+:root[data-theme-mode="dark"] .logPage__measurementNote {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.logPage__sectionTitle--comparison {
+  margin-bottom: 0;
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+}
+
+.logPage__comparisonHead {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.logPage__comparisonHeadLeft {
+  min-width: 0;
+}
+
+.logPage__comparisonModeText {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--log-text-3) 82%, transparent);
+}
+
+.logPage__comparisonHeadRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.logPage__comparisonHeadSummary {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--log-text-3);
+  max-width: 190px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logPage__comparisonCaret {
+  font-size: 11px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 52%, var(--text));
+}
+
+.logPage__comparisonInfoBtn {
+  width: 24px;
+  height: 24px;
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+}
+
+.logPage__comparisonInfoBody {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.logPage__comparisonBody {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 88%, var(--card));
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__comparisonToggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  padding: 4px;
+}
+
+.logPage__comparisonToggleBtn {
+  min-height: 32px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--surface) 92%, var(--card));
+  color: color-mix(in srgb, var(--text) 66%, transparent);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logPage__comparisonToggleBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  background: color-mix(in srgb, var(--accent) 70%, var(--card) 30%);
+  color: #ffffff;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.logPage__comparisonHint {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--log-text-2);
+}
+
+.logPage__comparisonWarning {
+  font-size: 12px;
+  font-weight: 900;
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(253, 230, 138, 0.42);
+  border-radius: 10px;
+  padding: 7px 9px;
+}
+
+.logPage__comparisonRange {
+  font-size: 12px;
+  font-weight: 850;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonDiagnosisCard {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__comparisonDiagnosisCard--improved {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 24%, #d1fae5), color-mix(in srgb, var(--accent) 16%, #ecfeff));
+}
+
+.logPage__comparisonDiagnosisCard--declined {
+  background: linear-gradient(135deg, color-mix(in srgb, #f59e0b 14%, var(--surface)), color-mix(in srgb, #fb7185 10%, var(--surface)));
+}
+
+.logPage__comparisonDiagnosisTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
+}
+
+.logPage__comparisonDiagnosisSummary {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--log-text-1);
+}
+
+.logPage__comparisonDiagnosisAdvice {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonDiagnosisMeta {
+  font-size: 10px;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--text) 56%, transparent);
+}
+
+.logPage__comparisonDiagnosisRef {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonReasonCard,
+.logPage__comparisonActionCard {
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonReasonList,
+.logPage__comparisonActionList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__comparisonReasonItem,
+.logPage__comparisonActionItem {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--log-text-2);
+  line-height: 1.5;
+}
+
+/* Rich coach card */
+.logPage__comparisonActionCard {
+  position: relative;
+  border-color: color-mix(in srgb, #f59e0b 34%, var(--border));
+  background: color-mix(in srgb, #fff7e6 30%, var(--card));
+  overflow: hidden;
+  gap: 8px;
+}
+
+.logPage__comparisonActionHead {
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonActionBadge {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--accent) 84%, var(--text));
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.logPage__comparisonActionTitleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.logPage__comparisonActionTitle {
+  font-size: 18px;
+  font-weight: 950;
+  color: var(--log-text-1);
+}
+
+.logPage__comparisonActionTitleIcon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 74%, var(--text));
+}
+
+.logPage__comparisonActionTitleIcon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__comparisonActionList {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonActionItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--log-text-1);
+  background: color-mix(in srgb, var(--surface) 92%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 10px;
+  padding: 7px 9px;
+}
+
+.logPage__comparisonActionIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+}
+
+.logPage__comparisonActionIcon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__comparisonIntensity {
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__comparisonBlockTitle {
+  font-size: 12px;
+  font-weight: 850;
+  color: color-mix(in srgb, var(--accent) 64%, var(--text));
+}
+
+.logPage__comparisonIntensityCurrent {
+  font-size: 18px;
+  font-weight: 950;
+  color: var(--log-text-1);
+}
+
+.logPage__comparisonDaysMeta {
+  font-size: 10px;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--text) 58%, transparent);
+}
+
+.logPage__comparisonCards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.logPage__comparisonCard {
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 78%, var(--card));
+  padding: 9px;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonCardTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--log-text-2);
+}
+
+.logPage__comparisonCardValueRow {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.logPage__comparisonCardMeta {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--log-text-3);
+  display: grid;
+  gap: 2px;
+}
+
+.logPage__comparisonCurrent {
+  color: color-mix(in srgb, var(--text) 80%, transparent);
+}
+
+.logPage__comparisonPrevious {
+  color: color-mix(in srgb, var(--text) 64%, transparent);
+}
+
+.logPage__comparisonDiff {
+  font-weight: 900;
+}
+
+.logPage__comparisonGrowth {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--text) 62%, transparent);
+}
+
+.logPage__comparisonDiff.is-positive,
+.logPage__comparisonGrowth.is-positive {
+  color: #16a34a;
+}
+
+.logPage__comparisonDiff.is-negative,
+.logPage__comparisonGrowth.is-negative {
+  color: #dc2626;
+}
+
+.logPage__comparisonDiff.is-neutral,
+.logPage__comparisonGrowth.is-neutral {
+  color: #6b7280;
+}
+
+.logPage__comparisonGrowth.is-new {
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+}
+
+.logPage__measurementCompare {
+  margin-top: 2px;
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 20%, var(--border));
+  padding-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__measurementCompareHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logPage__measurementCompareTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+}
+
+.logPage__measurementCompareList {
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__comparisonBuckets {
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__comparisonBucket {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--surface) 86%, var(--card));
+}
+
+.logPage__comparisonBucket.is-improved {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+.logPage__comparisonBucket.is-stable {
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.26);
+}
+
+.logPage__comparisonBucket.is-declined {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.24);
+}
+
+.logPage__comparisonBucketHead {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  min-height: 36px;
+  padding: 6px 8px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logPage__comparisonBucketHead.static {
+  cursor: default;
+  grid-template-columns: auto 1fr;
+}
+
+.logPage__comparisonBucketTitle {
+  font-size: 16px;
+  font-weight: 950;
+  color: var(--log-text-2);
+}
+
+.logPage__comparisonBucketSummary {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.logPage__comparisonBucketMore {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonBucketCaret {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--log-text-3);
+}
+
+.logPage__comparisonBucketBody {
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 16%, var(--border));
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__comparisonDetailRow {
+  display: grid;
+  gap: 2px;
+}
+
+.logPage__comparisonDetailMain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.logPage__comparisonDetailName {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--log-text-3);
+}
+
+.logPage__measurementTag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.logPage__comparisonDetailValues {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--log-text-1);
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.logPage__comparisonDetailDelta {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.logPage__comparisonDetailDelta.is-positive {
+  color: #16a34a;
+}
+
+.logPage__comparisonDetailDelta.is-negative {
+  color: #dc2626;
+}
+
+.logPage__comparisonDetailDelta.is-neutral {
+  color: #6b7280;
+}
+
+.logPage__comparisonDetailMeta,
+.logPage__comparisonDetailMuted {
+  font-size: 10px;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--text) 58%, transparent);
+}
+
+.logPage__comparisonDetailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.logPage__comparisonDetailCount {
+  color: color-mix(in srgb, var(--text) 56%, transparent);
+}
+
+.logPage__measurementCompareRow {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  padding: 8px 9px;
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__measurementCompareRowMain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.logPage__measurementName {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--log-text-2);
+}
+
+.logPage__measurementValues {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.logPage__measurementMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.logPage__measurementStatus {
+  font-size: 11px;
+  font-weight: 900;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  padding: 1px 8px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.logPage__measurementStatus.is-improved {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.logPage__measurementStatus.is-declined {
+  border-color: rgba(220, 38, 38, 0.34);
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.logPage__measurementStatus.is-stable {
+  border-color: rgba(107, 114, 128, 0.35);
+  background: rgba(107, 114, 128, 0.1);
+  color: #4b5563;
+}
+
+.logPage__measurementStatus.is-new {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 82%, var(--text));
+}
+
+.logPage__measurementStatus.is-empty {
+  opacity: 0.7;
+}
+
+.logPage__measurementCounts {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--log-text-3);
+}
+
+.logPage__measurementNote {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--log-text-3);
+}
+
 .logPage__tags {
   display: flex;
   flex-wrap: wrap;
@@ -598,6 +2278,10 @@
 .logPage__notesBox {
   white-space: pre-wrap;
   line-height: 1.7;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", sans-serif;
   padding: 11px 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
@@ -663,6 +2347,14 @@
   min-height: 40px;
 }
 
+.logPage__aiCtaBtn.is-guided {
+  position: relative;
+  z-index: 970;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.24);
+}
+
 .logPage__aiCtaHint {
   margin: 0;
 }
@@ -676,22 +2368,43 @@
 }
 
 .logPage__aiSettingsLink {
-  min-height: 26px;
-  padding: 0 10px;
+  min-height: 30px;
+  padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   text-decoration: none;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: border-color 140ms ease, background 140ms ease, transform 120ms ease, box-shadow 140ms ease;
+}
+
+.logPage__aiSettingsLink::after {
+  content: "›";
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.8;
 }
 
 .logPage__aiSettingsLink:hover {
-  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
-  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.12);
+}
+
+.logPage__aiSettingsLink:active {
+  transform: translateY(0);
+}
+
+.logPage__aiSettingsLink:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 2px;
 }
 
 .logPage__aiInfoBtn:hover {
@@ -777,6 +2490,10 @@
 .logAi {
   position: relative;
   overflow: hidden;
+  --log-ai-theme-accent: color-mix(in srgb, var(--accent) 26%, #f59e0b);
+  --log-ai-state-accent: color-mix(in srgb, var(--accent) 24%, #10b981);
+  --log-ai-menu-accent: color-mix(in srgb, var(--accent) 58%, #3b82f6);
+  --log-ai-question-accent: color-mix(in srgb, var(--accent) 22%, #f97316);
   border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
   background: color-mix(in srgb, var(--accent) 10%, var(--card));
   box-shadow: var(--shadow-md);
@@ -859,10 +2576,221 @@
   padding: 14px;
 }
 
+.logAi__rangeSection {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+
+.logAi__rangeLabel {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.logAi__rangeOptions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.logAi__rangeOption {
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 999px;
+  background: var(--card);
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logAi__rangeOption.is-active {
+  color: color-mix(in srgb, var(--accent) 84%, var(--text));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+}
+
+.logAi__rangeHint {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0.8;
+}
+
 .logAi__text {
   white-space: pre-wrap;
   line-height: 1.8;
   font-size: 13px;
+}
+
+.logAi__structured {
+  display: grid;
+  gap: 24px;
+}
+
+.logAiSection {
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 94%, #ffffff);
+  padding: 14px;
+}
+
+.logAiSection--theme {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.logAiSection--state {
+  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 24%, var(--border));
+  border-left: 2px solid color-mix(in srgb, var(--log-ai-state-accent) 55%, var(--border));
+  background: transparent;
+}
+
+.logAiSection--menu {
+  border-left: 4px solid var(--log-ai-menu-accent);
+  border-color: color-mix(in srgb, var(--log-ai-menu-accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--log-ai-menu-accent) 10%, var(--surface));
+}
+
+.logAiSection--note {
+  border-left: 4px solid #8b5cf6;
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.04));
+}
+
+.logAiSection__title {
+  font-size: 14px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.logAiSection--theme .logAiSection__title {
+  color: color-mix(in srgb, var(--log-ai-theme-accent) 62%, var(--text));
+  margin-bottom: 6px;
+}
+
+.logAiSection--state .logAiSection__title {
+  color: color-mix(in srgb, var(--log-ai-state-accent) 62%, var(--text));
+}
+
+.logAiSection--menu .logAiSection__title {
+  color: color-mix(in srgb, var(--log-ai-menu-accent) 78%, var(--text));
+}
+
+.logAiSection__body {
+  display: grid;
+  gap: 8px;
+}
+
+.logAiSection__body p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 2.05;
+  font-size: 13px;
+}
+
+.logAiStateList {
+  display: grid;
+  gap: 10px;
+}
+
+.logAiStateItem {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--log-ai-state-accent) 4%, var(--surface));
+  padding: 10px 11px;
+  line-height: 1.95;
+  font-size: 13px;
+}
+
+.logAiState__actions {
+  margin-top: 8px;
+}
+
+.logAiState__toggle {
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logAiState__detail {
+  margin-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  padding-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.logAiState__detail p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.95;
+  font-size: 12px;
+}
+
+.logAiTheme {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  padding: 10px 11px;
+  font-size: 14px;
+  line-height: 1.9;
+  font-weight: 900;
+}
+
+.logAiMenus {
+  display: grid;
+  gap: 10px;
+}
+
+.logAiMenuRow {
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 78%, var(--card));
+  padding: 10px;
+}
+
+.logAiMenuRow__top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.logAiMenuRow__name {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.logAiMenuRow__time {
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 74%, var(--text));
+}
+
+.logAiMenuRow__desc {
+  margin-top: 6px;
+  line-height: 1.95;
+  font-size: 13px;
+}
+
+.logAiToken--metric {
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+}
+
+.logAiToken--note {
+  font-weight: 900;
+  color: #0f6ab8;
 }
 
 .logAi__text--muted {
@@ -905,6 +2833,311 @@
   border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
 }
 
+.logAiQuestion {
+  margin-top: 12px;
+  border-top: 0;
+  padding-top: 6px;
+}
+
+.logAiQuestion__title {
+  font-size: 12px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--log-ai-question-accent) 60%, var(--text));
+}
+
+.logAiQuestion__row {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.logAiQuestion__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.logAiQuestion__input {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 74%, var(--card));
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.logAiQuestion__send {
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.logAiQuestion__send:hover {
+  filter: brightness(0.97);
+}
+
+.logAiQuestion__history {
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 999px;
+  background: var(--card);
+  color: color-mix(in srgb, var(--accent) 54%, var(--text));
+  padding: 7px 11px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logAi__collective {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--surface) 82%, var(--card));
+}
+
+.logAi__collectiveHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.logAi__collectiveHeadLeft {
+  min-width: 0;
+}
+
+.logAi__collectiveToggle {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: color-mix(in srgb, var(--accent) 54%, var(--text));
+  padding: 3px 4px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.logAi__collectiveMuted {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.7;
+  opacity: 0.82;
+}
+
+.logAi__collectiveRows {
+  margin-top: 8px;
+  display: grid;
+  gap: 12px;
+}
+
+.logAi__collectiveRow {
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-left: 2px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+  border-radius: 10px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--surface) 86%, var(--card));
+}
+
+.logAi__collectiveRowHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+}
+
+.logAi__collectiveTag {
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.logAi__collectiveTagPill {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--accent) 46%, var(--text));
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  border-radius: 999px;
+  padding: 1px 6px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+
+.logAi__collectiveMenus {
+  margin-top: 8px;
+  display: grid;
+  gap: 10px;
+}
+
+.logAi__collectiveMenuCard {
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  border-radius: 9px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--surface) 90%, var(--card));
+  display: grid;
+  gap: 6px;
+}
+
+.logAi__collectiveBarTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.logAi__collectiveMenuName {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.logAi__collectiveCount {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.logAi__collectiveBarTrack {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  overflow: hidden;
+}
+
+.logAi__collectiveBarTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 66%, #6ea8ff);
+}
+
+.logAi__collectiveLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.logAi__collectiveLabel {
+  font-size: 12px;
+  font-weight: 850;
+  color: var(--muted);
+}
+
+.logAi__collectiveSectionHead {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.logAi__scaleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.logAi__scaleChip {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #3b82f6 45%, var(--border));
+  background: color-mix(in srgb, #3b82f6 16%, var(--surface));
+  color: color-mix(in srgb, #1e40af 72%, var(--text));
+}
+
+.logAi__scaleChip--more {
+  border-style: dashed;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 86%, var(--card));
+}
+
+.logAi__collectiveValue {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.logAi__collectiveSubhead {
+  margin-top: 1px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  font-size: 12px;
+  font-weight: 850;
+  color: var(--muted);
+}
+
+.logAi__collectiveComments {
+  margin: 0;
+  padding: 0 0 0 16px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.logAi__collectiveQuotes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.logAi__collectiveQuotes li {
+  border-left: 2px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border-radius: 8px;
+  padding: 7px 10px;
+  max-width: 70%;
+}
+
+.logAi__quoteText {
+  white-space: pre-line;
+  line-height: 1.68;
+  display: inline-block;
+}
+
+.logAi__moreBtn {
+  justify-self: start;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border-radius: 999px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.logAi__collectiveNoCommentBadge {
+  justify-self: start;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--card) 72%, var(--surface));
+}
+
 :root[data-theme-mode="dark"] .logAi {
   border-color: rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.04);
@@ -933,6 +3166,85 @@
 :root[data-theme-mode="dark"] .logAi__content,
 :root[data-theme-mode="dark"] .logAi__text {
   color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .logAiSection {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .logAiSection--theme {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+:root[data-theme-mode="dark"] .logAiSection--state {
+  border-color: rgba(52, 211, 153, 0.32);
+  border-left-color: rgba(52, 211, 153, 0.58);
+  background: transparent;
+}
+
+:root[data-theme-mode="dark"] .logAiSection--menu {
+  border-left-color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.36);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+:root[data-theme-mode="dark"] .logAiSection--note {
+  border-left-color: #a78bfa;
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.2), rgba(18, 24, 42, 0.7));
+}
+
+:root[data-theme-mode="dark"] .logAiStateItem,
+:root[data-theme-mode="dark"] .logAiMenuRow {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logAiStateItem {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme-mode="dark"] .logAiMenuRow {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .logAiTheme {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme-mode="dark"] .logAiState__toggle {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAiState__detail {
+  border-top-color: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme-mode="dark"] .logAiToken--metric {
+  color: #93c5fd;
+}
+
+:root[data-theme-mode="dark"] .logAiToken--note {
+  color: #a5d8ff;
+}
+
+:root[data-theme-mode="dark"] .logAi__rangeSection {
+  border-color: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.25));
+  background: color-mix(in srgb, var(--accent) 8%, rgba(16, 20, 36, 0.85));
+}
+
+:root[data-theme-mode="dark"] .logAi__rangeOption {
+  background: rgba(18, 24, 42, 0.9);
+  border-color: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.24));
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAi__rangeOption.is-active {
+  background: color-mix(in srgb, var(--accent) 18%, rgba(18, 24, 42, 0.92));
 }
 
 :root[data-theme-mode="dark"] .logAi__pill {
@@ -971,20 +3283,271 @@
   color: #ffffff;
 }
 
+:root[data-theme-mode="dark"] .logAiQuestion {
+  border-top-color: transparent;
+}
+
+:root[data-theme-mode="dark"] .logAiQuestion__input {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(13, 18, 31, 0.88);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAiQuestion__send {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAiQuestion__history {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAi__collective {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(7, 11, 20, 0.52);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveToggle {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveRow {
+  border-color: rgba(255, 255, 255, 0.14);
+  border-left-color: rgba(96, 165, 250, 0.48);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveRowHead {
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveTagPill {
+  color: rgba(219, 234, 254, 0.8);
+  border-color: rgba(96, 165, 250, 0.32);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveBarTrack {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveBarTrack > span {
+  background: color-mix(in srgb, var(--accent) 70%, #8fc3ff);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveCount,
+:root[data-theme-mode="dark"] .logAi__collectiveNoCommentBadge {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveLabel {
+  color: rgba(255, 255, 255, 0.64);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveSectionHead {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveSubhead {
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveMenuCard {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:root[data-theme-mode="dark"] .logAi__scaleChip {
+  border-color: rgba(96, 165, 250, 0.5);
+  background: rgba(59, 130, 246, 0.2);
+  color: #dbeafe;
+}
+
+:root[data-theme-mode="dark"] .logAi__scaleChip--more {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:root[data-theme-mode="dark"] .logAi__moreBtn {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveNoCommentBadge {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .logAi__collectiveQuotes li {
+  border-left-color: rgba(96, 165, 250, 0.62);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+@media (max-width: 700px) {
+  .logPage__comparisonCards {
+    grid-template-columns: 1fr;
+  }
+
+  .logPage__comparisonHead {
+    padding: 8px 10px;
+  }
+
+  .logPage__comparisonBody {
+    padding: 9px;
+  }
+
+  .logAi__content {
+    padding: 10px 8px;
+  }
+
+  .logAi__structured {
+    margin-left: -8px;
+    margin-right: -8px;
+    gap: 12px;
+  }
+
+  .logAiSection {
+    border-radius: 10px;
+    padding: 9px;
+  }
+
+  .logAiSection__title {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .logAiSection__body p,
+  .logAiStateItem,
+  .logAiMenuRow__name,
+  .logAiMenuRow__desc {
+    font-size: 12px;
+  }
+
+  .logAi__collective {
+    margin-left: -8px;
+    margin-right: -8px;
+    padding: 8px;
+    border-radius: 10px;
+  }
+
+  .logAiQuestion {
+    margin-left: -8px;
+    margin-right: -8px;
+    padding: 8px;
+  }
+
+  .logAiQuestion__row {
+    grid-template-columns: 1fr;
+  }
+
+  .logAiQuestion__actions {
+    justify-self: end;
+  }
+
+  .logAiQuestion__history,
+  .logAiQuestion__send {
+    justify-self: end;
+  }
+
+  .logAi__collectiveHead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  .logAi__collectiveToggle {
+    align-self: flex-end;
+  }
+
+  .logAi__collectiveRow {
+    padding: 7px;
+    border-left-width: 3px;
+  }
+
+  .logAi__collectiveRowHead {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .logAi__collectiveTag {
+    font-size: 16px;
+  }
+
+  .logAi__collectiveMenus {
+    gap: 8px;
+  }
+
+  .logAi__collectiveMenuCard {
+    padding: 7px;
+    gap: 7px;
+  }
+
+  .logAi__collectiveBarTop {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .logAi__collectiveMenuName {
+    font-size: 13px;
+  }
+
+  .logAi__collectiveCount {
+    font-size: 11px;
+  }
+
+  .logAi__collectiveSubhead,
+  .logAi__collectiveSectionHead,
+  .logAi__collectiveLabel,
+  .logAi__collectiveValue,
+  .logAi__collectiveMuted {
+    font-size: 11px;
+  }
+
+  .logAi__collectiveComments,
+  .logAi__collectiveQuotes {
+    gap: 6px;
+  }
+
+  .logAi__scaleChips {
+    gap: 6px;
+  }
+
+  .logAi__scaleChip {
+    padding: 3px 7px;
+    font-size: 10px;
+  }
+
+  .logAi__collectiveQuotes li {
+    max-width: 100%;
+    padding: 7px 8px;
+  }
+}
+
 :root[data-theme-mode="dark"] .logPage__aiInfoBtn {
   border-color: rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.08);
 }
 
 :root[data-theme-mode="dark"] .logPage__aiSettingsLink {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24);
 }
 
 :root[data-theme-mode="dark"] .logPage__aiSettingsLink:hover {
-  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.22));
-  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.08));
+  border-color: color-mix(in srgb, var(--accent) 64%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.1));
 }
 
 :root[data-theme-mode="dark"] .logPage__aiInfoBtn:hover {
@@ -1038,6 +3601,26 @@
   background: var(--card);
   box-shadow: var(--shadow-sm);
   color: var(--cardText, var(--text));
+  position: relative;
+  overflow: hidden;
+}
+
+.goalBar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.86) 52%, rgba(255, 255, 255, 0.72) 100%),
+    url("../assets/log/goal-hero-light.svg");
+  background-size: auto, cover;
+  background-position: 0 0, right center;
+  opacity: 0.94;
+  pointer-events: none;
+}
+
+.goalBar > * {
+  position: relative;
+  z-index: 1;
 }
 
 .logPage__missionCard {
@@ -1109,7 +3692,7 @@
 }
 
 .logPage__missionMoreBtn {
-  min-height: 34px;
+  min-height: 36px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
@@ -1248,11 +3831,37 @@
   gap: 10px;
 }
 
+.goalBar.is-guided {
+  position: relative;
+  z-index: 968;
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 14px 26px rgba(59, 130, 246, 0.22);
+}
+
+.goalBar__row.is-guided {
+  position: relative;
+  z-index: 970;
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.18);
+  background: color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.86));
+  animation: logPageGoalGuidePulse 1.2s ease-in-out infinite;
+}
+
 .goalBar__label {
-  font-size: 12px;
-  font-weight: 950;
-  letter-spacing: 0.2px;
-  opacity: 0.74;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.5;
+  color: var(--cardText, var(--text));
+}
+
+.goalBar__row--end {
+  justify-content: flex-end;
 }
 
 .goalBar__text {
@@ -1327,6 +3936,7 @@
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .goalBar__error {
@@ -1340,6 +3950,16 @@
   font-weight: 900;
 }
 
+@keyframes logPageGoalGuidePulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
 .weekCal {
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
@@ -1348,6 +3968,7 @@
   width: 100%;
   min-width: 0;
   max-width: 320px;
+  margin-inline: auto;
   box-shadow: var(--shadow-sm);
   color: var(--cardText, var(--text));
 }
@@ -1546,6 +4167,40 @@
 }
 
 @media (max-width: 520px) {
+  .logAi__content {
+    padding: 8px 6px;
+  }
+
+  .logAi__structured {
+    margin-left: -6px;
+    margin-right: -6px;
+    gap: 14px;
+  }
+
+  .logAiSection {
+    padding: 10px;
+  }
+
+  .logAi__collective {
+    margin-left: -6px;
+    margin-right: -6px;
+    padding: 7px;
+  }
+
+  .logAiQuestion {
+    margin-left: -6px;
+    margin-right: -6px;
+    padding: 7px;
+  }
+
+  .logAi__collectiveRow {
+    padding: 6px;
+  }
+
+  .logAi__collectiveMenuCard {
+    padding: 6px;
+  }
+
   .logPage__aiCtaActions .logPage__btn {
     width: 100%;
   }
@@ -1565,6 +4220,7 @@
 
   .logPage__modeBtn {
     flex: 1;
+    min-height: 38px;
   }
 
   .logPage__kpiRow {
@@ -1623,6 +4279,12 @@
   .logPage__weekLabel {
     flex: 1;
     justify-content: center;
+  }
+}
+
+@media (max-width: 390px) {
+  .goalBar__actions .goalBar__btn {
+    width: 100%;
   }
 }
 /* =========================
@@ -1819,4 +4481,15 @@
 .logPage__mini--streak::after {
   -webkit-mask-image: url("/icons/flame.svg");
   mask-image: url("/icons/flame.svg");
+}
+
+@media (max-width: 560px) {
+  .logPage__beginnerMissionItem {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .logPage__beginnerMissionAction {
+    align-self: flex-end;
+  }
 }

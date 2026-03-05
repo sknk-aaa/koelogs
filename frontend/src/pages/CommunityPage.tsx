@@ -16,13 +16,31 @@ import { emitGamificationRewards } from "../features/gamification/rewardBus";
 import { improvementTagLabel, improvementTagToneClass } from "../features/improvementTags/improvementTags";
 import { avatarIconPath } from "../features/profile/avatarIcons";
 import type { TrainingMenu } from "../types/trainingMenu";
-import { IMPROVEMENT_TAG_OPTIONS, type CommunityPost } from "../types/community";
+import {
+  COMMUNITY_USED_SCALE_OPTIONS,
+  IMPROVEMENT_TAG_OPTIONS,
+  type CommunityPost,
+  type CommunityUsedScaleType,
+  usedScaleLabel,
+} from "../types/community";
 import InfoModal from "../components/InfoModal";
 
 import "./CommunityPage.css";
 
 type ListTab = "posts" | "favorites";
 type BrowseSort = "newest" | "by_tag" | "mine";
+
+const FREE_NOTE_TEMPLATE = [
+  "改善された点:", "",
+  "音域:", "",
+  "意識した点:",
+].join("\n");
+
+const FREE_NOTE_PLACEHOLDER = [
+  "改善された点：（ミドルが楽に出せるようになった / 声量が上がった）", "",
+  "音域：（地声レンジ / 換声点付近 / 裏声レンジ）", "",
+  "意識した点：（声帯閉鎖を維持する / 鼻に響かせる）",
+].join("\n");
 
 export default function CommunityPage() {
   const navigate = useNavigate();
@@ -42,6 +60,8 @@ export default function CommunityPage() {
   const [menus, setMenus] = useState<TrainingMenu[]>([]);
   const [menuId, setMenuId] = useState<number | "">("");
   const [tags, setTags] = useState<string[]>([]);
+  const [usedScaleType, setUsedScaleType] = useState<CommunityUsedScaleType | "">("");
+  const [usedScaleOtherText, setUsedScaleOtherText] = useState("");
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFavoriting, setIsFavoriting] = useState<number | null>(null);
@@ -169,8 +189,11 @@ export default function CommunityPage() {
   }, [me, postModalOpen]);
 
   const canSubmit = useMemo(() => {
-    return typeof menuId === "number" && tags.length > 0;
-  }, [menuId, tags.length]);
+    if (typeof menuId !== "number" || tags.length === 0) return false;
+    if (usedScaleType === "") return false;
+    if (usedScaleType === "other") return usedScaleOtherText.trim().length > 0;
+    return true;
+  }, [menuId, tags.length, usedScaleType, usedScaleOtherText]);
 
   const isOwnPost = (post: CommunityPost) => me != null && post.user_id === me.id;
 
@@ -193,6 +216,14 @@ export default function CommunityPage() {
     setTags((prev) => (prev.includes(tagKey) ? prev.filter((v) => v !== tagKey) : [ ...prev, tagKey ]));
   };
 
+  const onInsertCommentTemplate = () => {
+    setComment((prev) => {
+      if (prev.includes(FREE_NOTE_TEMPLATE)) return prev;
+      if (prev.trim().length === 0) return FREE_NOTE_TEMPLATE;
+      return `${prev.replace(/\s*$/, "")}\n\n${FREE_NOTE_TEMPLATE}`;
+    });
+  };
+
   const onClickOpenPost = () => {
     if (!me) {
       navigate("/login", { state: { fromPath: "/community" } });
@@ -200,6 +231,8 @@ export default function CommunityPage() {
     }
     setEditingPost(null);
     setTags([]);
+    setUsedScaleType("");
+    setUsedScaleOtherText("");
     setComment("");
     setNotice(null);
     setError(null);
@@ -212,23 +245,28 @@ export default function CommunityPage() {
   };
 
   const onSubmit = async () => {
-    if (!canSubmit || typeof menuId !== "number") return;
+    if (!canSubmit || typeof menuId !== "number" || usedScaleType === "") return;
     setIsSubmitting(true);
     setError(null);
     setNotice(null);
     try {
+      const selectedScaleType: CommunityUsedScaleType = usedScaleType;
       const trimmedComment = comment.trim();
       let savedPost: CommunityPost;
       if (editingPost) {
         savedPost = await updateCommunityPost(editingPost.id, {
           training_menu_id: menuId,
           improvement_tags: tags,
+          used_scale_type: selectedScaleType,
+          used_scale_other_text: selectedScaleType === "other" ? usedScaleOtherText.trim() : undefined,
           comment: trimmedComment,
         });
       } else {
         const created = await createCommunityPost({
           training_menu_id: menuId,
           improvement_tags: tags,
+          used_scale_type: selectedScaleType,
+          used_scale_other_text: selectedScaleType === "other" ? usedScaleOtherText.trim() : undefined,
           comment: trimmedComment || undefined,
         });
         savedPost = created.data;
@@ -240,6 +278,8 @@ export default function CommunityPage() {
       setNotice(editingPost ? "投稿を更新しました。" : "投稿しました。");
       setComment("");
       setTags([]);
+      setUsedScaleType("");
+      setUsedScaleOtherText("");
       closePostModal();
       setTimeout(() => setHighlightPostId(null), 5000);
     } catch (e) {
@@ -273,6 +313,8 @@ export default function CommunityPage() {
     setEditingPost(post);
     setMenuId(post.training_menu_id);
     setTags([ ...post.improvement_tags ]);
+    setUsedScaleType(post.used_scale_type);
+    setUsedScaleOtherText(post.used_scale_other_text ?? "");
     setComment(post.comment ?? "");
     setActionMenuPostId(null);
     setError(null);
@@ -553,6 +595,10 @@ export default function CommunityPage() {
                     </div>
                   </>
                 ) : null}
+                <div className="communityPage__fieldLabel--muted">使用したスケール</div>
+                <div className="communityPage__usedScale">
+                  {usedScaleLabel(post.used_scale_type, post.used_scale_other_text)}
+                </div>
               </div>
 
               {post.comment?.trim() ? (() => {
@@ -637,6 +683,38 @@ export default function CommunityPage() {
               </section>
 
               <section className="communityPage__editorCard">
+                <div className="communityPage__editorTitle">使用したスケール</div>
+                <select
+                  value={usedScaleType}
+                  className="communityPage__input"
+                  onChange={(e) => setUsedScaleType(e.target.value as CommunityUsedScaleType | "")}
+                >
+                  <option value="">選択してください</option>
+                  {COMMUNITY_USED_SCALE_OPTIONS.map((opt) => (
+                    <option key={opt.key} value={opt.key}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                {usedScaleType === "other" && (
+                  <input
+                    type="text"
+                    className="communityPage__input"
+                    value={usedScaleOtherText}
+                    onChange={(e) => setUsedScaleOtherText(e.target.value)}
+                    maxLength={40}
+                    placeholder="スケール名を入力"
+                  />
+                )}
+                {usedScaleType === "" ? (
+                  <div className="communityPage__fieldHint is-error">使用したスケールを選んでね</div>
+                ) : null}
+                {usedScaleType === "other" && usedScaleOtherText.trim().length === 0 ? (
+                  <div className="communityPage__fieldHint is-error">その他の内容を入力してね</div>
+                ) : null}
+              </section>
+
+              <section className="communityPage__editorCard">
                 <div className="communityPage__editorTitle">効果タグ</div>
                 <div className="communityPage__editorHelper">複数選択OK</div>
                 <div className="communityPage__chipGrid">
@@ -665,14 +743,19 @@ export default function CommunityPage() {
               </section>
 
               <section className="communityPage__editorCard">
-                <div className="communityPage__editorTitle">コメント</div>
+                <div className="communityPage__editorTitleRow">
+                  <div className="communityPage__editorTitle">自由記述</div>
+                  <button type="button" className="communityPage__templateBtn" onClick={onInsertCommentTemplate}>
+                    テンプレ挿入
+                  </button>
+                </div>
                 <div className="communityPage__editorHelper">よかったら、メニューのやり方や効果を教えてね。</div>
                 <textarea
                   className="communityPage__textarea"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   maxLength={240}
-                  placeholder="具体的なメニューの内容 / 感じられた効果 など"
+                  placeholder={FREE_NOTE_PLACEHOLDER}
                 />
               </section>
             </div>

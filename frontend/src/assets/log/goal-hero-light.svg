@@ -1,0 +1,25 @@
+<svg width="1200" height="300" viewBox="0 0 1200 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgNewLight" x1="0" y1="0" x2="1200" y2="300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBFCFF"/>
+      <stop offset="1" stop-color="#EEF4FF"/>
+    </linearGradient>
+    <linearGradient id="stripeA" x1="720" y1="24" x2="1140" y2="258" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6FA8FF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#8BE3D8" stop-opacity="0.09"/>
+    </linearGradient>
+    <linearGradient id="stripeB" x1="740" y1="42" x2="1116" y2="270" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8FB6FF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#A7C8F0" stop-opacity="0.07"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="300" fill="url(#bgNewLight)"/>
+  <path d="M690 38L1162 38L1018 270L546 270L690 38Z" fill="url(#stripeA)"/>
+  <path d="M742 54L1140 54L1020 250L622 250L742 54Z" fill="url(#stripeB)"/>
+  <rect x="842" y="72" width="8" height="138" rx="4" fill="#7B95BB" fill-opacity="0.56"/>
+  <path d="M850 84L972 110L850 136V84Z" fill="#6E97D8" fill-opacity="0.56"/>
+  <path d="M862 174L932 188L862 202V174Z" fill="#88B1EA" fill-opacity="0.5"/>
+  <circle cx="986" cy="120" r="8" fill="#8DAEE1" fill-opacity="0.48"/>
+  <circle cx="768" cy="86" r="6" fill="#A8BFE6" fill-opacity="0.55"/>
+  <circle cx="1040" cy="226" r="7" fill="#A5D6EE" fill-opacity="0.45"/>
+</svg>

@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   fetchLatestMeasurements,
   fetchMeasurements,
+  type MeasurementType,
   type MeasurementRun,
 } from "../api/measurements";
 import MetronomeLoader from "../components/MetronomeLoader";
 import { useAuth } from "../features/auth/useAuth";
+import ExportCsvDialog, { type CsvExportPeriod, type CsvMetricFilter } from "../features/insights/components/ExportCsvDialog";
 import InsightsCardHeader from "../features/insights/components/InsightsCardHeader";
+import PremiumUpsellModal from "../components/PremiumUpsellModal";
+import premiumFlowCsvExport from "../assets/premium/flow-csv-export.svg";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -282,31 +286,53 @@ const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
   GUEST_LATEST.pitch_accuracy!,
 ];
 
+const CSV_MEASUREMENT_TYPES: MeasurementType[] = ["range", "long_tone", "volume_stability", "pitch_accuracy"];
+
 function ClickableCard({
   title,
   to,
+  hintText = "詳細を見る",
+  mobileHintText,
   hintSub,
   className,
   children,
 }: {
   title: string;
   to: string;
+  hintText?: string;
+  mobileHintText?: string;
   hintSub?: string;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
     <Link to={to} className={`insightsCard insightsCard--link${className ? ` ${className}` : ""}`}>
-      <InsightsCardHeader title={title} hintText="詳細を見る" hintSub={hintSub} withChevron />
+      <InsightsCardHeader
+        title={title}
+        hintText={(
+          <>
+            <span className="insightsCard__hintTextDesktop">{hintText}</span>
+            <span className="insightsCard__hintTextMobile">{mobileHintText ?? hintText}</span>
+          </>
+        )}
+        hintSub={hintSub}
+        withChevron
+      />
       {children}
     </Link>
   );
 }
 
 export default function InsightsPage() {
+  const navigate = useNavigate();
   const { me, isLoading: authLoading } = useAuth();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [csvDialogOpen, setCsvDialogOpen] = useState(false);
+  const [csvPeriod, setCsvPeriod] = useState<CsvExportPeriod>("latest");
+  const [csvMetric, setCsvMetric] = useState<CsvMetricFilter>("all");
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const guestMode = !authLoading && !me;
+  const isPremium = me?.plan_tier === "premium";
 
   useEffect(() => {
     if (authLoading) return;
@@ -382,6 +408,36 @@ export default function InsightsPage() {
           ? "安定"
           : "要改善";
 
+  const onDownloadCsv = async () => {
+    try {
+      const selectedTypes = resolveCsvMeasurementTypes(csvMetric);
+      const runsByType = await loadCsvRuns({
+        guestMode,
+        period: csvPeriod,
+        types: selectedTypes,
+        stateLatest: state.latest,
+      });
+      const allRuns = selectedTypes.flatMap((type) => runsByType[type] ?? []);
+
+      if (allRuns.length === 0) {
+        window.alert("出力対象のデータがありません。");
+        return;
+      }
+
+      const dailyCsv = buildDailyCsv(allRuns);
+      const measurementsCsv = buildMeasurementsCsv(allRuns);
+      const stamp = buildCsvStamp();
+      const suffix = csvMetric === "all" ? "all" : csvMetric;
+
+      downloadCsvFile(dailyCsv, `insights_daily_${suffix}_${stamp}.csv`);
+      downloadCsvFile(measurementsCsv, `insights_measurements_${suffix}_${stamp}.csv`);
+      setCsvDialogOpen(false);
+    } catch (error) {
+      const message = errorMessage(error, "CSV出力に失敗しました");
+      window.alert(message);
+    }
+  };
+
   return (
     <div className="page insightsPage">
       <div className="insightsPage__bg" aria-hidden="true" />
@@ -396,7 +452,31 @@ export default function InsightsPage() {
       )}
 
       <section className="card insightsHighlightsCard">
-        <div className="insightsMuted">最新の測定結果を表示しています。</div>
+        <div className="insightsHighlightsCard__topRow">
+          <div className="insightsMuted">最新の測定結果を表示しています。</div>
+          <button
+            type="button"
+            className="csvButton"
+            onClick={() => {
+              if (!isPremium) {
+                setPremiumModalOpen(true);
+                return;
+              }
+              setCsvDialogOpen(true);
+            }}
+            aria-haspopup="dialog"
+            aria-expanded={csvDialogOpen}
+          >
+            <span className="csvButton__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M12 4v11" />
+                <path d="m8 11 4 4 4-4" />
+                <path d="M5 19h14" />
+              </svg>
+            </span>
+            <span>CSV</span>
+          </button>
+        </div>
       </section>
 
       <div className="insightsGrid">
@@ -405,7 +485,12 @@ export default function InsightsPage() {
         </ClickableCard>
 
         <div className="insightsTwinGrid">
-          <ClickableCard title="音量安定性" to="/insights/notes?metric=volume_stability" className="insightsGaugeCard">
+          <ClickableCard
+            title="音量安定性"
+            to="/insights/notes?metric=volume_stability"
+            mobileHintText="詳細"
+            className="insightsGaugeCard"
+          >
             <div className="insightsGaugePanel">
               <CircleGauge
                 label="許容幅内率（±3dB）"
@@ -421,7 +506,12 @@ export default function InsightsPage() {
             </div>
           </ClickableCard>
 
-          <ClickableCard title="ロングトーン" to="/insights/notes?metric=long_tone" className="insightsGaugeCard">
+          <ClickableCard
+            title="ロングトーン"
+            to="/insights/notes?metric=long_tone"
+            mobileHintText="詳細"
+            className="insightsGaugeCard"
+          >
             <div className="insightsGaugePanel">
               <CircleGauge
                 label="ロングトーン"
@@ -474,6 +564,35 @@ export default function InsightsPage() {
           </div>
         </ClickableCard>
       </div>
+
+      <ExportCsvDialog
+        open={csvDialogOpen}
+        onClose={() => setCsvDialogOpen(false)}
+        period={csvPeriod}
+        setPeriod={setCsvPeriod}
+        metric={csvMetric}
+        setMetric={setCsvMetric}
+        onDownload={onDownloadCsv}
+      />
+      <PremiumUpsellModal
+        open={premiumModalOpen}
+        onClose={() => setPremiumModalOpen(false)}
+        variant="lp"
+        title="CSV出力を解放する"
+        description="無料プランではCSV出力は利用できません。"
+        flowBackgroundImageSrc={premiumFlowCsvExport}
+        flowBackgroundOpacity={0.24}
+        flowSteps={[
+          { title: "期間を選択", sub: "最新 / 30日 / 90日", pill: "期間指定" },
+          { title: "指標を絞り込み", sub: "必要な測定のみ抽出", pill: "指標選択" },
+          { title: "CSVで保存", sub: "分析結果をそのまま出力", pill: "出力" },
+        ]}
+        ctaLabel="プレミアムを見る"
+        onCta={() => {
+          setPremiumModalOpen(false);
+          navigate("/premium");
+        }}
+      />
     </div>
   );
 }
@@ -644,6 +763,307 @@ function asPitchAccuracyResult(result: MeasurementRun["result"] | undefined) {
   if (!result || typeof result !== "object") return null;
   if (!("accuracy_score" in result)) return null;
   return result;
+}
+
+function resolveCsvMeasurementTypes(metric: CsvMetricFilter): MeasurementType[] {
+  if (metric === "all") return CSV_MEASUREMENT_TYPES;
+  return [metric];
+}
+
+function resolveCsvDays(period: CsvExportPeriod): number | null {
+  if (period === "30d") return 30;
+  if (period === "90d") return 90;
+  return null;
+}
+
+function asDateKey(recordedAt: string): string {
+  const key = recordedAt.split("T")[0];
+  return key || recordedAt;
+}
+
+function filterRunsByDays(runs: MeasurementRun[], days: number): MeasurementRun[] {
+  const since = Date.now() - days * 24 * 60 * 60 * 1000;
+  return runs.filter((run) => {
+    const ts = new Date(run.recorded_at).getTime();
+    return Number.isFinite(ts) && ts >= since;
+  });
+}
+
+function latestToRuns(
+  latest: {
+    range: MeasurementRun | null;
+    long_tone: MeasurementRun | null;
+    volume_stability: MeasurementRun | null;
+    pitch_accuracy: MeasurementRun | null;
+  },
+  type: MeasurementType
+): MeasurementRun[] {
+  const run =
+    type === "range"
+      ? latest.range
+      : type === "long_tone"
+        ? latest.long_tone
+        : type === "volume_stability"
+          ? latest.volume_stability
+          : latest.pitch_accuracy;
+  return run ? [run] : [];
+}
+
+async function loadCsvRuns(params: {
+  guestMode: boolean;
+  period: CsvExportPeriod;
+  types: MeasurementType[];
+  stateLatest: {
+    range: MeasurementRun | null;
+    long_tone: MeasurementRun | null;
+    volume_stability: MeasurementRun | null;
+    pitch_accuracy: MeasurementRun | null;
+  };
+}): Promise<Record<MeasurementType, MeasurementRun[]>> {
+  const { guestMode, period, types, stateLatest } = params;
+  const result: Record<MeasurementType, MeasurementRun[]> = {
+    range: [],
+    long_tone: [],
+    volume_stability: [],
+    pitch_accuracy: [],
+  };
+
+  if (guestMode) {
+    const days = resolveCsvDays(period);
+    for (const type of types) {
+      let runs: MeasurementRun[] = [];
+      if (period === "latest") {
+        runs = latestToRuns(stateLatest, type);
+      } else if (type === "range") {
+        runs = GUEST_RANGE_RUNS;
+      } else if (type === "long_tone") {
+        runs = GUEST_LONG_TONE_RUNS;
+      } else if (type === "volume_stability") {
+        runs = GUEST_LATEST.volume_stability ? [GUEST_LATEST.volume_stability] : [];
+      } else {
+        runs = GUEST_PITCH_ACCURACY_RUNS;
+      }
+      result[type] = days != null ? filterRunsByDays(runs, days) : runs;
+    }
+    return result;
+  }
+
+  if (period === "latest") {
+    for (const type of types) {
+      result[type] = latestToRuns(stateLatest, type);
+    }
+    return result;
+  }
+
+  const days = resolveCsvDays(period) ?? 30;
+  const responses = await Promise.all(
+    types.map((type) =>
+      fetchMeasurements({
+        measurement_type: type,
+        days,
+        limit: 300,
+        include_in_insights: true,
+      })
+    )
+  );
+  types.forEach((type, idx) => {
+    result[type] = responses[idx] ?? [];
+  });
+  return result;
+}
+
+function buildDailyCsv(runs: MeasurementRun[]): string {
+  const dayMap = new Map<
+    string,
+    {
+      total: number;
+      range: number;
+      long_tone: number;
+      volume_stability: number;
+      pitch_accuracy: number;
+      longToneValues: number[];
+      volumeValues: number[];
+      pitchValues: number[];
+      rangeHighest: number[];
+      rangeLowest: number[];
+    }
+  >();
+
+  for (const run of runs) {
+    const day = asDateKey(run.recorded_at);
+    const current = dayMap.get(day) ?? {
+      total: 0,
+      range: 0,
+      long_tone: 0,
+      volume_stability: 0,
+      pitch_accuracy: 0,
+      longToneValues: [],
+      volumeValues: [],
+      pitchValues: [],
+      rangeHighest: [],
+      rangeLowest: [],
+    };
+    current.total += 1;
+    current[run.measurement_type] += 1;
+
+    if (run.measurement_type === "long_tone") {
+      const longTone = asLongToneResult(run.result);
+      if (typeof longTone?.sustain_sec === "number") current.longToneValues.push(longTone.sustain_sec);
+    } else if (run.measurement_type === "volume_stability") {
+      const volume = asVolumeResult(run.result);
+      if (typeof volume?.loudness_range_pct === "number") current.volumeValues.push(volume.loudness_range_pct);
+    } else if (run.measurement_type === "pitch_accuracy") {
+      const pitch = asPitchAccuracyResult(run.result);
+      if (typeof pitch?.avg_cents_error === "number") current.pitchValues.push(pitch.avg_cents_error);
+    } else if (run.measurement_type === "range") {
+      const range = asRangeResult(run.result);
+      const highest = noteToMidi(range?.highest_note ?? null);
+      const lowest = noteToMidi(range?.lowest_note ?? null);
+      if (highest != null) current.rangeHighest.push(highest);
+      if (lowest != null) current.rangeLowest.push(lowest);
+    }
+
+    dayMap.set(day, current);
+  }
+
+  const rows: Array<Array<string | number>> = [
+    [
+      "date",
+      "total_runs",
+      "range_runs",
+      "long_tone_runs",
+      "volume_stability_runs",
+      "pitch_accuracy_runs",
+      "long_tone_avg_sec",
+      "volume_stability_avg_pct",
+      "pitch_accuracy_avg_cents",
+      "range_highest_note",
+      "range_lowest_note",
+    ],
+  ];
+
+  const sortedDays = [...dayMap.keys()].sort((a, b) => a.localeCompare(b));
+  for (const day of sortedDays) {
+    const current = dayMap.get(day);
+    if (!current) continue;
+    const highest =
+      current.rangeHighest.length > 0 ? midiToNote(Math.max(...current.rangeHighest)) : "";
+    const lowest = current.rangeLowest.length > 0 ? midiToNote(Math.min(...current.rangeLowest)) : "";
+    rows.push([
+      day,
+      current.total,
+      current.range,
+      current.long_tone,
+      current.volume_stability,
+      current.pitch_accuracy,
+      numText(avg(current.longToneValues), 2),
+      numText(avg(current.volumeValues), 2),
+      numText(avg(current.pitchValues), 2),
+      highest,
+      lowest,
+    ]);
+  }
+
+  return toCsvString(rows);
+}
+
+function buildMeasurementsCsv(runs: MeasurementRun[]): string {
+  const rows: Array<Array<string | number>> = [
+    [
+      "recorded_at",
+      "date",
+      "measurement_type",
+      "highest_note",
+      "lowest_note",
+      "chest_top_note",
+      "falsetto_top_note",
+      "range_octaves",
+      "range_semitones",
+      "long_tone_sec",
+      "long_tone_note",
+      "volume_range_pct",
+      "volume_range_db",
+      "avg_cents_error",
+      "accuracy_score",
+      "note_count",
+      "include_in_insights",
+      "run_id",
+    ],
+  ];
+
+  const sortedRuns = [...runs].sort((a, b) => a.recorded_at.localeCompare(b.recorded_at));
+  for (const run of sortedRuns) {
+    const range = asRangeResult(run.result);
+    const longTone = asLongToneResult(run.result);
+    const volume = asVolumeResult(run.result);
+    const pitch = asPitchAccuracyResult(run.result);
+    rows.push([
+      run.recorded_at,
+      asDateKey(run.recorded_at),
+      run.measurement_type,
+      range?.highest_note ?? "",
+      range?.lowest_note ?? "",
+      range?.chest_top_note ?? "",
+      range?.falsetto_top_note ?? "",
+      numText(range?.range_octaves ?? null, 2),
+      numText(range?.range_semitones ?? null, 0),
+      numText(longTone?.sustain_sec ?? null, 2),
+      longTone?.sustain_note ?? "",
+      numText(volume?.loudness_range_pct ?? null, 2),
+      numText(volume?.loudness_range_db ?? null, 2),
+      numText(pitch?.avg_cents_error ?? null, 2),
+      numText(pitch?.accuracy_score ?? null, 2),
+      numText(pitch?.note_count ?? null, 0),
+      run.include_in_insights === false ? "false" : "true",
+      run.id,
+    ]);
+  }
+
+  return toCsvString(rows);
+}
+
+function avg(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+function numText(value: number | null | undefined, digits: number): string {
+  if (value == null || !Number.isFinite(value)) return "";
+  return value.toFixed(digits);
+}
+
+function toCsvString(rows: Array<Array<string | number>>): string {
+  return rows
+    .map((row) => row.map((cell) => csvCell(cell)).join(","))
+    .join("\n");
+}
+
+function csvCell(value: string | number): string {
+  const raw = String(value ?? "");
+  const escaped = raw.replace(/"/g, "\"\"");
+  if (/[",\n]/.test(escaped)) return `"${escaped}"`;
+  return escaped;
+}
+
+function buildCsvStamp() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}${m}${d}`;
+}
+
+function downloadCsvFile(content: string, filename: string) {
+  const csvWithBom = `\ufeff${content}`;
+  const blob = new Blob([csvWithBom], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
 }
 
 function formatDb(v: number | null) {

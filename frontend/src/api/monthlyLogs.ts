@@ -1,4 +1,8 @@
-import type { MonthlyLogData, MonthlyLogResponse } from "../types/monthlyLog";
+import type {
+  MonthlyLogComparisonResponse,
+  MonthlyLogData,
+  MonthlyLogResponse,
+} from "../types/monthlyLog";
 import type { SaveRewards } from "../types/gamification";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -12,6 +16,21 @@ export async function fetchMonthlyLog(month: string): Promise<MonthlyLogResponse
   });
 
   const json = (await res.json().catch(() => null)) as MonthlyLogResponse | null;
+  if (!res.ok) {
+    return { data: null, error: json?.error ?? `Request failed: ${res.status}` };
+  }
+  return json ?? { data: null, error: "Response is empty" };
+}
+
+export async function fetchMonthlyLogComparison(month: string): Promise<MonthlyLogComparisonResponse> {
+  const url = `${API_BASE}/api/monthly_logs/comparison?month=${encodeURIComponent(month)}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+  });
+
+  const json = (await res.json().catch(() => null)) as MonthlyLogComparisonResponse | null;
   if (!res.ok) {
     return { data: null, error: json?.error ?? `Request failed: ${res.status}` };
   }

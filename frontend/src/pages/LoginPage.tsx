@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { requestPasswordReset, resetPassword } from "../api/auth";
+import { fetchMe, requestPasswordReset, resetPassword } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
+import {
+  fetchBeginnerMissionGate,
+  hasSeenFirstLoginLanding,
+  markFirstLoginLandingSeen,
+} from "../features/missions/beginnerMissionGate";
+import { saveTutorialStage } from "../features/tutorial/tutorialFlow";
 
 import "./AuthPages.css";
 
-type LoginLocationState = { fromPath?: string };
+type LoginLocationState = { fromPath?: string; from?: string };
 
 export default function LoginPage() {
   const { login, me } = useAuth();
@@ -20,7 +26,7 @@ export default function LoginPage() {
   }, [me, navigate]);
 
   const state = location.state as LoginLocationState | null;
-  const from = state?.fromPath ?? "/log";
+  const from = state?.fromPath ?? state?.from ?? "/log";
   const resetToken = useMemo(() => {
     const value = new URLSearchParams(location.search).get("reset_token");
     return value?.trim() ?? "";
@@ -47,7 +53,19 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      navigate(from, { replace: true });
+      let destination = from;
+      const shouldCheckFirstLanding = from.startsWith("/log");
+      if (shouldCheckFirstLanding) {
+        const meAfterLogin = await fetchMe();
+        if (meAfterLogin && !hasSeenFirstLoginLanding(meAfterLogin.id)) {
+          const beginnerGate = await fetchBeginnerMissionGate();
+          markFirstLoginLandingSeen(meAfterLogin.id);
+          if (beginnerGate && !beginnerGate.completed && !from.startsWith("/mypage")) {
+            saveTutorialStage(meAfterLogin.id, "log_welcome");
+          }
+        }
+      }
+      navigate(destination, { replace: true });
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

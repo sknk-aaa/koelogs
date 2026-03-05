@@ -10,6 +10,8 @@ class User < ApplicationRecord
     wave_purple
     heart_red
   ].freeze
+  PLAN_TIERS = %w[free premium].freeze
+  BILLING_CYCLES = %w[monthly yearly].freeze
 
   has_secure_password
 
@@ -17,6 +19,12 @@ class User < ApplicationRecord
   has_many :training_menus, dependent: :destroy
   has_many :measurement_runs, dependent: :destroy
   has_many :ai_recommendations, dependent: :destroy
+  has_many :ai_recommendation_threads, dependent: :destroy
+  has_many :ai_token_usages, dependent: :destroy
+  has_many :ai_chat_projects, dependent: :destroy
+  has_many :ai_chat_threads, dependent: :destroy
+  has_many :ai_profile_memory_candidates, dependent: :destroy
+  has_one :ai_user_profile, dependent: :destroy
   has_many :community_posts, dependent: :destroy
   has_many :community_post_favorites, dependent: :destroy
   has_many :favorite_community_posts, through: :community_post_favorites, source: :community_post
@@ -39,15 +47,28 @@ class User < ApplicationRecord
   validates :goal_text, length: { maximum: 50 }, allow_nil: true
   before_validation :normalize_ai_custom_instructions
   before_validation :normalize_ai_improvement_tags
+  before_validation :normalize_ai_response_style_prefs
   validates :ai_custom_instructions, length: { maximum: 600 }, allow_nil: true
   validate :ai_improvement_tags_are_allowed
+  validate :ai_response_style_prefs_are_allowed
   before_validation :normalize_avatar_image_url
+  after_commit :enqueue_ai_profile_refresh_if_ai_preferences_changed
   # data URL (base64) での保存を許容するため、上限は十分大きくする
   validates :avatar_image_url, length: { maximum: 2_000_000 }, allow_nil: true
   validates :public_profile_enabled, inclusion: { in: [ true, false ] }
   validates :public_goal_enabled, inclusion: { in: [ true, false ] }
   validates :ranking_participation_enabled, inclusion: { in: [ true, false ] }
   validates :avatar_icon, inclusion: { in: AVATAR_ICON_VALUES }
+  validates :plan_tier, inclusion: { in: PLAN_TIERS }
+  validates :billing_cycle, inclusion: { in: BILLING_CYCLES }, allow_nil: true
+
+  def premium_plan?
+    plan_tier == "premium"
+  end
+
+  def free_plan?
+    !premium_plan?
+  end
 
   def can_send_password_reset_email?
     password_reset_sent_at.nil? || password_reset_sent_at < PASSWORD_RESET_REQUEST_INTERVAL.ago
@@ -112,10 +133,31 @@ class User < ApplicationRecord
     self.ai_improvement_tags = Array(ai_improvement_tags).map(&:to_s).map(&:strip).reject(&:blank?).uniq
   end
 
+  def normalize_ai_response_style_prefs
+    self.ai_response_style_prefs = Ai::ResponseStylePreferences.normalize(ai_response_style_prefs)
+  end
+
   def ai_improvement_tags_are_allowed
     invalid = Array(ai_improvement_tags) - ImprovementTagCatalog::TAGS
     return if invalid.empty?
 
     errors.add(:ai_improvement_tags, "contains invalid tags: #{invalid.join(', ')}")
+  end
+
+  def ai_response_style_prefs_are_allowed
+    prefs = ai_response_style_prefs.is_a?(Hash) ? ai_response_style_prefs : {}
+    return if prefs.keys.all? { |key| Ai::ResponseStylePreferences::DEFAULT_PREFS.key?(key.to_s) }
+
+    errors.add(:ai_response_style_prefs, "contains invalid keys")
+  end
+
+  def enqueue_ai_profile_refresh_if_ai_preferences_changed
+    changed = previous_changes
+    return unless changed.key?("goal_text") ||
+                  changed.key?("ai_custom_instructions") ||
+                  changed.key?("ai_improvement_tags") ||
+                  changed.key?("ai_response_style_prefs")
+
+    AiUserProfileRefreshJob.perform_later(id)
   end
 end

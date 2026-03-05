@@ -22,6 +22,7 @@ class MeasurementRun < ApplicationRecord
 
   validates :measurement_type, presence: true, inclusion: { in: MEASUREMENT_TYPES }
   validates :recorded_at, presence: true
+  after_commit :enqueue_ai_profile_refresh
 
   scope :latest_first, -> { order(recorded_at: :desc, id: :desc) }
 
@@ -38,5 +39,11 @@ class MeasurementRun < ApplicationRecord
     else
       nil
     end
+  end
+
+  private
+
+  def enqueue_ai_profile_refresh
+    AiUserProfileRefreshJob.perform_later(user_id)
   end
 end

@@ -84,10 +84,32 @@
   gap: 8px;
 }
 
+.aiSettingsPage__subsection {
+  display: grid;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+}
+
+.aiSettingsPage__subTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--text) 92%, var(--accent));
+}
+
 .aiSettingsPage__sectionTitle {
   margin: 0;
   font-size: 15px;
   font-weight: 950;
+}
+
+.aiSettingsPage__sectionTitle--style {
+  color: color-mix(in srgb, var(--text) 92%, var(--accent));
+}
+
+.aiSettingsPage__sectionTitle--profile {
+  color: color-mix(in srgb, var(--text) 86%, var(--accent));
 }
 
 .aiSettingsPage__hint {
@@ -95,6 +117,19 @@
   font-size: 12px;
   line-height: 1.6;
   opacity: 0.76;
+}
+
+.aiSettingsPage__hint--style {
+  opacity: 0.9;
+  font-weight: 700;
+}
+
+.aiSettingsPage__hint--profile {
+  opacity: 0.78;
+}
+
+.aiSettingsPage__hint--range {
+  margin-top: 2px;
 }
 
 .aiSettingsPage__ghostBtn {
@@ -107,6 +142,11 @@
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
+}
+
+.aiSettingsPage__ghostBtn:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
 }
 
 .aiSettingsPage__textareaWrap {
@@ -125,6 +165,136 @@
   padding: 11px 12px;
   font-size: 13px;
   line-height: 1.62;
+}
+
+.aiSettingsPage__textarea--sm {
+  min-height: 92px;
+}
+
+.aiSettingsPage__longProfileGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.aiSettingsPage__voiceEditor {
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 78%, var(--card));
+  overflow: hidden;
+}
+
+.aiSettingsPage__voiceField {
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.aiSettingsPage__voiceField + .aiSettingsPage__voiceField {
+  border-top: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+}
+
+.aiSettingsPage__voiceFieldHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.aiSettingsPage__voiceFieldTitle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.aiSettingsPage__voiceFieldNote {
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.7;
+}
+
+.aiSettingsPage__voiceTextarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  color: var(--text);
+  padding: 10px 11px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.aiSettingsPage__aboutGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.aiSettingsPage__fieldLabel {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.84;
+}
+
+.aiSettingsPage__candidateList {
+  display: grid;
+  gap: 8px;
+}
+
+.aiSettingsPage__candidateItem {
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.aiSettingsPage__candidateMain {
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 700;
+}
+
+.aiSettingsPage__candidateHint {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.aiSettingsPage__candidateActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.aiSettingsPage__customItems {
+  display: grid;
+  gap: 10px;
+}
+
+.aiSettingsPage__customItemRow {
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.aiSettingsPage__customTitle {
+  width: 100%;
+  min-height: 36px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 76%, var(--card));
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
 }
 
 .aiSettingsPage__counter {
@@ -178,6 +348,54 @@
   line-height: 1;
   font-weight: 900;
   background: rgba(255, 255, 255, 0.72);
+}
+
+.aiSettingsPage__rangeOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.aiSettingsPage__styleRows {
+  display: grid;
+  gap: 10px;
+}
+
+.aiSettingsPage__styleRow {
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.aiSettingsPage__styleSelect {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 900;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--cardText, var(--text));
+  cursor: pointer;
+}
+
+.aiSettingsPage__rangeOption {
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--surface) 84%, var(--card));
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.aiSettingsPage__rangeOption.is-active {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
 }
 
 .aiSettingsPage__previewToggle {
@@ -325,6 +543,69 @@
   border-top-color: rgba(255, 255, 255, 0.12);
 }
 
+:root[data-theme-mode="dark"] .aiSettingsPage__subsection {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__candidateItem,
+:root[data-theme-mode="dark"] .aiSettingsPage__styleRow {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__voiceEditor {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__voiceField + .aiSettingsPage__voiceField {
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__voiceFieldTitle {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__voiceFieldNote {
+  color: rgba(255, 255, 255, 0.74);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__voiceTextarea {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__voiceTextarea::placeholder {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__styleSelect {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__styleSelect option,
+:root[data-theme-mode="dark"] .aiSettingsPage__styleSelect optgroup {
+  background: rgba(11, 23, 40, 0.95);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__rangeOption {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__rangeOption.is-active {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.08));
+}
+
 :root[data-theme-mode="dark"] .aiSettingsPage__saveDock {
   background: rgba(10, 18, 32, 0.85);
   border-top-color: rgba(255, 255, 255, 0.14);
@@ -338,4 +619,17 @@
   border-color: rgba(255, 255, 255, 0.2);
   background: color-mix(in srgb, var(--accent) 26%, rgba(255, 255, 255, 0.08));
   color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .aiSettingsPage__customItemRow,
+:root[data-theme-mode="dark"] .aiSettingsPage__customTitle {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+@media (max-width: 760px) {
+  .aiSettingsPage__longProfileGrid {
+    grid-template-columns: 1fr;
+  }
 }

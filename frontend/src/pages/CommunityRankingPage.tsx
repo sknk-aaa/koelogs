@@ -11,7 +11,7 @@ type RankTab = "ai" | "streak" | "weekly";
 
 export default function CommunityRankingPage() {
   const { me } = useAuth();
-  const [tab, setTab] = useState<RankTab>("ai");
+  const [tab, setTab] = useState<RankTab>("weekly");
   const [loading, setLoading] = useState(true);
   const [rankings, setRankings] = useState<CommunityRankings | null>(null);
   const [error, setError] = useState<string | null>(null);

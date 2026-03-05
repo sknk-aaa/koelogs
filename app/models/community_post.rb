@@ -1,4 +1,14 @@
 class CommunityPost < ApplicationRecord
+  USED_SCALE_TYPES = %w[
+    five_tone
+    triad
+    one_half_octave
+    octave
+    octave_repeat
+    semitone
+    other
+  ].freeze
+
   belongs_to :user
   belongs_to :training_menu
   has_many :community_post_favorites, dependent: :delete_all
@@ -10,6 +20,7 @@ class CommunityPost < ApplicationRecord
   validates :canonical_key, presence: true
   validates :effect_level, inclusion: { in: 1..5 }
   validates :improvement_tags, presence: true
+  validates :used_scale_type, inclusion: { in: USED_SCALE_TYPES }
   validate :improvement_tags_are_allowed
   validate :training_menu_same_user
 
@@ -20,6 +31,9 @@ class CommunityPost < ApplicationRecord
 
     v = comment.to_s.strip
     self.comment = v.presence
+
+    s = used_scale_other_text.to_s.strip
+    self.used_scale_other_text = s.presence
   end
 
   def sync_canonical_key_from_menu

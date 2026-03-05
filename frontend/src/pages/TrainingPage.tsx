@@ -14,7 +14,10 @@ import { createMeasurement, fetchMeasurements, updateMeasurement, type Measureme
 import { emitGamificationRewards } from "../features/gamification/rewardBus";
 import type { SaveRewards } from "../types/gamification";
 import ProcessingOverlay from "../components/ProcessingOverlay";
-import { RANGE_MISSION_FLAG } from "../features/missions/constants";
+import PremiumUpsellModal from "../components/PremiumUpsellModal";
+import TutorialModal from "../components/TutorialModal";
+import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
+import premiumAmbientReplayUi from "../assets/premium/ambient-replay-ui.svg";
 
 import "./TrainingPage.css";
 
@@ -71,19 +74,30 @@ type MeasurementInstantResult = {
 };
 const DEFAULT_NOISE_DB_THRESHOLD = -70;
 const VOLUME_NOISE_DB_THRESHOLD = -60;
-const MIN_VOICED_STREAK_FRAMES = 3;
+const MIN_VOICED_STREAK_FRAMES = 2;
+const PITCH_ACCURACY_MIN_VOICED_STREAK_FRAMES = 2;
 const PITCH_JUMP_SEMITONE_LIMIT = 10;
+const PITCH_ACCURACY_PITCH_JUMP_SEMITONE_LIMIT = 8;
+const PITCH_ACCURACY_PITCH_JUMP_UP_SEMITONE_LIMIT = 12;
+const LONG_TONE_MAX_STEP_SEMITONES = 3.5;
+const PITCH_SMOOTHING_ALPHA = 0.35;
+const PITCH_ACCURACY_SMOOTHING_ALPHA = 0.18;
+const LONG_TONE_SMOOTHING_ALPHA = 0.14;
+const PITCH_ACCURACY_DISPLAY_MEDIAN_WINDOW = 5;
 const YIN_THRESHOLD = 0.32;
 const YIN_FALLBACK_ACCEPT_MAX = 0.75;
-const PITCH_GUIDE_BPM = 100;
+const PITCH_GUIDE_TIME_OFFSET_SEC = 0;
+const PITCH_GUIDE_BPM = 80;
 const PITCH_GUIDE_COUNT_IN_BEATS = 4;
 const PITCH_GUIDE_NOTE_DURATION_BEATS = 0.5;
 const PITCH_GUIDE_BAR_BEATS = 4;
 const PITCH_GUIDE_INTERVALS = [0, 2, 4, 5, 7, 5, 4, 2] as const;
 const PITCH_GUIDE_ASC_TRANSPOSE = [0, 1, 2, 3, 4, 5] as const;
 const PITCH_GUIDE_DESC_TRANSPOSE = [4, 3, 2, 1, 0] as const;
-const PITCH_JUDGE_GREEN_CENTS = 10;
-const PITCH_JUDGE_YELLOW_CENTS = 25;
+const PITCH_JUDGE_GREEN_CENTS = 50;
+const PITCH_JUDGE_YELLOW_CENTS = 100;
+const PITCH_JUDGE_TIME_TOLERANCE_SEC = 0.12;
+const PITCH_ACCURACY_OCTAVE_CORRECTION_MAX_DELTA = 4;
 const PITCH_LINE_GAP_SEC = 0.25;
 const PITCH_AXIS_BY_RANGE: Record<PitchGuideRange, { minMidi: number; maxMidi: number }> = {
   low: { minMidi: noteToMidi("C3") ?? 48, maxMidi: noteToMidi("G4") ?? 67 },
@@ -185,12 +199,17 @@ export default function TrainingPage() {
   const [measurementReplayElapsedSec, setMeasurementReplayElapsedSec] = useState(0);
   const [measurementWavConverting, setMeasurementWavConverting] = useState(false);
   const [measurementReplayPanelOpen, setMeasurementReplayPanelOpen] = useState(false);
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [longToneCompare, setLongToneCompare] = useState<{ previousSec: number | null; bestSec: number | null }>({
     previousSec: null,
     bestSec: null,
   });
+  const [tutorialModalStage, setTutorialModalStage] = useState<
+    "training_range_intro" | "range_measured" | "tutorial_completed" | null
+  >(null);
+  const [tutorialRangeDonePending, setTutorialRangeDonePending] = useState(false);
+  const [rangeChestGuideOpen, setRangeChestGuideOpen] = useState(false);
   const [rangePhase, setRangePhase] = useState<RangePhase | null>(null);
-  const [missionRangeAutoInclude, setMissionRangeAutoInclude] = useState(false);
 
   const measurementAudioContextRef = useStateRef<AudioContext | null>(null);
   const measurementAnalyserRef = useStateRef<AnalyserNode | null>(null);
@@ -211,7 +230,9 @@ export default function TrainingPage() {
   const measurementRecorderChunksRef = useStateRef<BlobPart[]>([]);
   const measurementAutoPlaybackRef = useStateRef<boolean>(false);
   const measurementPrevMidiRef = useStateRef<number | null>(null);
+  const measurementPitchJumpRejectStreakRef = useStateRef<number>(0);
   const measurementSmoothedMidiRef = useStateRef<number | null>(null);
+  const measurementDisplayMidiWindowRef = useStateRef<number[]>([]);
   const measurementUnvoicedFramesRef = useStateRef<number>(0);
   const measurementVoicedStreakRef = useStateRef<number>(0);
   const measurementRangePhaseRef = useStateRef<RangePhase | null>(null);
@@ -220,8 +241,10 @@ export default function TrainingPage() {
   const bodyOverflowBackupRef = useStateRef<string | null>(null);
   const measurementSaveBtnRef = useRef<HTMLButtonElement | null>(null);
   const measurementReplaySectionRef = useRef<HTMLDivElement | null>(null);
+  const measurementResultBodyRef = useRef<HTMLDivElement | null>(null);
   const replayAudioRef = useStateRef<HTMLAudioElement | null>(null);
   const replayRafRef = useStateRef<number | null>(null);
+  const rangeChestGuideShownRef = useRef(false);
 
   const selected: ScaleTrack | null = useMemo(() => {
     return tracks.find((t) => t.scale_type === scaleType && t.range_type === rangeType) ?? null;
@@ -282,9 +305,53 @@ export default function TrainingPage() {
   };
 
   const guestMode = !authLoading && !me;
+  const isPremium = me?.plan_tier === "premium";
   const goLogin = () => {
     navigate("/login", { state: { fromPath: "/training" } });
   };
+
+  useEffect(() => {
+    if (!me) {
+      setTutorialModalStage(null);
+      return;
+    }
+    const stage = loadTutorialStage(me.id);
+    if (stage === "training_range_intro" || stage === "range_measured" || stage === "tutorial_completed") {
+      setTutorialModalStage(stage);
+      return;
+    }
+    setTutorialModalStage(null);
+  }, [me]);
+
+  useEffect(() => {
+    if (!tutorialRangeDonePending || measurementResultModalOpen) return;
+    setTutorialModalStage("range_measured");
+    setTutorialRangeDonePending(false);
+  }, [tutorialRangeDonePending, measurementResultModalOpen]);
+
+  useEffect(() => {
+    if (!me) {
+      setRangeChestGuideOpen(false);
+      rangeChestGuideShownRef.current = false;
+      return;
+    }
+    const stage = loadTutorialStage(me.id);
+    if (
+      measurementRecording &&
+      activeMeasurementKey === "range" &&
+      rangePhase === "chest" &&
+      stage === "awaiting_range_measurement" &&
+      !rangeChestGuideShownRef.current
+    ) {
+      rangeChestGuideShownRef.current = true;
+      setRangeChestGuideOpen(true);
+      return;
+    }
+    if (!measurementRecording) {
+      setRangeChestGuideOpen(false);
+      rangeChestGuideShownRef.current = false;
+    }
+  }, [activeMeasurementKey, me, measurementRecording, rangePhase]);
 
   const stopPitchGuideAudio = useCallback(() => {
     const audio = measurementPitchGuideAudioRef.current;
@@ -400,7 +467,6 @@ export default function TrainingPage() {
     const missionParam = searchParams.get("mission");
     if (missionParam === "range") {
       setActiveMeasurementKey("range");
-      setMissionRangeAutoInclude(true);
       const next = new URLSearchParams(searchParams);
       next.delete("mission");
       setSearchParams(next, { replace: true });
@@ -486,6 +552,14 @@ export default function TrainingPage() {
     setMeasurementReplayPanelOpen(false);
   }, [measurementResultModalOpen, measurementInstantResult?.runId]);
 
+  useEffect(() => {
+    if (!measurementResultModalOpen || !measurementInstantResult) return;
+    requestAnimationFrame(() => {
+      if (!measurementResultBodyRef.current) return;
+      measurementResultBodyRef.current.scrollTo({ top: 0, behavior: "auto" });
+    });
+  }, [measurementResultModalOpen, measurementInstantResult?.runId]);
+
   const startMeasurementRecording = async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
       setMeasurementError("このブラウザは録音に対応していません");
@@ -533,7 +607,9 @@ export default function TrainingPage() {
       measurementVoicedFramesRef.current = 0;
       measurementFramesRef.current = 0;
       measurementPrevMidiRef.current = null;
+      measurementPitchJumpRejectStreakRef.current = 0;
       measurementSmoothedMidiRef.current = null;
+      measurementDisplayMidiWindowRef.current = [];
       measurementUnvoicedFramesRef.current = 0;
       measurementVoicedStreakRef.current = 0;
       setMeasurementCurrentNote(null);
@@ -623,44 +699,111 @@ export default function TrainingPage() {
         const guideElapsedSec = measurementPitchGuideAudioRef.current?.currentTime;
         const elapsed =
           activeMeasurementKey === "pitch_accuracy" && Number.isFinite(guideElapsedSec)
-            ? Math.max(0, guideElapsedSec ?? 0)
+            ? Math.max(0, (guideElapsedSec ?? 0) + PITCH_GUIDE_TIME_OFFSET_SEC)
             : (performance.now() - measurementStartedAtRef.current) / 1000;
         setMeasurementElapsedSec(elapsed);
         measurementFramesRef.current += 1;
         if (freq && frameDb > noiseDbThreshold) {
-          const midi = 69 + 12 * Math.log2(freq / 440);
-          const prevMidi = measurementPrevMidiRef.current;
-          if (prevMidi != null && Math.abs(midi - prevMidi) > PITCH_JUMP_SEMITONE_LIMIT) {
+          const pitchJumpLimit =
+            activeMeasurementKey === "pitch_accuracy"
+              ? PITCH_ACCURACY_PITCH_JUMP_SEMITONE_LIMIT
+              : PITCH_JUMP_SEMITONE_LIMIT;
+          const minVoicedStreakFrames =
+            activeMeasurementKey === "pitch_accuracy"
+              ? PITCH_ACCURACY_MIN_VOICED_STREAK_FRAMES
+              : MIN_VOICED_STREAK_FRAMES;
+          const smoothingAlpha =
+            activeMeasurementKey === "pitch_accuracy"
+              ? PITCH_ACCURACY_SMOOTHING_ALPHA
+              : activeMeasurementKey === "long_tone"
+                ? LONG_TONE_SMOOTHING_ALPHA
+                : PITCH_SMOOTHING_ALPHA;
+          const rawMidi = 69 + 12 * Math.log2(freq / 440);
+          const targetMidi =
+            activeMeasurementKey === "pitch_accuracy" && measurementPitchGuideRef.current
+              ? findTargetMidiAtSecWithTolerance(
+                  measurementPitchGuideRef.current,
+                  elapsed,
+                  PITCH_JUDGE_TIME_TOLERANCE_SEC
+                )
+              : null;
+          const midi =
+            activeMeasurementKey === "pitch_accuracy"
+              ? correctMidiOctaveNearTarget(rawMidi, targetMidi, PITCH_ACCURACY_OCTAVE_CORRECTION_MAX_DELTA)
+              : rawMidi;
+          const stabilizedMidi =
+            activeMeasurementKey === "long_tone"
+              ? stabilizeLongToneMidi(midi, measurementPrevMidiRef.current, LONG_TONE_MAX_STEP_SEMITONES)
+              : midi;
+          if (stabilizedMidi == null) {
             measurementRafRef.current = requestAnimationFrame(tick);
             return;
           }
+          const prevMidi = measurementPrevMidiRef.current;
+          if (
+            prevMidi != null &&
+            isPitchJumpOutlier({
+              prevMidi,
+              nextMidi: stabilizedMidi,
+              jumpLimit: pitchJumpLimit,
+              jumpUpLimit:
+                activeMeasurementKey === "pitch_accuracy"
+                  ? PITCH_ACCURACY_PITCH_JUMP_UP_SEMITONE_LIMIT
+                  : pitchJumpLimit,
+            })
+          ) {
+            if (activeMeasurementKey === "pitch_accuracy") {
+              measurementPitchJumpRejectStreakRef.current += 1;
+              // Recover quickly from occasional octave spikes (e.g. earphone bleed) that can lock tracking.
+              if (measurementPitchJumpRejectStreakRef.current >= 2) {
+                measurementPrevMidiRef.current = null;
+                measurementVoicedStreakRef.current = 0;
+                measurementPitchJumpRejectStreakRef.current = 0;
+              }
+            }
+            measurementRafRef.current = requestAnimationFrame(tick);
+            return;
+          }
+          measurementPitchJumpRejectStreakRef.current = 0;
           measurementVoicedStreakRef.current += 1;
-          if (measurementVoicedStreakRef.current < MIN_VOICED_STREAK_FRAMES) {
+          if (measurementVoicedStreakRef.current < minVoicedStreakFrames) {
             measurementRafRef.current = requestAnimationFrame(tick);
             return;
           }
           measurementUnvoicedFramesRef.current = 0;
           measurementVoicedFramesRef.current += 1;
-          measurementPrevMidiRef.current = midi;
-          measurementMidiSamplesRef.current.push(midi);
+          measurementPrevMidiRef.current = stabilizedMidi;
+          measurementMidiSamplesRef.current.push(stabilizedMidi);
           measurementPitchSampleTimesRef.current.push(elapsed);
+          const displayMidi = (() => {
+            if (activeMeasurementKey !== "pitch_accuracy") return stabilizedMidi;
+            const window = measurementDisplayMidiWindowRef.current;
+            window.push(stabilizedMidi);
+            if (window.length > PITCH_ACCURACY_DISPLAY_MEDIAN_WINDOW) {
+              window.splice(0, window.length - PITCH_ACCURACY_DISPLAY_MEDIAN_WINDOW);
+            }
+            return median(window);
+          })();
           if (activeMeasurementKey === "range") {
             if (measurementRangePhaseRef.current === "chest") measurementRangeChestMidiRef.current.push(midi);
             if (measurementRangePhaseRef.current === "falsetto") measurementRangeFalsettoMidiRef.current.push(midi);
           }
-          if (measurementFramesRef.current % 2 === 0) {
-            setMeasurementRealtimePitchPoints((prev) => [...prev.slice(-1399), { t: elapsed, midi }]);
+          if (activeMeasurementKey !== "pitch_accuracy" || measurementFramesRef.current % 2 === 0) {
+            setMeasurementRealtimePitchPoints((prev) => [...prev.slice(-1399), { t: elapsed, midi: displayMidi }]);
           }
           const prevSmoothed = measurementSmoothedMidiRef.current;
-          const smoothed = prevSmoothed == null ? midi : prevSmoothed + (midi - prevSmoothed) * 0.22;
+          const smoothed =
+            prevSmoothed == null ? displayMidi : prevSmoothed + (displayMidi - prevSmoothed) * smoothingAlpha;
           measurementSmoothedMidiRef.current = smoothed;
           setMeasurementCurrentMidi(smoothed);
           setMeasurementCurrentNote(midiToNote(Math.round(smoothed)));
         } else {
+          measurementPitchJumpRejectStreakRef.current = 0;
           measurementVoicedStreakRef.current = 0;
           measurementUnvoicedFramesRef.current += 1;
           if (measurementUnvoicedFramesRef.current > 6) {
             measurementSmoothedMidiRef.current = null;
+            measurementDisplayMidiWindowRef.current = [];
             setMeasurementCurrentMidi(null);
             setMeasurementCurrentNote(null);
           }
@@ -677,7 +820,7 @@ export default function TrainingPage() {
     const guideElapsedSec = measurementPitchGuideAudioRef.current?.currentTime;
     const elapsedAtStopSec =
       activeMeasurementKey === "pitch_accuracy" && Number.isFinite(guideElapsedSec)
-        ? Math.max(0, guideElapsedSec ?? 0)
+        ? Math.max(0, (guideElapsedSec ?? 0) + PITCH_GUIDE_TIME_OFFSET_SEC)
         : (performance.now() - measurementStartedAtRef.current) / 1000;
     stopPitchGuideAudio();
     if (measurementTrackEndHandlerRef.current && audioRef.current) {
@@ -739,9 +882,11 @@ export default function TrainingPage() {
     setMeasurementElapsedSec(0);
     setRangePhase(null);
     measurementRangePhaseRef.current = null;
-    measurementPitchGuideRef.current = null;
 
-    if (!save) return;
+    if (!save) {
+      measurementPitchGuideRef.current = null;
+      return;
+    }
 
     const mids = measurementMidiSamplesRef.current;
     const sampleTimesSec = measurementPitchSampleTimesRef.current;
@@ -757,9 +902,14 @@ export default function TrainingPage() {
       voicedFrames: measurementVoicedFramesRef.current,
       frames: measurementFramesRef.current,
     });
+    measurementPitchGuideRef.current = null;
     if (!created) return;
     setMeasurementInstantResult(created);
     setMeasurementResultModalOpen(true);
+    if (me && created.measurementKey === "range" && loadTutorialStage(me.id) === "awaiting_range_measurement") {
+      saveTutorialStage(me.id, "range_measured");
+      setTutorialRangeDonePending(true);
+    }
   };
 
   const onUploadMeasurementFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -790,6 +940,10 @@ export default function TrainingPage() {
       const mids: number[] = [];
       const sampleTimesSec: number[] = [];
       const loudnessDbSamples: number[] = [];
+      const minVoicedStreakFrames =
+        activeMeasurementKey === "pitch_accuracy"
+          ? PITCH_ACCURACY_MIN_VOICED_STREAK_FRAMES
+          : MIN_VOICED_STREAK_FRAMES;
       let frames = 0;
       let voicedFrames = 0;
       let voicedStreak = 0;
@@ -811,10 +965,30 @@ export default function TrainingPage() {
           continue;
         }
         voicedStreak += 1;
-        if (voicedStreak < MIN_VOICED_STREAK_FRAMES) continue;
+        if (voicedStreak < minVoicedStreakFrames) continue;
         voicedFrames += 1;
-        mids.push(69 + 12 * Math.log2(freq / 440));
-        sampleTimesSec.push(i / audio.sampleRate);
+        const rawMidi = 69 + 12 * Math.log2(freq / 440);
+        const sec = i / audio.sampleRate;
+        const targetMidi =
+          activeMeasurementKey === "pitch_accuracy" && measurementPitchGuideRef.current
+            ? findTargetMidiAtSecWithTolerance(
+                measurementPitchGuideRef.current,
+                sec,
+                PITCH_JUDGE_TIME_TOLERANCE_SEC
+              )
+            : null;
+        const midi =
+          activeMeasurementKey === "pitch_accuracy"
+            ? correctMidiOctaveNearTarget(rawMidi, targetMidi, PITCH_ACCURACY_OCTAVE_CORRECTION_MAX_DELTA)
+            : rawMidi;
+        const prevMidi = mids.length > 0 ? mids[mids.length - 1] : null;
+        const stabilizedMidi =
+          activeMeasurementKey === "long_tone"
+            ? stabilizeLongToneMidi(midi, prevMidi, LONG_TONE_MAX_STEP_SEMITONES)
+            : midi;
+        if (stabilizedMidi == null) continue;
+        mids.push(stabilizedMidi);
+        sampleTimesSec.push(sec);
       }
 
       const saved = await saveMeasurementSessionFromMetrics({
@@ -829,6 +1003,10 @@ export default function TrainingPage() {
       if (saved) {
         setMeasurementInstantResult(saved);
         setMeasurementResultModalOpen(true);
+        if (me && saved.measurementKey === "range" && loadTutorialStage(me.id) === "awaiting_range_measurement") {
+          saveTutorialStage(me.id, "range_measured");
+          setTutorialRangeDonePending(true);
+        }
       }
     } catch (err) {
       setMeasurementError(errorMessage(err, "音声ファイルの解析に失敗しました"));
@@ -974,7 +1152,6 @@ export default function TrainingPage() {
 
     try {
       setMeasurementSessionSaving(true);
-      const shouldAutoIncludeRange = missionRangeAutoInclude && activeMeasurementKey === "range";
       const saved = await persistMeasurement({
         systemKey: activeMeasurementKey,
         peakNote,
@@ -989,16 +1166,9 @@ export default function TrainingPage() {
         pitchAccuracyScore,
         pitchAvgCentsError,
         pitchNoteCount,
-        includeInInsights: shouldAutoIncludeRange,
+        includeInInsights: false,
       });
       emitGamificationRewards(saved.rewards);
-      if (shouldAutoIncludeRange) {
-        setMissionRangeAutoInclude(false);
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(RANGE_MISSION_FLAG, "1");
-          window.dispatchEvent(new CustomEvent("insights:update"));
-        }
-      }
       return buildMeasurementInstantResult({
         runId: saved.run.id,
         measurementKey: activeMeasurementKey,
@@ -1150,10 +1320,9 @@ export default function TrainingPage() {
       const wavBlob = await convertBlobToWav(measurementRecordedAudioBlob);
       const tempUrl = URL.createObjectURL(wavBlob);
       const a = document.createElement("a");
-      const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15);
       const key = measurementInstantResult?.measurementKey ?? "measurement";
       a.href = tempUrl;
-      a.download = `voice-measurement-${key}-${stamp}.wav`;
+      a.download = `measurement-${key}.wav`;
       a.click();
       URL.revokeObjectURL(tempUrl);
     } catch (e) {
@@ -1266,6 +1435,12 @@ export default function TrainingPage() {
                 : measurementInstantResult.title === "ロングトーン" || measurementInstantResult.title === "音程精度"
                   ? " is-long-tone"
                   : " is-volume"
+            }${
+              measurementInstantResult.source === "recording" &&
+              !!measurementRecordedAudioUrl &&
+              !measurementReplayPanelOpen
+                ? " is-replay-collapsed"
+                : ""
             }`}
             role="dialog"
             aria-modal="true"
@@ -1296,7 +1471,7 @@ export default function TrainingPage() {
               )}
             </div>
 
-            <div className="trainingPage__resultModalBody">
+            <div className="trainingPage__resultModalBody" ref={measurementResultBodyRef}>
               {measurementInstantResult.title === "音域" && (
                 <div className="trainingPage__resultModalHero">
                   <div className="trainingPage__resultModalHeroLabel">あなたの音域は</div>
@@ -1371,7 +1546,10 @@ export default function TrainingPage() {
                 />
               )}
               {measurementInstantResult.source === "recording" && measurementRecordedAudioUrl && (
-                <div className="trainingPage__resultReplay" ref={measurementReplaySectionRef}>
+                <div
+                  className={`trainingPage__resultReplay${!isPremium ? " trainingPage__resultReplay--locked" : ""}${!measurementReplayPanelOpen ? " trainingPage__resultReplay--collapsed" : ""}`}
+                  ref={measurementReplaySectionRef}
+                >
                   <div className="trainingPage__resultReplayHead">
                     <div className="trainingPage__resultReplayTitle">録音の再生プレビュー</div>
                     <button
@@ -1393,63 +1571,80 @@ export default function TrainingPage() {
                     </button>
                   </div>
                   {measurementReplayPanelOpen && (
-                    <div className="trainingPage__resultReplayMonitor">
-                      {measurementInstantResult.measurementKey === "volume_stability" ? (
-                        <RealtimeDbMonitor
-                          dbValues={measurementInstantResult.replayDbValues ?? []}
-                          currentDb={
-                            measurementInstantResult.replayDbValues && measurementInstantResult.replayDbValues.length > 0
-                              ? measurementInstantResult.replayDbValues[
-                                  Math.min(
-                                    measurementInstantResult.replayDbValues.length - 1,
-                                    Math.floor(
-                                      (measurementReplayElapsedSec /
-                                        Math.max(0.001, measurementInstantResult.replayDurationSec ?? 1)) *
-                                        measurementInstantResult.replayDbValues.length
+                    <>
+                      <div className="trainingPage__resultReplayMonitor">
+                        {measurementInstantResult.measurementKey === "volume_stability" ? (
+                          <RealtimeDbMonitor
+                            dbValues={measurementInstantResult.replayDbValues ?? []}
+                            currentDb={
+                              measurementInstantResult.replayDbValues && measurementInstantResult.replayDbValues.length > 0
+                                ? measurementInstantResult.replayDbValues[
+                                    Math.min(
+                                      measurementInstantResult.replayDbValues.length - 1,
+                                      Math.floor(
+                                        (measurementReplayElapsedSec /
+                                          Math.max(0.001, measurementInstantResult.replayDurationSec ?? 1)) *
+                                          measurementInstantResult.replayDbValues.length
+                                      )
                                     )
-                                  )
-                                ]
-                              : null
-                          }
-                          elapsedSec={measurementReplayElapsedSec}
-                          durationSec={measurementInstantResult.replayDurationSec ?? undefined}
-                          showPlayhead
-                        />
-                      ) : (
-                        <RealtimePitchMonitor
-                          points={measurementInstantResult.replayPitchPoints ?? []}
-                          currentMidi={replayCurrentMidi}
-                          systemKey={measurementInstantResult.measurementKey}
-                          pitchGuide={
-                            measurementInstantResult.measurementKey === "pitch_accuracy"
-                              ? buildPitchGuide(measurementInstantResult.replayGuideRange ?? "mid")
-                              : null
-                          }
-                          pitchGuideRange={measurementInstantResult.replayGuideRange ?? "mid"}
-                          elapsedSec={measurementReplayElapsedSec}
-                          totalDurationSec={measurementInstantResult.replayDurationSec ?? undefined}
-                          showPlayhead
-                        />
+                                  ]
+                                : null
+                            }
+                            elapsedSec={measurementReplayElapsedSec}
+                            durationSec={measurementInstantResult.replayDurationSec ?? undefined}
+                            showPlayhead
+                          />
+                        ) : (
+                          <RealtimePitchMonitor
+                            points={measurementInstantResult.replayPitchPoints ?? []}
+                            currentMidi={replayCurrentMidi}
+                            systemKey={measurementInstantResult.measurementKey}
+                            pitchGuide={
+                              measurementInstantResult.measurementKey === "pitch_accuracy"
+                                ? buildPitchGuide(measurementInstantResult.replayGuideRange ?? "mid")
+                                : null
+                            }
+                            pitchGuideRange={measurementInstantResult.replayGuideRange ?? "mid"}
+                            elapsedSec={measurementReplayElapsedSec}
+                            totalDurationSec={measurementInstantResult.replayDurationSec ?? undefined}
+                            showPlayhead
+                          />
+                        )}
+                      </div>
+                      <div className="trainingPage__resultReplayActions">
+                        {isPremium && (
+                          <button
+                            type="button"
+                            className="trainingPage__resultModalBtn trainingPage__resultModalBtn--replay-primary trainingPage__resultReplayActionBtn"
+                            onClick={() => void toggleReplayAudio()}
+                          >
+                            {measurementReplayPlaying ? "録音プレビューを停止" : "録音プレビューを再生"}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="trainingPage__resultModalBtn trainingPage__resultModalBtn--download trainingPage__resultReplayActionBtn"
+                          onClick={() => void downloadRecordedAudio()}
+                          disabled={measurementWavConverting || !isPremium}
+                        >
+                          {measurementWavConverting ? "WAV変換中..." : "音声を端末に保存"}
+                        </button>
+                      </div>
+                      {!isPremium && (
+                        <button
+                          type="button"
+                          className="trainingPage__resultReplayLockOverlay"
+                          onClick={() => setPremiumModalOpen(true)}
+                        >
+                          <span className="trainingPage__resultReplayLockOverlayText">
+                            <span className="trainingPage__resultReplayLockOverlayKicker">PREMIUM</span>
+                            <span className="trainingPage__resultReplayLockOverlayTitle">プレミアムプランで解放されます</span>
+                            <span className="trainingPage__resultReplayLockOverlaySub">詳細</span>
+                          </span>
+                        </button>
                       )}
-                    </div>
+                    </>
                   )}
-                  <div className="trainingPage__resultReplayActions">
-                    <button
-                      type="button"
-                      className="trainingPage__resultModalBtn trainingPage__resultModalBtn--replay-primary trainingPage__resultReplayActionBtn"
-                      onClick={() => void toggleReplayAudio()}
-                    >
-                      {measurementReplayPlaying ? "録音プレビューを停止" : "録音プレビューを再生"}
-                    </button>
-                    <button
-                      type="button"
-                      className="trainingPage__resultModalBtn trainingPage__resultModalBtn--download trainingPage__resultReplayActionBtn"
-                      onClick={() => void downloadRecordedAudio()}
-                      disabled={measurementWavConverting}
-                    >
-                      {measurementWavConverting ? "WAV変換中..." : "音声のみをWAV保存"}
-                    </button>
-                  </div>
                 </div>
               )}
             </div>
@@ -1832,6 +2027,93 @@ export default function TrainingPage() {
           </>
         )}
       </section>
+      <PremiumUpsellModal
+        open={premiumModalOpen}
+        onClose={() => setPremiumModalOpen(false)}
+        variant="lp"
+        title="録音リプレイ機能を解放する"
+        description="無料プランでは録音の重ね再生と音声ダウンロードは利用できません。"
+        benefits={[
+          "音源＋自分の声を重ねて再生",
+          "録音音声をWAVで保存",
+          "そのまま聞き直して復習",
+        ]}
+        benefitsPanel
+        ambientArtSrc={premiumAmbientReplayUi}
+        ambientArtOpacity={0.17}
+        ctaLabel="プレミアムを見る"
+        onCta={() => {
+          setPremiumModalOpen(false);
+          navigate("/premium");
+        }}
+      />
+      <TutorialModal
+        open={tutorialModalStage === "training_range_intro"}
+        badge="MISSION"
+        title="最初の一歩：音域測定"
+        paragraphs={[
+          "まずはあなたの現在の音域を測ってみましょう。",
+          "このデータは、成長の推移表示とAIおすすめメニューの精度向上に活用されます。",
+          "正確でなくても大丈夫です。今の状態を知ることが目的です。",
+        ]}
+        primaryLabel="▶ 測定を開始する"
+        onPrimary={() => {
+          if (!me) return;
+          setActiveMeasurementKey("range");
+          saveTutorialStage(me.id, "awaiting_range_measurement");
+          setTutorialModalStage(null);
+          void startMeasurementRecording();
+        }}
+        secondaryLabel="あとで"
+        onSecondary={() => setTutorialModalStage(null)}
+        onClose={() => setTutorialModalStage(null)}
+      />
+      <TutorialModal
+        open={rangeChestGuideOpen}
+        badge="GUIDE"
+        title="まずは地声を測ってみましょう！"
+        paragraphs={[
+          "低い音から高い音まで、出してみましょう。",
+          "無理せず、出せる範囲でOKです。",
+        ]}
+        primaryLabel="わかりました"
+        onPrimary={() => setRangeChestGuideOpen(false)}
+        onClose={() => setRangeChestGuideOpen(false)}
+      />
+      <TutorialModal
+        open={tutorialModalStage === "range_measured"}
+        badge="TUTORIAL"
+        title="音域測定が完了しました。"
+        paragraphs={[
+          "お疲れさまでした。",
+          "今日の結果は自動で保存されています。これがあなたの「現在地」です。",
+          "ここから成長の記録が始まります！",
+        ]}
+        primaryLabel="次へ"
+        onPrimary={() => {
+          if (!me) return;
+          saveTutorialStage(me.id, "tutorial_completed");
+          setTutorialModalStage("tutorial_completed");
+        }}
+        onClose={() => setTutorialModalStage(null)}
+      />
+      <TutorialModal
+        open={tutorialModalStage === "tutorial_completed"}
+        badge="TUTORIAL"
+        title="チュートリアル完了"
+        paragraphs={[
+          "これで基本の流れは体験できました。",
+          "次は、今日の練習を記録してみましょう。続けるほど、AIの提案も賢くなります。",
+          "あなたの声の成長を、ここで積み重ねていきましょう。",
+        ]}
+        primaryLabel="▶ Koelogsをはじめる"
+        onPrimary={() => {
+          if (me) saveTutorialStage(me.id, "completed");
+          setTutorialModalStage(null);
+          navigate("/mypage");
+        }}
+        onClose={() => setTutorialModalStage(null)}
+      />
     </div>
   );
 }
@@ -1907,7 +2189,10 @@ function RealtimePitchMonitor({
     const y = height - padBottom - ((point.midi - minBound) / range) * (height - padTop - padBottom);
     const tone: PitchJudgeTone =
       isPitchAccuracy && pitchGuide
-        ? classifyPitchJudgeTone(point.midi, findTargetMidiAtSec(pitchGuide, point.t))
+        ? classifyPitchJudgeTone(
+            point.midi,
+            findTargetMidiAtSecWithTolerance(pitchGuide, point.t, PITCH_JUDGE_TIME_TOLERANCE_SEC)
+          )
         : "inactive";
     return { ...point, x, y, tone };
   });
@@ -1958,7 +2243,7 @@ function RealtimePitchMonitor({
           if (clippedEnd <= clippedStart) return null;
           const left = padLeft + (((clippedStart - axisStartSec) / axisDurationSec) * (width - padLeft - padRight));
           const right = padLeft + (((clippedEnd - axisStartSec) / axisDurationSec) * (width - padLeft - padRight));
-          const y = height - padBottom - ((segment.midi - minBound + 0.5) / range) * (height - padTop - padBottom);
+          const y = height - padBottom - ((segment.midi - minBound) / range) * (height - padTop - padBottom);
           const h = Math.max(10, (height - padTop - padBottom) / range * 0.8);
           return {
             key: `ref-${idx}`,
@@ -2472,6 +2757,53 @@ function findTargetMidiAtSec(guide: PitchGuide, sec: number): number | null {
   return null;
 }
 
+function findTargetMidiAtSecWithTolerance(guide: PitchGuide, sec: number, toleranceSec: number): number | null {
+  const exact = findTargetMidiAtSec(guide, sec);
+  if (exact != null) return exact;
+  if (!(toleranceSec > 0)) return null;
+
+  let best: { dist: number; midi: number } | null = null;
+  for (const segment of guide.segments) {
+    const dist =
+      sec < segment.startSec ? segment.startSec - sec : sec > segment.endSec ? sec - segment.endSec : 0;
+    if (dist > toleranceSec) continue;
+    if (best == null || dist < best.dist) {
+      best = { dist, midi: segment.midi };
+    }
+  }
+  return best?.midi ?? null;
+}
+
+function correctMidiOctaveNearTarget(midi: number, targetMidi: number | null, maxDelta: number) {
+  if (targetMidi == null) return midi;
+  let best = midi;
+  let bestDelta = Math.abs(midi - targetMidi);
+  for (const shift of [ -24, -12, 12, 24 ]) {
+    const cand = midi + shift;
+    const delta = Math.abs(cand - targetMidi);
+    if (delta < bestDelta) {
+      best = cand;
+      bestDelta = delta;
+    }
+  }
+  return bestDelta <= maxDelta ? best : midi;
+}
+
+function stabilizeLongToneMidi(midi: number, prevMidi: number | null, maxStep: number): number | null {
+  if (prevMidi == null) return midi;
+  const candidates = [ midi, midi - 12, midi + 12, midi - 24, midi + 24 ];
+  let best = candidates[0];
+  let bestDelta = Math.abs(candidates[0] - prevMidi);
+  for (let i = 1; i < candidates.length; i += 1) {
+    const delta = Math.abs(candidates[i] - prevMidi);
+    if (delta < bestDelta) {
+      best = candidates[i];
+      bestDelta = delta;
+    }
+  }
+  return bestDelta <= maxStep ? best : null;
+}
+
 function classifyPitchJudgeTone(actualMidi: number, targetMidi: number | null): PitchJudgeTone {
   // 判定対象外の定義を統一:
   // - target が存在しない時間帯
@@ -2609,6 +2941,22 @@ function autoCorrelate(buf: Float32Array, sampleRate: number): number | null {
   const freq = sampleRate / tau;
   if (!Number.isFinite(freq) || freq < minFreq || freq > maxFreq) return null;
   return freq;
+}
+
+function isPitchJumpOutlier({
+  prevMidi,
+  nextMidi,
+  jumpLimit,
+  jumpUpLimit,
+}: {
+  prevMidi: number;
+  nextMidi: number;
+  jumpLimit: number;
+  jumpUpLimit: number;
+}) {
+  const delta = nextMidi - prevMidi;
+  if (delta >= 0) return delta > jumpUpLimit;
+  return Math.abs(delta) > jumpLimit;
 }
 
 function calcRms(buf: Float32Array) {

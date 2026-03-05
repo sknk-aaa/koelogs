@@ -106,19 +106,20 @@
 .logNew__panel {
   display: grid;
   gap: 10px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.74);
+  padding: 0;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
 }
 
 .logNew__aiQualityBox {
   display: grid;
   gap: 10px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px dashed color-mix(in srgb, var(--accent) 26%, var(--border));
-  background: color-mix(in srgb, var(--accent) 4%, var(--card));
+  padding: 10px 0 0;
+  border-radius: 0;
+  border: 0;
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: transparent;
 }
 
 .logNew__aiQualityTitle {
@@ -157,10 +158,11 @@
 .logNew__effectBox {
   display: grid;
   gap: 10px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.78);
-  padding: 10px;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 0 0;
 }
 
 .logNew__effectBoxHead {
@@ -173,13 +175,13 @@
 .logNew__palette {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
 
 .logNew__swatch {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
   border: 1px solid rgba(0, 0, 0, 0.15);
   cursor: pointer;
@@ -190,8 +192,8 @@
 }
 
 .logNew__swatch.is-active {
-  border: 2px solid rgba(0, 0, 0, 0.65);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+  border: 2px solid rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.08);
 }
 
 .logNew__swatchCheck {
@@ -246,14 +248,14 @@
 
 :root[data-theme-mode="dark"] .logNew__input::placeholder,
 :root[data-theme-mode="dark"] .logNew__textarea::placeholder {
-  color: color-mix(in srgb, #0b1220 90%, #ffffff 10%);
+  color: color-mix(in srgb, #0b1220 48%, #ffffff 52%);
 }
 
 :root[data-theme-mode="dark"] .logNew__panel,
 :root[data-theme-mode="dark"] .logNew__aiQualityBox,
 :root[data-theme-mode="dark"] .logNew__chip,
 :root[data-theme-mode="dark"] .logNew__effectBox {
-  background: #ffffff;
+  background: transparent;
   color: var(--on-light-2);
   border-color: var(--lognew-border-dark);
 }
@@ -264,13 +266,13 @@
 
 :root[data-theme-mode="dark"] .logNew__menuRow {
   color: #0b1220;
-  border-color: color-mix(in srgb, var(--accent) 26%, #d4d9e3);
+  border-top-color: transparent;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 :root[data-theme-mode="dark"] .logNew__menuRow.is-checked {
-  background: color-mix(in srgb, var(--accent) 18%, #ffffff);
-  border-color: color-mix(in srgb, var(--accent) 60%, #d4d9e3);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 28%, #eef1f7);
+  background: color-mix(in srgb, var(--accent) 15%, #ffffff);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 64%, #eef1f7);
 }
 
 :root[data-theme-mode="dark"] .logNew__menuRow.is-checked .logNew__check {
@@ -291,13 +293,6 @@
   color: color-mix(in srgb, #ffffff 70%, #0b1220);
 }
 
-.logNew__previewRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .logNew__panelActions {
   display: flex;
   gap: 10px;
@@ -307,7 +302,7 @@
 
 .logNew__menuList {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .logNew__menuRow {
@@ -316,16 +311,22 @@
   gap: 10px;
   width: 100%;
   text-align: left;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.88);
+  padding: 10px 0;
+  border-radius: 12px;
+  border: 0;
+  border-top: 0;
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
   cursor: pointer;
 }
 
 .logNew__menuRow.is-checked {
-  border-color: var(--border);
-  background: rgba(255, 255, 255, 0.88);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 58%, transparent);
+  padding-left: 12px;
+}
+
+.logNew__menuRow.is-manageOnly {
+  cursor: default;
 }
 
 .logNew__check {
@@ -575,6 +576,27 @@
   box-shadow: none;
 }
 
+.logNew__btn--disabledState {
+  border-color: color-mix(in srgb, var(--muted) 34%, var(--border));
+  background: color-mix(in srgb, var(--surface) 85%, #f3f5f8);
+  color: color-mix(in srgb, var(--muted) 72%, #0b1220);
+  box-shadow: none;
+}
+
+.logNew__btn--addReady {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 72%, #0b1220);
+  box-shadow: none;
+}
+
+.logNew__btn--addReady:hover {
+  border-color: color-mix(in srgb, var(--accent) 54%, var(--border));
+  background: color-mix(in srgb, var(--accent) 19%, #ffffff);
+  filter: none;
+  box-shadow: none;
+}
+
 .logNew__btn--primary {
   border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
   background: linear-gradient(
@@ -589,6 +611,20 @@
 .logNew__btn--primary:hover {
   filter: saturate(1.08) brightness(1.03);
   box-shadow: 0 18px 34px color-mix(in srgb, var(--accent) 36%, transparent);
+}
+
+.logNew__btn--savePrimary {
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+  background: color-mix(in srgb, var(--accent) 18%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 78%, #0b1220);
+  box-shadow: none;
+}
+
+.logNew__btn--savePrimary:hover {
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
+  background: color-mix(in srgb, var(--accent) 24%, #ffffff);
+  filter: none;
+  box-shadow: none;
 }
 
 .logNew__btn--recording {
@@ -607,6 +643,36 @@
   color: #000000;
   background: #ffffff;
   border-color: color-mix(in srgb, var(--accent) 20%, #d8d8d8);
+}
+
+:root[data-theme-mode="dark"] .logNew .logNew__btn--disabledState {
+  color: rgba(11, 18, 32, 0.54);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+:root[data-theme-mode="dark"] .logNew .logNew__btn--addReady {
+  color: color-mix(in srgb, var(--accent) 70%, #0b1220);
+  background: color-mix(in srgb, var(--accent) 18%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 46%, #d8d8d8);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .logNew .logNew__btn--addReady:hover {
+  background: color-mix(in srgb, var(--accent) 24%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 56%, #d8d8d8);
+}
+
+:root[data-theme-mode="dark"] .logNew .logNew__btn--savePrimary {
+  color: color-mix(in srgb, var(--accent) 78%, #0b1220);
+  background: color-mix(in srgb, var(--accent) 22%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 50%, #d8d8d8);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .logNew .logNew__btn--savePrimary:hover {
+  background: color-mix(in srgb, var(--accent) 28%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 60%, #d8d8d8);
 }
 
 :root[data-theme-mode="dark"] .logNew__stickyBar {

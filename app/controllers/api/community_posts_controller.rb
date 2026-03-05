@@ -76,6 +76,8 @@ module Api
         training_menu: menu,
         improvement_tags: create_params[:improvement_tags],
         effect_level: effect_level,
+        used_scale_type: create_params[:used_scale_type].presence || "other",
+        used_scale_other_text: create_params[:used_scale_other_text],
         comment: create_params[:comment],
         published: create_params.key?(:published) ? ActiveModel::Type::Boolean.new.cast(create_params[:published]) : true,
         practiced_on: create_params[:practiced_on]
@@ -118,6 +120,8 @@ module Api
         training_menu: menu,
         improvement_tags: update_params[:improvement_tags].presence || post.improvement_tags,
         effect_level: effect_level,
+        used_scale_type: update_params[:used_scale_type].presence || post.used_scale_type,
+        used_scale_other_text: update_params.key?(:used_scale_other_text) ? update_params[:used_scale_other_text] : post.used_scale_other_text,
         comment: update_params.key?(:comment) ? update_params[:comment] : post.comment,
         published: update_params.key?(:published) ? ActiveModel::Type::Boolean.new.cast(update_params[:published]) : post.published,
         practiced_on: update_params.key?(:practiced_on) ? update_params[:practiced_on] : post.practiced_on
@@ -162,11 +166,29 @@ module Api
     private
 
     def create_params
-      params.permit(:training_menu_id, :effect_level, :comment, :published, :practiced_on, improvement_tags: [])
+      params.permit(
+        :training_menu_id,
+        :effect_level,
+        :used_scale_type,
+        :used_scale_other_text,
+        :comment,
+        :published,
+        :practiced_on,
+        improvement_tags: []
+      )
     end
 
     def update_params
-      params.permit(:training_menu_id, :effect_level, :comment, :published, :practiced_on, improvement_tags: [])
+      params.permit(
+        :training_menu_id,
+        :effect_level,
+        :used_scale_type,
+        :used_scale_other_text,
+        :comment,
+        :published,
+        :practiced_on,
+        improvement_tags: []
+      )
     end
 
     def serialize_post(post, profile_map:, favorite_meta:)
@@ -178,6 +200,8 @@ module Api
         canonical_key: post.canonical_key,
         improvement_tags: post.improvement_tags,
         effect_level: post.effect_level,
+        used_scale_type: post.used_scale_type,
+        used_scale_other_text: post.used_scale_other_text,
         comment: post.comment,
         published: post.published,
         practiced_on: post.practiced_on&.iso8601,

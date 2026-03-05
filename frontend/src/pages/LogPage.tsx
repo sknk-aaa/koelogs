@@ -1,16 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate } from "../api/trainingLogs";
-import { fetchMonthlyLog, upsertMonthlyLog } from "../api/monthlyLogs";
+import { fetchMonthlyLog, fetchMonthlyLogComparison, upsertMonthlyLog } from "../api/monthlyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
 import { fetchInsights } from "../api/insights";
+import { fetchMissions } from "../api/missions";
 import type { TrainingLog } from "../types/trainingLog";
 import type { AiRecommendation } from "../types/aiRecommendation";
-import type { MonthlyLogData } from "../types/monthlyLog";
+import type { MonthlyLogComparisonData, MonthlyLogData } from "../types/monthlyLog";
 import type { SaveRewards } from "../types/gamification";
+import type { MissionItem } from "../types/missions";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import { emitGamificationRewards } from "../features/gamification/rewardBus";
+import { improvementTagToneClass } from "../features/improvementTags/improvementTags";
 
 import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
 import ProcessingOverlay from "../components/ProcessingOverlay";
@@ -20,12 +23,15 @@ import "./LogPage.css";
 import LogHeader from "../features/log/components/LogHeader";
 import SummaryCard from "../features/log/components/SummaryCard";
 import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
-import WelcomeGuideModal from "../features/log/components/WelcomeGuideModal";
 import { setLastLogPath } from "../features/log/logNavigation";
+import TutorialModal from "../components/TutorialModal";
+import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
+import handPointerImage from "../assets/tutorial/pointer.png";
 
 import { fetchMe, updateMeGoalText, type Me } from "../api/auth";
 import ColoredTag from "../components/ColoredTag";
 import InfoModal from "../components/InfoModal";
+import PremiumUpsellModal from "../components/PremiumUpsellModal";
 
 function pad(v: number): string {
   return String(v).padStart(2, "0");
@@ -80,9 +86,234 @@ function toPercentText(count: number, total: number): string {
   return `${((count / total) * 100).toFixed(1)}%`;
 }
 
+function formatPctText(pct: number | null | undefined): string {
+  if (typeof pct !== "number" || Number.isNaN(pct) || !Number.isFinite(pct)) return "—";
+  const prefix = pct > 0 ? "+" : "";
+  return `${prefix}${pct.toFixed(1)}%`;
+}
+
+function formatGrowthText(current: number | null, previous: number | null, pct: number | null | undefined): string {
+  if (current == null || previous == null) return "—";
+  if (previous === 0) return current > 0 ? "新規" : "—";
+  return formatPctText(pct);
+}
+
+function diffToneClass(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value) || !Number.isFinite(value)) return "is-neutral";
+  if (value > 0) return "is-positive";
+  if (value < 0) return "is-negative";
+  return "is-neutral";
+}
+
+function growthToneClass(current: number | null, previous: number | null, pct: number | null | undefined): string {
+  if (current == null || previous == null) return "is-neutral";
+  if (previous === 0) return current > 0 ? "is-new" : "is-neutral";
+  if (typeof pct !== "number" || Number.isNaN(pct) || !Number.isFinite(pct)) return "is-neutral";
+  if (pct > 0) return "is-positive";
+  if (pct < 0) return "is-negative";
+  return "is-neutral";
+}
+
+function formatMinutesPerDay(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value) || !Number.isFinite(value)) return "—";
+  return `${value.toFixed(1)}分/日`;
+}
+
+function formatDiffMinutesPerDay(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value) || !Number.isFinite(value)) return "—";
+  const prefix = value > 0 ? "+" : "";
+  return `${prefix}${value.toFixed(1)}分`;
+}
+
+function movementArrow(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value) || !Number.isFinite(value)) return "→";
+  if (value > 0) return "↑";
+  if (value < 0) return "↓";
+  return "→";
+}
+
+function renderActionIcon(index: number): React.ReactNode {
+  const icons = [
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M20 7 10 17l-5-5" />
+    </svg>,
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M14 6h4v4" />
+      <path d="M10 18H6v-4" />
+      <path d="m18 6-6 6" />
+      <path d="m6 18 6-6" />
+    </svg>,
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M12 3v18" />
+      <path d="M5 10h14" />
+      <path d="M6 16c2.2-1.5 4-2.2 6-2.2s3.8.7 6 2.2" />
+    </svg>,
+  ];
+  return icons[index % icons.length];
+}
+
+type PracticeStatus = "improved" | "declined" | "stable" | "new";
+type PerformanceStatus = "improved" | "declined" | "insufficient";
+type DiagnosticBucketKey = "improved" | "declined";
+type MeasurementChangeItem = MonthlyLogComparisonData["measurement_changes"][number];
+
+type ComparisonDiagnosis = {
+  header: string;
+  summary: string;
+  advice: string;
+  reference: boolean;
+  practiceStatus: PracticeStatus;
+  performanceStatus: PerformanceStatus;
+  buckets: Record<DiagnosticBucketKey, MeasurementChangeItem[]>;
+  reasons: string[];
+  actions: string[];
+};
+
+function practiceStatusLabel(status: PracticeStatus): string {
+  if (status === "improved") return "改善";
+  if (status === "declined") return "低下";
+  if (status === "stable") return "横ばい";
+  return "判定中";
+}
+
+function performanceStatusLabel(status: PerformanceStatus): string {
+  if (status === "improved") return "改善傾向";
+  if (status === "declined") return "注意";
+  return "判定中";
+}
+
+function summarizeMeasurementNames(items: MeasurementChangeItem[]): string {
+  if (items.length === 0) return "なし";
+  const labels = items.slice(0, 3).map((item) => shortMeasurementLabel(item)).join(" / ");
+  const remain = items.length - 3;
+  return remain > 0 ? `${labels} +${remain}件` : labels;
+}
+
+function topLabel(items: MeasurementChangeItem[]): string | null {
+  return items[0] ? shortMeasurementLabel(items[0]) : null;
+}
+
+function shortMeasurementLabel(item: MeasurementChangeItem): string {
+  if (item.key === "long_tone_sustain_sec") return "ロングトーン";
+  if (item.key === "pitch_error_semitones") return "音程正確性";
+  if (item.key === "volume_stability_pct") return "音量安定性";
+  if (item.key === "chest_top_note") return "地声最高音";
+  if (item.key === "falsetto_top_note") return "裏声最高音";
+  return item.label;
+}
+
+function measurementTagKey(item: MeasurementChangeItem): string {
+  if (item.key === "long_tone_sustain_sec") return "long_tone_sustain";
+  if (item.key === "pitch_error_semitones") return "pitch_accuracy";
+  if (item.key === "volume_stability_pct") return "volume_stability";
+  if (item.key === "chest_top_note") return "high_note_ease";
+  if (item.key === "falsetto_top_note") return "passaggio_smoothness";
+  return "resonance_clarity";
+}
+
+function classifyMeasurementDirection(item: MeasurementChangeItem): DiagnosticBucketKey | null {
+  const diff = item.diff;
+  if (typeof diff !== "number" || !Number.isFinite(diff) || diff === 0) return null;
+  if (item.better === "lower") {
+    return diff < 0 ? "improved" : "declined";
+  }
+  return diff > 0 ? "improved" : "declined";
+}
+
+function measurementDiffToneClass(item: MeasurementChangeItem): "is-positive" | "is-negative" | "is-neutral" {
+  const diff = item.diff;
+  if (typeof diff !== "number" || !Number.isFinite(diff) || diff === 0) return "is-neutral";
+  if (item.better === "lower") {
+    return diff < 0 ? "is-positive" : "is-negative";
+  }
+  return diff > 0 ? "is-positive" : "is-negative";
+}
+
+function buildComparisonDiagnosis(data: MonthlyLogComparisonData): ComparisonDiagnosis {
+  const practice = data.practice_time;
+  const currentDays = practice.current_days ?? 0;
+  const previousValue = practice.previous;
+  const pct = practice.pct;
+  const practiceStatus: PracticeStatus =
+    previousValue == null || previousValue === 0
+      ? "new"
+      : typeof pct === "number" && pct >= 10
+        ? "improved"
+        : typeof pct === "number" && pct <= -10
+          ? "declined"
+          : "stable";
+
+  const buckets: Record<DiagnosticBucketKey, MeasurementChangeItem[]> = {
+    improved: [],
+    declined: [],
+  };
+  data.measurement_changes.forEach((item) => {
+    const direction = classifyMeasurementDirection(item);
+    if (direction) buckets[direction].push(item);
+  });
+
+  const improvedCount = buckets.improved.length;
+  const declinedCount = buckets.declined.length;
+  const performanceStatus: PerformanceStatus =
+    improvedCount + declinedCount === 0
+      ? "insufficient"
+      : declinedCount > improvedCount
+        ? "declined"
+        : "improved";
+
+  const currentMeasurementCount = data.measurement_changes.reduce((sum, item) => sum + item.current.count, 0);
+  const reference = currentDays < 3 || currentMeasurementCount < 2;
+
+  const summary =
+    reference
+      ? "今月の記録をもとに傾向を表示しています。"
+      : performanceStatus === "declined"
+        ? "実力は少し下がり気味です。"
+        : performanceStatus === "improved"
+          ? "実力は改善傾向です。"
+          : "測定データをもとに傾向を確認中です。";
+
+  const advice =
+    reference
+      ? ""
+      : performanceStatus === "declined"
+          ? "測定の「悪化」項目を優先的に見直しましょう。"
+          : performanceStatus === "improved"
+            ? "今月の良い流れを維持しましょう。"
+            : "重点項目を1つに絞って継続しましょう。";
+
+  const header = reference ? "練習：確認中 / 実力：確認中" : `練習：${practiceStatusLabel(practiceStatus)} / 実力：${performanceStatusLabel(performanceStatus)}`;
+
+  const reasons: string[] = [];
+  if (buckets.improved.length > 0) reasons.push(`${summarizeMeasurementNames(buckets.improved)} は改善傾向です。`);
+  if (buckets.declined.length > 0) reasons.push(`${summarizeMeasurementNames(buckets.declined)} は少し下がり気味です。`);
+  if (reasons.length === 0) reasons.push("今月の記録は全体的に安定しています。");
+
+  const actions: string[] = [];
+  const declinedTarget = topLabel(buckets.declined);
+  if (declinedTarget) actions.push(`${declinedTarget} を立て直すメニューを週2回だけ追加してみましょう。`);
+  const improvedTarget = topLabel(buckets.improved);
+  if (improvedTarget) actions.push(`${improvedTarget} は良い流れなので、今のメニューを維持しましょう。`);
+  if (actions.length === 0) actions.push("今月のペースを維持しながら、1項目だけ重点的に続けましょう。");
+
+  return {
+    header,
+    summary,
+    advice,
+    reference,
+    practiceStatus,
+    performanceStatus,
+    buckets,
+    reasons: reasons.slice(0, 3),
+    actions: actions.slice(0, 3),
+  };
+}
+
 const AI_PREVIEW_CHARS = 100;
 const GOAL_MAX = 50;
-const FIRST_LOGIN_GUIDE_KEY_PREFIX = "voice_app_log_first_guide_seen_user_";
+const BEGINNER_COMPLETE_MODAL_SEEN_KEY_PREFIX = "koelogs:beginner_complete_modal_seen:user_";
+const BEGINNER_LAST_PENDING_KEY_PREFIX = "koelogs:beginner_last_pending:user_";
+const BEGINNER_COMPLETED_ONCE_KEY_PREFIX = "koelogs:beginner_completed_once:user_";
 
 type LogMode = "day" | "month";
 type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
@@ -95,6 +326,22 @@ function previewText(text: string, previewChars: number) {
   const t = text.trim();
   if (t.length <= previewChars) return t;
   return t.slice(0, previewChars) + "…";
+}
+
+function monthlyTrendNote(rangeDays: 14 | 30 | 90): string {
+  if (rangeDays === 30) return "傾向=直近1か月の月ログ";
+  if (rangeDays === 90) return "傾向=直近3か月の月ログ";
+  return "傾向=月ログ参照なし";
+}
+
+function aiReferenceMeta(rangeDays: 14 | 30 | 90): string {
+  return `詳細=直近14日 / ${monthlyTrendNote(rangeDays)}`;
+}
+
+function normalizeAiRangeDays(value: number | null | undefined): 14 | 30 | 90 {
+  if (value === 30) return 30;
+  if (value === 90) return 90;
+  return 14;
 }
 
 function isWithinFirst7Days(createdAt?: string | null): boolean {
@@ -130,6 +377,10 @@ export default function LogPage() {
     : `/log?mode=day&date=${encodeURIComponent(selectedDate)}`;
 
   const isToday = selectedDate === today;
+  const missionGuide = params.get("missionGuide");
+  const forceGuideDailyLog = missionGuide === "beginner_daily_log" && isDayMode && isToday && !guestMode;
+  const aiCustomDoneParam = params.get("aiCustomDone");
+  const shouldRunAiMissionGuide = missionGuide === "beginner_ai" && isDayMode && !guestMode;
   const currentMonth = useMemo(() => today.slice(0, 7), [today]);
   const canGoNextMonth = selectedMonth < currentMonth;
 
@@ -138,17 +389,30 @@ export default function LogPage() {
   const [log, setLog] = useState<TrainingLog | null>(null);
   const [currentStreakDays, setCurrentStreakDays] = useState<number | null>(null);
   const [longestStreakDays, setLongestStreakDays] = useState<number | null>(null);
-  const [totalPracticeDaysCount, setTotalPracticeDaysCount] = useState<number | null>(null);
   const [saveToast, setSaveToast] = useState<SaveRewards | null>(null);
-  const [firstGuideOpen, setFirstGuideOpen] = useState(false);
-  const [showGuideHintBanner, setShowGuideHintBanner] = useState(false);
+  const [tutorialWelcomeOpen, setTutorialWelcomeOpen] = useState(false);
+  const [beginnerCompletionModalStep, setBeginnerCompletionModalStep] = useState<"congrats" | "unlocked" | null>(null);
+  const [aiMissionGuideStep, setAiMissionGuideStep] = useState<"intro" | "references" | "customization" | "pointer" | null>(null);
+  const aiCtaCardRef = useRef<HTMLElement | null>(null);
+  const aiGenerateBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [aiGenerateGuidePos, setAiGenerateGuidePos] = useState<{ left: number; top: number } | null>(null);
+  const forceGuideAiGenerate = aiMissionGuideStep === "pointer";
+  const goalGuideRowRef = useRef<HTMLDivElement | null>(null);
 
   const [monthLoading, setMonthLoading] = useState(false);
   const [monthError, setMonthError] = useState<string | null>(null);
   const [monthData, setMonthData] = useState<MonthlyLogData | null>(null);
   const [monthNotesDraft, setMonthNotesDraft] = useState("");
+  const [monthComparisonLoading, setMonthComparisonLoading] = useState(false);
+  const [monthComparisonError, setMonthComparisonError] = useState<string | null>(null);
+  const [monthComparisonData, setMonthComparisonData] = useState<MonthlyLogComparisonData | null>(null);
+  const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [monthSaveLoading, setMonthSaveLoading] = useState(false);
   const [monthSaveError, setMonthSaveError] = useState<string | null>(null);
+  const [beginnerMissions, setBeginnerMissions] = useState<MissionItem[]>([]);
+  const [beginnerMissionModalOpen, setBeginnerMissionModalOpen] = useState(false);
+  const [beginnerCompletedOnce, setBeginnerCompletedOnce] = useState(false);
 
   // ===== Me / Goal =====
   const [me, setMe] = useState<Me | null>(null);
@@ -156,6 +420,15 @@ export default function LogPage() {
   const [goalDraft, setGoalDraft] = useState("");
   const [goalError, setGoalError] = useState<string | null>(null);
   const [goalSaving, setGoalSaving] = useState(false);
+
+  const openComparisonModal = () => {
+    if (authMe?.plan_tier !== "premium") {
+      setPremiumModalOpen(true);
+      return;
+    }
+    setIsComparisonModalOpen(true);
+  };
+  const isComparisonPremiumUnlocked = authMe?.plan_tier === "premium";
 
   useEffect(() => {
     let cancelled = false;
@@ -204,6 +477,10 @@ export default function LogPage() {
       const updated = await updateMeGoalText(v);
       setMe(updated);
       setGoalEditing(false);
+      const missionsRes = await fetchMissions();
+      if (!missionsRes.error && missionsRes.data) {
+        setBeginnerMissions(missionsRes.data.beginner ?? []);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "保存できませんでした";
       setGoalError(msg);
@@ -293,6 +570,37 @@ export default function LogPage() {
     };
   }, [selectedMonth, authMe, isMonthMode]);
 
+  // Monthly comparison fetch
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!authMe || !isMonthMode) {
+        setMonthComparisonLoading(false);
+        setMonthComparisonError(null);
+        setMonthComparisonData(null);
+        return;
+      }
+
+      setMonthComparisonLoading(true);
+      setMonthComparisonError(null);
+
+      const res = await fetchMonthlyLogComparison(selectedMonth);
+      if (cancelled) return;
+
+      if ("error" in res && res.error) {
+        setMonthComparisonData(null);
+        setMonthComparisonError(res.error);
+      } else {
+        setMonthComparisonData(res.data);
+      }
+      setMonthComparisonLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedMonth, authMe, isMonthMode]);
+
   // streak fetch
   useEffect(() => {
     let cancelled = false;
@@ -300,7 +608,6 @@ export default function LogPage() {
       if (!authMe) {
         setCurrentStreakDays(null);
         setLongestStreakDays(null);
-        setTotalPracticeDaysCount(null);
         return;
       }
       const res = await fetchInsights(30);
@@ -308,12 +615,33 @@ export default function LogPage() {
       if ("error" in res && res.error) {
         setCurrentStreakDays(null);
         setLongestStreakDays(null);
-        setTotalPracticeDaysCount(null);
         return;
       }
       setCurrentStreakDays(res.data?.streaks.current_days ?? null);
       setLongestStreakDays(res.data?.streaks.longest_days ?? null);
-      setTotalPracticeDaysCount(res.data?.total_practice_days_count ?? 0);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authMe]);
+
+  // beginner missions (for log top guidance)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!authMe) {
+        setBeginnerMissions([]);
+        return;
+      }
+
+      const res = await fetchMissions();
+      if (cancelled) return;
+      if (res.error || !res.data) {
+        setBeginnerMissions([]);
+        return;
+      }
+      setBeginnerMissions(res.data.beginner ?? []);
     })();
 
     return () => {
@@ -349,7 +677,7 @@ export default function LogPage() {
 
       setAiError(null);
 
-      const res = await fetchAiRecommendationByDate(selectedDate);
+      const res = await fetchAiRecommendationByDate(selectedDate, settings.aiRangeDays);
       if (cancelled) return;
 
       if (res.error) {
@@ -363,27 +691,73 @@ export default function LogPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate, authMe, isDayMode]);
+  }, [selectedDate, authMe, isDayMode, settings.aiRangeDays]);
 
   useEffect(() => {
     if (authLoading || !authMe) {
-      setFirstGuideOpen(false);
+      setTutorialWelcomeOpen(false);
       return;
     }
-    if (totalPracticeDaysCount === null) {
-      setFirstGuideOpen(false);
-      return;
-    }
+    const stage = loadTutorialStage(authMe.id);
+    setTutorialWelcomeOpen(stage === "log_welcome");
+  }, [authLoading, authMe]);
 
-    const key = `${FIRST_LOGIN_GUIDE_KEY_PREFIX}${authMe.id}`;
-    let seen = false;
-    try {
-      seen = window.localStorage.getItem(key) === "1";
-    } catch {
-      seen = false;
+  useEffect(() => {
+    if (!shouldRunAiMissionGuide) {
+      setAiMissionGuideStep(null);
+      setAiGenerateGuidePos(null);
+      return;
     }
-    setFirstGuideOpen(!seen && totalPracticeDaysCount === 0);
-  }, [authLoading, authMe, totalPracticeDaysCount]);
+    setAiMissionGuideStep("intro");
+    const id = window.setTimeout(() => {
+      aiCtaCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+    return () => window.clearTimeout(id);
+  }, [shouldRunAiMissionGuide]);
+
+  useEffect(() => {
+    if (!forceGuideAiGenerate) {
+      setAiGenerateGuidePos(null);
+      return;
+    }
+    aiCtaCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const target = aiGenerateBtnRef.current;
+    if (!target) return;
+    const update = () => {
+      const rect = target.getBoundingClientRect();
+      setAiGenerateGuidePos({
+        left: rect.left + rect.width * 0.5 + 22,
+        top: rect.top + rect.height + 130,
+      });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [forceGuideAiGenerate]);
+
+  useEffect(() => {
+    if (!forceGuideDailyLog && !forceGuideAiGenerate) {
+      delete document.body.dataset.logMissionGuideLockFooter;
+      return;
+    }
+    document.body.dataset.logMissionGuideLockFooter = "true";
+    return () => {
+      delete document.body.dataset.logMissionGuideLockFooter;
+    };
+  }, [forceGuideAiGenerate, forceGuideDailyLog]);
+
+  const clearMissionGuideQuery = () => {
+    setParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("missionGuide");
+      next.delete("aiCustomDone");
+      return next;
+    });
+  };
 
   const onChangeDate = (next: string) => {
     setParams({ mode: "day", date: next });
@@ -407,7 +781,8 @@ export default function LogPage() {
       goLogin();
       return;
     }
-    navigate(`/log/new?date=${encodeURIComponent(selectedDate)}`);
+    const suffix = forceGuideDailyLog ? "&missionGuide=beginner_daily_log" : "";
+    navigate(`/log/new?date=${encodeURIComponent(selectedDate)}${suffix}`);
   };
 
   const onSaveMonthlyLog = async (payload: { notes: string | null }) => {
@@ -442,6 +817,10 @@ export default function LogPage() {
       return;
     }
     if (aiLoading) return;
+    if (forceGuideAiGenerate) {
+      setAiMissionGuideStep(null);
+      clearMissionGuideQuery();
+    }
 
     setAiLoading(true);
     setAiError(null);
@@ -461,19 +840,23 @@ export default function LogPage() {
     emitGamificationRewards(res.rewards);
     setAiLoading(false);
     setAiExpanded(true);
+    const missionsRes = await fetchMissions();
+    if (!missionsRes.error && missionsRes.data) {
+      setBeginnerMissions(missionsRes.data.beginner ?? []);
+    }
   };
 
-  const closeFirstGuide = (showHintBanner: boolean) => {
-    if (authMe) {
-      const key = `${FIRST_LOGIN_GUIDE_KEY_PREFIX}${authMe.id}`;
-      try {
-        window.localStorage.setItem(key, "1");
-      } catch {
-        // localStorage未使用環境では保存しない
-      }
-    }
-    setFirstGuideOpen(false);
-    setShowGuideHintBanner(showHintBanner);
+  const openAiChat = (initialMessage?: string) => {
+    if (!authMe || !effectiveAiRec || guestMode) return;
+    const seed = initialMessage?.trim() ?? "";
+    navigate("/chat", {
+      state: {
+        source: "ai_recommendation",
+        seedMessage: seed,
+        recommendationDate: selectedDate,
+        recommendationText: effectiveAiRec.recommendation_text,
+      },
+    });
   };
 
   const previewLog: TrainingLog = {
@@ -490,14 +873,46 @@ export default function LogPage() {
   const previewAiRec: AiRecommendation = {
     id: -1,
     generated_for_date: selectedDate,
-    range_days: settings.aiRangeDays,
+    range_days: 14,
     recommendation_text:
       "今日はウォームアップを10分入れてから、ミックス練習を中心に。後半はテンポを落として音程の安定を優先しましょう。",
+    collective_summary: {
+      used: true,
+      window_days: 90,
+      min_count: 3,
+      items: [
+        {
+          tag_key: "pitch_accuracy",
+          tag_label: "音程精度",
+          menus: [
+            {
+              menu_label: "ハミング",
+              count: 4,
+              scale_distribution: [
+                { label: "5トーン", count: 3 },
+                { label: "トライアド", count: 1 },
+              ],
+              detail_comments: [
+                "喉を開く意識で力みが減った",
+                "音量一定で当たりが安定した",
+              ],
+              detail_keywords: [ "声帯閉鎖維持", "鼻腔への響き" ],
+              detail_patterns: {
+                improved: [ "ミドルが楽" ],
+                range: [ "換声点付近" ],
+                focus: [ "声帯閉鎖を維持する" ],
+              },
+            },
+          ],
+        },
+      ],
+    },
     created_at: new Date().toISOString(),
   };
 
   const effectiveLog = guestMode ? previewLog : log;
   const effectiveAiRec = guestMode ? previewAiRec : aiRec;
+  const aiMeta = aiReferenceMeta(normalizeAiRangeDays(effectiveAiRec?.range_days ?? settings.aiRangeDays));
   const currentAiText = effectiveAiRec?.recommendation_text ?? null;
   const showAiArea = isDayMode && (guestMode || !!effectiveAiRec || aiLoading || !!aiError);
   const showAiButton = isDayMode && isToday && !aiLoading && !effectiveAiRec && !aiError;
@@ -517,9 +932,119 @@ export default function LogPage() {
   const monthTotalMenuCount = monthData?.summary.total_menu_count ?? 0;
   const monthMenuCounts = monthData?.summary.menu_counts ?? [];
   const monthPracticeDays = monthData?.daily_logs?.length ?? 0;
+  const comparisonDiagnosis = useMemo(
+    () => (monthComparisonData ? buildComparisonDiagnosis(monthComparisonData) : null),
+    [monthComparisonData]
+  );
 
   const goalText = me?.goal_text ?? null;
   const isWithinInitial7Days = isWithinFirst7Days(me?.created_at);
+  const forceGuideGoalSetting =
+    !!me && missionGuide === "beginner_goal" && isDayMode && !guestMode && !goalText && !goalEditing;
+  const pendingBeginnerMissions = useMemo(
+    () => beginnerMissions.filter((mission) => !mission.done),
+    [beginnerMissions]
+  );
+  const beginnerTotalCount = beginnerMissions.length;
+  const beginnerPendingCount = pendingBeginnerMissions.length;
+  const beginnerDoneCount = Math.max(0, beginnerTotalCount - beginnerPendingCount);
+  const beginnerProgressPercent =
+    beginnerTotalCount > 0 ? Math.round((beginnerDoneCount / beginnerTotalCount) * 100) : 0;
+  const hasPendingBeginnerMissions = !beginnerCompletedOnce && beginnerPendingCount > 0;
+  const beginnerAiCustomizationDone = useMemo(() => {
+    if (aiCustomDoneParam === "1") return true;
+    if (aiCustomDoneParam === "0") return false;
+    return beginnerMissions.find((mission) => mission.key === "beginner_ai_customization")?.done === true;
+  }, [aiCustomDoneParam, beginnerMissions]);
+
+  useEffect(() => {
+    if (!authMe) {
+      setBeginnerCompletedOnce(false);
+      return;
+    }
+    const completedOnceKey = `${BEGINNER_COMPLETED_ONCE_KEY_PREFIX}${authMe.id}`;
+    try {
+      setBeginnerCompletedOnce(window.localStorage.getItem(completedOnceKey) === "1");
+    } catch {
+      setBeginnerCompletedOnce(false);
+    }
+  }, [authMe]);
+
+  useEffect(() => {
+    const current = beginnerPendingCount;
+    if (!authMe || beginnerTotalCount === 0) return;
+
+    const seenKey = `${BEGINNER_COMPLETE_MODAL_SEEN_KEY_PREFIX}${authMe.id}`;
+    const lastPendingKey = `${BEGINNER_LAST_PENDING_KEY_PREFIX}${authMe.id}`;
+    const completedOnceKey = `${BEGINNER_COMPLETED_ONCE_KEY_PREFIX}${authMe.id}`;
+    let lastPending: number | null = null;
+    let alreadyShown = false;
+    let alreadyCompletedOnce = false;
+
+    try {
+      const raw = window.localStorage.getItem(lastPendingKey);
+      lastPending = raw == null ? null : Number.parseInt(raw, 10);
+      alreadyShown = window.localStorage.getItem(seenKey) === "1";
+      alreadyCompletedOnce = window.localStorage.getItem(completedOnceKey) === "1";
+    } catch {
+      lastPending = null;
+      alreadyShown = false;
+      alreadyCompletedOnce = false;
+    }
+
+    if (alreadyCompletedOnce) {
+      if (!beginnerCompletedOnce) setBeginnerCompletedOnce(true);
+      return;
+    }
+
+    if (current === 0 && !alreadyShown && lastPending != null && lastPending > 0) {
+      setBeginnerCompletionModalStep("congrats");
+      try {
+        window.localStorage.setItem(seenKey, "1");
+        window.localStorage.setItem(completedOnceKey, "1");
+        setBeginnerCompletedOnce(true);
+      } catch {
+        // no-op
+      }
+    }
+
+    try {
+      window.localStorage.setItem(lastPendingKey, String(current));
+    } catch {
+      // no-op
+    }
+  }, [authMe, beginnerCompletedOnce, beginnerPendingCount, beginnerTotalCount]);
+
+  useEffect(() => {
+    if (!beginnerMissionModalOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [beginnerMissionModalOpen]);
+
+  useEffect(() => {
+    if (!beginnerCompletedOnce) return;
+    setBeginnerMissionModalOpen(false);
+  }, [beginnerCompletedOnce]);
+
+  useEffect(() => {
+    if (!forceGuideGoalSetting) return;
+    const id = window.setTimeout(() => {
+      goalGuideRowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+    return () => window.clearTimeout(id);
+  }, [forceGuideGoalSetting]);
+
+  useEffect(() => {
+    const shouldHideFooterTabs = isMonthMode && isComparisonModalOpen;
+    document.body.classList.toggle("logPage--comparisonModalOpen", shouldHideFooterTabs);
+    return () => {
+      document.body.classList.remove("logPage--comparisonModalOpen");
+    };
+  }, [isMonthMode, isComparisonModalOpen]);
+
   const aiCreateButtonText =
     !guestMode && isWithinInitial7Days
       ? "今日のおすすめをAIに作成してもらう"
@@ -573,7 +1098,7 @@ export default function LogPage() {
       ) : (
         <div className="logPage__weekHeader">
           <div className="logPage__weekHeaderLeft">
-            <div className="logPage__title">ログ</div>
+            <div className="logPage__title">月ログ</div>
             <div className="logPage__muted">月の振り返りを記録</div>
           </div>
 
@@ -614,45 +1139,209 @@ export default function LogPage() {
         </div>
       )}
 
-      <WelcomeGuideModal
-        open={firstGuideOpen}
-        onClose={() => closeFirstGuide(true)}
-        onOpenGuide={() => {
-          closeFirstGuide(false);
-          navigate("/help/guide");
-        }}
-        onStartRecord={() => {
-          closeFirstGuide(false);
-          navigate(`/log/new?date=${encodeURIComponent(selectedDate)}`, {
-            state: { quickFromWelcome: true },
-          });
-        }}
-      />
-
-      {showGuideHintBanner && (
-        <section className="card logPage__guideHint" role="status">
-          <div className="logPage__guideHintText">迷ったら使い方を見る</div>
-          <div className="logPage__guideHintActions">
-            <button
-              type="button"
-              className="logPage__btn logPage__btn--subtle"
-              onClick={() => {
-                setShowGuideHintBanner(false);
-                navigate("/help/guide");
-              }}
-            >
-              使い方を見る
-            </button>
-            <button
-              type="button"
-              className="logPage__btn logPage__btn--subtle"
-              onClick={() => setShowGuideHintBanner(false)}
-            >
-              閉じる
-            </button>
+      {!!authMe && isMonthMode && (
+        <button
+          type="button"
+          className="logPage__comparisonTrigger"
+          onClick={openComparisonModal}
+        >
+          <div className="logPage__comparisonTriggerMain">
+            <div className="logPage__comparisonTriggerTitle">今月のAI診断</div>
+            <div className="logPage__comparisonTriggerSub">今月の成長を確認してみましょう！</div>
           </div>
+          <div
+            className={`logPage__comparisonTriggerRight ${
+              isComparisonPremiumUnlocked ? "is-premium" : "is-free"
+            }`}
+          >
+            {!isComparisonPremiumUnlocked && (
+              <span className="logPage__comparisonTriggerPremiumHint">
+                <span>プレミアムプランで</span>
+                <span>閲覧可能になります。</span>
+              </span>
+            )}
+            <div className="logPage__comparisonTriggerSummaryRow">
+              {isComparisonPremiumUnlocked && (
+                <div className="logPage__comparisonTriggerSummary">
+                  {monthComparisonLoading || monthComparisonError
+                    ? "—"
+                    : comparisonDiagnosis?.header ?? "—"}
+                </div>
+              )}
+            </div>
+          </div>
+        </button>
+      )}
+
+      {!!authMe && isDayMode && hasPendingBeginnerMissions && (
+        <section className="logPage__beginnerGuide" aria-label="ビギナーミッション">
+          <button
+            type="button"
+            className="logPage__missionGuideCard"
+            onClick={() => setBeginnerMissionModalOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={beginnerMissionModalOpen}
+          >
+            <div className="logPage__missionGuideTitle">ミッションをクリアしよう</div>
+            <div className="logPage__missionGuideMetaRow">
+              <span className="logPage__missionGuideLabel">ビギナーミッション</span>
+              <span className="logPage__missionGuideCount">
+                {beginnerDoneCount} / {beginnerTotalCount}
+              </span>
+              <span className="logPage__missionGuideArrow" aria-hidden="true">
+                ›
+              </span>
+            </div>
+            <span className="logPage__missionGuideProgressTrack" aria-hidden="true">
+              <span
+                className="logPage__missionGuideProgressFill"
+                style={{ width: `${beginnerProgressPercent}%` }}
+              />
+            </span>
+          </button>
         </section>
       )}
+
+      {beginnerMissionModalOpen && (
+        <div
+          className="logPage__missionModalOverlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="ビギナーミッション"
+          onClick={() => setBeginnerMissionModalOpen(false)}
+        >
+          <section className="card logPage__missionModalCard" onClick={(event) => event.stopPropagation()}>
+            <div className="logPage__missionModalHead">
+              <div className="logPage__missionModalTitle">ビギナーミッション</div>
+              <button
+                type="button"
+                className="logPage__missionModalClose"
+                onClick={() => setBeginnerMissionModalOpen(false)}
+                aria-label="閉じる"
+              >
+                ×
+              </button>
+            </div>
+            <div className="logPage__missionModalStatus">残り {pendingBeginnerMissions.length} 件</div>
+            <div className="logPage__beginnerGuideList">
+              {pendingBeginnerMissions.map((mission) => (
+                <article key={mission.key} className="logPage__beginnerGuideItem">
+                  <div className="logPage__beginnerGuideItemMain">
+                    <span className="logPage__beginnerGuideItemIcon" aria-hidden="true">
+                      ○
+                    </span>
+                    <div className="logPage__beginnerGuideItemText">
+                      <div className="logPage__beginnerGuideItemTitle">{mission.title}</div>
+                      <div className="logPage__beginnerGuideItemDesc">{mission.description}</div>
+                    </div>
+                  </div>
+                  <Link
+                    to={
+                      mission.key === "beginner_ai"
+                        ? `${mission.to}${mission.to.includes("?") ? "&" : "?"}aiCustomDone=${beginnerAiCustomizationDone ? "1" : "0"}`
+                        : mission.to
+                    }
+                    className="logPage__beginnerGuideItemAction"
+                    onClick={() => setBeginnerMissionModalOpen(false)}
+                  >
+                    開く
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+
+      <TutorialModal
+        open={tutorialWelcomeOpen}
+        badge="WELCOME"
+        title="はじめまして、Koelogsへようこそ！"
+        paragraphs={[
+          "このアプリは、あなたの「練習記録」と「測定データ」をもとに、AIが次の練習メニューを提案するボイストレーニング支援アプリです。",
+          "まずは基本の流れを体験してみましょう。",
+        ]}
+        primaryLabel="ビギナーミッションをはじめる"
+        onPrimary={() => {
+          if (!authMe) return;
+          saveTutorialStage(authMe.id, "mypage_intro");
+          setTutorialWelcomeOpen(false);
+          navigate("/mypage");
+        }}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={aiMissionGuideStep === "intro"}
+        badge="MISSION"
+        title="AIおすすめについて"
+        paragraphs={["このアプリでは、今日のおすすめトレーニング内容をAIが提案してくれます。"]}
+        primaryLabel="次へ"
+        onPrimary={() => setAiMissionGuideStep("references")}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={aiMissionGuideStep === "references"}
+        badge="MISSION"
+        title="AIおすすめの参照データ"
+        paragraphs={[
+          "AIのお勧め生成では、主に次のデータを参照します：",
+          "・ユーザーのAIカスタム指示",
+          "・ログで記録したデータ",
+          "・測定データ",
+        ]}
+        primaryLabel={beginnerAiCustomizationDone ? "AIおすすめを生成する" : "次へ"}
+        onPrimary={() => {
+          if (beginnerAiCustomizationDone) {
+            setAiMissionGuideStep("pointer");
+            return;
+          }
+          setAiMissionGuideStep("customization");
+        }}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={aiMissionGuideStep === "customization"}
+        badge="MISSION"
+        title="まずはAIカスタム指示を設定しましょう"
+        paragraphs={["まずはAIカスタム指示を作成し、あなたの現在の状況や回答のスタイルを設定しましょう。"]}
+        primaryLabel="AIカスタム指示を作成"
+        onPrimary={() => {
+          setAiMissionGuideStep(null);
+          clearMissionGuideQuery();
+          navigate("/settings/ai");
+        }}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={beginnerCompletionModalStep === "congrats"}
+        badge="MISSION CLEAR"
+        title="おめでとうございます！"
+        paragraphs={["ビギナーミッションをすべてクリアしました。"]}
+        primaryLabel="次へ"
+        onPrimary={() => setBeginnerCompletionModalStep("unlocked")}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={beginnerCompletionModalStep === "unlocked"}
+        badge="UNLOCKED"
+        title="AIチャット機能が解放されました"
+        paragraphs={[
+          "ここでは、自由な会話の作成やAIおすすめに対しての質問が可能になります。",
+        ]}
+        primaryLabel="さっそく使ってみる"
+        secondaryLabel="あとで"
+        onPrimary={() => {
+          setBeginnerCompletionModalStep(null);
+          navigate("/chat");
+        }}
+        onSecondary={() => setBeginnerCompletionModalStep(null)}
+        onClose={() => setBeginnerCompletionModalStep(null)}
+      />
 
       {toastLines.length > 0 && (
         <section className="logPage__rewardToast" role="status" aria-live="polite">
@@ -662,8 +1351,28 @@ export default function LogPage() {
         </section>
       )}
 
-      {!!me && (
-        <div className="goalBar">
+      {(forceGuideDailyLog || forceGuideAiGenerate || forceGuideGoalSetting) && (
+        <>
+          <div
+            className={`logPage__guideOverlay ${forceGuideGoalSetting ? "is-goal" : ""}`.trim()}
+            aria-hidden="true"
+          />
+          {forceGuideAiGenerate && aiGenerateGuidePos && (
+            <div
+              className="logPage__guideHand"
+              style={{ left: `${aiGenerateGuidePos.left}px`, top: `${aiGenerateGuidePos.top}px` }}
+              role="status"
+              aria-live="polite"
+              aria-label="ここをタップ"
+            >
+              <img src={handPointerImage} alt="" className="logPage__guideHandImage" aria-hidden="true" />
+            </div>
+          )}
+        </>
+      )}
+
+      {!!me && isDayMode && (
+        <div className={`goalBar ${forceGuideGoalSetting ? "is-guided" : ""}`.trim()}>
           {!goalEditing ? (
             goalText ? (
               <div className="goalBar__view">
@@ -677,17 +1386,19 @@ export default function LogPage() {
               </div>
             ) : (
               <div className="goalBar__view">
-                <div className="goalBar__row">
+                <div
+                  ref={forceGuideGoalSetting ? goalGuideRowRef : undefined}
+                  className={`goalBar__row ${forceGuideGoalSetting ? "is-guided" : ""}`.trim()}
+                >
                   <div className="goalBar__label">
                     {isWithinInitial7Days
                       ? "目標を設定する（最大50文字・AIおすすめに反映）"
-                      : "目標を設定する（最大50文字）"}
+                      : "目標を設定する（最大50文字・AIおすすめに反映）"}
                   </div>
                   <button className="goalBar__btn" type="button" onClick={openGoalEdit}>
                     設定する
                   </button>
                 </div>
-                <div className="goalBar__hint">目標を設定すると「今日のおすすめメニュー」に反映されます。</div>
               </div>
             )
           ) : (
@@ -743,6 +1454,189 @@ export default function LogPage() {
           }}
         />
       )}
+
+      {isMonthMode && isComparisonModalOpen && (
+        <div className="logPage__compareModalOverlay" role="presentation" onClick={() => setIsComparisonModalOpen(false)}>
+          <section
+            className="logPage__compareModal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="先月との比較"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="logPage__compareModalHead">
+              <div className="logPage__compareModalTitle">先月との比較</div>
+              <button type="button" className="logPage__compareModalClose" onClick={() => setIsComparisonModalOpen(false)}>
+                閉じる
+              </button>
+            </div>
+
+            {monthComparisonLoading && <div className="logPage__muted">比較データを読み込み中…</div>}
+            {!monthComparisonLoading && monthComparisonError && (
+              <div className="logPage__error">比較データの取得に失敗しました: {monthComparisonError}</div>
+            )}
+            {!monthComparisonLoading && !monthComparisonError && monthComparisonData && (
+              <div className="logPage__compareModalBody">
+                <section className="logPage__comparisonIntensity">
+                  <div className="logPage__comparisonBlockTitle">📈 練習強度（一日あたりの練習時間）</div>
+                  <div className="logPage__comparisonIntensityCurrent">今月 {formatMinutesPerDay(monthComparisonData.practice_time.current)}</div>
+                  <div className="logPage__comparisonCardMeta">
+                    <span className={`logPage__comparisonDiff ${diffToneClass(monthComparisonData.practice_time.diff)}`}>
+                      {movementArrow(monthComparisonData.practice_time.diff)} {formatDiffMinutesPerDay(monthComparisonData.practice_time.diff)}
+                      <span className={`logPage__comparisonGrowth ${growthToneClass(
+                        monthComparisonData.practice_time.current,
+                        monthComparisonData.practice_time.previous,
+                        monthComparisonData.practice_time.pct
+                      )}`}>
+                        （{formatGrowthText(
+                          monthComparisonData.practice_time.current,
+                          monthComparisonData.practice_time.previous,
+                          monthComparisonData.practice_time.pct
+                        )}）
+                      </span>
+                    </span>
+                  </div>
+                  <div className="logPage__comparisonDaysMeta">
+                    （今月 {monthComparisonData.practice_time.current_days ?? 0}日 / 先月 {monthComparisonData.practice_time.previous_days ?? 0}日）
+                  </div>
+                </section>
+
+                <section className="logPage__measurementCompare">
+                  <div className="logPage__measurementCompareHead">
+                    <div className="logPage__measurementCompareTitle">🎤 実力の変化（測定平均）</div>
+                  </div>
+                  {monthComparisonData.measurement_changes.length === 0 ? (
+                    <div className="logPage__muted">対象期間の測定データがありません。</div>
+                  ) : (
+                    <div className="logPage__comparisonBuckets">
+                      {(
+                        [
+                          { key: "improved", label: "改善" },
+                          { key: "declined", label: "悪化" },
+                        ] as const
+                      ).map((bucket) => {
+                        const items = comparisonDiagnosis?.buckets[bucket.key] ?? [];
+                        return (
+                          <section key={`bucket-${bucket.key}`} className={`logPage__comparisonBucket is-${bucket.key}`}>
+                            <div className="logPage__comparisonBucketHead static">
+                              <span className="logPage__comparisonBucketTitle">{bucket.label}（{items.length}）</span>
+                              <div className="logPage__comparisonBucketSummary">
+                                {items.length === 0 ? (
+                                  <span className="logPage__comparisonBucketMore">なし</span>
+                                ) : (
+                                  <>
+                                    {items.slice(0, 3).map((summaryItem) => (
+                                      <span
+                                        key={`summary-${bucket.key}-${summaryItem.key}`}
+                                        className={`logPage__measurementTag ${improvementTagToneClass(measurementTagKey(summaryItem))}`}
+                                      >
+                                        {shortMeasurementLabel(summaryItem)}
+                                      </span>
+                                    ))}
+                                    {items.length > 3 && (
+                                      <span className="logPage__comparisonBucketMore">+{items.length - 3}件</span>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="logPage__comparisonBucketBody">
+                              {items.length === 0 ? (
+                                <div className="logPage__comparisonDetailMuted">該当なし</div>
+                              ) : (
+                                items.map((item) => (
+                                  <div key={`detail-${bucket.key}-${item.key}`} className="logPage__comparisonDetailRow">
+                                    <div className="logPage__comparisonDetailMeta">
+                                      <span className="logPage__comparisonDetailCount">
+                                        今月{item.current.count}回 / 先月{item.previous.count}回
+                                      </span>
+                                    </div>
+                                    <div className="logPage__comparisonDetailMain">
+                                      <span className="logPage__comparisonDetailName">{shortMeasurementLabel(item)}</span>
+                                      <span className="logPage__comparisonDetailValues">
+                                        <span>{item.previous.display} → {item.current.display}</span>
+                                        <span className={`logPage__comparisonDetailDelta ${measurementDiffToneClass(item)}`}>
+                                          {movementArrow(item.diff)} {item.diff_display}
+                                        </span>
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </section>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <section className="logPage__comparisonActionCard">
+                  <div className="logPage__comparisonActionHead">
+                    <span className="logPage__comparisonActionBadge">AI COACH</span>
+                    <div className="logPage__comparisonActionTitleRow">
+                      <span className="logPage__comparisonActionTitleIcon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                          <path d="m12 3 2.4 4.8L19 10l-4.6 2.2L12 17l-2.4-4.8L5 10l4.6-2.2Z" />
+                        </svg>
+                      </span>
+                      <span className="logPage__comparisonActionTitle">今月のAI診断</span>
+                    </div>
+                  </div>
+                  <div className="logPage__comparisonDiagnosisSummary">{comparisonDiagnosis?.summary ?? "比較データを確認中です。"}</div>
+                  {!!comparisonDiagnosis?.advice && (
+                    <div className="logPage__comparisonDiagnosisAdvice">{comparisonDiagnosis.advice}</div>
+                  )}
+                  {!!comparisonDiagnosis?.reasons?.length && (
+                    <div className="logPage__comparisonDiagnosisMeta">
+                      {comparisonDiagnosis.reasons.slice(0, 2).join(" / ")}
+                    </div>
+                  )}
+                  <ul className="logPage__comparisonActionList">
+                    {(comparisonDiagnosis?.actions ?? ["今月の記録を続けながら、1つの項目に集中してみましょう。"]).map((action, index) => (
+                      <li key={`action-${action}`} className="logPage__comparisonActionItem">
+                        <span className="logPage__comparisonActionIcon" aria-hidden="true">
+                          {renderActionIcon(index)}
+                        </span>
+                        <span>{action}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
+      <PremiumUpsellModal
+        open={premiumModalOpen}
+        onClose={() => setPremiumModalOpen(false)}
+        previewMode="screenshot"
+        variant="lp"
+        kicker="PREMIUM"
+        title="今月、ちゃんと伸びていますか？"
+        description="やった気の1ヶ月で終わらせない。"
+        growthTitle="今月の成長（実例）"
+        growthItems={[
+          { label: "音程精度", before: "88.2%", after: "91.4%", delta: "↑ +3.2%", tone: "up" },
+          { label: "裏声最高音", before: "B4", after: "C#5", delta: "↑ +2半音", tone: "up" },
+          { label: "ロングトーン", before: "24.1s", after: "14.7s", delta: "↓ -9.4s", tone: "down" },
+        ]}
+        flowTitle="成長の仕組み"
+        flowSteps={[
+          { title: "停滞を検出", sub: "裏声最高音の推移を解析", pill: "停滞あり" },
+          { title: "要因を特定", sub: "ログと測定データを横断分析", pill: "要因解析" },
+          { title: "最適なトレーニングを提示", sub: "今月の優先項目を決定", pill: "メニュー提案" },
+        ]}
+        note="比較だけで終わらせず、理由に基づいた改善アクションまでサポートします。"
+        noteVariant="default"
+        ctaLabel="プレミアムを見る"
+        onCta={() => {
+          setPremiumModalOpen(false);
+          navigate("/premium");
+        }}
+      />
 
       {guestMode && isDayMode && (
         <>
@@ -807,6 +1701,7 @@ export default function LogPage() {
             }
             onClickRecord={goNew}
             currentStreakDays={guestMode ? 3 : currentStreakDays}
+            recordButtonClassName={forceGuideDailyLog ? "is-guided" : undefined}
           />
         ) : (
           <section className="card logPage__card">
@@ -901,9 +1796,7 @@ export default function LogPage() {
         {showAiArea && (
           <AiRecommendationCard
             title="今日のおすすめメニュー"
-            meta={
-              `今日を含めて直近 ${settings.aiRangeDays} 日を参考`
-            }
+            meta={aiMeta}
             aiLoading={aiLoading}
             aiError={guestMode && isDayMode ? null : aiError}
             recommendationText={currentAiText}
@@ -913,13 +1806,16 @@ export default function LogPage() {
             collapsible={aiCollapsible}
             expanded={aiExpanded}
             onToggleExpanded={() => setAiExpanded((v) => !v)}
+            collectiveSummary={effectiveAiRec?.collective_summary}
+            showFollowupButton={!guestMode && !!effectiveAiRec && (beginnerCompletedOnce || beginnerPendingCount === 0)}
+            onOpenFollowup={(message) => void openAiChat(message)}
           />
         )}
       </div>
 
       <div className="logPage__actions">
         {(showAiButton || (guestMode && isDayMode)) && (
-          <section className="logAi logPage__card logPage__aiCtaCard logAi--empty">
+          <section ref={aiCtaCardRef} className="logAi logPage__card logPage__aiCtaCard logAi--empty">
             <div className="logAi__header">
               <div>
                 <div className="logAi__title">AIトレーニング提案</div>
@@ -927,7 +1823,6 @@ export default function LogPage() {
               </div>
               <div className="logAi__headerRight">
                 {(guestMode && isDayMode) && <div className="logAi__pill logAi__pill--sample">ゲスト</div>}
-                {(!guestMode && !goalText) && <div className="logAi__pill logAi__pill--sample">目標未設定</div>}
                 {!guestMode && (
                   <Link to="/settings/ai" className="logPage__aiSettingsLink">
                     AIカスタム指示
@@ -938,7 +1833,7 @@ export default function LogPage() {
                   bodyClassName="logPage__aiInfoBody"
                   triggerClassName="logPage__aiInfoBtn"
                 >
-                  <div className="logPage__aiInfoLead">直近の記録と目標から、今日の練習プランをAIが提案します。</div>
+                  <div className="logPage__aiInfoLead">目標・直近の記録・AI設定をもとに、今日の練習プランを生成します。</div>
                   <div className="logPage__aiInfoBlocks">
                     <section className="logPage__aiInfoBlock logPage__aiInfoBlock--primary">
                       <div className="logPage__aiInfoBlockTitle">
@@ -946,7 +1841,7 @@ export default function LogPage() {
                         <span>主に使う</span>
                       </div>
                       <div className="logPage__aiInfoBlockText">
-                        直近ログ（時間・メニュー・メモ）と目標を参考にします。
+                        詳細ログは直近14日を参照します。参照期間（14/30/90）はAIカスタム指示ページで設定でき、30/90では月ログ傾向も補助で参照します。
                       </div>
                     </section>
                     <section className="logPage__aiInfoBlock">
@@ -955,7 +1850,7 @@ export default function LogPage() {
                         <span>補助</span>
                       </div>
                       <div className="logPage__aiInfoBlockText">
-                        コミュニティで投稿されたトレーニング内容を参考にすることがあります。
+                        AIカスタム指示（回答スタイル）・改善したい項目・長期プロフィール・コミュニティ集合知を補助根拠として使います。
                       </div>
                     </section>
                     <section className="logPage__aiInfoBlock logPage__aiInfoBlock--save">
@@ -964,7 +1859,7 @@ export default function LogPage() {
                         <span>保存</span>
                       </div>
                       <div className="logPage__aiInfoBlockText">
-                        生成結果は当日分として保存され、後から見返せます。
+                        生成結果は日付ごとに保存され、AIチャットから質問・調整できます。
                       </div>
                     </section>
                   </div>
@@ -974,7 +1869,11 @@ export default function LogPage() {
 
             <div className="logAi__content">
               <div className="logPage__aiCtaActions">
-                <button onClick={onAskAi} className="logPage__btn logPage__aiCtaBtn">
+                <button
+                  ref={aiGenerateBtnRef}
+                  onClick={onAskAi}
+                  className={`logPage__btn logPage__aiCtaBtn ${forceGuideAiGenerate ? "is-guided" : ""}`.trim()}
+                >
                   {guestMode && isDayMode
                     ? "ログインしてAI提案を作成"
                     : aiCreateButtonText}

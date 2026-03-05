@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
 import RequireAuth from "./features/auth/RequireAuth";
+import RequireBeginnerMissionsCompleted from "./features/missions/RequireBeginnerMissionsCompleted";
 import AppLayout from "./components/AppLayout";
 
 import LogPage from "./pages/LogPage";
@@ -19,12 +20,14 @@ import SettingsPage from "./pages/SettingsPage";
 import AiSettingsPage from "./pages/AiSettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import MyPage from "./pages/MyPage";
+import AiChatPage from "./pages/AiChatPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityProfilePage from "./pages/CommunityProfilePage";
 import CommunityRankingPage from "./pages/CommunityRankingPage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
 import HelpContactPage from "./pages/HelpContactPage";
+import PremiumPlanPage from "./pages/PremiumPlanPage";
 
 export default function App() {
   return (
@@ -49,6 +52,7 @@ export default function App() {
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/community/rankings" element={<CommunityRankingPage />} />
             <Route path="/community/profile/:userId" element={<CommunityProfilePage />} />
+            <Route path="/premium" element={<PremiumPlanPage />} />
 
             {/* 認証が必要なページ */}
             <Route element={<RequireAuth />}>
@@ -57,6 +61,9 @@ export default function App() {
               <Route path="/settings/ai" element={<AiSettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/mypage" element={<MyPage />} />
+              <Route element={<RequireBeginnerMissionsCompleted />}>
+                <Route path="/chat" element={<AiChatPage />} />
+              </Route>
             </Route>
 
             {/* ヘルプはログイン不要 */}

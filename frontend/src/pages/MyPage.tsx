@@ -1,22 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import { fetchInsights } from "../api/insights";
 import { fetchMissions } from "../api/missions";
 import { useAuth } from "../features/auth/useAuth";
 import DurationHeatmapCalendar from "../features/insights/components/DurationHeatmapCalendar";
-import { loadThemeMode } from "../features/theme/themeStorage";
 import type { BadgeProgress } from "../types/gamification";
 import type { InsightsData } from "../types/insights";
-import type { MissionItem, MissionsResponseData } from "../types/missions";
+import type { MissionsResponseData } from "../types/missions";
 import InfoModal from "../components/InfoModal";
+import TutorialModal from "../components/TutorialModal";
+import { loadTutorialStage, saveTutorialStage, type TutorialStage } from "../features/tutorial/tutorialFlow";
+import handPointerImage from "../assets/tutorial/pointer.png";
 
 import "./MyPage.css";
 
 const HEATMAP_DAYS = 90;
 const SUMMARY_DAYS_OPTIONS = [30, 90] as const;
 const BADGES_COLLAPSED_COUNT = 9;
-const DARK_MODE_MISSION_FLAG = "mission_dark_mode_tried";
+const BEGINNER_COMPLETE_MODAL_SEEN_KEY_PREFIX = "koelogs:beginner_complete_modal_seen:user_";
+const BEGINNER_LAST_PENDING_KEY_PREFIX = "koelogs:beginner_last_pending:user_";
 const BADGE_DISPLAY_ORDER: string[] = [
   "first_log",
   "streak_3",
@@ -59,6 +62,7 @@ function formatDateTime(value: string | null): string | null {
 }
 
 export default function MyPage() {
+  const navigate = useNavigate();
   const { me } = useAuth();
   const [summaryDays, setSummaryDays] = useState<SummaryDays>(30);
   const [loading, setLoading] = useState(true);
@@ -66,10 +70,15 @@ export default function MyPage() {
   const [summaryInsights, setSummaryInsights] = useState<InsightsData | null>(null);
   const [heatmapInsights, setHeatmapInsights] = useState<InsightsData | null>(null);
   const [missionsData, setMissionsData] = useState<MissionsResponseData | null>(null);
-  const [missionDetailsOpen, setMissionDetailsOpen] = useState(false);
   const [badgesExpanded, setBadgesExpanded] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<BadgeProgress | null>(null);
   const [insightsReloadKey, setInsightsReloadKey] = useState(0);
+  const [tutorialStage, setTutorialStage] = useState<TutorialStage | null>(null);
+  const [beginnerMissionModalOpen, setBeginnerMissionModalOpen] = useState(false);
+  const [beginnerCompletionModalStep, setBeginnerCompletionModalStep] = useState<"congrats" | "unlocked" | null>(null);
+  const beginnerMissionOpenBtnRef = useRef<HTMLButtonElement | null>(null);
+  const beginnerMeasurementMissionBtnRef = useRef<HTMLAnchorElement | null>(null);
+  const [guideHandPos, setGuideHandPos] = useState<{ left: number; top: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -128,34 +137,47 @@ export default function MyPage() {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const modeFromStorage = loadThemeMode();
-    const modeFromRoot = document.documentElement.dataset.themeMode;
-    if (modeFromStorage === "dark" || modeFromRoot === "dark") {
-      window.localStorage.setItem(DARK_MODE_MISSION_FLAG, "1");
+    if (!me) {
+      setTutorialStage(null);
+      return;
     }
-  }, []);
+    const stage = loadTutorialStage(me.id);
+    if (
+      stage === "mypage_intro" ||
+      stage === "mypage_open_mission_modal" ||
+      stage === "mypage_force_click_measurement"
+    ) {
+      setTutorialStage(stage);
+      return;
+    }
+    setTutorialStage(null);
+  }, [me]);
 
-  const darkModeMissionDone =
-    typeof window !== "undefined" && window.localStorage.getItem(DARK_MODE_MISSION_FLAG) === "1";
-  const beginnerMissions = useMemo(() => {
-    const base = missionsData?.beginner ?? [];
-    const darkModeMission: MissionItem = {
-      key: "beginner_dark_mode",
-      title: "ダークモードを試してみよう",
-      description: "設定画面から表示テーマをダークに切り替えてみましょう。",
-      to: "/settings",
-      done: darkModeMissionDone,
-    };
-    return [...base, darkModeMission];
-  }, [missionsData?.beginner, darkModeMissionDone]);
+  useEffect(() => {
+    if (tutorialStage === "mypage_force_click_measurement") {
+      setBeginnerMissionModalOpen(true);
+    }
+  }, [tutorialStage]);
+
+  const tutorialMeasurementDone = useMemo(() => {
+    if (!me) return false;
+    const stage = loadTutorialStage(me.id);
+    return stage === "range_measured" || stage === "tutorial_completed" || stage === "completed";
+  }, [me, tutorialStage]);
+  const beginnerMissions = useMemo(
+    () =>
+      (missionsData?.beginner ?? []).map((mission) =>
+        mission.key === "beginner_measurement" ? { ...mission, done: mission.done || tutorialMeasurementDone } : mission
+      ),
+    [missionsData?.beginner, tutorialMeasurementDone]
+  );
   const dailyMissions = missionsData?.daily ?? [];
   const continuousMissions = missionsData?.continuous ?? [];
+  const beginnerTotalCount = beginnerMissions.length;
   const beginnerPendingCount = beginnerMissions.filter((mission) => !mission.done).length;
+  const beginnerDoneCount = Math.max(0, beginnerTotalCount - beginnerPendingCount);
+  const beginnerProgressPercent = beginnerTotalCount > 0 ? Math.round((beginnerDoneCount / beginnerTotalCount) * 100) : 0;
   const dailyPendingCount = dailyMissions.filter((mission) => !mission.done).length;
-  const prioritizeBeginner = beginnerPendingCount > 0;
-  const showBeginnerSection = prioritizeBeginner || missionDetailsOpen;
-  const showDailySection = !prioritizeBeginner || missionDetailsOpen;
   const levelProgressPercent = useMemo(() => {
     if (!progress) return 0;
     const cur = progress.total_xp - progress.current_level_total_xp;
@@ -185,6 +207,126 @@ export default function MyPage() {
     [badgesExpanded, orderedBadges]
   );
   const hasHiddenBadges = orderedBadges.length > BADGES_COLLAPSED_COUNT;
+  const forceOpenBeginnerMissionModal = tutorialStage === "mypage_open_mission_modal";
+  const forceSelectMeasurementMission = tutorialStage === "mypage_force_click_measurement";
+  const tutorialPointerActive = forceOpenBeginnerMissionModal || forceSelectMeasurementMission;
+  const targetMeasurementDone = beginnerMissions.some((mission) => mission.key === "beginner_measurement" && mission.done);
+
+  useEffect(() => {
+    const current = beginnerPendingCount;
+    if (!me || beginnerTotalCount === 0) return;
+
+    const seenKey = `${BEGINNER_COMPLETE_MODAL_SEEN_KEY_PREFIX}${me.id}`;
+    const lastPendingKey = `${BEGINNER_LAST_PENDING_KEY_PREFIX}${me.id}`;
+    let lastPending: number | null = null;
+    let alreadyShown = false;
+
+    try {
+      const raw = window.localStorage.getItem(lastPendingKey);
+      lastPending = raw == null ? null : Number.parseInt(raw, 10);
+      alreadyShown = window.localStorage.getItem(seenKey) === "1";
+    } catch {
+      lastPending = null;
+      alreadyShown = false;
+    }
+
+    if (current === 0 && !alreadyShown && lastPending != null && lastPending > 0) {
+      setBeginnerCompletionModalStep("congrats");
+      try {
+        window.localStorage.setItem(seenKey, "1");
+      } catch {
+        // no-op
+      }
+    }
+
+    if (current > 0) {
+      try {
+        window.localStorage.removeItem(seenKey);
+      } catch {
+        // no-op
+      }
+    }
+
+    try {
+      window.localStorage.setItem(lastPendingKey, String(current));
+    } catch {
+      // no-op
+    }
+  }, [beginnerPendingCount, beginnerTotalCount, me]);
+
+  useEffect(() => {
+    if (!me || !forceSelectMeasurementMission || !targetMeasurementDone) return;
+    saveTutorialStage(me.id, "training_range_intro");
+    setTutorialStage(null);
+    navigate("/training?mission=range&tutorial=beginner");
+  }, [forceSelectMeasurementMission, me, navigate, targetMeasurementDone]);
+
+  useEffect(() => {
+    if (!forceOpenBeginnerMissionModal) return;
+    const id = window.setTimeout(() => {
+      beginnerMissionOpenBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+    return () => window.clearTimeout(id);
+  }, [forceOpenBeginnerMissionModal]);
+
+  useEffect(() => {
+    if (!forceSelectMeasurementMission || !beginnerMissionModalOpen) return;
+    const id = window.setTimeout(() => {
+      beginnerMeasurementMissionBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+    return () => window.clearTimeout(id);
+  }, [beginnerMissionModalOpen, forceSelectMeasurementMission]);
+
+  useEffect(() => {
+    if (!forceOpenBeginnerMissionModal) {
+      setGuideHandPos(null);
+      return;
+    }
+    const target = beginnerMissionOpenBtnRef.current;
+    if (!target) return;
+
+    const update = () => {
+      const rect = target.getBoundingClientRect();
+      setGuideHandPos({
+        left: rect.left + rect.width * 0.5,
+        top: rect.top + rect.height - 24,
+      });
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [forceOpenBeginnerMissionModal]);
+
+  useEffect(() => {
+    if (!tutorialPointerActive) {
+      delete document.body.dataset.mypageTutorialLockFooter;
+      return;
+    }
+    document.body.dataset.mypageTutorialLockFooter = "true";
+    return () => {
+      delete document.body.dataset.mypageTutorialLockFooter;
+    };
+  }, [tutorialPointerActive]);
+
+  const openBeginnerMissionModal = () => {
+    setBeginnerMissionModalOpen(true);
+    if (me && tutorialStage === "mypage_open_mission_modal") {
+      saveTutorialStage(me.id, "training_range_intro");
+      setTutorialStage(null);
+      setBeginnerMissionModalOpen(false);
+      navigate("/training?mission=range&tutorial=beginner");
+    }
+  };
+
+  const closeBeginnerMissionModal = () => {
+    if (forceSelectMeasurementMission) return;
+    setBeginnerMissionModalOpen(false);
+  };
   if (loading) {
     return (
       <div className="page myPage">
@@ -213,81 +355,26 @@ export default function MyPage() {
     <div className="page myPage">
       <section className="card myPage__missionCard">
         <div className="myPage__cardTitle myPage__cardTitle--tight">ミッション</div>
-        <div className="myPage__missionGroups">
-          {showBeginnerSection && (
-            <section className="myPage__missionGroup">
-              <div className="myPage__missionGroupHead">
-                <div className="myPage__missionGroupTitle">初心者ミッション</div>
-                <span className={`myPage__missionStatus ${beginnerPendingCount === 0 ? "is-done" : "is-pending"}`}>
-                  {beginnerPendingCount === 0 ? "完了" : `残り ${beginnerPendingCount} 件`}
-                </span>
-              </div>
-              <div className="myPage__missionList">
-                {beginnerMissions.map((mission) => (
-                  <article key={mission.key} className={`myPage__mission ${mission.done ? "is-done" : ""}`}>
-                    <div className="myPage__modalMissionTop">
-                      <div className="myPage__missionTitle">{mission.title}</div>
-                      <span className={`myPage__missionStatus ${mission.done ? "is-done" : "is-pending"}`}>
-                        {mission.done ? "達成" : "未達成"}
-                      </span>
-                    </div>
-                    <div className="myPage__missionText">{mission.description}</div>
-                    {!mission.done && (
-                      <Link to={mission.to} className="myPage__missionBtn">
-                        挑戦する
-                      </Link>
-                    )}
-                  </article>
-                ))}
-              </div>
-            </section>
-          )}
-          {showDailySection ? (
-            <section className="myPage__missionGroup">
-              <div className="myPage__missionGroupHead">
-                <div className="myPage__missionGroupTitle">デイリーミッション</div>
-                <span className={`myPage__missionStatus ${dailyPendingCount === 0 ? "is-done" : "is-pending"}`}>
-                  {dailyPendingCount === 0 ? "完了" : `残り ${dailyPendingCount} 件`}
-                </span>
-              </div>
-              <div className="myPage__missionList">
-                {dailyMissions.map((mission) => (
-                  <article key={mission.key} className={`myPage__mission ${mission.done ? "is-done" : ""}`}>
-                    <div className="myPage__modalMissionTop">
-                      <div className="myPage__missionTitle">{mission.title}</div>
-                      <span className={`myPage__missionStatus ${mission.done ? "is-done" : "is-pending"}`}>
-                        {mission.done ? "達成" : "未達成"}
-                      </span>
-                    </div>
-                    <div className="myPage__missionText">{mission.description}</div>
-                    {!mission.done && (
-                      <Link to={mission.to} className="myPage__missionBtn">
-                        挑戦する
-                      </Link>
-                    )}
-                  </article>
-                ))}
-              </div>
-            </section>
-          ) : (
-            <section className="myPage__missionGroup myPage__missionGroup--collapsed">
-              <div className="myPage__missionGroupHead">
-                <div className="myPage__missionGroupTitle">デイリーミッション（折りたたみ中）</div>
-                <span className={`myPage__missionStatus ${dailyPendingCount === 0 ? "is-done" : "is-pending"}`}>
-                  {dailyPendingCount === 0 ? "完了" : `残り ${dailyPendingCount} 件`}
-                </span>
-              </div>
-            </section>
-          )}
-          <button
-            type="button"
-            className="myPage__missionMoreBtn"
-            onClick={() => setMissionDetailsOpen((prev) => !prev)}
-            aria-expanded={missionDetailsOpen}
-          >
-            {missionDetailsOpen ? "たたむ" : prioritizeBeginner ? "デイリーをひらく" : "もっと見る"}
-          </button>
-        </div>
+        <button
+          type="button"
+          ref={beginnerMissionOpenBtnRef}
+          className={`myPage__missionGuideCard ${forceOpenBeginnerMissionModal ? "is-guided" : ""}`}
+          onClick={openBeginnerMissionModal}
+        >
+          <div className="myPage__missionGuideTitle">ミッションをクリアしよう</div>
+          <div className="myPage__missionGuideMetaRow">
+            <span className="myPage__missionGuideLabel">ビギナーミッション</span>
+            <span className="myPage__missionGuideCount">
+              {beginnerDoneCount} / {beginnerTotalCount}
+            </span>
+            <span className="myPage__missionGuideArrow" aria-hidden="true">
+              ›
+            </span>
+          </div>
+          <span className="myPage__missionGuideProgressTrack" aria-hidden="true">
+            <span className="myPage__missionGuideProgressFill" style={{ width: `${beginnerProgressPercent}%` }} />
+          </span>
+        </button>
       </section>
 
       <section className="card myPage__card">
@@ -466,6 +553,213 @@ export default function MyPage() {
           </section>
         </div>
       )}
+
+      {beginnerMissionModalOpen && (
+        <div
+          className="myPage__modalOverlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="ミッション一覧"
+          onClick={closeBeginnerMissionModal}
+        >
+          <section className={`myPage__modalCard ${forceSelectMeasurementMission ? "is-guide" : ""}`} onClick={(e) => e.stopPropagation()}>
+            {forceSelectMeasurementMission && <div className="myPage__modalClickBlocker" aria-hidden="true" />}
+            <div className="myPage__modalHead">
+              <div className="myPage__modalTitle">ミッション一覧</div>
+              {!forceSelectMeasurementMission && (
+                <button type="button" className="myPage__modalClose" onClick={closeBeginnerMissionModal}>
+                  閉じる
+                </button>
+              )}
+            </div>
+            <div className="myPage__modalList">
+              <section className="myPage__missionGroup">
+                <div className="myPage__missionGroupHead">
+                  <div className="myPage__missionGroupTitle">ビギナーミッション</div>
+                  <span className={`myPage__missionStatus ${beginnerPendingCount === 0 ? "is-done" : "is-pending"}`}>
+                    {beginnerPendingCount === 0 ? "完了" : `残り ${beginnerPendingCount} 件`}
+                  </span>
+                </div>
+              {beginnerMissions.map((mission) => {
+                const isTarget = mission.key === "beginner_measurement";
+                const lockByTutorial = forceSelectMeasurementMission && !isTarget;
+                const showAction = !mission.done;
+                return (
+                  <article
+                    key={mission.key}
+                    className={`myPage__modalMission ${mission.done ? "is-done" : ""} ${lockByTutorial ? "is-locked" : ""}`}
+                  >
+                    <div className="myPage__modalMissionTop">
+                      <div className="myPage__missionTitle">{mission.title}</div>
+                      <span className={`myPage__missionStatus ${mission.done ? "is-done" : "is-pending"}`}>
+                        {mission.done ? "達成" : "未達成"}
+                      </span>
+                    </div>
+                    <div className="myPage__missionText">{mission.description}</div>
+                    {showAction && (
+                      <div className="myPage__missionActionWrap">
+                        <Link
+                          to={mission.to}
+                          ref={isTarget ? beginnerMeasurementMissionBtnRef : undefined}
+                          className={`myPage__missionBtn ${lockByTutorial ? "is-disabled" : ""} ${isTarget && forceSelectMeasurementMission ? "is-guided" : ""}`}
+                          onClick={(e) => {
+                            if (lockByTutorial) {
+                              e.preventDefault();
+                              return;
+                            }
+                            if (isTarget && forceSelectMeasurementMission) {
+                              e.preventDefault();
+                              if (!me) return;
+                              saveTutorialStage(me.id, "training_range_intro");
+                              setTutorialStage(null);
+                              setBeginnerMissionModalOpen(false);
+                              navigate("/training?mission=range&tutorial=beginner");
+                              return;
+                            }
+                            if (mission.key === "beginner_daily_log") {
+                              e.preventDefault();
+                              const now = new Date();
+                              const yyyy = String(now.getFullYear());
+                              const mm = String(now.getMonth() + 1).padStart(2, "0");
+                              const dd = String(now.getDate()).padStart(2, "0");
+                              setBeginnerMissionModalOpen(false);
+                              navigate(`/log?mode=day&date=${yyyy}-${mm}-${dd}&missionGuide=beginner_daily_log`);
+                              return;
+                            }
+                            if (mission.key === "beginner_ai") {
+                              e.preventDefault();
+                              const now = new Date();
+                              const yyyy = String(now.getFullYear());
+                              const mm = String(now.getMonth() + 1).padStart(2, "0");
+                              const dd = String(now.getDate()).padStart(2, "0");
+                              const aiCustomizationDone =
+                                beginnerMissions.find((item) => item.key === "beginner_ai_customization")?.done === true;
+                              setBeginnerMissionModalOpen(false);
+                              navigate(
+                                `/log?mode=day&date=${yyyy}-${mm}-${dd}&missionGuide=beginner_ai&aiCustomDone=${aiCustomizationDone ? "1" : "0"}`
+                              );
+                            }
+                          }}
+                          aria-disabled={lockByTutorial}
+                        >
+                          挑戦する
+                        </Link>
+                        {isTarget && forceSelectMeasurementMission && !mission.done && (
+                          <div className="myPage__tapGuide myPage__tapGuide--inline" role="status" aria-live="polite">
+                            <img src={handPointerImage} alt="" className="myPage__tapGuideFinger myPage__tapGuideImage" aria-hidden="true" />
+                            <span>ここをクリック！</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+              </section>
+              {beginnerPendingCount === 0 && (
+                <section className="myPage__missionGroup">
+                  <div className="myPage__missionGroupHead">
+                    <div className="myPage__missionGroupTitle">デイリーミッション</div>
+                    <span className={`myPage__missionStatus ${dailyPendingCount === 0 ? "is-done" : "is-pending"}`}>
+                      {dailyPendingCount === 0 ? "完了" : `残り ${dailyPendingCount} 件`}
+                    </span>
+                  </div>
+                  {dailyMissions.map((mission) => {
+                    const lockByTutorial = forceSelectMeasurementMission;
+                    return (
+                      <article
+                        key={mission.key}
+                        className={`myPage__modalMission ${mission.done ? "is-done" : ""} ${lockByTutorial ? "is-locked" : ""}`}
+                      >
+                        <div className="myPage__modalMissionTop">
+                          <div className="myPage__missionTitle">{mission.title}</div>
+                          <span className={`myPage__missionStatus ${mission.done ? "is-done" : "is-pending"}`}>
+                            {mission.done ? "達成" : "未達成"}
+                          </span>
+                        </div>
+                        <div className="myPage__missionText">{mission.description}</div>
+                        {!mission.done && (
+                          <Link
+                            to={mission.to}
+                            className={`myPage__missionBtn ${lockByTutorial ? "is-disabled" : ""}`}
+                            onClick={(e) => {
+                              if (lockByTutorial) e.preventDefault();
+                            }}
+                            aria-disabled={lockByTutorial}
+                          >
+                            挑戦する
+                          </Link>
+                        )}
+                      </article>
+                    );
+                  })}
+                </section>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {forceOpenBeginnerMissionModal && (
+        <>
+          <div className="myPage__guideOverlay" aria-hidden="true" />
+          {guideHandPos && (
+            <div
+              className="myPage__guideHand"
+              style={{ left: `${guideHandPos.left}px`, top: `${guideHandPos.top}px` }}
+              role="status"
+              aria-live="polite"
+              aria-label="ここをタップ"
+            >
+              <img src={handPointerImage} alt="" className="myPage__guideHandIcon myPage__guideHandImage" aria-hidden="true" />
+            </div>
+          )}
+        </>
+      )}
+
+      <TutorialModal
+        open={tutorialStage === "mypage_intro"}
+        badge="MISSION"
+        title="ビギナーミッション"
+        paragraphs={[
+          "上から順に進めるだけで、Koelogsの基本機能をひと通り体験できます。",
+          "迷ったら、まずはここから始めてみましょう。",
+        ]}
+        primaryLabel="ビギナーミッションを確認する"
+        onPrimary={() => {
+          if (!me) return;
+          saveTutorialStage(me.id, "mypage_open_mission_modal");
+          setTutorialStage("mypage_open_mission_modal");
+        }}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={beginnerCompletionModalStep === "congrats"}
+        badge="MISSION CLEAR"
+        title="おめでとうございます！"
+        paragraphs={["ビギナーミッションをすべてクリアしました。"]}
+        primaryLabel="次へ"
+        onPrimary={() => setBeginnerCompletionModalStep("unlocked")}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={beginnerCompletionModalStep === "unlocked"}
+        badge="UNLOCKED"
+        title="AIチャット機能が解放されました"
+        paragraphs={[
+          "ここでは、自由な会話の作成やAIおすすめに対しての質問が可能になります。",
+        ]}
+        primaryLabel="さっそく使ってみる"
+        secondaryLabel="あとで"
+        onPrimary={() => {
+          setBeginnerCompletionModalStep(null);
+          navigate("/chat");
+        }}
+        onSecondary={() => setBeginnerCompletionModalStep(null)}
+        onClose={() => setBeginnerCompletionModalStep(null)}
+      />
     </div>
   );
 }

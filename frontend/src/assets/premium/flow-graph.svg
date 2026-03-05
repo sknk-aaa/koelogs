@@ -1,0 +1,33 @@
+<svg width="270" height="220" viewBox="0 0 270 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="endGlow" x="218" y="28" width="44" height="44" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="3.2"/>
+    </filter>
+  </defs>
+  <path d="M20 178H256" stroke="#DCE8FF" stroke-opacity="0.36" stroke-width="1"/>
+  <path d="M20 48V178" stroke="#DCE8FF" stroke-opacity="0.36" stroke-width="1"/>
+  <path d="M20 86H256" stroke="#DCE8FF" stroke-opacity="0.2" stroke-width="1"/>
+  <path d="M20 130H256" stroke="#DCE8FF" stroke-opacity="0.16" stroke-width="1"/>
+
+  <path d="M26 158L74 148L122 126L170 112L218 86L252 50" stroke="#CFE3FF" stroke-opacity="0.52" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M170 112L218 86L252 50" stroke="#E8F2FF" stroke-opacity="0.82" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <circle cx="74" cy="148" r="2" fill="#DCE8FF" fill-opacity="0.56"/>
+  <circle cx="122" cy="126" r="2" fill="#DCE8FF" fill-opacity="0.56"/>
+  <circle cx="170" cy="112" r="2" fill="#DCE8FF" fill-opacity="0.56"/>
+  <circle cx="218" cy="86" r="2" fill="#DCE8FF" fill-opacity="0.64"/>
+  <circle cx="242" cy="50" r="8" fill="#EAF4FF" fill-opacity="0.55" filter="url(#endGlow)"/>
+  <circle cx="252" cy="50" r="3" fill="#F1F7FF" fill-opacity="0.9"/>
+
+  <path d="M74 178V182" stroke="#DCE8FF" stroke-opacity="0.35" stroke-width="1"/>
+  <path d="M122 178V182" stroke="#DCE8FF" stroke-opacity="0.35" stroke-width="1"/>
+  <path d="M170 178V182" stroke="#DCE8FF" stroke-opacity="0.35" stroke-width="1"/>
+  <path d="M218 178V182" stroke="#DCE8FF" stroke-opacity="0.35" stroke-width="1"/>
+
+  <text x="68" y="196" fill="#DCE8FF" fill-opacity="0.42" font-size="8" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Jan</text>
+  <text x="116" y="196" fill="#DCE8FF" fill-opacity="0.42" font-size="8" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Feb</text>
+  <text x="164" y="196" fill="#DCE8FF" fill-opacity="0.42" font-size="8" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Mar</text>
+  <text x="212" y="196" fill="#DCE8FF" fill-opacity="0.42" font-size="8" font-family="system-ui, -apple-system, Segoe UI, sans-serif">Apr</text>
+  <text x="6" y="56" fill="#DCE8FF" fill-opacity="0.34" font-size="8" font-family="system-ui, -apple-system, Segoe UI, sans-serif">range</text>
+  <text x="236" y="212" fill="#DCE8FF" fill-opacity="0.34" font-size="8" font-family="system-ui, -apple-system, Segoe UI, sans-serif">month</text>
+</svg>

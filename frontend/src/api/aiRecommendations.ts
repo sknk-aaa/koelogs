@@ -1,4 +1,6 @@
 import type {
+  AiRecommendationHistoryItem,
+  AiCollectiveSummary,
   AiRecommendation,
   AiRecommendationCreateResponse,
   AiRecommendationShowResponse,
@@ -29,6 +31,39 @@ function readStringArray(v: unknown): string[] | undefined {
   return out;
 }
 
+function isScaleDistribution(v: unknown): v is Array<{ label: string; count: number }> {
+  return (
+    Array.isArray(v) &&
+    v.every((x) => isRecord(x) && typeof x.label === "string" && typeof x.count === "number")
+  );
+}
+
+function isCollectiveSummary(v: unknown): v is AiCollectiveSummary {
+  if (!isRecord(v)) return false;
+  if (typeof v.used !== "boolean") return false;
+  if (typeof v.window_days !== "number") return false;
+  if (typeof v.min_count !== "number") return false;
+  if (!Array.isArray(v.items)) return false;
+  return v.items.every((item) => {
+    if (!isRecord(item)) return false;
+    if (typeof item.tag_key !== "string" || typeof item.tag_label !== "string") return false;
+    if (!Array.isArray(item.menus)) return false;
+    return item.menus.every((menu) => {
+      if (!isRecord(menu)) return false;
+      if (typeof menu.menu_label !== "string" || typeof menu.count !== "number") return false;
+      if (!isScaleDistribution(menu.scale_distribution)) return false;
+      if (!readStringArray(menu.detail_comments)) return false;
+      if (!readStringArray(menu.detail_keywords)) return false;
+      if (!isRecord(menu.detail_patterns)) return false;
+      return (
+        !!readStringArray(menu.detail_patterns.improved) &&
+        !!readStringArray(menu.detail_patterns.range) &&
+        !!readStringArray(menu.detail_patterns.focus)
+      );
+    });
+  });
+}
+
 function extractErrorShape(json: unknown): ErrorShape {
   if (!isRecord(json)) return {};
   return {
@@ -46,6 +81,7 @@ function isAiRecommendation(v: unknown): v is AiRecommendation {
     typeof v.generated_for_date === "string" &&
     typeof v.range_days === "number" &&
     typeof v.recommendation_text === "string" &&
+    (v.collective_summary === undefined || v.collective_summary === null || isCollectiveSummary(v.collective_summary)) &&
     typeof v.created_at === "string"
   );
 }
@@ -79,13 +115,14 @@ async function safeJson(res: Response): Promise<unknown | null> {
 /** ---------- API ---------- */
 
 export async function fetchAiRecommendationByDate(
-  date: string
+  date: string,
+  rangeDays: 14 | 30 | 90 = 14
 ): Promise<{
   data: AiRecommendation | null;
   error?: string;
   status?: number;
 }> {
-  const url = `${API_BASE}/api/ai_recommendations?date=${encodeURIComponent(date)}`;
+  const url = `${API_BASE}/api/ai_recommendations?date=${encodeURIComponent(date)}&range_days=${rangeDays}`;
 
   const res = await fetch(url, {
     method: "GET",
@@ -153,4 +190,44 @@ export async function createAiRecommendation(
     status: res.status,
     errors: error ? [error] : [`Request failed: ${res.status}`],
   };
+}
+
+function isHistoryItem(v: unknown): v is AiRecommendationHistoryItem {
+  return (
+    isRecord(v) &&
+    typeof v.id === "number" &&
+    typeof v.generated_for_date === "string" &&
+    typeof v.range_days === "number" &&
+    typeof v.recommendation_text_preview === "string" &&
+    typeof v.created_at === "string"
+  );
+}
+
+export async function fetchAiRecommendationHistory(
+  limit = 30
+): Promise<{ data: AiRecommendationHistoryItem[]; error?: string; status?: number }> {
+  const safeLimit = Math.max(1, Math.min(100, Math.trunc(limit)));
+  const url = `${API_BASE}/api/ai_recommendations/history?limit=${safeLimit}`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+    credentials: "include",
+  });
+
+  const json = await safeJson(res);
+  if (!res.ok) {
+    const { error } = extractErrorShape(json);
+    return {
+      data: [],
+      error: error ?? `Request failed: ${res.status}`,
+      status: res.status,
+    };
+  }
+
+  if (!isRecord(json) || !Array.isArray(json.data) || !json.data.every((item) => isHistoryItem(item))) {
+    return { data: [], error: "Invalid response format", status: res.status };
+  }
+
+  return { data: json.data };
 }

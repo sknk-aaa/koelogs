@@ -14,7 +14,10 @@ import { createMeasurement, fetchMeasurements, updateMeasurement, type Measureme
 import { emitGamificationRewards } from "../features/gamification/rewardBus";
 import type { SaveRewards } from "../types/gamification";
 import ProcessingOverlay from "../components/ProcessingOverlay";
-import { RANGE_MISSION_FLAG } from "../features/missions/constants";
+import PremiumUpsellModal from "../components/PremiumUpsellModal";
+import TutorialModal from "../components/TutorialModal";
+import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
+import premiumAmbientReplayUi from "../assets/premium/ambient-replay-ui.svg";
 
 import "./TrainingPage.css";
 
@@ -196,12 +199,17 @@ export default function TrainingPage() {
   const [measurementReplayElapsedSec, setMeasurementReplayElapsedSec] = useState(0);
   const [measurementWavConverting, setMeasurementWavConverting] = useState(false);
   const [measurementReplayPanelOpen, setMeasurementReplayPanelOpen] = useState(false);
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [longToneCompare, setLongToneCompare] = useState<{ previousSec: number | null; bestSec: number | null }>({
     previousSec: null,
     bestSec: null,
   });
+  const [tutorialModalStage, setTutorialModalStage] = useState<
+    "training_range_intro" | "range_measured" | "tutorial_completed" | null
+  >(null);
+  const [tutorialRangeDonePending, setTutorialRangeDonePending] = useState(false);
+  const [rangeChestGuideOpen, setRangeChestGuideOpen] = useState(false);
   const [rangePhase, setRangePhase] = useState<RangePhase | null>(null);
-  const [missionRangeAutoInclude, setMissionRangeAutoInclude] = useState(false);
 
   const measurementAudioContextRef = useStateRef<AudioContext | null>(null);
   const measurementAnalyserRef = useStateRef<AnalyserNode | null>(null);
@@ -233,8 +241,10 @@ export default function TrainingPage() {
   const bodyOverflowBackupRef = useStateRef<string | null>(null);
   const measurementSaveBtnRef = useRef<HTMLButtonElement | null>(null);
   const measurementReplaySectionRef = useRef<HTMLDivElement | null>(null);
+  const measurementResultBodyRef = useRef<HTMLDivElement | null>(null);
   const replayAudioRef = useStateRef<HTMLAudioElement | null>(null);
   const replayRafRef = useStateRef<number | null>(null);
+  const rangeChestGuideShownRef = useRef(false);
 
   const selected: ScaleTrack | null = useMemo(() => {
     return tracks.find((t) => t.scale_type === scaleType && t.range_type === rangeType) ?? null;
@@ -295,9 +305,53 @@ export default function TrainingPage() {
   };
 
   const guestMode = !authLoading && !me;
+  const isPremium = me?.plan_tier === "premium";
   const goLogin = () => {
     navigate("/login", { state: { fromPath: "/training" } });
   };
+
+  useEffect(() => {
+    if (!me) {
+      setTutorialModalStage(null);
+      return;
+    }
+    const stage = loadTutorialStage(me.id);
+    if (stage === "training_range_intro" || stage === "range_measured" || stage === "tutorial_completed") {
+      setTutorialModalStage(stage);
+      return;
+    }
+    setTutorialModalStage(null);
+  }, [me]);
+
+  useEffect(() => {
+    if (!tutorialRangeDonePending || measurementResultModalOpen) return;
+    setTutorialModalStage("range_measured");
+    setTutorialRangeDonePending(false);
+  }, [tutorialRangeDonePending, measurementResultModalOpen]);
+
+  useEffect(() => {
+    if (!me) {
+      setRangeChestGuideOpen(false);
+      rangeChestGuideShownRef.current = false;
+      return;
+    }
+    const stage = loadTutorialStage(me.id);
+    if (
+      measurementRecording &&
+      activeMeasurementKey === "range" &&
+      rangePhase === "chest" &&
+      stage === "awaiting_range_measurement" &&
+      !rangeChestGuideShownRef.current
+    ) {
+      rangeChestGuideShownRef.current = true;
+      setRangeChestGuideOpen(true);
+      return;
+    }
+    if (!measurementRecording) {
+      setRangeChestGuideOpen(false);
+      rangeChestGuideShownRef.current = false;
+    }
+  }, [activeMeasurementKey, me, measurementRecording, rangePhase]);
 
   const stopPitchGuideAudio = useCallback(() => {
     const audio = measurementPitchGuideAudioRef.current;
@@ -413,7 +467,6 @@ export default function TrainingPage() {
     const missionParam = searchParams.get("mission");
     if (missionParam === "range") {
       setActiveMeasurementKey("range");
-      setMissionRangeAutoInclude(true);
       const next = new URLSearchParams(searchParams);
       next.delete("mission");
       setSearchParams(next, { replace: true });
@@ -497,6 +550,14 @@ export default function TrainingPage() {
   useEffect(() => {
     if (!measurementResultModalOpen || !measurementInstantResult) return;
     setMeasurementReplayPanelOpen(false);
+  }, [measurementResultModalOpen, measurementInstantResult?.runId]);
+
+  useEffect(() => {
+    if (!measurementResultModalOpen || !measurementInstantResult) return;
+    requestAnimationFrame(() => {
+      if (!measurementResultBodyRef.current) return;
+      measurementResultBodyRef.current.scrollTo({ top: 0, behavior: "auto" });
+    });
   }, [measurementResultModalOpen, measurementInstantResult?.runId]);
 
   const startMeasurementRecording = async () => {
@@ -845,6 +906,10 @@ export default function TrainingPage() {
     if (!created) return;
     setMeasurementInstantResult(created);
     setMeasurementResultModalOpen(true);
+    if (me && created.measurementKey === "range" && loadTutorialStage(me.id) === "awaiting_range_measurement") {
+      saveTutorialStage(me.id, "range_measured");
+      setTutorialRangeDonePending(true);
+    }
   };
 
   const onUploadMeasurementFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -938,6 +1003,10 @@ export default function TrainingPage() {
       if (saved) {
         setMeasurementInstantResult(saved);
         setMeasurementResultModalOpen(true);
+        if (me && saved.measurementKey === "range" && loadTutorialStage(me.id) === "awaiting_range_measurement") {
+          saveTutorialStage(me.id, "range_measured");
+          setTutorialRangeDonePending(true);
+        }
       }
     } catch (err) {
       setMeasurementError(errorMessage(err, "音声ファイルの解析に失敗しました"));
@@ -1083,7 +1152,6 @@ export default function TrainingPage() {
 
     try {
       setMeasurementSessionSaving(true);
-      const shouldAutoIncludeRange = missionRangeAutoInclude && activeMeasurementKey === "range";
       const saved = await persistMeasurement({
         systemKey: activeMeasurementKey,
         peakNote,
@@ -1098,16 +1166,9 @@ export default function TrainingPage() {
         pitchAccuracyScore,
         pitchAvgCentsError,
         pitchNoteCount,
-        includeInInsights: shouldAutoIncludeRange,
+        includeInInsights: false,
       });
       emitGamificationRewards(saved.rewards);
-      if (shouldAutoIncludeRange) {
-        setMissionRangeAutoInclude(false);
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(RANGE_MISSION_FLAG, "1");
-          window.dispatchEvent(new CustomEvent("insights:update"));
-        }
-      }
       return buildMeasurementInstantResult({
         runId: saved.run.id,
         measurementKey: activeMeasurementKey,
@@ -1374,6 +1435,12 @@ export default function TrainingPage() {
                 : measurementInstantResult.title === "ロングトーン" || measurementInstantResult.title === "音程精度"
                   ? " is-long-tone"
                   : " is-volume"
+            }${
+              measurementInstantResult.source === "recording" &&
+              !!measurementRecordedAudioUrl &&
+              !measurementReplayPanelOpen
+                ? " is-replay-collapsed"
+                : ""
             }`}
             role="dialog"
             aria-modal="true"
@@ -1404,7 +1471,7 @@ export default function TrainingPage() {
               )}
             </div>
 
-            <div className="trainingPage__resultModalBody">
+            <div className="trainingPage__resultModalBody" ref={measurementResultBodyRef}>
               {measurementInstantResult.title === "音域" && (
                 <div className="trainingPage__resultModalHero">
                   <div className="trainingPage__resultModalHeroLabel">あなたの音域は</div>
@@ -1479,7 +1546,10 @@ export default function TrainingPage() {
                 />
               )}
               {measurementInstantResult.source === "recording" && measurementRecordedAudioUrl && (
-                <div className="trainingPage__resultReplay" ref={measurementReplaySectionRef}>
+                <div
+                  className={`trainingPage__resultReplay${!isPremium ? " trainingPage__resultReplay--locked" : ""}${!measurementReplayPanelOpen ? " trainingPage__resultReplay--collapsed" : ""}`}
+                  ref={measurementReplaySectionRef}
+                >
                   <div className="trainingPage__resultReplayHead">
                     <div className="trainingPage__resultReplayTitle">録音の再生プレビュー</div>
                     <button
@@ -1501,63 +1571,80 @@ export default function TrainingPage() {
                     </button>
                   </div>
                   {measurementReplayPanelOpen && (
-                    <div className="trainingPage__resultReplayMonitor">
-                      {measurementInstantResult.measurementKey === "volume_stability" ? (
-                        <RealtimeDbMonitor
-                          dbValues={measurementInstantResult.replayDbValues ?? []}
-                          currentDb={
-                            measurementInstantResult.replayDbValues && measurementInstantResult.replayDbValues.length > 0
-                              ? measurementInstantResult.replayDbValues[
-                                  Math.min(
-                                    measurementInstantResult.replayDbValues.length - 1,
-                                    Math.floor(
-                                      (measurementReplayElapsedSec /
-                                        Math.max(0.001, measurementInstantResult.replayDurationSec ?? 1)) *
-                                        measurementInstantResult.replayDbValues.length
+                    <>
+                      <div className="trainingPage__resultReplayMonitor">
+                        {measurementInstantResult.measurementKey === "volume_stability" ? (
+                          <RealtimeDbMonitor
+                            dbValues={measurementInstantResult.replayDbValues ?? []}
+                            currentDb={
+                              measurementInstantResult.replayDbValues && measurementInstantResult.replayDbValues.length > 0
+                                ? measurementInstantResult.replayDbValues[
+                                    Math.min(
+                                      measurementInstantResult.replayDbValues.length - 1,
+                                      Math.floor(
+                                        (measurementReplayElapsedSec /
+                                          Math.max(0.001, measurementInstantResult.replayDurationSec ?? 1)) *
+                                          measurementInstantResult.replayDbValues.length
+                                      )
                                     )
-                                  )
-                                ]
-                              : null
-                          }
-                          elapsedSec={measurementReplayElapsedSec}
-                          durationSec={measurementInstantResult.replayDurationSec ?? undefined}
-                          showPlayhead
-                        />
-                      ) : (
-                        <RealtimePitchMonitor
-                          points={measurementInstantResult.replayPitchPoints ?? []}
-                          currentMidi={replayCurrentMidi}
-                          systemKey={measurementInstantResult.measurementKey}
-                          pitchGuide={
-                            measurementInstantResult.measurementKey === "pitch_accuracy"
-                              ? buildPitchGuide(measurementInstantResult.replayGuideRange ?? "mid")
-                              : null
-                          }
-                          pitchGuideRange={measurementInstantResult.replayGuideRange ?? "mid"}
-                          elapsedSec={measurementReplayElapsedSec}
-                          totalDurationSec={measurementInstantResult.replayDurationSec ?? undefined}
-                          showPlayhead
-                        />
+                                  ]
+                                : null
+                            }
+                            elapsedSec={measurementReplayElapsedSec}
+                            durationSec={measurementInstantResult.replayDurationSec ?? undefined}
+                            showPlayhead
+                          />
+                        ) : (
+                          <RealtimePitchMonitor
+                            points={measurementInstantResult.replayPitchPoints ?? []}
+                            currentMidi={replayCurrentMidi}
+                            systemKey={measurementInstantResult.measurementKey}
+                            pitchGuide={
+                              measurementInstantResult.measurementKey === "pitch_accuracy"
+                                ? buildPitchGuide(measurementInstantResult.replayGuideRange ?? "mid")
+                                : null
+                            }
+                            pitchGuideRange={measurementInstantResult.replayGuideRange ?? "mid"}
+                            elapsedSec={measurementReplayElapsedSec}
+                            totalDurationSec={measurementInstantResult.replayDurationSec ?? undefined}
+                            showPlayhead
+                          />
+                        )}
+                      </div>
+                      <div className="trainingPage__resultReplayActions">
+                        {isPremium && (
+                          <button
+                            type="button"
+                            className="trainingPage__resultModalBtn trainingPage__resultModalBtn--replay-primary trainingPage__resultReplayActionBtn"
+                            onClick={() => void toggleReplayAudio()}
+                          >
+                            {measurementReplayPlaying ? "録音プレビューを停止" : "録音プレビューを再生"}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="trainingPage__resultModalBtn trainingPage__resultModalBtn--download trainingPage__resultReplayActionBtn"
+                          onClick={() => void downloadRecordedAudio()}
+                          disabled={measurementWavConverting || !isPremium}
+                        >
+                          {measurementWavConverting ? "WAV変換中..." : "音声を端末に保存"}
+                        </button>
+                      </div>
+                      {!isPremium && (
+                        <button
+                          type="button"
+                          className="trainingPage__resultReplayLockOverlay"
+                          onClick={() => setPremiumModalOpen(true)}
+                        >
+                          <span className="trainingPage__resultReplayLockOverlayText">
+                            <span className="trainingPage__resultReplayLockOverlayKicker">PREMIUM</span>
+                            <span className="trainingPage__resultReplayLockOverlayTitle">プレミアムプランで解放されます</span>
+                            <span className="trainingPage__resultReplayLockOverlaySub">詳細</span>
+                          </span>
+                        </button>
                       )}
-                    </div>
+                    </>
                   )}
-                  <div className="trainingPage__resultReplayActions">
-                    <button
-                      type="button"
-                      className="trainingPage__resultModalBtn trainingPage__resultModalBtn--replay-primary trainingPage__resultReplayActionBtn"
-                      onClick={() => void toggleReplayAudio()}
-                    >
-                      {measurementReplayPlaying ? "録音プレビューを停止" : "録音プレビューを再生"}
-                    </button>
-                    <button
-                      type="button"
-                      className="trainingPage__resultModalBtn trainingPage__resultModalBtn--download trainingPage__resultReplayActionBtn"
-                      onClick={() => void downloadRecordedAudio()}
-                      disabled={measurementWavConverting}
-                    >
-                      {measurementWavConverting ? "WAV変換中..." : "音声のみをWAV保存"}
-                    </button>
-                  </div>
                 </div>
               )}
             </div>
@@ -1940,6 +2027,93 @@ export default function TrainingPage() {
           </>
         )}
       </section>
+      <PremiumUpsellModal
+        open={premiumModalOpen}
+        onClose={() => setPremiumModalOpen(false)}
+        variant="lp"
+        title="録音リプレイ機能を解放する"
+        description="無料プランでは録音の重ね再生と音声ダウンロードは利用できません。"
+        benefits={[
+          "音源＋自分の声を重ねて再生",
+          "録音音声をWAVで保存",
+          "そのまま聞き直して復習",
+        ]}
+        benefitsPanel
+        ambientArtSrc={premiumAmbientReplayUi}
+        ambientArtOpacity={0.17}
+        ctaLabel="プレミアムを見る"
+        onCta={() => {
+          setPremiumModalOpen(false);
+          navigate("/premium");
+        }}
+      />
+      <TutorialModal
+        open={tutorialModalStage === "training_range_intro"}
+        badge="MISSION"
+        title="最初の一歩：音域測定"
+        paragraphs={[
+          "まずはあなたの現在の音域を測ってみましょう。",
+          "このデータは、成長の推移表示とAIおすすめメニューの精度向上に活用されます。",
+          "正確でなくても大丈夫です。今の状態を知ることが目的です。",
+        ]}
+        primaryLabel="▶ 測定を開始する"
+        onPrimary={() => {
+          if (!me) return;
+          setActiveMeasurementKey("range");
+          saveTutorialStage(me.id, "awaiting_range_measurement");
+          setTutorialModalStage(null);
+          void startMeasurementRecording();
+        }}
+        secondaryLabel="あとで"
+        onSecondary={() => setTutorialModalStage(null)}
+        onClose={() => setTutorialModalStage(null)}
+      />
+      <TutorialModal
+        open={rangeChestGuideOpen}
+        badge="GUIDE"
+        title="まずは地声を測ってみましょう！"
+        paragraphs={[
+          "低い音から高い音まで、出してみましょう。",
+          "無理せず、出せる範囲でOKです。",
+        ]}
+        primaryLabel="わかりました"
+        onPrimary={() => setRangeChestGuideOpen(false)}
+        onClose={() => setRangeChestGuideOpen(false)}
+      />
+      <TutorialModal
+        open={tutorialModalStage === "range_measured"}
+        badge="TUTORIAL"
+        title="音域測定が完了しました。"
+        paragraphs={[
+          "お疲れさまでした。",
+          "今日の結果は自動で保存されています。これがあなたの「現在地」です。",
+          "ここから成長の記録が始まります！",
+        ]}
+        primaryLabel="次へ"
+        onPrimary={() => {
+          if (!me) return;
+          saveTutorialStage(me.id, "tutorial_completed");
+          setTutorialModalStage("tutorial_completed");
+        }}
+        onClose={() => setTutorialModalStage(null)}
+      />
+      <TutorialModal
+        open={tutorialModalStage === "tutorial_completed"}
+        badge="TUTORIAL"
+        title="チュートリアル完了"
+        paragraphs={[
+          "これで基本の流れは体験できました。",
+          "次は、今日の練習を記録してみましょう。続けるほど、AIの提案も賢くなります。",
+          "あなたの声の成長を、ここで積み重ねていきましょう。",
+        ]}
+        primaryLabel="▶ Koelogsをはじめる"
+        onPrimary={() => {
+          if (me) saveTutorialStage(me.id, "completed");
+          setTutorialModalStage(null);
+          navigate("/mypage");
+        }}
+        onClose={() => setTutorialModalStage(null)}
+      />
     </div>
   );
 }

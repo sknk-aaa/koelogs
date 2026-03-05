@@ -210,6 +210,7 @@ export default function AiChatPage() {
     !isPremium &&
     isRecommendationThread &&
     (recommendationUserMessageCount >= 1 || recommendationLimitReached);
+  const isEmptyThread = !!activeThreadId && !threadLoading && messages.length === 0;
 
   const isFirstVisit = useMemo(() => {
     if (!me) return false;
@@ -961,7 +962,7 @@ export default function AiChatPage() {
           </div>
         </aside>
 
-        <section className="aiChatPage__chatPane" aria-label="チャット本文">
+        <section className={`aiChatPage__chatPane ${isEmptyThread ? "is-empty-thread" : ""}`} aria-label="チャット本文">
           {!activeThreadId ? (
             <div className={`aiChatPage__emptyStatePane ${loading ? "is-booting" : ""}`}>
               {loading ? (
@@ -1039,12 +1040,16 @@ export default function AiChatPage() {
                 </div>
               </header>
 
-              <div className="aiChatPage__messagesScroll" ref={messagesScrollRef} onScroll={onMessagesScroll}>
+              <div
+                className={`aiChatPage__messagesScroll ${isEmptyThread ? "is-empty-thread" : ""}`}
+                ref={messagesScrollRef}
+                onScroll={onMessagesScroll}
+              >
                 <div className="aiChatPage__messagesInner">
                   {threadLoading ? (
                     <div className="aiChatPage__muted">読み込み中…</div>
                   ) : messages.length === 0 ? (
-                    <div className="aiChatPage__muted">質問を送ると会話が始まります。</div>
+                    <p className="aiChatPage__centerStartHint">声の悩みや練習内容を話してみましょう</p>
                   ) : (
                     messages.map((message) => {
                       const messageText =

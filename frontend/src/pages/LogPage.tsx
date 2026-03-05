@@ -1752,14 +1752,25 @@ export default function LogPage() {
                       {monthMenuCounts.map((entry) => (
                         <div key={`month-menu-count-${entry.menu_id}`} className="logPage__monthRow">
                           <div className="logPage__monthRowTop">
-                          <ColoredTag
-                            text={entry.name}
-                            color={entry.color ?? "#E5E7EB"}
-                            style={{ color: "var(--log-month-tag-text, inherit)" }}
-                          />
+                            <ColoredTag
+                              text={entry.name}
+                              color={entry.color ?? "#E5E7EB"}
+                              style={{ color: "var(--log-month-tag-text, inherit)" }}
+                            />
                             <span>
                               {entry.count}回（{toPercentText(entry.count, monthTotalMenuCount)}）
                             </span>
+                          </div>
+                          <div className="logPage__monthRatioBar" aria-hidden="true">
+                            <span
+                              className="logPage__monthRatioBarFill"
+                              style={{
+                                width: `${Math.max(
+                                  4,
+                                  monthTotalMenuCount > 0 ? (entry.count / monthTotalMenuCount) * 100 : 0
+                                )}%`,
+                              }}
+                            />
                           </div>
                         </div>
                       ))}

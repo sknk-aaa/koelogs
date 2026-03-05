@@ -84,6 +84,62 @@
   gap: 8px;
 }
 
+.aiSettingsPage__memoryInfoBtn {
+  flex: 0 0 auto;
+}
+
+.aiSettingsPage__memoryInfoBody {
+  gap: 14px;
+}
+
+.aiSettingsPage__memoryInfoLead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 900;
+  white-space: pre-line;
+}
+
+.aiSettingsPage__memoryInfoSteps {
+  display: grid;
+  gap: 10px;
+}
+
+.aiSettingsPage__memoryInfoStep {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  padding: 14px 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.aiSettingsPage__memoryInfoStepHead {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.aiSettingsPage__memoryInfoStepIcon {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.aiSettingsPage__memoryInfoStepTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.aiSettingsPage__memoryInfoStepText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cardText, var(--text));
+}
+
 .aiSettingsPage__subsection {
   display: grid;
   gap: 10px;
@@ -501,7 +557,10 @@
 }
 
 .aiSettingsPage__saveBtn:disabled {
-  opacity: 0.5;
+  opacity: 0.42;
+  border-color: color-mix(in srgb, var(--border) 86%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: color-mix(in srgb, var(--text) 48%, transparent);
   cursor: not-allowed;
 }
 

@@ -61,7 +61,6 @@ Rails.application.routes.draw do
     # me
     get "me", to: "me#show"
     patch "me", to: "me#update"
-    post "me/ai_profile/recalculate", to: "me#recalculate_ai_profile"
     get "me/ai_memory_candidates", to: "ai_memory_candidates#index"
     patch "me/ai_memory_candidates/:id", to: "ai_memory_candidates#update"
   end

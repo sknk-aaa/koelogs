@@ -187,17 +187,6 @@ export async function resolveAiMemoryCandidate(input: {
   };
 }
 
-export async function recalculateAiLongTermProfile(): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/me/ai_profile/recalculate`, {
-    method: "POST",
-    headers: { Accept: "application/json" },
-    credentials: "include",
-  });
-  if (!res.ok) {
-    throw new Error(`recalculateAiLongTermProfile failed: ${res.status}`);
-  }
-}
-
 export async function signup(
   email: string,
   password: string,

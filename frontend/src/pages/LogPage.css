@@ -2364,10 +2364,12 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .logPage__aiCtaBtn {
   min-height: 40px;
+  flex: 1 1 240px;
 }
 
 .logPage__aiCtaBtn.is-guided {
@@ -2380,6 +2382,53 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .logPage__aiCtaHint {
   margin: 0;
+}
+
+.logPage__aiThemeToggle {
+  min-height: 40px;
+  padding: 0 12px;
+  box-shadow: none;
+}
+
+.logPage__aiThemeInputWrap {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.logPage__aiThemeInputLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--accent) 40%, var(--text));
+}
+
+.logPage__aiThemeInput {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.logPage__aiThemeInput::placeholder {
+  color: var(--muted);
+}
+
+.logPage__aiThemeInput:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.logPage__aiThemeHint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .logPage__aiInfoBtn {
@@ -2651,38 +2700,37 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .logAi__structured {
   display: grid;
-  gap: 24px;
+  gap: 0;
 }
 
 .logAiSection {
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--card) 94%, #ffffff);
-  padding: 14px;
-}
-
-.logAiSection--theme {
   border: 0;
   border-radius: 0;
   background: transparent;
   padding: 0;
+  box-shadow: none;
+}
+
+.logAiSection + .logAiSection {
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
+}
+
+.logAiSection--theme {
+  padding-top: 2px;
 }
 
 .logAiSection--state {
-  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 24%, var(--border));
-  border-left: 2px solid color-mix(in srgb, var(--log-ai-state-accent) 55%, var(--border));
   background: transparent;
 }
 
 .logAiSection--menu {
-  border-left: 4px solid var(--log-ai-menu-accent);
-  border-color: color-mix(in srgb, var(--log-ai-menu-accent) 34%, var(--border));
-  background: color-mix(in srgb, var(--log-ai-menu-accent) 10%, var(--surface));
+  background: transparent;
 }
 
 .logAiSection--note {
-  border-left: 4px solid #8b5cf6;
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.04));
+  background: transparent;
 }
 
 .logAiSection__title {
@@ -2712,22 +2760,79 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logAiSection__body p {
   margin: 0;
   white-space: pre-wrap;
-  line-height: 2.05;
+  line-height: 1.9;
   font-size: 13px;
 }
 
 .logAiStateList {
   display: grid;
-  gap: 10px;
+  gap: 0;
+  position: relative;
+  isolation: isolate;
+}
+
+.logAiStateList::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: color-mix(in srgb, var(--accent) 18%, var(--border));
+  z-index: 0;
 }
 
 .logAiStateItem {
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 18%, var(--border));
-  background: color-mix(in srgb, var(--log-ai-state-accent) 4%, var(--surface));
-  padding: 10px 11px;
-  line-height: 1.95;
+  padding: 10px 2px;
+  line-height: 1.78;
   font-size: 13px;
+}
+
+.logAiStateItem__head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 9px;
+  position: relative;
+  z-index: 1;
+}
+
+.logAiStateItem__dot {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 46%, var(--border));
+  background: color-mix(in srgb, var(--card) 98%, #ffffff);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--card) 96%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, #ffffff 42%, transparent);
+  position: relative;
+  z-index: 2;
+}
+
+.logAiStateItem__dot::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--log-ai-state-accent) 78%, var(--surface));
+}
+
+.logAiStateItem__main {
+  display: grid;
+  gap: 4px;
+}
+
+.logAiStateItem__label {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--log-ai-state-accent) 62%, var(--text));
+}
+
+.logAiStateItem__summary {
+  line-height: 1.62;
 }
 
 .logAiState__actions {
@@ -2762,24 +2867,29 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .logAiTheme {
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
-  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
-  padding: 10px 11px;
+  border: 1px solid color-mix(in srgb, var(--log-ai-theme-accent) 20%, var(--border));
+  border-left: 4px solid color-mix(in srgb, var(--log-ai-theme-accent) 56%, var(--border));
+  background: color-mix(in srgb, var(--log-ai-theme-accent) 8%, var(--surface));
+  padding: 12px 12px 12px 14px;
   font-size: 14px;
-  line-height: 1.9;
+  line-height: 1.68;
   font-weight: 900;
 }
 
 .logAiMenus {
   display: grid;
-  gap: 10px;
+  gap: 0;
 }
 
 .logAiMenuRow {
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--surface) 78%, var(--card));
-  padding: 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 2px;
+}
+
+.logAiMenuRow + .logAiMenuRow {
+  border-top: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
 }
 
 .logAiMenuRow__top {
@@ -2795,15 +2905,30 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .logAiMenuRow__time {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
-  color: color-mix(in srgb, var(--accent) 74%, var(--text));
+  border-radius: 999px;
+  border: none;
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  padding: 3px 9px;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--accent) 86%, var(--text));
 }
 
 .logAiMenuRow__desc {
   margin-top: 6px;
-  line-height: 1.95;
+  line-height: 1.72;
   font-size: 13px;
+}
+
+.logAiMenuRow__evidence {
+  margin-top: 7px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
 }
 
 .logAiToken--metric {
@@ -2865,7 +2990,7 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logAiQuestion__title {
   font-size: 12px;
   font-weight: 900;
-  color: color-mix(in srgb, var(--log-ai-question-accent) 60%, var(--text));
+  color: color-mix(in srgb, var(--log-ai-question-accent) 72%, var(--text));
 }
 
 .logAiQuestion__row {
@@ -3192,8 +3317,8 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .logAiSection {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: transparent;
+  background: transparent;
 }
 
 :root[data-theme-mode="dark"] .logAiSection--theme {
@@ -3203,38 +3328,60 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .logAiSection--state {
-  border-color: rgba(52, 211, 153, 0.32);
-  border-left-color: rgba(52, 211, 153, 0.58);
   background: transparent;
 }
 
 :root[data-theme-mode="dark"] .logAiSection--menu {
-  border-left-color: #60a5fa;
-  border-color: rgba(96, 165, 250, 0.36);
-  background: rgba(59, 130, 246, 0.1);
+  background: transparent;
 }
 
 :root[data-theme-mode="dark"] .logAiSection--note {
-  border-left-color: #a78bfa;
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.2), rgba(18, 24, 42, 0.7));
+  background: transparent;
 }
 
-:root[data-theme-mode="dark"] .logAiStateItem,
-:root[data-theme-mode="dark"] .logAiMenuRow {
-  border-color: rgba(255, 255, 255, 0.18);
+:root[data-theme-mode="dark"] .logAiSection + .logAiSection {
+  border-top-color: rgba(255, 255, 255, 0.12);
 }
 
-:root[data-theme-mode="dark"] .logAiStateItem {
-  background: rgba(255, 255, 255, 0.07);
+:root[data-theme-mode="dark"] .logAiStateItem + .logAiStateItem,
+:root[data-theme-mode="dark"] .logAiMenuRow + .logAiMenuRow {
+  border-top-color: rgba(255, 255, 255, 0.12);
 }
 
-:root[data-theme-mode="dark"] .logAiMenuRow {
-  background: rgba(255, 255, 255, 0.05);
+:root[data-theme-mode="dark"] .logAiStateItem__dot {
+  border-color: rgba(147, 197, 253, 0.56);
+  background: rgba(15, 23, 42, 0.98);
+  box-shadow:
+    0 0 0 4px rgba(15, 23, 42, 0.94),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logAiStateItem__dot::before {
+  background: rgba(96, 165, 250, 0.86);
+}
+
+:root[data-theme-mode="dark"] .logAiStateList::before {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logAiStateItem__label {
+  color: rgba(110, 231, 183, 0.94);
 }
 
 :root[data-theme-mode="dark"] .logAiTheme {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(96, 165, 250, 0.26);
+  border-left-color: rgba(96, 165, 250, 0.72);
+  background: rgba(59, 130, 246, 0.14);
+}
+
+:root[data-theme-mode="dark"] .logAiMenuRow__time {
+  background: rgba(59, 130, 246, 0.3);
+  color: rgba(228, 240, 255, 0.98);
+}
+
+:root[data-theme-mode="dark"] .logAiMenuRow__evidence {
+  color: rgba(180, 223, 255, 0.96);
+  background: rgba(59, 130, 246, 0.18);
 }
 
 :root[data-theme-mode="dark"] .logAiState__toggle {
@@ -3437,8 +3584,13 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   }
 
   .logAiSection {
-    border-radius: 10px;
-    padding: 9px;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .logAiSection + .logAiSection {
+    margin-top: 24px;
+    padding-top: 16px;
   }
 
   .logAiSection__title {
@@ -4201,7 +4353,12 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   }
 
   .logAiSection {
-    padding: 10px;
+    padding: 0;
+  }
+
+  .logAiSection + .logAiSection {
+    margin-top: 22px;
+    padding-top: 14px;
   }
 
   .logAi__collective {

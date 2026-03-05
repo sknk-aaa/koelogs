@@ -720,6 +720,30 @@
   min-width: 0;
 }
 
+.aiChatPage__dayDivider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 4px 0 -12px;
+  color: color-mix(in srgb, var(--chat-accent) 42%, var(--text));
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.aiChatPage__dayDivider::before,
+.aiChatPage__dayDivider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--chat-soft-line) 90%, transparent);
+}
+
+.aiChatPage__dayDivider > span {
+  white-space: nowrap;
+}
+
 .aiChatPage__msgRow--user {
   justify-content: flex-end;
 }

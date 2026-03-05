@@ -30,7 +30,7 @@ export default function WelcomeGuideModal({ open, onClose, onStartRecord, onOpen
       <section className="wgm__panel">
         <div className="wgm__title">voice-appへようこそ！</div>
         <p className="wgm__lead">まずは現在の最高音や声の状態を記録してみましょう。</p>
-        <p className="wgm__sub">記録をもとに、AIが今日のおすすめトレーニングを提案します。</p>
+        <p className="wgm__sub">記録をもとに、AIが今週のおすすめトレーニングを提案します。</p>
 
         <div className="wgm__actions">
           <button type="button" className="wgm__btn" onClick={onClose}>

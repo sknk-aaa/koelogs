@@ -70,7 +70,7 @@ export default function AiRecommendationCard({
             bodyClassName="logPage__aiInfoBody"
             triggerClassName="logPage__aiInfoBtn"
           >
-            <div className="logPage__aiInfoLead">直近の記録と目標から、今日の練習プランをAIが提案します。</div>
+            <div className="logPage__aiInfoLead">直近の記録と目標から、今週の練習プランをAIが提案します。</div>
             <div className="logPage__aiInfoBlocks">
               <section className="logPage__aiInfoBlock logPage__aiInfoBlock--primary">
                 <div className="logPage__aiInfoBlockTitle">
@@ -150,7 +150,7 @@ export default function AiRecommendationCard({
 
             {showFollowupButton && (
               <section className="logAiQuestion">
-                <div className="logAiQuestion__title">💬 このおすすめを具体化するための質問ができます</div>
+                <div className="logAiQuestion__title">おすすめについて質問する</div>
                 <div className="logAiQuestion__row">
                   <input
                     className="logAiQuestion__input"
@@ -198,6 +198,11 @@ type AiSection = {
   lines: string[];
 };
 
+type StateEntry = {
+  summary: string;
+  detail: string;
+};
+
 function parseAiSections(text: string): AiSection[] {
   const normalized = text.replace(/\r\n?/g, "\n").trim();
   if (!normalized) return [];
@@ -226,8 +231,6 @@ function parseAiSections(text: string): AiSection[] {
 }
 
 function StructuredRecommendation({ sections }: { sections: AiSection[] }) {
-  const [stateExpandedByKey, setStateExpandedByKey] = useState<Record<string, boolean>>({});
-
   return (
     <div className="logAi__structured">
       {sections.map((section) => {
@@ -236,8 +239,7 @@ function StructuredRecommendation({ sections }: { sections: AiSection[] }) {
         const isMenus = section.title.includes("おすすめメニュー");
         const title = normalizeSectionTitle(section.title);
         const summaryTheme = conciseThemeLine(section.lines);
-        const stateSummary = summarizeStateLines(section.lines);
-        const stateExpanded = stateExpandedByKey[sectionKey] === true;
+        const stateSummary = summarizeStateEntries(section.lines);
         const menuEntries = isMenus ? parseMenuEntries(section.lines) : [];
         return (
           <section key={sectionKey} className={`logAiSection ${sectionToneClass(title)}`}>
@@ -245,28 +247,18 @@ function StructuredRecommendation({ sections }: { sections: AiSection[] }) {
             {isState ? (
               <div className="logAiState">
                 <div className="logAiStateList">
-                  {stateSummary.map((line, idx) => (
-                    <div key={`state-${idx}`} className="logAiStateItem">{renderHighlighted(line)}</div>
+                  {stateSummary.map((entry, idx) => (
+                    <article key={`state-${idx}`} className="logAiStateItem">
+                      <div className="logAiStateItem__head">
+                        <span className="logAiStateItem__dot" aria-hidden="true" />
+                        <div className="logAiStateItem__main">
+                          <div className="logAiStateItem__label">{timelineLabelByIndex(idx)}</div>
+                          <strong className="logAiStateItem__summary">{renderHighlighted(entry.summary)}</strong>
+                        </div>
+                      </div>
+                    </article>
                   ))}
                 </div>
-                <div className="logAiState__actions">
-                  <button
-                    type="button"
-                    className="logAiState__toggle"
-                    onClick={() =>
-                      setStateExpandedByKey((prev) => ({ ...prev, [sectionKey]: !stateExpanded }))
-                    }
-                  >
-                    {stateExpanded ? "詳細を閉じる ▲" : "詳細を見る ▼"}
-                  </button>
-                </div>
-                {stateExpanded && (
-                  <div className="logAiState__detail">
-                    {chunkByLines(section.lines, 3).map((chunk, idx) => (
-                      <p key={`state-detail-${idx}`}>{renderHighlighted(chunk.join("\n"))}</p>
-                    ))}
-                  </div>
-                )}
               </div>
             ) : isMenus && menuEntries.length > 0 ? (
               <div className="logAiMenus">
@@ -277,10 +269,13 @@ function StructuredRecommendation({ sections }: { sections: AiSection[] }) {
                       <span className="logAiMenuRow__time">{renderHighlighted(entry.time)}</span>
                     </div>
                     <div className="logAiMenuRow__desc">{renderHighlighted(entry.desc)}</div>
+                    {entry.evidence ? (
+                      <div className="logAiMenuRow__evidence">{renderHighlighted(`根拠: ${entry.evidence}`)}</div>
+                    ) : null}
                   </article>
                 ))}
               </div>
-            ) : title.includes("今日のテーマ") ? (
+            ) : title.includes("今週のテーマ") ? (
               <div className="logAiTheme">{renderHighlighted(summaryTheme)}</div>
             ) : (
               <div className="logAiSection__body">
@@ -297,41 +292,45 @@ function StructuredRecommendation({ sections }: { sections: AiSection[] }) {
 }
 
 function sectionToneClass(title: string): string {
-  if (title.includes("今日のテーマ")) return "logAiSection--theme";
+  if (title.includes("今週のテーマ")) return "logAiSection--theme";
   if (title.includes("最近の変化")) return "logAiSection--state";
-  if (title.includes("今日のメニュー")) return "logAiSection--menu";
+  if (title.includes("今週のメニュー")) return "logAiSection--menu";
   if (title.includes("補足")) return "logAiSection--note";
   return "";
 }
 
 function normalizeSectionTitle(title: string): string {
-  if (title.includes("今日の方針")) return "🎯 今日のテーマ";
+  if (title.includes("今日の方針") || title.includes("今週の方針")) return "🎯 今週のテーマ";
   if (title.includes("今の状態")) return "📈 最近の変化";
-  if (title.includes("おすすめメニュー")) return "🗂 今日のメニュー";
+  if (title.includes("おすすめメニュー")) return "🗂 今週のメニュー";
   if (title.includes("補足")) return "📝 補足";
   return `🧩 ${title}`;
 }
 
 function conciseThemeLine(lines: string[]): string {
   const first = lines.map((line) => line.replace(/^・\s*/, "").trim()).find((line) => line.length > 0) ?? "";
-  if (!first) return "今日のテーマを1つに絞って進める";
+  if (!first) return "今週のテーマを1つに絞って進める";
   const oneSentence = first.split("。")[0].trim();
   return oneSentence.length > 0 ? oneSentence : first;
 }
 
-function summarizeStateLines(lines: string[]): string[] {
-  const icons = [ "🔼", "🎯", "🫁" ];
+function summarizeStateEntries(lines: string[]): StateEntry[] {
   const bases = lines
     .map((line) => line.replace(/^・\s*/, "").replace(/^[-•]\s*/, "").trim())
     .filter((line) => line.length > 0)
     .slice(0, 3);
-  if (bases.length === 0) return [ "🔼 変化データを収集中" ];
+  if (bases.length === 0) return [ { summary: "変化データを収集中", detail: "" } ];
 
-  return bases.map((line, idx) => `${icons[idx] ?? "📌"} ${line}`);
+  return bases.map((line) => ({ summary: line, detail: "" }));
 }
 
-function parseMenuEntries(lines: string[]): Array<{ name: string; time: string; desc: string }> {
-  const out: Array<{ name: string; time: string; desc: string }> = [];
+function timelineLabelByIndex(index: number): string {
+  const labels = [ "最近の気づき", "次の一手", "ログ分析" ];
+  return labels[index] ?? "メモ";
+}
+
+function parseMenuEntries(lines: string[]): Array<{ name: string; time: string; desc: string; evidence?: string }> {
+  const out: Array<{ name: string; time: string; desc: string; evidence?: string }> = [];
   const normalized = lines
     .map((line) => line.replace(/^・\s*/, "").trim())
     .filter((line) => line.length > 0);
@@ -342,10 +341,17 @@ function parseMenuEntries(lines: string[]): Array<{ name: string; time: string; 
     const [nameRaw, timeRaw] = current.split("｜", 2);
     const descRaw = normalized[i + 1] ?? "";
     const desc = descRaw.replace(/^狙い[:：]?\s*/, "").trim();
+    let evidence: string | undefined;
+    const evidenceRaw = normalized[i + 2] ?? "";
+    if (/^根拠[:：]/.test(evidenceRaw)) {
+      evidence = evidenceRaw.replace(/^根拠[:：]\s*/, "").trim();
+      i += 1;
+    }
     out.push({
       name: nameRaw.trim(),
       time: timeRaw.trim(),
       desc: desc || "狙いの記述なし",
+      evidence: evidence && evidence.length > 0 ? evidence : undefined,
     });
     i += 1;
   }

@@ -82,6 +82,10 @@ module Api
       rescue ArgumentError, TypeError
         nil
       end
+      if source_kind == "ai_recommendation" && source_date.nil?
+        return render json: { errors: [ "source_date is required for ai_recommendation" ] }, status: :unprocessable_entity
+      end
+      source_date = normalize_recommendation_source_date(source_kind, source_date)
 
       thread = current_user.ai_chat_threads.new(
         project: project,
@@ -163,8 +167,8 @@ module Api
           return render_premium_required!("AIチャットはプレミアムプランで解放されます")
         end
 
-        if free_followup_daily_limit_reached?
-          return render_premium_required!("おすすめへの質問は1日1回までです。プレミアムプランで回数無制限になります")
+        if free_followup_limit_reached_for_thread?
+          return render_premium_required!("おすすめへの質問は1つの今週おすすめにつき1回までです。プレミアムプランで回数無制限になります")
         end
       end
 
@@ -268,6 +272,12 @@ module Api
       }
     end
 
+    def normalize_recommendation_source_date(source_kind, source_date)
+      return source_date unless source_kind == "ai_recommendation" && source_date.present?
+
+      source_date.beginning_of_week(:monday)
+    end
+
     def serialize_message(message)
       {
         id: message.id,
@@ -277,15 +287,8 @@ module Api
       }
     end
 
-    def free_followup_daily_limit_reached?
-      start_at = Time.zone.now.beginning_of_day
-      used_count = AiChatMessage
-        .joins(:thread)
-        .where(role: "user")
-        .where("ai_chat_messages.created_at >= ?", start_at)
-        .where(ai_chat_threads: { user_id: current_user.id, source_kind: "ai_recommendation" })
-        .count
-      used_count >= 1
+    def free_followup_limit_reached_for_thread?
+      @thread.messages.where(role: "user").exists?
     end
 
     def render_premium_required!(message)

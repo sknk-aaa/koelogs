@@ -47,7 +47,7 @@ module Api
       end
     end
 
-    test "rejects posting to non-today recommendation and over-limit thread" do
+    test "rejects posting to non-current-week recommendation and over-limit thread" do
       post "/api/auth/signup", params: {
         email: "followup-limit@example.com",
         password: "password123",
@@ -58,9 +58,9 @@ module Api
       user = User.find_by!(email: "followup-limit@example.com")
 
       old_recommendation = user.ai_recommendations.create!(
-        generated_for_date: Date.current - 1,
+        generated_for_date: Date.current - 8,
         range_days: 14,
-        recommendation_text: "昨日の提案",
+        recommendation_text: "先週の提案",
         collective_summary: { used: false, items: [] },
         generation_context: {},
         generator_model_name: "gemini-2.5-flash",

@@ -7,8 +7,9 @@ module Ai
       "1) ユーザーのカスタム指示（回答スタイル要求）",
       "2) 長期プロフィール（AI要約 + ユーザー編集）",
       "3) ユーザー目標（goal_text）",
-      "4) 改善したい項目（AI設定）",
-      "5) 直近ログと集合知（補助根拠）"
+      "4) 目標タグ（目標/テーマ/改善項目のユーザー事実）",
+      "5) 診断レイヤー（直近ログ/測定/月傾向）",
+      "6) 根拠探索レイヤー（コミュニティ優先 + Web補強）"
     ].freeze
 
     def initialize(user:, date:, range_days: 14, include_today: false, client: Gemini::Client.new)
@@ -19,10 +20,43 @@ module Ai
       @client = client
     end
 
-    def generate!(logs:, collective_effects:, monthly_logs:, measurement_evidence:, selected_range_days:, detail_window_days:)
-      collective_used = collective_knowledge_used?(collective_effects)
+    def generate!(logs:, collective_effects:, monthly_logs:, measurement_evidence:, selected_range_days:, detail_window_days:, explicit_theme: nil, community_enabled: true, community_tag_keys: [])
+      explicit_theme_text = explicit_theme.to_s.gsub(/\s+/, " ").strip.presence
+      community_enabled_flag = community_enabled == true
+      collective_used = community_enabled_flag && collective_knowledge_used?(collective_effects)
       measurement_used = measurement_used?(measurement_evidence)
-      system = build_system_text(collective_used:, measurement_used: measurement_used)
+      goal_tag_context = Ai::RecommendationGoalTagContext.build(user: @user, explicit_theme: explicit_theme_text)
+      effective_community_tag_keys =
+        if community_enabled_flag
+          normalize_tag_keys(community_tag_keys).presence || goal_tag_context[:keys]
+        else
+          []
+        end
+      community_menu_counts =
+        if community_enabled_flag && effective_community_tag_keys.any?
+          Ai::RecommendationCommunityCoverage.menu_counts_for_tags(goal_tag_keys: effective_community_tag_keys, limit: 8)
+        else
+          []
+        end
+      top_menu_count = community_menu_counts.map { |row| row[:count].to_i }.max.to_i
+      web_intensity = community_enabled_flag ? (top_menu_count < 5 ? :high : :light) : :high
+      web_evidence = Ai::RecommendationWebEvidence.fetch(
+        user: @user,
+        goal_text: @user.goal_text,
+        explicit_theme: explicit_theme_text,
+        goal_tag_labels: goal_tag_context[:labels],
+        recent_logs: logs,
+        intensity: web_intensity,
+        client: @client
+      )
+      system = build_system_text(
+        collective_used:,
+        measurement_used: measurement_used,
+        explicit_theme: explicit_theme_text,
+        top_menu_count: top_menu_count,
+        web_intensity: web_intensity,
+        community_enabled: community_enabled_flag
+      )
       payload = build_user_text(
         logs,
         collective_effects,
@@ -30,16 +64,29 @@ module Ai
         monthly_logs: monthly_logs,
         measurement_evidence: measurement_evidence,
         selected_range_days: selected_range_days,
-        detail_window_days: detail_window_days
+        detail_window_days: detail_window_days,
+        explicit_theme: explicit_theme_text,
+        goal_tag_context: goal_tag_context,
+        community_menu_counts: community_menu_counts,
+        top_menu_count: top_menu_count,
+        web_intensity: web_intensity,
+        web_evidence: web_evidence,
+        community_enabled: community_enabled_flag
       )
 
-      @client.generate_text!(
+      generated_text = @client.generate_text!(
         user_text: payload,
         system_text: system,
         max_output_tokens: 10000,
         temperature: 0.5,
         user: @user,
         feature: "recommendation"
+      )
+      finalize_recommendation_text(
+        generated_text,
+        web_evidence: web_evidence,
+        community_menu_counts: community_menu_counts,
+        community_enabled: community_enabled_flag
       )
     end
 
@@ -55,7 +102,7 @@ module Ai
 
     private
 
-    def build_system_text(collective_used:, measurement_used:)
+    def build_system_text(collective_used:, measurement_used:, explicit_theme:, top_menu_count:, web_intensity:, community_enabled:)
       custom_instruction_line =
         if user_custom_instructions.present?
           <<~RULES
@@ -107,20 +154,32 @@ module Ai
           <<~GOAL
             追加条件（ユーザー目標）:
             - ユーザーの目標は「#{@user.goal_text}」です。
-            - 今日のおすすめは「この目標達成」を最優先に組み立ててください。
+            - 今週のおすすめは「この目標達成」を最優先に組み立ててください。
           GOAL
         else
           ""
+        end
+      explicit_theme_rule =
+        if explicit_theme.present?
+          <<~RULES
+            - 今回はユーザーが今週のテーマを明示しています。AIが別テーマを新規に決めないこと。
+            - 1) 今週の方針の先頭1行は、次の文をそのまま出力すること（言い換え・誇張・記号追加は禁止）:
+              #{explicit_theme}
+            - 2) 今の状態 / 3) 今週のおすすめメニュー は、このテーマ達成の具体化に集中する。
+          RULES
+        else
+          <<~RULES
+            - ユーザーが今週テーマを未指定の場合は、ログと目標から今週の方針を提案してよい。
+          RULES
         end
 
       collective_rule_block =
         if collective_used
           <<~RULES
-            - コミュニティ傾向を根拠に使う場合、根拠文は 3)おすすめメニュー の末尾に1回だけ入れる（各メニューに同文を繰り返さない）。
-            - 根拠文には具体的なメニュー名と件数を入れる。
-            - 根拠文は自然で柔らかい言い回しにする。推奨形式:
-              「コミュニティの直近投稿でも、<メニュー名A>と<メニュー名B>が『<改善観点>』に有効と報告されています。」
-            - 「出典: 全体傾向」の固定ラベルは使わない。
+            - コミュニティ傾向を根拠に使う場合、3)今週のおすすめメニューの各項目で根拠行を明示する。
+            - 根拠行には source を `Web / コミュニティ / 両方` のいずれかで書く。
+            - コミュニティを含む場合は、可能な範囲でメニュー名や件数に触れる。
+            - 同文の定型を連続反復しない。
           RULES
         else
           <<~RULES
@@ -142,9 +201,36 @@ module Ai
           RULES
         end
 
+      root_search_rule_block =
+        if !community_enabled
+          <<~RULES
+            - 今回はコミュニティ参照を使わない。根拠探索はWebのみで行う。
+            - 3) 今週のおすすめメニューは、Web補完で得た知見/候補を必ず反映して作成する。
+            - 各メニューの根拠行は `根拠: Web` とし、可能な範囲で `サイト: <サイト名>` を併記する。
+          RULES
+        elsif web_intensity == :high
+          <<~RULES
+            - 根拠探索レイヤーは「コミュニティ + Web」を常時参照する。
+            - 統合順序は必ず「コミュニティ優先 + Web補強」を維持する。
+            - 判定は「目標タグ × 同一メニュー(canonical_key)件数」で行う。今回は最大件数が#{top_menu_count}件のため、Web根拠の比重を上げて不足分を補う。
+            - 3) 今週のおすすめメニューは、Web補完で得た知見/候補を最低1つ以上反映して作成する。
+            - Web情報は「狙い（2行目）」に自然な根拠として織り込み、テンプレ反復は避ける。
+            - Webを根拠に使ったメニューでは、根拠行に `サイト: <サイト名>` を必ず含める（渡されたWeb参照URL一覧のタイトルだけを使う）。
+          RULES
+        else
+          <<~RULES
+            - 根拠探索レイヤーは「コミュニティ + Web」を常時参照する。
+            - 統合順序は必ず「コミュニティ優先 + Web補強」を維持する。
+            - 判定は「目標タグ × 同一メニュー(canonical_key)件数」で行う。今回は最大件数が#{top_menu_count}件あるため、コミュニティ根拠を主、Webを補助として扱う。
+            - 3) 今週のおすすめメニューは、コミュニティ根拠を主にしつつ、Web補完で得た知見/候補も最低1つ以上反映する。
+            - Web情報は「狙い（2行目）」に自然な根拠として織り込み、テンプレ反復は避ける。
+            - Webを根拠に使ったメニューでは、根拠行に `サイト: <サイト名>` を必ず含める（渡されたWeb参照URL一覧のタイトルだけを使う）。
+          RULES
+        end
+
       <<~SYS
         あなたはボイストレーニング支援アプリのコーチです。
-        目的: ユーザー目標の達成を最優先に、今日の練習メニューのおすすめを日本語で作成してください。
+        目的: ユーザー目標の達成を最優先に、今週の練習メニューのおすすめを日本語で作成してください。
 
         重要ルール:
         - 優先順位は次の順です:
@@ -162,25 +248,28 @@ module Ai
         - 2)では “不足/足りない” という表現を避け、観測できる事実 + 次の一手で書く。
         - 根拠は「どのデータから言えるか」が分かるように具体化し、断定しすぎない。
         - 「コミュニティ傾向」が与えられた場合は、個人データを主根拠、コミュニティ傾向を補助根拠として使う。
+        #{root_search_rule_block}
         #{collective_rule_block}
         #{measurement_rule_block}
         - データが少ない場合でも否定的・冷たい言い回しは避ける。安心感のある前向きな表現にする。
         - 「〜してください」「〜をお願いします」などの依頼口調は使わず、次に試せる小さな一手を提案する。
         - 補足を書く場合は「現時点で分かること + 次の一手」を簡潔に示し、責める表現は使わない。
         - 出力は 300〜700文字程度。短い見出しと箇条書きで、読みやすく簡潔にする。
-        - 3)おすすめメニューの各項目は「2行構成」に固定する:
+        - 3)おすすめメニューの各項目は次の「3行構成」に固定する:
           1行目: メニュー名｜時間
           2行目: 狙い（1文）
+          3行目: 根拠: Web / コミュニティ / 両方（Web を含む場合は `サイト: <サイト名>` を必須）
         - 「次の一手」は必ず1文で書く。冗長な補足や前置きは入れない。
         - Markdown記法は使わない（禁止: #, ##, ###, *, **, -, >, `[]()` など）。
         - 装飾なしのプレーンテキストで出力し、見出しは「1)」「2)」のような番号のみで表現する。
         - 箇条書きは「・」を使ってよい。読みやすくなる箇所では「・」を優先して使う。
+        #{explicit_theme_rule}
 
         #{goal_line}
       SYS
     end
 
-    def build_user_text(logs, collective_effects, collective_used:, monthly_logs:, measurement_evidence:, selected_range_days:, detail_window_days:)
+    def build_user_text(logs, collective_effects, collective_used:, monthly_logs:, measurement_evidence:, selected_range_days:, detail_window_days:, explicit_theme:, goal_tag_context:, community_menu_counts:, top_menu_count:, web_intensity:, web_evidence:, community_enabled:)
       from = (@include_today ? (@date - (detail_window_days - 1)) : (@date - detail_window_days)).iso8601
       to = (@include_today ? @date : (@date - 1)).iso8601
 
@@ -192,6 +281,12 @@ module Ai
       lines << "詳細ログ（日次）: #{from}〜#{to}（#{detail_range_label}）"
       lines << "傾向ログ（月次）: #{monthly_trend_label(selected_range_days)}"
       lines << "集合知利用: #{collective_used ? 'あり' : 'なし'}"
+      lines << "コミュニティ参照モード: #{community_enabled ? 'テーマ一致あり（ON）' : 'テーマ一致なし（OFF）'}"
+      lines << "ユーザー指定の今週テーマ(固定): #{explicit_theme.presence || '(未指定)'}"
+      lines << "目標タグ（ユーザー事実）: #{Array(goal_tag_context[:labels]).join(' / ').presence || '(未設定)'}"
+      lines << "目標タグの内訳: 改善項目=#{Array(goal_tag_context.dig(:sources, :ai_improvement_tags)).join('|').presence || '(なし)'} / 目標文=#{Array(goal_tag_context.dig(:sources, :goal_text)).join('|').presence || '(なし)'} / テーマ文=#{Array(goal_tag_context.dig(:sources, :today_theme)).join('|').presence || '(なし)'}"
+      lines << "コミュニティ件数判定: 目標タグ × 同一メニュー(canonical_key) / 最大#{top_menu_count}件"
+      lines << "Web参照: 常時ON（強度: #{web_intensity_label(web_intensity)}）"
       if user_custom_instructions.present?
         lines << "ユーザーAI設定（カスタム指示）:"
         lines << "・#{user_custom_instructions.gsub(/\s+/, " ").slice(0, 300)}"
@@ -283,10 +378,45 @@ module Ai
       end
 
       lines << ""
+      lines << "コミュニティ件数（全期間 / 目標タグ×同一メニュー）:"
+      if community_menu_counts.blank?
+        lines << "・(該当なし)"
+      else
+        community_menu_counts.first(5).each do |row|
+          tag_counts = row[:by_tag].map do |tag, count|
+            label = ImprovementTagCatalog::LABELS[tag] || tag
+            "#{label}=#{count}"
+          end.join(" / ")
+          lines << "・#{row[:menu_label]}(#{row[:count]}件) | #{tag_counts}"
+        end
+      end
+
+      lines << ""
+      lines << "Web補完（常時ON / 強度=#{web_intensity_label(web_intensity)} / 今週メニュー設計に使用）:"
+      if Array(web_evidence[:insights]).blank? && Array(web_evidence[:menu_hints]).blank?
+        lines << "・(有効なWeb根拠は取得できず)"
+      else
+        Array(web_evidence[:insights]).first(3).each do |insight|
+          lines << "・知見: #{insight}"
+        end
+        Array(web_evidence[:menu_hints]).each do |menu|
+          lines << "・候補: #{menu[:name]} | #{menu[:reason]}"
+        end
+      end
+      if Array(web_evidence[:sources]).present?
+        lines << "Web参照URL:"
+        Array(web_evidence[:sources]).each do |source|
+          lines << "・#{source[:title]}: #{source[:url]}"
+        end
+      else
+        lines << "Web参照URL: (取得なし)"
+      end
+
+      lines << ""
       lines << "出力フォーマット:"
-      lines << "1) 今日の方針（目標達成とのつながりを1〜2行で）"
+      lines << "1) 今週の方針（ユーザー指定テーマがある場合はその文を先頭1行に固定。目標達成とのつながりを1〜2行で）"
       lines << "2) 今の状態（観測できる事実 + 次の一手を1〜2点。各点に根拠データを添える。\"不足/足りない\" は使わない。次の一手は各点で1文）"
-      lines << "3) おすすめメニュー（最大3つ、各項目は2行構成: 1行目=メニュー名｜時間 / 2行目=狙い1文。コミュニティ根拠文は末尾に1回だけ）"
+      lines << "3) 今週のおすすめメニュー（最大3つ、各項目は3行構成: 1行目=メニュー名｜時間 / 2行目=狙い1文 / 3行目=根拠: Web|コミュニティ|両方。Web時はサイト名を必ず併記）"
       lines << "4) 補足（任意: データが少ない場合は、前向きな一言と次の一手を1つだけ）"
       lines.join("\n")
     end
@@ -331,6 +461,126 @@ module Ai
 
     def user_call_name
       Ai::UserCallName.resolve(@user)
+    end
+
+    def web_intensity_label(intensity)
+      intensity.to_sym == :high ? "high" : "light"
+    end
+
+    def finalize_recommendation_text(text, web_evidence:, community_menu_counts:, community_enabled:)
+      lines = text.to_s.gsub(/\r\n?/, "\n").split("\n")
+      return text if lines.empty?
+
+      site_titles = Array(web_evidence[:sources]).filter_map do |source|
+        next unless source.is_a?(Hash)
+        source[:title].to_s.strip.presence || source["title"].to_s.strip.presence
+      end.uniq.first(2)
+
+      menu_range = menu_section_range(lines)
+      return text if menu_range.nil?
+
+      site_suffix = site_titles.any? ? "サイト: #{site_titles.join(' / ')}" : nil
+      menu_count_map = Array(community_menu_counts).each_with_object({}) do |row, memo|
+        next unless row.is_a?(Hash)
+        key = row[:canonical_key].to_s
+        next if key.blank?
+        memo[key] = row[:count].to_i
+      end
+
+      menu_entries = extract_menu_entries(lines, menu_range)
+      menu_entries.reverse_each do |entry|
+        canonical_key = canonical_key_for_menu_name(entry[:name])
+        community_count = menu_count_map[canonical_key].to_i
+        evidence_line = lines[entry[:evidence_idx]].to_s if entry[:evidence_idx]
+
+        if !community_enabled
+          replacement = site_suffix.present? ? "根拠: Web（#{site_suffix}）" : "根拠: Web"
+          if entry[:evidence_idx]
+            lines[entry[:evidence_idx]] = replacement
+          else
+            insert_at = entry[:desc_idx] ? entry[:desc_idx] + 1 : entry[:header_idx] + 1
+            lines.insert(insert_at, replacement)
+          end
+        elsif community_count < 5
+          replacement =
+            if site_suffix.present?
+              "根拠: 両方（コミュニティ#{community_count}件 + Web、#{site_suffix}）"
+            else
+              "根拠: 両方（コミュニティ#{community_count}件 + Web）"
+            end
+          if entry[:evidence_idx]
+            lines[entry[:evidence_idx]] = replacement
+          else
+            insert_at = entry[:desc_idx] ? entry[:desc_idx] + 1 : entry[:header_idx] + 1
+            lines.insert(insert_at, replacement)
+          end
+        elsif evidence_line.to_s.strip.start_with?("根拠:") && evidence_line_has_web?(evidence_line) && site_suffix.present?
+          unless evidence_line.include?("サイト:")
+            lines[entry[:evidence_idx]] = "#{evidence_line.strip}（#{site_suffix}）"
+          end
+        end
+      end
+
+      lines.join("\n")
+    end
+
+    def evidence_line_has_web?(line)
+      normalized = line.to_s
+      normalized.include?("Web") || normalized.include?("web") || normalized.include?("両方")
+    end
+
+    def menu_section_range(lines)
+      start_idx = lines.find_index { |line| line.to_s.strip.match?(/\A3\)\s*/) }
+      return nil if start_idx.nil?
+
+      next_idx = lines.each_index.find { |idx| idx > start_idx && lines[idx].to_s.strip.match?(/\A\d\)\s*/) }
+      end_idx = next_idx.nil? ? lines.length - 1 : next_idx - 1
+      return nil if end_idx < start_idx
+
+      start_idx..end_idx
+    end
+
+    def extract_menu_entries(lines, menu_range)
+      entries = []
+      idx = menu_range.begin + 1
+      while idx <= menu_range.end
+        line = lines[idx].to_s.strip
+        if line.include?("｜")
+          desc_idx = idx + 1 <= menu_range.end ? idx + 1 : nil
+          evidence_idx =
+            if idx + 2 <= menu_range.end && lines[idx + 2].to_s.strip.start_with?("根拠:")
+              idx + 2
+            else
+              nil
+            end
+          entries << {
+            name: line.split("｜", 2).first.to_s.strip,
+            header_idx: idx,
+            desc_idx: desc_idx,
+            evidence_idx: evidence_idx
+          }
+          idx = evidence_idx ? evidence_idx + 1 : (desc_idx ? desc_idx + 1 : idx + 1)
+        else
+          idx += 1
+        end
+      end
+      entries
+    end
+
+    def canonical_key_for_menu_name(menu_name)
+      result = MenuCanonicalization::RuleEngine.classify(name: menu_name.to_s)
+      result&.canonical_key.to_s.presence || "unknown|unspecified"
+    rescue
+      "unknown|unspecified"
+    end
+
+    def normalize_tag_keys(raw)
+      Array(raw)
+        .map(&:to_s)
+        .map(&:strip)
+        .reject(&:blank?)
+        .uniq
+        .select { |tag| ImprovementTagCatalog::TAGS.include?(tag) }
     end
   end
 end

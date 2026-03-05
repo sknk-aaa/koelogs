@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_05_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_05_113000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -121,7 +121,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_05_100000) do
     t.text "recommendation_text", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.date "week_start_date", null: false
     t.index ["user_id", "generated_for_date", "range_days"], name: "index_ai_recommendations_on_user_id_date_range_days", unique: true
+    t.index ["user_id", "week_start_date", "range_days", "generated_for_date"], name: "index_ai_recommendations_on_user_week_range_and_generated_on"
     t.index ["user_id"], name: "index_ai_recommendations_on_user_id"
   end
 

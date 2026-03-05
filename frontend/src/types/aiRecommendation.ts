@@ -25,6 +25,7 @@ export type AiCollectiveSummary = {
 export type AiRecommendation = {
   id: number;
   generated_for_date: string; // YYYY-MM-DD
+  week_start_date: string; // YYYY-MM-DD (Monday)
   range_days: number;
   recommendation_text: string;
   collective_summary?: AiCollectiveSummary | null;
@@ -59,6 +60,7 @@ export type AiRecommendationThread = {
 export type AiRecommendationHistoryItem = {
   id: number;
   generated_for_date: string;
+  week_start_date: string;
   range_days: number;
   recommendation_text_preview: string;
   created_at: string;

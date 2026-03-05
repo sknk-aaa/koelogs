@@ -41,6 +41,16 @@ function toISODate(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+function weekStartISO(value: string): string {
+  const date = parseISODate(value);
+  const base = date ?? new Date();
+  const out = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+  const day = out.getDay();
+  const diff = (day + 6) % 7; // Monday start
+  out.setDate(out.getDate() - diff);
+  return toISODate(out);
+}
+
 function todayISO(): string {
   return toISODate(new Date());
 }
@@ -492,6 +502,8 @@ export default function LogPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiRec, setAiRec] = useState<AiRecommendation | null>(null);
+  const [aiThemeOpen, setAiThemeOpen] = useState(false);
+  const [aiThemeDraft, setAiThemeDraft] = useState("");
 
   const [monthModalOpen, setMonthModalOpen] = useState(false);
 
@@ -828,6 +840,7 @@ export default function LogPage() {
     const res = await createAiRecommendation({
       range_days: settings.aiRangeDays,
       date: selectedDate,
+      today_theme: aiThemeDraft.trim() || undefined,
     });
 
     if (!res.ok) {
@@ -849,11 +862,12 @@ export default function LogPage() {
   const openAiChat = (initialMessage?: string) => {
     if (!authMe || !effectiveAiRec || guestMode) return;
     const seed = initialMessage?.trim() ?? "";
+    const recommendationDate = effectiveAiRec.week_start_date || selectedDate;
     navigate("/chat", {
       state: {
         source: "ai_recommendation",
         seedMessage: seed,
-        recommendationDate: selectedDate,
+        recommendationDate,
         recommendationText: effectiveAiRec.recommendation_text,
       },
     });
@@ -873,6 +887,7 @@ export default function LogPage() {
   const previewAiRec: AiRecommendation = {
     id: -1,
     generated_for_date: selectedDate,
+    week_start_date: weekStartISO(selectedDate),
     range_days: 14,
     recommendation_text:
       "今日はウォームアップを10分入れてから、ミックス練習を中心に。後半はテンポを落として音程の安定を優先しましょう。",
@@ -1045,10 +1060,12 @@ export default function LogPage() {
     };
   }, [isMonthMode, isComparisonModalOpen]);
 
-  const aiCreateButtonText =
+  const aiBaseButtonText =
     !guestMode && isWithinInitial7Days
-      ? "今日のおすすめをAIに作成してもらう"
+      ? "今週のおすすめをAIに作成してもらう"
       : "AI提案を作成";
+  const aiCreateButtonText =
+    aiThemeOpen && aiThemeDraft.trim().length > 0 ? "このテーマでおすすめを作成" : aiBaseButtonText;
   const toastLines = useMemo(() => {
     if (!saveToast) return [] as string[];
     const lines: string[] = [];
@@ -1069,7 +1086,7 @@ export default function LogPage() {
       <ProcessingOverlay
         open={aiLoading}
         title="生成中..."
-        description="今日のおすすめを作成しています"
+        description="今週のおすすめを作成しています"
       />
       {!!authMe && (
         <div className="logPage__modeSwitch">
@@ -1275,7 +1292,7 @@ export default function LogPage() {
         open={aiMissionGuideStep === "intro"}
         badge="MISSION"
         title="AIおすすめについて"
-        paragraphs={["このアプリでは、今日のおすすめトレーニング内容をAIが提案してくれます。"]}
+        paragraphs={["このアプリでは、今週のおすすめトレーニング内容をAIが提案してくれます。"]}
         primaryLabel="次へ"
         onPrimary={() => setAiMissionGuideStep("references")}
         onClose={() => {}}
@@ -1670,7 +1687,7 @@ export default function LogPage() {
 
               <article className="logPage__guestPreviewCard">
                 <div className="logPage__guestPreviewCardTitle">次にやることが決まる</div>
-                <div className="logPage__guestPreviewCardValue">今日のおすすめ</div>
+                <div className="logPage__guestPreviewCardValue">今週のおすすめ</div>
                 <div className="logPage__guestPreviewCardText">目標と記録からAIが提案</div>
               </article>
             </div>
@@ -1806,7 +1823,7 @@ export default function LogPage() {
 
         {showAiArea && (
           <AiRecommendationCard
-            title="今日のおすすめメニュー"
+            title="今週のおすすめメニュー"
             meta={aiMeta}
             aiLoading={aiLoading}
             aiError={guestMode && isDayMode ? null : aiError}
@@ -1830,7 +1847,7 @@ export default function LogPage() {
             <div className="logAi__header">
               <div>
                 <div className="logAi__title">AIトレーニング提案</div>
-                <div className="logAi__meta">目標と直近ログから、今日のおすすめを作成</div>
+                <div className="logAi__meta">目標と直近ログから、今週のおすすめを作成</div>
               </div>
               <div className="logAi__headerRight">
                 {(guestMode && isDayMode) && <div className="logAi__pill logAi__pill--sample">ゲスト</div>}
@@ -1844,7 +1861,7 @@ export default function LogPage() {
                   bodyClassName="logPage__aiInfoBody"
                   triggerClassName="logPage__aiInfoBtn"
                 >
-                  <div className="logPage__aiInfoLead">目標・直近の記録・AI設定をもとに、今日の練習プランを生成します。</div>
+                  <div className="logPage__aiInfoLead">目標・直近の記録・AI設定をもとに、今週の練習プランを生成します。</div>
                   <div className="logPage__aiInfoBlocks">
                     <section className="logPage__aiInfoBlock logPage__aiInfoBlock--primary">
                       <div className="logPage__aiInfoBlockTitle">
@@ -1889,7 +1906,34 @@ export default function LogPage() {
                     ? "ログインしてAI提案を作成"
                     : aiCreateButtonText}
                 </button>
+                {!guestMode && (
+                  <button
+                    type="button"
+                    className="logPage__btn logPage__btn--subtle logPage__aiThemeToggle"
+                    onClick={() => setAiThemeOpen((prev) => !prev)}
+                    aria-expanded={aiThemeOpen}
+                  >
+                    {aiThemeOpen ? "入力を閉じる" : "テーマを入力する"}
+                  </button>
+                )}
               </div>
+              {!guestMode && aiThemeOpen && (
+                <div className="logPage__aiThemeInputWrap">
+                  <label className="logPage__aiThemeInputLabel" htmlFor="log-ai-theme-input">
+                    今週のテーマ（任意）
+                  </label>
+                  <input
+                    id="log-ai-theme-input"
+                    type="text"
+                    className="logPage__aiThemeInput"
+                    placeholder="例: ミックスを安定させる / 高音で力まない"
+                    value={aiThemeDraft}
+                    onChange={(e) => setAiThemeDraft(e.target.value)}
+                    maxLength={80}
+                  />
+                  <p className="logPage__aiThemeHint">未入力のままでも生成できます。</p>
+                </div>
+              )}
               {guestMode && isDayMode && (
                 <div className="logAi__text logAi__text--muted logPage__aiCtaHint">
                   ログイン後は、目標と記録を使って提案します。

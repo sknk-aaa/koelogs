@@ -12,9 +12,10 @@ module Ai
       "other" => "その他"
     }.freeze
 
-    def initialize(window_days: 90, min_count: 3)
+    def initialize(window_days: 90, min_count: 3, target_tags: nil)
       @window_days = window_days
       @min_count = min_count
+      @target_tags = normalize_tags(target_tags)
     end
 
     # return:
@@ -37,7 +38,9 @@ module Ai
         canonical_key = post.canonical_key.to_s.presence || "unknown|unspecified"
         next if canonical_key.start_with?("unknown")
 
-        normalized_tags(post.improvement_tags).each do |tag|
+        tags = normalized_tags(post.improvement_tags)
+        tags &= @target_tags if @target_tags.any?
+        tags.each do |tag|
           counts[tag][canonical_key] += 1
           key = [ tag, canonical_key ]
           contributors[key][post.user_id] = true
@@ -96,6 +99,7 @@ module Ai
       {
         window_days: @window_days,
         min_count: @min_count,
+        target_tags: @target_tags,
         rows: rows.sort_by { |r| -r[:top_menus].sum { |m| m[:count] } }
       }
     end

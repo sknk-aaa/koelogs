@@ -3,7 +3,7 @@
 module Ai
   class ChatMemoryCandidateRecorder
     class << self
-      def record_from_message!(user:, thread:, user_message:)
+      def record_from_message!(user:, thread:, user_message:, source_kind: "ai_chat")
         AiProfileMemoryCandidate.cleanup_expired!(user: user)
 
         extracted = Ai::ChatMemoryCandidateExtractor.extract(user_message.content, user: user)
@@ -17,7 +17,7 @@ module Ai
         return nil if duplicate
 
         user.ai_profile_memory_candidates.create!(
-          source_kind: "ai_chat",
+          source_kind: source_kind.to_s.presence || "ai_chat",
           source_thread_id: thread.id,
           source_message_id: user_message.id,
           source_text: user_message.content.to_s,

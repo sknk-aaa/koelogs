@@ -46,6 +46,12 @@ module Api
       end
 
       user_message = thread.messages.create!(role: "user", content: message_text)
+      Ai::ChatMemoryCandidateRecorder.record_from_message!(
+        user: current_user,
+        thread: thread,
+        user_message: user_message,
+        source_kind: "ai_recommendation"
+      )
       response_text = Ai::RecommendationFollowupResponder.call(
         recommendation: @recommendation,
         context_snapshot: thread.context_snapshot,

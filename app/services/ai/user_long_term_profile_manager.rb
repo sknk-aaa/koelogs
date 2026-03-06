@@ -29,6 +29,7 @@ module Ai
       }
     ].freeze
     CHALLENGE_LABEL_BY_KEY = CHALLENGE_RULES.to_h { |rule| [ rule[:key], rule[:label] ] }.freeze
+    MEMORY_RECENCY_WEIGHTS = [ 1.0, 0.95, 0.9, 0.8 ].freeze
 
     class << self
       def refresh!(user:, force: false, window_days: AiUserProfile::WINDOW_DAYS)
@@ -99,21 +100,40 @@ module Ai
         profile = effective_profile(user: user)
         lines = []
         lines << "長期プロフィール(直近#{profile.dig('meta', 'source_window_days') || AiUserProfile::WINDOW_DAYS}日):"
-        lines << "強み: #{Array(profile['strengths']).first(3).join(' / ')}"
-        lines << "課題: #{Array(profile['challenges']).first(3).join(' / ')}"
-        lines << "成長過程: #{Array(profile['growth_journey']).first(3).join(' / ')}"
-        Array(profile["custom_items"]).first(6).each do |item|
+        append_weighted_section!(lines, "強み", Array(profile["strengths"]).first(3))
+        append_weighted_section!(lines, "課題", Array(profile["challenges"]).first(3))
+        append_weighted_section!(lines, "成長過程", Array(profile["growth_journey"]).first(3))
+        lines << "メモ項目:"
+        Array(profile["custom_items"]).first(6).each_with_index do |item, idx|
           title = item["title"].to_s.strip
           content = item["content"].to_s.strip
           next if title.blank? || content.blank?
 
-          lines << "#{title}: #{content}"
+          weight = title == TITLE_AVOID ? 1.0 : recency_weight(idx)
+          lines << "- [w=#{format('%.2f', weight)}] #{title}: #{content}"
         end
         text = lines.join("\n").slice(0, PROFILE_MAX_CHARS)
         text
       end
 
       private
+
+      def append_weighted_section!(lines, label, items)
+        rows = Array(items).map(&:to_s).map(&:strip).reject(&:blank?)
+        lines << "#{label}:"
+        if rows.empty?
+          lines << "- (なし)"
+          return
+        end
+
+        rows.each_with_index do |row, idx|
+          lines << "- [w=#{format('%.2f', recency_weight(idx))}] #{row}"
+        end
+      end
+
+      def recency_weight(index)
+        MEMORY_RECENCY_WEIGHTS[index] || MEMORY_RECENCY_WEIGHTS.last
+      end
 
       def build_source_meta(user, window_days)
         from_date = window_days.days.ago.to_date

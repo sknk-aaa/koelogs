@@ -67,15 +67,18 @@ export type CommunityRankings = {
 };
 
 export const IMPROVEMENT_TAG_OPTIONS: Array<{ key: string; label: string }> = [
-  { key: "high_note_ease", label: "高音の出しやすさ" },
+  { key: "chest_voice_strength", label: "地声強化" },
+  { key: "falsetto_strength", label: "裏声強化" },
+  { key: "mixed_voice_stability", label: "ミドルボイス安定" },
+  { key: "vocal_cord_closure", label: "声帯閉鎖（声の芯）" },
   { key: "range_breadth", label: "音域の広さ" },
   { key: "pitch_accuracy", label: "音程精度" },
-  { key: "passaggio_smoothness", label: "換声点の滑らかさ" },
-  { key: "less_breathlessness", label: "息切れしにくさ" },
   { key: "volume_stability", label: "音量安定性" },
-  { key: "less_throat_tension", label: "喉の力み軽減" },
-  { key: "resonance_clarity", label: "声の抜け・響き" },
   { key: "long_tone_sustain", label: "ロングトーン維持" },
+  { key: "less_throat_tension", label: "喉の力み軽減" },
+  { key: "less_throat_fatigue", label: "喉の疲れ軽減" },
+  { key: "breath_control", label: "ブレスコントロール" },
+  { key: "breath_sustain", label: "息の持続" },
 ];
 
 export type CommunityUsedScaleType =

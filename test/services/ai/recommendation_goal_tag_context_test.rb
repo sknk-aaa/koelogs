@@ -19,13 +19,13 @@ module Ai
       )
 
       assert_includes context[:keys], "pitch_accuracy"
-      assert_includes context[:keys], "high_note_ease"
+      assert_includes context[:keys], "mixed_voice_stability"
       assert_includes context[:keys], "less_throat_tension"
-      assert_includes context[:keys], "passaggio_smoothness"
+      assert_includes context[:keys], "mixed_voice_stability"
       assert_includes context[:labels], "音程精度"
-      assert_includes context[:labels], "高音の出しやすさ"
+      assert_includes context[:labels], "ミドルボイス安定"
       assert_equal [ "pitch_accuracy" ], context.dig(:sources, :ai_improvement_tags)
-      assert_includes context.dig(:sources, :goal_text), "high_note_ease"
+      assert_includes context.dig(:sources, :goal_text), "mixed_voice_stability"
       assert_includes context.dig(:sources, :today_theme), "less_throat_tension"
     end
   end

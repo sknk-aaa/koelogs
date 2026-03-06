@@ -837,6 +837,27 @@
   color: #0f766e;
 }
 
+.communityPage__tag.improvementTagTone--amber,
+.communityPage__chip.is-on.improvementTagTone--amber {
+  background: #fff7e6;
+  border-color: #fbbf24;
+  color: #92400e;
+}
+
+.communityPage__tag.improvementTagTone--indigo,
+.communityPage__chip.is-on.improvementTagTone--indigo {
+  background: #eef2ff;
+  border-color: #818cf8;
+  color: #3730a3;
+}
+
+.communityPage__tag.improvementTagTone--red,
+.communityPage__chip.is-on.improvementTagTone--red {
+  background: #ffeded;
+  border-color: #f87171;
+  color: #991b1b;
+}
+
 /* =========================================
    Dark Mode Tag Colors
    前提: :root[data-theme-mode="dark"]
@@ -930,6 +951,27 @@
   background: #153430;
   border-color: #14b8a6;
   color: #5eead4;
+}
+
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--amber,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--amber {
+  background: #3b2b14;
+  border-color: #f59e0b;
+  color: #fcd34d;
+}
+
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--indigo,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--indigo {
+  background: #232a44;
+  border-color: #6366f1;
+  color: #c7d2fe;
+}
+
+:root[data-theme-mode="dark"] .communityPage__tag.improvementTagTone--red,
+:root[data-theme-mode="dark"] .communityPage__chip.is-on.improvementTagTone--red {
+  background: #3f1f22;
+  border-color: #ef4444;
+  color: #fca5a5;
 }
 
 

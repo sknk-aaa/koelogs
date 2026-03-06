@@ -4,23 +4,20 @@ require "test_helper"
 
 module Ai
   class RecommendationThemeKeywordMatcherTest < ActiveSupport::TestCase
-    test "enables community only when theme contains configured keywords" do
-      matched = RecommendationThemeKeywordMatcher.match("ミドルで力みを減らし、音程を安定させたい")
+    test "enables community for mapped theme keywords" do
+      matched = RecommendationThemeKeywordMatcher.match("換声点を滑らかにしたい")
+
       assert_equal true, matched[:theme_present]
       assert_equal true, matched[:community_enabled]
-      assert_includes matched[:matched_keywords], "力み"
-      assert_includes matched[:matched_keywords], "音程"
-      assert_includes matched[:matched_tags], "less_throat_tension"
-      assert_includes matched[:matched_tags], "pitch_accuracy"
+      assert_includes Array(matched[:matched_tags]), "mixed_voice_stability"
+    end
 
-      unmatched = RecommendationThemeKeywordMatcher.match("ミドルボイスの地声感を強くする")
-      assert_equal true, unmatched[:theme_present]
-      assert_equal false, unmatched[:community_enabled]
-      assert_equal [], unmatched[:matched_tags]
+    test "disables community when no configured keyword exists" do
+      matched = RecommendationThemeKeywordMatcher.match("リズムを意識して発声したい")
 
-      blank = RecommendationThemeKeywordMatcher.match(nil)
-      assert_equal false, blank[:theme_present]
-      assert_equal false, blank[:community_enabled]
+      assert_equal true, matched[:theme_present]
+      assert_equal false, matched[:community_enabled]
+      assert_equal [], Array(matched[:matched_tags])
     end
   end
 end

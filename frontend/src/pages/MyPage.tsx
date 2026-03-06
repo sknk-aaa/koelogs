@@ -76,6 +76,7 @@ export default function MyPage() {
   const [tutorialStage, setTutorialStage] = useState<TutorialStage | null>(null);
   const [beginnerMissionModalOpen, setBeginnerMissionModalOpen] = useState(false);
   const [beginnerCompletionModalStep, setBeginnerCompletionModalStep] = useState<"congrats" | "unlocked" | null>(null);
+  const [missionGuideStep, setMissionGuideStep] = useState<"overview" | "log_link" | "measurement_start" | null>(null);
   const beginnerMissionOpenBtnRef = useRef<HTMLButtonElement | null>(null);
   const beginnerMeasurementMissionBtnRef = useRef<HTMLAnchorElement | null>(null);
   const [guideHandPos, setGuideHandPos] = useState<{ left: number; top: number } | null>(null);
@@ -207,7 +208,7 @@ export default function MyPage() {
     [badgesExpanded, orderedBadges]
   );
   const hasHiddenBadges = orderedBadges.length > BADGES_COLLAPSED_COUNT;
-  const forceOpenBeginnerMissionModal = tutorialStage === "mypage_open_mission_modal";
+  const forceOpenBeginnerMissionModal = tutorialStage === "mypage_open_mission_modal" && !beginnerMissionModalOpen;
   const forceSelectMeasurementMission = tutorialStage === "mypage_force_click_measurement";
   const tutorialPointerActive = forceOpenBeginnerMissionModal || forceSelectMeasurementMission;
   const targetMeasurementDone = beginnerMissions.some((mission) => mission.key === "beginner_measurement" && mission.done);
@@ -316,15 +317,12 @@ export default function MyPage() {
   const openBeginnerMissionModal = () => {
     setBeginnerMissionModalOpen(true);
     if (me && tutorialStage === "mypage_open_mission_modal") {
-      saveTutorialStage(me.id, "training_range_intro");
-      setTutorialStage(null);
-      setBeginnerMissionModalOpen(false);
-      navigate("/training?mission=range&tutorial=beginner");
+      setMissionGuideStep("overview");
     }
   };
 
   const closeBeginnerMissionModal = () => {
-    if (forceSelectMeasurementMission) return;
+    if (forceSelectMeasurementMission || missionGuideStep) return;
     setBeginnerMissionModalOpen(false);
   };
   if (loading) {
@@ -730,6 +728,44 @@ export default function MyPage() {
           if (!me) return;
           saveTutorialStage(me.id, "mypage_open_mission_modal");
           setTutorialStage("mypage_open_mission_modal");
+        }}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={missionGuideStep === "overview"}
+        badge="MISSION"
+        title="ビギナーミッション一覧"
+        paragraphs={[
+          "ここでは、ビギナーミッションを一覧で確認できます。",
+          "順番にこなしていくと、Koelogsの機能をひと通り体感できます。",
+        ]}
+        primaryLabel="次へ"
+        onPrimary={() => setMissionGuideStep("log_link")}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={missionGuideStep === "log_link"}
+        badge="MISSION"
+        title="ログページからも確認できます"
+        paragraphs={["ビギナーミッションは「ログ」ページからも確認できます。困ったらいつでも見直せます。"]}
+        primaryLabel="次へ"
+        onPrimary={() => setMissionGuideStep("measurement_start")}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={missionGuideStep === "measurement_start"}
+        badge="MISSION"
+        title="最初のミッションを進めましょう"
+        paragraphs={["「測定を1回やってみよう」をクリックして、トレーニング画面で測定を1つ実行してみましょう。"]}
+        primaryLabel="わかった"
+        onPrimary={() => {
+          if (!me) return;
+          saveTutorialStage(me.id, "mypage_force_click_measurement");
+          setTutorialStage("mypage_force_click_measurement");
+          setMissionGuideStep(null);
         }}
         onClose={() => {}}
       />

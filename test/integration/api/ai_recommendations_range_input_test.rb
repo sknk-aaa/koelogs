@@ -4,7 +4,7 @@ require "test_helper"
 
 module Api
   class AiRecommendationsRangeInputTest < ActionDispatch::IntegrationTest
-    test "uses 14-day detailed logs and monthly trends for 30/90 day modes" do
+    test "uses 14-day detailed logs and skips monthly logs for 30/90 day modes" do
       target_date = Date.current
       captures = []
 
@@ -90,7 +90,7 @@ module Api
         assert_equal [ 30, 90 ], captures.map { |entry| entry[:selected_range_days] }
         assert_equal [ 14, 14 ], captures.map { |entry| entry[:detail_window_days] }
         assert_equal [ 14, 14 ], captures.map { |entry| entry[:detailed_log_count] }
-        assert_equal [ 1, 3 ], captures.map { |entry| entry[:monthly_log_count] }
+        assert_equal [ 0, 0 ], captures.map { |entry| entry[:monthly_log_count] }
         assert_equal [ false, false ], captures.map { |entry| entry[:measurement_used] }
         assert_equal [ nil, nil ], captures.map { |entry| entry[:explicit_theme] }
         assert_equal [ false, false ], captures.map { |entry| entry[:community_enabled] }

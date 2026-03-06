@@ -1,4 +1,4 @@
-import { type ReactNode, useId, useMemo, useState } from "react";
+import { Fragment, type ReactNode, useMemo, useState } from "react";
 import MetronomeLoader from "../../../components/MetronomeLoader";
 import InfoModal from "../../../components/InfoModal";
 import type { AiCollectiveSummary } from "../../../types/aiRecommendation";
@@ -33,7 +33,6 @@ export default function AiRecommendationCard({
   collapsible,
   expanded,
   onToggleExpanded,
-  collectiveSummary,
   showFollowupButton = false,
   onOpenFollowup,
 }: Props) {
@@ -184,7 +183,6 @@ export default function AiRecommendationCard({
               </section>
             )}
 
-            <CollectiveSummaryPanel summary={collectiveSummary} />
           </>
         )}
       </div>
@@ -196,11 +194,6 @@ type AiSection = {
   order: string;
   title: string;
   lines: string[];
-};
-
-type StateEntry = {
-  summary: string;
-  detail: string;
 };
 
 function parseAiSections(text: string): AiSection[] {
@@ -230,12 +223,14 @@ function parseAiSections(text: string): AiSection[] {
   return sections;
 }
 
+type ParsedMenuEntry = { name: string; time?: string; desc: string; evidence?: string; webSource?: string; communityQuote?: string };
+
 function StructuredRecommendation({ sections }: { sections: AiSection[] }) {
   return (
     <div className="logAi__structured">
       {sections.map((section) => {
         const sectionKey = `${section.order}-${section.title}`;
-        const isState = section.title.includes("今の状態");
+        const isState = section.title.includes("今の状態") || section.title.includes("テーマに関しての現状");
         const isMenus = section.title.includes("おすすめメニュー");
         const title = normalizeSectionTitle(section.title);
         const summaryTheme = conciseThemeLine(section.lines);
@@ -243,20 +238,12 @@ function StructuredRecommendation({ sections }: { sections: AiSection[] }) {
         const menuEntries = isMenus ? parseMenuEntries(section.lines) : [];
         return (
           <section key={sectionKey} className={`logAiSection ${sectionToneClass(title)}`}>
-            <div className="logAiSection__title">{title}</div>
+            <SectionHeading title={title} />
             {isState ? (
-              <div className="logAiState">
+              <div className="logAiSection__body">
                 <div className="logAiStateList">
-                  {stateSummary.map((entry, idx) => (
-                    <article key={`state-${idx}`} className="logAiStateItem">
-                      <div className="logAiStateItem__head">
-                        <span className="logAiStateItem__dot" aria-hidden="true" />
-                        <div className="logAiStateItem__main">
-                          <div className="logAiStateItem__label">{timelineLabelByIndex(idx)}</div>
-                          <strong className="logAiStateItem__summary">{renderHighlighted(entry.summary)}</strong>
-                        </div>
-                      </div>
-                    </article>
+                  {stateSummary.map((line, idx) => (
+                    <p key={`state-${idx}`}>{renderHighlighted(line)}</p>
                   ))}
                 </div>
               </div>
@@ -266,11 +253,17 @@ function StructuredRecommendation({ sections }: { sections: AiSection[] }) {
                   <article key={`menu-${entry.name}-${idx}`} className="logAiMenuRow">
                     <div className="logAiMenuRow__top">
                       <span className="logAiMenuRow__name">{renderHighlighted(entry.name)}</span>
-                      <span className="logAiMenuRow__time">{renderHighlighted(entry.time)}</span>
+                      {entry.time ? <span className="logAiMenuRow__time">{renderHighlighted(entry.time)}</span> : null}
                     </div>
-                    <div className="logAiMenuRow__desc">{renderHighlighted(entry.desc)}</div>
+                    <div className="logAiMenuRow__desc">{renderHighlightedMultiline(entry.desc)}</div>
                     {entry.evidence ? (
                       <div className="logAiMenuRow__evidence">{renderHighlighted(`根拠: ${entry.evidence}`)}</div>
+                    ) : null}
+                    {entry.webSource ? (
+                      <div className="logAiMenuRow__evidence">{renderHighlighted(`Web出典: ${entry.webSource}`)}</div>
+                    ) : null}
+                    {entry.communityQuote ? (
+                      <div className="logAiMenuRow__evidence">{renderHighlighted(`コミュニティ原文: 「${entry.communityQuote}」`)}</div>
                     ) : null}
                   </article>
                 ))}
@@ -293,18 +286,71 @@ function StructuredRecommendation({ sections }: { sections: AiSection[] }) {
 
 function sectionToneClass(title: string): string {
   if (title.includes("今週のテーマ")) return "logAiSection--theme";
-  if (title.includes("最近の変化")) return "logAiSection--state";
+  if (title.includes("最近の変化") || title.includes("テーマに関しての現状")) return "logAiSection--state";
   if (title.includes("今週のメニュー")) return "logAiSection--menu";
   if (title.includes("補足")) return "logAiSection--note";
   return "";
 }
 
 function normalizeSectionTitle(title: string): string {
-  if (title.includes("今日の方針") || title.includes("今週の方針")) return "🎯 今週のテーマ";
-  if (title.includes("今の状態")) return "📈 最近の変化";
-  if (title.includes("おすすめメニュー")) return "🗂 今週のメニュー";
-  if (title.includes("補足")) return "📝 補足";
-  return `🧩 ${title}`;
+  if (title.includes("今日の方針") || title.includes("今週の方針") || title.includes("今週のテーマ")) return "今週のテーマ";
+  if (title.includes("今の状態") || title.includes("テーマに関しての現状")) return "テーマに関しての現状";
+  if (title.includes("おすすめメニュー")) return "今週のメニュー";
+  if (title.includes("補足")) return "補足";
+  return title;
+}
+
+function SectionHeading({ title }: { title: string }) {
+  const kind =
+    title.includes("今週のテーマ")
+      ? "theme"
+      : title.includes("テーマに関しての現状")
+        ? "state"
+        : title.includes("今週のメニュー")
+          ? "menu"
+          : "default";
+
+  return (
+    <div className="logAiSection__title">
+      <span className={`logAiSection__icon logAiSection__icon--${kind}`} aria-hidden="true">
+        <SectionIcon kind={kind} />
+      </span>
+      <span>{title}</span>
+    </div>
+  );
+}
+
+function SectionIcon({ kind }: { kind: "theme" | "state" | "menu" | "default" }) {
+  if (kind === "theme") {
+    return (
+      <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+        <path d="M10 2l2 4 4 2-4 2-2 4-2-4-4-2 4-2 2-4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+        <circle cx="10" cy="10" r="1.2" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (kind === "state") {
+    return (
+      <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+        <path d="M3 14l4-4 3 2 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3 17h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (kind === "menu") {
+    return (
+      <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+        <rect x="3" y="3" width="14" height="14" rx="3" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M6.5 8h7M6.5 11h7M6.5 14h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+      <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="10" cy="10" r="1.2" fill="currentColor" />
+    </svg>
+  );
 }
 
 function conciseThemeLine(lines: string[]): string {
@@ -314,46 +360,76 @@ function conciseThemeLine(lines: string[]): string {
   return oneSentence.length > 0 ? oneSentence : first;
 }
 
-function summarizeStateEntries(lines: string[]): StateEntry[] {
+function summarizeStateEntries(lines: string[]): string[] {
   const bases = lines
     .map((line) => line.replace(/^・\s*/, "").replace(/^[-•]\s*/, "").trim())
-    .filter((line) => line.length > 0)
-    .slice(0, 3);
-  if (bases.length === 0) return [ { summary: "変化データを収集中", detail: "" } ];
-
-  return bases.map((line) => ({ summary: line, detail: "" }));
+    .filter((line) => line.length > 0);
+  if (bases.length === 0) return [ "変化データを収集中" ];
+  return bases;
 }
 
-function timelineLabelByIndex(index: number): string {
-  const labels = [ "最近の気づき", "次の一手", "ログ分析" ];
-  return labels[index] ?? "メモ";
-}
-
-function parseMenuEntries(lines: string[]): Array<{ name: string; time: string; desc: string; evidence?: string }> {
-  const out: Array<{ name: string; time: string; desc: string; evidence?: string }> = [];
+function parseMenuEntries(lines: string[]): ParsedMenuEntry[] {
+  const out: ParsedMenuEntry[] = [];
   const normalized = lines
     .map((line) => line.replace(/^・\s*/, "").trim())
     .filter((line) => line.length > 0);
 
+  const isDurationLine = (value: string): boolean => /^\d+\s*(分|min|mins|minutes)$/i.test(value.trim());
+  const isHeaderLine = (idx: number): boolean => {
+    const current = normalized[idx];
+    if (!current) return false;
+    if (current.includes("｜")) return true;
+    if (idx + 1 < normalized.length && isDurationLine(normalized[idx + 1])) return true;
+    if (/^(やり方|なぜ有効か|失敗時|根拠|コミュニティ原文)[:：]/.test(current)) return false;
+    if (/^[\/／]\s*(やり方|なぜ有効か|失敗時|根拠|コミュニティ原文)[:：]/.test(current)) return false;
+    const next = normalized[idx + 1] ?? "";
+    if (/^(やり方|なぜ有効か|失敗時|根拠)[:：]/.test(next)) return true;
+    return false;
+  };
+
   for (let i = 0; i < normalized.length; i += 1) {
-    const current = normalized[i];
-    if (!current.includes("｜")) continue;
-    const [nameRaw, timeRaw] = current.split("｜", 2);
-    const descRaw = normalized[i + 1] ?? "";
-    const desc = descRaw.replace(/^狙い[:：]?\s*/, "").trim();
-    let evidence: string | undefined;
-    const evidenceRaw = normalized[i + 2] ?? "";
-    if (/^根拠[:：]/.test(evidenceRaw)) {
-      evidence = evidenceRaw.replace(/^根拠[:：]\s*/, "").trim();
+    if (!isHeaderLine(i)) continue;
+
+    let nameRaw = normalized[i];
+    let timeRaw = "";
+    if (nameRaw.includes("｜")) {
+      const split = nameRaw.split("｜", 2);
+      nameRaw = split[0]?.trim() ?? "";
+      timeRaw = split[1]?.trim() ?? "";
+    } else if (i + 1 < normalized.length && isDurationLine(normalized[i + 1])) {
+      timeRaw = normalized[i + 1].trim();
       i += 1;
     }
+
+    let j = i + 1;
+    const descParts: string[] = [];
+    let evidence: string | undefined;
+    let webSource: string | undefined;
+    let communityQuote: string | undefined;
+    while (j < normalized.length && !isHeaderLine(j)) {
+      const row = normalized[j].replace(/^[\/／]\s*(?=(やり方|なぜ有効か|失敗時|根拠|Web出典|コミュニティ原文)[:：])/, "");
+      if (/^(?:[\/／]\s*)?根拠[:：]/.test(row)) {
+        evidence = row.replace(/^(?:[\/／]\s*)?根拠[:：]\s*/, "").trim();
+      } else if (/^(?:[\/／]\s*)?Web出典[:：]/.test(row)) {
+        webSource = row.replace(/^(?:[\/／]\s*)?Web出典[:：]\s*/, "").trim();
+      } else if (/^(?:[\/／]\s*)?コミュニティ原文[:：]/.test(row)) {
+        communityQuote = row.replace(/^(?:[\/／]\s*)?コミュニティ原文[:：]\s*/, "").replace(/^「/, "").replace(/」$/, "").trim();
+      } else {
+        descParts.push(row);
+      }
+      j += 1;
+    }
+
+    const desc = descParts.join("\n").replace(/^狙い[:：]?\s*/, "").trim();
     out.push({
       name: nameRaw.trim(),
-      time: timeRaw.trim(),
-      desc: desc || "狙いの記述なし",
+      time: timeRaw.trim() || undefined,
+      desc: desc || "やり方の記述なし",
       evidence: evidence && evidence.length > 0 ? evidence : undefined,
+      webSource: webSource && webSource.length > 0 ? webSource : undefined,
+      communityQuote: communityQuote && communityQuote.length > 0 ? communityQuote : undefined,
     });
-    i += 1;
+    i = j - 1;
   }
   return out;
 }
@@ -387,191 +463,16 @@ function renderHighlighted(text: string) {
   return <>{nodes}</>;
 }
 
-function CollectiveSummaryPanel({ summary }: { summary?: AiCollectiveSummary | null }) {
-  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
-  const [isOpen, setIsOpen] = useState(false);
-  const collectiveBodyId = useId();
-
-  if (!summary) return null;
-  if (!summary.used || summary.items.length === 0) {
-    return (
-      <section className="logAi__collective">
-        <div className="logAi__collectiveHead">参考にしたコミュニティ投稿</div>
-        <div className="logAi__collectiveMuted">
-          直近{summary.window_days}日 / タグ×メニュー{summary.min_count}件以上の条件を満たす投稿が不足しているため、今回は集合知を利用していません。
-        </div>
-      </section>
-    );
-  }
-
+function renderHighlightedMultiline(text: string) {
+  const rows = text.split("\n");
   return (
-    <section className="logAi__collective">
-      <div className="logAi__collectiveHead">
-        <div className="logAi__collectiveHeadLeft">参考にしたコミュニティ投稿</div>
-        <button
-          type="button"
-          className="logAi__collectiveToggle"
-          aria-expanded={isOpen}
-          aria-controls={collectiveBodyId}
-          onClick={() => setIsOpen((prev) => !prev)}
-        >
-          {isOpen ? "閉じる" : "表示する"} {isOpen ? "▲" : "▼"}
-        </button>
-      </div>
-      {isOpen && (
-        <div id={collectiveBodyId} className="logAi__collectiveRows">
-          {summary.items.map((item) => (
-            <article key={item.tag_key} className="logAi__collectiveRow">
-              <div className="logAi__collectiveRowHead">
-                <span className="logAi__collectiveTagPill">改善タグ</span>
-                <div className="logAi__collectiveTag">{item.tag_label}</div>
-              </div>
-              <div className="logAi__collectiveMenus" role="list" aria-label={`${item.tag_label}のメニュー分布と詳細`}>
-                {item.menus.map((menu) => {
-                  const totalMenuCount = Math.max(item.menus.reduce((sum, m) => sum + m.count, 0), 1);
-                  const ratio = Math.round((menu.count / totalMenuCount) * 100);
-                  const scaleTotal = Math.max(menu.scale_distribution.reduce((sum, s) => sum + s.count, 0), 1);
-                  const displayedScales = menu.scale_distribution.slice(0, 2);
-                  const hiddenScaleCount = Math.max(0, menu.scale_distribution.length - displayedScales.length);
-                  const commentKey = `${item.tag_key}-${menu.menu_label}`;
-                  const isExpandedComment = expandedComments[commentKey] === true;
-                  const previewComments = menu.detail_comments.slice(0, 2);
-                  const hasMoreComments = menu.detail_comments.length > 2;
-                  return (
-                    <div key={`${item.tag_key}-${menu.menu_label}`} className="logAi__collectiveMenuCard" role="listitem">
-                      <div className="logAi__collectiveBarTop">
-                        <span className="logAi__collectiveMenuName">{menu.menu_label}</span>
-                        <span className="logAi__collectiveCount">{menu.count}件 ({ratio}%)</span>
-                      </div>
-                      <div className="logAi__collectiveBarTrack">
-                        <span style={{ width: `${Math.max(8, ratio)}%` }} />
-                      </div>
-
-                      <div className="logAi__collectiveSectionHead">人気スケール</div>
-                      <div className="logAi__scaleChips">
-                        {menu.scale_distribution.length > 0 ? (
-                          <>
-                            {displayedScales.map((s) => {
-                            const pct = Math.round((s.count / scaleTotal) * 100);
-                            return (
-                              <span key={`${menu.menu_label}-scale-${s.label}`} className="logAi__scaleChip">
-                                {s.label} {pct}%
-                              </span>
-                            );
-                            })}
-                            {hiddenScaleCount > 0 && (
-                              <span className="logAi__scaleChip logAi__scaleChip--more">+{hiddenScaleCount}</span>
-                            )}
-                          </>
-                        ) : (
-                          <span className="logAi__collectiveValue">データなし</span>
-                        )}
-                      </div>
-
-                      <div className="logAi__collectiveSubhead">📝自由記述要約</div>
-                      {menu.detail_comments.length > 0 ? (
-                        <>
-                          {!isExpandedComment ? (
-                            <ul className="logAi__collectiveQuotes">
-                              {previewComments.map((comment, idx) => (
-                                <li key={`${menu.menu_label}-preview-${idx}`}>
-                                  <span className="logAi__quoteText">
-                                    {compactText(formatCommentForDisplay(comment).join(" / "), 84).replace(/\s*\/\s*/g, "\n")}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <ul className="logAi__collectiveComments">
-                              {menu.detail_comments.map((comment, idx) => {
-                                const lines = formatCommentForDisplay(comment);
-                                return (
-                                  <li key={`${menu.menu_label}-comment-${idx}`}>
-                                    {lines.map((line, lineIdx) => (
-                                      <span key={`${menu.menu_label}-comment-${idx}-line-${lineIdx}`}>
-                                        {line}
-                                        {lineIdx < lines.length - 1 ? <br /> : null}
-                                      </span>
-                                    ))}
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                          {hasMoreComments && (
-                            <button
-                              type="button"
-                              className="logAi__moreBtn"
-                              onClick={() =>
-                                setExpandedComments((prev) => ({ ...prev, [commentKey]: !isExpandedComment }))
-                              }
-                            >
-                              {isExpandedComment ? "閉じる" : `もっと見る（${menu.detail_comments.length}件）`}
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <span className="logAi__collectiveNoCommentBadge">コメントなし（{menu.count}件）</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
+    <>
+      {rows.map((row, idx) => (
+        <Fragment key={`ml-${idx}`}>
+          {idx > 0 ? <br /> : null}
+          {renderHighlighted(row)}
+        </Fragment>
+      ))}
+    </>
   );
-}
-
-function formatCommentForDisplay(raw: string): string[] {
-  const normalized = raw
-    .replace(/\s*(どこが良くなった？?|改善された点|音域|意識した点|意識したポイント)\s*[:：]/g, "\n$1:")
-    .replace(/\n{2,}/g, "\n")
-    .trim();
-  const lines = normalized.split("\n").map((v) => v.trim()).filter((v) => v.length > 0);
-  const out: string[] = [];
-  const unlabeled: string[] = [];
-  let hasLabeledLine = false;
-  let improved = "";
-  let range = "";
-  let focus = "";
-
-  for (const line of lines) {
-    const m = line.match(/^(どこが良くなった？?|改善された点|音域|意識した点|意識したポイント)\s*[:：]\s*(.*)$/);
-    if (!m) {
-      unlabeled.push(line);
-      continue;
-    }
-
-    hasLabeledLine = true;
-    const value = (m[2] ?? "").trim();
-    if (value.length === 0) continue;
-    if (/^(どこが良くなった？?|改善された点)$/.test(m[1])) {
-      improved = value;
-      continue;
-    }
-    if (m[1] === "音域") {
-      range = value;
-      continue;
-    }
-    focus = value;
-  }
-
-  // テンプレ準拠コメントだけ正規ラベルを表示。自由記述のみの場合は本文をそのまま出す。
-  if (!hasLabeledLine) return lines.length > 0 ? lines : [raw.trim()];
-
-  if (improved) out.push(`改善された点: ${improved}`);
-  if (range) out.push(`音域: ${range}`);
-  if (focus) out.push(`意識した点: ${focus}`);
-  if (unlabeled.length > 0) out.push(...unlabeled);
-
-  return out.length > 0 ? out : [raw.trim()];
-}
-
-function compactText(text: string, maxLen: number): string {
-  const t = text.trim();
-  if (t.length <= maxLen) return t;
-  return `${t.slice(0, maxLen)}…`;
 }

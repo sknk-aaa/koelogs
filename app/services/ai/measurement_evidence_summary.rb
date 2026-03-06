@@ -18,17 +18,21 @@ module Ai
     }.freeze
 
     TAG_TO_TYPES = {
-      "high_note_ease" => [ "range" ],
+      "chest_voice_strength" => [ "range" ],
+      "falsetto_strength" => [ "range" ],
+      "mixed_voice_stability" => [ "range" ],
+      "vocal_cord_closure" => [ "pitch_accuracy" ],
       "range_breadth" => [ "range" ],
       "long_tone_sustain" => [ "long_tone" ],
+      "breath_control" => [ "long_tone" ],
+      "breath_sustain" => [ "long_tone" ],
       "pitch_accuracy" => [ "pitch_accuracy" ],
-      "pitch_stability" => [ "pitch_accuracy" ],
       "volume_stability" => [ "volume_stability" ]
     }.freeze
 
     GOAL_KEYWORDS = {
       "range" => %w[音域 最低音 高音 レンジ],
-      "long_tone" => %w[ロングトーン 持続 秒 伸ばす],
+      "long_tone" => %w[ロングトーン 持続 秒 伸ばす ブレス 呼吸 息],
       "pitch_accuracy" => %w[音程 ピッチ cents セント 音准 精度],
       "volume_stability" => %w[音量 安定 dB デシベル]
     }.freeze

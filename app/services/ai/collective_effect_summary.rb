@@ -15,7 +15,7 @@ module Ai
     def initialize(window_days: 90, min_count: 3, target_tags: nil)
       @window_days = window_days
       @min_count = min_count
-      @target_tags = normalize_tags(target_tags)
+      @target_tags = normalized_tags(target_tags)
     end
 
     # return:

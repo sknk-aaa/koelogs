@@ -216,9 +216,9 @@ function measurementTagKey(item: MeasurementChangeItem): string {
   if (item.key === "long_tone_sustain_sec") return "long_tone_sustain";
   if (item.key === "pitch_error_semitones") return "pitch_accuracy";
   if (item.key === "volume_stability_pct") return "volume_stability";
-  if (item.key === "chest_top_note") return "high_note_ease";
-  if (item.key === "falsetto_top_note") return "passaggio_smoothness";
-  return "resonance_clarity";
+  if (item.key === "chest_top_note") return "chest_voice_strength";
+  if (item.key === "falsetto_top_note") return "falsetto_strength";
+  return "mixed_voice_stability";
 }
 
 function classifyMeasurementDirection(item: MeasurementChangeItem): DiagnosticBucketKey | null {
@@ -402,11 +402,18 @@ export default function LogPage() {
   const [saveToast, setSaveToast] = useState<SaveRewards | null>(null);
   const [tutorialWelcomeOpen, setTutorialWelcomeOpen] = useState(false);
   const [beginnerCompletionModalStep, setBeginnerCompletionModalStep] = useState<"congrats" | "unlocked" | null>(null);
-  const [aiMissionGuideStep, setAiMissionGuideStep] = useState<"intro" | "references" | "customization" | "pointer" | null>(null);
+  const [aiMissionGuideStep, setAiMissionGuideStep] = useState<
+    "intro" | "references" | "customization" | "theme_toggle" | "theme_input" | "pointer" | null
+  >(null);
   const aiCtaCardRef = useRef<HTMLElement | null>(null);
   const aiGenerateBtnRef = useRef<HTMLButtonElement | null>(null);
+  const aiThemeToggleBtnRef = useRef<HTMLButtonElement | null>(null);
+  const aiThemeInputRef = useRef<HTMLInputElement | null>(null);
   const [aiGenerateGuidePos, setAiGenerateGuidePos] = useState<{ left: number; top: number } | null>(null);
+  const forceGuideAiThemeToggle = aiMissionGuideStep === "theme_toggle";
+  const forceGuideAiThemeInput = aiMissionGuideStep === "theme_input";
   const forceGuideAiGenerate = aiMissionGuideStep === "pointer";
+  const forceGuideAiFlow = forceGuideAiThemeToggle || forceGuideAiThemeInput || forceGuideAiGenerate;
   const goalGuideRowRef = useRef<HTMLDivElement | null>(null);
 
   const [monthLoading, setMonthLoading] = useState(false);
@@ -728,12 +735,17 @@ export default function LogPage() {
   }, [shouldRunAiMissionGuide]);
 
   useEffect(() => {
-    if (!forceGuideAiGenerate) {
+    if (!forceGuideAiFlow) {
       setAiGenerateGuidePos(null);
       return;
     }
     aiCtaCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    const target = aiGenerateBtnRef.current;
+    const target =
+      aiMissionGuideStep === "theme_toggle"
+        ? aiThemeToggleBtnRef.current
+        : aiMissionGuideStep === "theme_input"
+          ? aiThemeInputRef.current
+          : aiGenerateBtnRef.current;
     if (!target) return;
     const update = () => {
       const rect = target.getBoundingClientRect();
@@ -749,10 +761,16 @@ export default function LogPage() {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [forceGuideAiGenerate]);
+  }, [aiMissionGuideStep, forceGuideAiFlow, aiThemeOpen]);
 
   useEffect(() => {
-    if (!forceGuideDailyLog && !forceGuideAiGenerate) {
+    if (aiMissionGuideStep !== "theme_input") return;
+    if (aiThemeOpen) return;
+    setAiMissionGuideStep("theme_toggle");
+  }, [aiMissionGuideStep, aiThemeOpen]);
+
+  useEffect(() => {
+    if (!forceGuideDailyLog && !forceGuideAiFlow) {
       delete document.body.dataset.logMissionGuideLockFooter;
       return;
     }
@@ -760,7 +778,7 @@ export default function LogPage() {
     return () => {
       delete document.body.dataset.logMissionGuideLockFooter;
     };
-  }, [forceGuideAiGenerate, forceGuideDailyLog]);
+  }, [forceGuideAiFlow, forceGuideDailyLog]);
 
   const clearMissionGuideQuery = () => {
     setParams((prev) => {
@@ -829,7 +847,7 @@ export default function LogPage() {
       return;
     }
     if (aiLoading) return;
-    if (forceGuideAiGenerate) {
+    if (forceGuideAiFlow) {
       setAiMissionGuideStep(null);
       clearMissionGuideQuery();
     }
@@ -1292,7 +1310,10 @@ export default function LogPage() {
         open={aiMissionGuideStep === "intro"}
         badge="MISSION"
         title="AIおすすめについて"
-        paragraphs={["このアプリでは、今週のおすすめトレーニング内容をAIが提案してくれます。"]}
+        paragraphs={[
+          "このアプリでは、今週のおすすめトレーニング内容をAIが提案してくれます。",
+          "流れはシンプルです。必要ならテーマを入力して、そのままAIおすすめを生成します。",
+        ]}
         primaryLabel="次へ"
         onPrimary={() => setAiMissionGuideStep("references")}
         onClose={() => {}}
@@ -1307,11 +1328,12 @@ export default function LogPage() {
           "・ユーザーのAIカスタム指示",
           "・ログで記録したデータ",
           "・測定データ",
+          "・（任意）今週のテーマ",
         ]}
         primaryLabel={beginnerAiCustomizationDone ? "AIおすすめを生成する" : "次へ"}
         onPrimary={() => {
           if (beginnerAiCustomizationDone) {
-            setAiMissionGuideStep("pointer");
+            setAiMissionGuideStep("theme_toggle");
             return;
           }
           setAiMissionGuideStep("customization");
@@ -1368,13 +1390,13 @@ export default function LogPage() {
         </section>
       )}
 
-      {(forceGuideDailyLog || forceGuideAiGenerate || forceGuideGoalSetting) && (
+      {(forceGuideDailyLog || forceGuideAiFlow || forceGuideGoalSetting) && (
         <>
           <div
             className={`logPage__guideOverlay ${forceGuideGoalSetting ? "is-goal" : ""}`.trim()}
             aria-hidden="true"
           />
-          {forceGuideAiGenerate && aiGenerateGuidePos && (
+          {forceGuideAiFlow && aiGenerateGuidePos && (
             <div
               className="logPage__guideHand"
               style={{ left: `${aiGenerateGuidePos.left}px`, top: `${aiGenerateGuidePos.top}px` }}
@@ -1861,7 +1883,7 @@ export default function LogPage() {
                   bodyClassName="logPage__aiInfoBody"
                   triggerClassName="logPage__aiInfoBtn"
                 >
-                  <div className="logPage__aiInfoLead">目標・直近の記録・AI設定をもとに、今週の練習プランを生成します。</div>
+                  <div className="logPage__aiInfoLead">今週テーマと現在の声の状況を診断して、根拠付きで今週の練習プランを生成します。</div>
                   <div className="logPage__aiInfoBlocks">
                     <section className="logPage__aiInfoBlock logPage__aiInfoBlock--primary">
                       <div className="logPage__aiInfoBlockTitle">
@@ -1869,7 +1891,7 @@ export default function LogPage() {
                         <span>主に使う</span>
                       </div>
                       <div className="logPage__aiInfoBlockText">
-                        詳細ログは直近14日を参照します。参照期間（14/30/90）はAIカスタム指示ページで設定でき、30/90では月ログ傾向も補助で参照します。
+                        直近ログと今週テーマを使って、現在状態を高解像度に整理します。参照期間（14/30/90）はAIカスタム指示ページで設定でき、30/90では月ログ傾向も補助で参照します。
                       </div>
                     </section>
                     <section className="logPage__aiInfoBlock">
@@ -1878,7 +1900,7 @@ export default function LogPage() {
                         <span>補助</span>
                       </div>
                       <div className="logPage__aiInfoBlockText">
-                        AIカスタム指示（回答スタイル）・改善したい項目・長期プロフィール・コミュニティ集合知を補助根拠として使います。
+                        AIカスタム指示（回答スタイル）・改善したい項目・ボイトレメモリ・コミュニティ自由記述・Web出典を補助根拠として使います。
                       </div>
                     </section>
                     <section className="logPage__aiInfoBlock logPage__aiInfoBlock--save">
@@ -1908,30 +1930,53 @@ export default function LogPage() {
                 </button>
                 {!guestMode && (
                   <button
+                    ref={aiThemeToggleBtnRef}
                     type="button"
-                    className="logPage__btn logPage__btn--subtle logPage__aiThemeToggle"
-                    onClick={() => setAiThemeOpen((prev) => !prev)}
+                    className={`logPage__btn logPage__btn--subtle logPage__aiThemeToggle ${forceGuideAiThemeToggle || forceGuideAiThemeInput ? "is-guided" : ""}`.trim()}
+                    onClick={() => {
+                      setAiThemeOpen((prev) => {
+                        const next = !prev;
+                        if (forceGuideAiThemeToggle && next) setAiMissionGuideStep("theme_input");
+                        if (forceGuideAiThemeInput && !next) setAiMissionGuideStep("theme_toggle");
+                        return next;
+                      });
+                    }}
                     aria-expanded={aiThemeOpen}
                   >
-                    {aiThemeOpen ? "入力を閉じる" : "テーマを入力する"}
+                    {aiThemeOpen ? "入力を閉じる" : "テーマを入力する（任意）"}
                   </button>
                 )}
               </div>
               {!guestMode && aiThemeOpen && (
-                <div className="logPage__aiThemeInputWrap">
+                <div className={`logPage__aiThemeInputWrap ${forceGuideAiThemeInput ? "is-guided" : ""}`.trim()}>
                   <label className="logPage__aiThemeInputLabel" htmlFor="log-ai-theme-input">
                     今週のテーマ（任意）
                   </label>
                   <input
+                    ref={aiThemeInputRef}
                     id="log-ai-theme-input"
                     type="text"
                     className="logPage__aiThemeInput"
                     placeholder="例: ミックスを安定させる / 高音で力まない"
                     value={aiThemeDraft}
                     onChange={(e) => setAiThemeDraft(e.target.value)}
+                    onFocus={() => {
+                      if (forceGuideAiThemeInput) setAiMissionGuideStep("pointer");
+                    }}
                     maxLength={80}
                   />
                   <p className="logPage__aiThemeHint">未入力のままでも生成できます。</p>
+                  {forceGuideAiThemeInput && (
+                    <div className="logPage__aiThemeGuideActions">
+                      <button
+                        type="button"
+                        className="logPage__btn logPage__btn--subtle logPage__aiThemeSkipBtn"
+                        onClick={() => setAiMissionGuideStep("pointer")}
+                      >
+                        未入力で続ける
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               {guestMode && isDayMode && (

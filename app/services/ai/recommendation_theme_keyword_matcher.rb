@@ -3,14 +3,26 @@
 module Ai
   class RecommendationThemeKeywordMatcher
     KEYWORD_TAGS = {
-      "音域" => %w[range_breadth high_note_ease],
+      "地声" => %w[chest_voice_strength],
+      "裏声" => %w[falsetto_strength],
+      "ミドル" => %w[mixed_voice_stability],
+      "ミックス" => %w[mixed_voice_stability],
+      "換声点" => %w[mixed_voice_stability],
+      "声帯閉鎖" => %w[vocal_cord_closure],
+      "声の芯" => %w[vocal_cord_closure],
+      "高音の出しやすさ" => %w[mixed_voice_stability],
+      "高音" => %w[mixed_voice_stability],
+      "音域" => %w[range_breadth],
       "音程" => %w[pitch_accuracy],
-      "換声点" => %w[passaggio_smoothness],
-      "息切れ" => %w[less_breathlessness],
       "音量" => %w[volume_stability],
+      "ロングトーン" => %w[long_tone_sustain],
       "力み" => %w[less_throat_tension],
-      "声の抜け" => %w[resonance_clarity],
-      "ロングトーン" => %w[long_tone_sustain]
+      "喉" => %w[less_throat_tension less_throat_fatigue],
+      "疲れ" => %w[less_throat_fatigue],
+      "ブレス" => %w[breath_control],
+      "息切れ" => %w[breath_sustain],
+      "息の持続" => %w[breath_sustain],
+      "息" => %w[breath_sustain]
     }.freeze
 
     class << self

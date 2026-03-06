@@ -38,7 +38,7 @@ module Api
         {
           key: "beginner_ai",
           title: "AIおすすめを使ってみよう",
-          description: "日ログ画面でAI提案を1回生成してみましょう。",
+          description: "（任意）テーマを入力して、AIおすすめを1回生成してみましょう。",
           to: "/log?mode=day&date=#{today.iso8601}&missionGuide=beginner_ai",
           done: current_user.ai_recommendations.exists?
         }

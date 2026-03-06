@@ -66,8 +66,7 @@ module Api
                         .where(practiced_on: from..to)
                         .includes(:training_menus)
                         .order(:practiced_on)
-      trend_month_count = trend_month_count_for(range_days)
-      monthly_logs = monthly_logs_for(target_date: target_date, month_count: trend_month_count)
+      monthly_logs = MonthlyLog.none
       measurement_evidence = Ai::MeasurementEvidenceSummary.build(
         user: current_user,
         improvement_tags: current_user.ai_improvement_tags,

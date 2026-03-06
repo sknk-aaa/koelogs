@@ -3,15 +3,18 @@
 module Ai
   class RecommendationGoalTagContext
     FACT_MATCH_ALIASES = {
-      "high_note_ease" => [ "高音", "高い声" ],
+      "chest_voice_strength" => [ "地声", "チェスト", "地声強化" ],
+      "falsetto_strength" => [ "裏声", "ファルセット", "裏声強化" ],
+      "mixed_voice_stability" => [ "ミドル", "ミックス", "換声点", "高音の出しやすさ" ],
+      "vocal_cord_closure" => [ "声帯閉鎖", "声の芯", "声の抜け", "響き" ],
       "range_breadth" => [ "音域", "レンジ" ],
       "pitch_accuracy" => [ "音程", "ピッチ" ],
-      "passaggio_smoothness" => [ "換声点", "ミックス", "ミドル" ],
-      "less_breathlessness" => [ "息切れ", "息が続か" ],
       "volume_stability" => [ "音量", "ボリューム" ],
       "less_throat_tension" => [ "喉が締ま", "喉が詰ま", "喉の力み", "力み" ],
-      "resonance_clarity" => [ "響き", "抜け" ],
-      "long_tone_sustain" => [ "ロングトーン", "持続" ]
+      "long_tone_sustain" => [ "ロングトーン", "持続" ],
+      "less_throat_fatigue" => [ "喉の疲れ", "疲れ", "疲労" ],
+      "breath_control" => [ "ブレス", "呼吸", "息のコントロール" ],
+      "breath_sustain" => [ "息切れ", "息が続か", "息の持続", "息" ]
     }.freeze
 
     class << self

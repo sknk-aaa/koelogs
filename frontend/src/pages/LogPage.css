@@ -2390,6 +2390,14 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   box-shadow: none;
 }
 
+.logPage__aiThemeToggle.is-guided {
+  position: relative;
+  z-index: 970;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.24);
+}
+
 .logPage__aiThemeInputWrap {
   display: grid;
   gap: 8px;
@@ -2397,6 +2405,14 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.logPage__aiThemeInputWrap.is-guided {
+  position: relative;
+  z-index: 970;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.2);
 }
 
 .logPage__aiThemeInputLabel {
@@ -2429,6 +2445,17 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   margin: 0;
   font-size: 12px;
   color: var(--muted);
+}
+
+.logPage__aiThemeGuideActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.logPage__aiThemeSkipBtn {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
 }
 
 .logPage__aiInfoBtn {
@@ -2734,9 +2761,41 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .logAiSection__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   font-weight: 900;
   margin-bottom: 8px;
+}
+
+.logAiSection__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, var(--surface));
+  background: color-mix(in srgb, var(--surface) 72%, var(--card));
+}
+
+.logAiSection__icon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.logAiSection__icon--theme {
+  color: color-mix(in srgb, var(--log-ai-theme-accent) 72%, var(--text));
+}
+
+.logAiSection__icon--state {
+  color: color-mix(in srgb, var(--log-ai-state-accent) 72%, var(--text));
+}
+
+.logAiSection__icon--menu {
+  color: color-mix(in srgb, var(--log-ai-menu-accent) 78%, var(--text));
 }
 
 .logAiSection--theme .logAiSection__title {
@@ -2772,14 +2831,7 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .logAiStateList::before {
-  content: "";
-  position: absolute;
-  left: 9px;
-  top: 12px;
-  bottom: 12px;
-  width: 1px;
-  background: color-mix(in srgb, var(--accent) 18%, var(--border));
-  z-index: 0;
+  content: none;
 }
 
 .logAiStateItem {

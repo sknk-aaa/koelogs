@@ -2,6 +2,7 @@
   position: relative;
   isolation: isolate;
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 .helpPage__bg {
@@ -97,6 +98,124 @@
   padding: 6px 10px;
   font-size: 11px;
   font-weight: 900;
+}
+
+.helpAbout__toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.helpAbout__tocLink {
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--card) 90%, #f8fbff);
+  color: color-mix(in srgb, var(--text) 82%, var(--accent));
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.helpAbout__tocLink:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.helpAbout__tocLink:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  outline-offset: 2px;
+}
+
+.helpAbout__contentCard {
+  gap: 14px;
+}
+
+.helpAbout__section {
+  scroll-margin-top: 88px;
+}
+
+.helpAbout__sectionTitle {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: 0.2px;
+}
+
+.helpAbout__lead {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+  opacity: 0.86;
+}
+
+.helpAbout__subTitle {
+  margin: 4px 0 0;
+  font-size: 20px;
+  letter-spacing: 0.12px;
+}
+
+.helpAbout__miniTitle {
+  margin: 6px 0 0;
+  font-size: 16px;
+  letter-spacing: 0.08px;
+}
+
+.helpAbout__details {
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--card));
+}
+
+.helpAbout__detailsSummary {
+  cursor: pointer;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.helpAbout__detailsBody {
+  display: grid;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+.helpAbout__paragraph {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+.helpAbout__evidenceExample {
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-radius: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  display: grid;
+  gap: 6px;
+}
+
+.helpAbout__exampleLine {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .helpAbout__tocLink {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .helpAbout__sectionTitle {
+    font-size: 24px;
+  }
+
+  .helpAbout__subTitle {
+    font-size: 18px;
+  }
 }
 
 .contactForm {

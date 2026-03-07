@@ -1892,13 +1892,18 @@ function SimpleTrendChart({
 }
 
 function LongToneTrendChart({ points, compact = false }: { points: MeasurementPoint[]; compact?: boolean }) {
-  const width = compact ? Math.max(290, 100 + points.length * 32) : 760;
-  const height = 260;
-  const axisWidth = compact ? 34 : 40;
-  const padTop = 18;
-  const padBottom = 36;
-  const padLeft = 18;
-  const padRight = 18;
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number } | null>(null);
+  const width = compact ? Math.max(480, 120 + points.length * 42) : Math.max(980, 140 + points.length * 44);
+  const height = compact ? 340 : 380;
+  const axisWidth = compact ? 42 : 48;
+  const padTop = compact ? 22 : 24;
+  const padBottom = compact ? 52 : 56;
+  const padLeft = 20;
+  const padRight = compact ? 22 : 28;
   const values = points.map((p) => p.value).filter((v): v is number => v != null);
   const axis = buildAutoNumericAxis({
     values,
@@ -1942,10 +1947,47 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
     new Set(points.length <= 1 ? [0] : [0, Math.floor((points.length - 1) * 0.33), Math.floor((points.length - 1) * 0.66), points.length - 1])
   );
   const xAxisY = height - padBottom;
+  const selectedPoint = plotted.find((p) => p.index === selectedIndex) ?? null;
+
+  useEffect(() => {
+    const updateTooltip = () => {
+      if (!selectedPoint || !frameRef.current || !scrollRef.current || !tooltipRef.current) {
+        setTooltipPos(null);
+        return;
+      }
+      const frameRect = frameRef.current.getBoundingClientRect();
+      const scrollRect = scrollRef.current.getBoundingClientRect();
+      const tipRect = tooltipRef.current.getBoundingClientRect();
+      const pointClientX = scrollRect.left + (selectedPoint.x - scrollRef.current.scrollLeft);
+      const pointClientY = scrollRect.top + selectedPoint.y;
+      const margin = 8;
+      const halfTipW = tipRect.width / 2;
+      const preferredLeft = pointClientX - frameRect.left;
+      const left = clamp(preferredLeft, margin + halfTipW, frameRect.width - margin - halfTipW);
+      const aboveTop = pointClientY - frameRect.top - tipRect.height - 10;
+      const belowTop = pointClientY - frameRect.top + 12;
+      const top =
+        aboveTop >= margin ? aboveTop : clamp(belowTop, margin, Math.max(margin, frameRect.height - tipRect.height - margin));
+      setTooltipPos({ left, top });
+    };
+
+    const raf = requestAnimationFrame(updateTooltip);
+    const scroller = scrollRef.current;
+    const onScroll = () => requestAnimationFrame(updateTooltip);
+    const onResize = () => requestAnimationFrame(updateTooltip);
+    scroller?.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      scroller?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [selectedPoint, width, height]);
 
   return (
     <div className="insightsFixedTrend">
-      <div className="insightsFixedTrend__frame">
+      <div className="insightsTrendScrollHint">左右にスクロールして大きく確認できます</div>
+      <div className="insightsFixedTrend__frame" ref={frameRef}>
         <div className="insightsFixedTrend__axis" style={{ width: `${axisWidth}px`, minWidth: `${axisWidth}px`, maxWidth: `${axisWidth}px` }}>
           <svg viewBox={`0 0 ${axisWidth} ${height}`} className="insightsFixedTrend__axisSvg" aria-hidden="true">
             <line x1={axisWidth - 1} y1={padTop} x2={axisWidth - 1} y2={xAxisY} stroke="var(--ins-range-axis-line, #9fc2ea)" />
@@ -1962,7 +2004,7 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
             })}
           </svg>
         </div>
-        <div className="insightsFixedTrend__scroll">
+        <div className="insightsFixedTrend__scroll" ref={scrollRef}>
           <div className="insightsFixedTrend__plotInner" style={{ minWidth: `${width}px` }}>
             <svg viewBox={`0 0 ${width} ${height}`} className="insightsFixedTrend__svg" style={{ width: `${width}px` }} aria-hidden="true">
               <defs>
@@ -2003,6 +2045,7 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
 
               {plotted.map((p) => {
                 const isLatest = latestPoint != null && latestPoint.index === p.index;
+                const isSelected = selectedPoint != null && selectedPoint.index === p.index;
                 return (
                   <g key={`lt-dot-${p.index}`}>
                     {isLatest && (
@@ -2018,10 +2061,11 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
                     <circle
                       cx={p.x}
                       cy={p.y}
-                      r={isLatest ? 7.5 : 6}
+                      r={isSelected ? (isLatest ? 9 : 8) : isLatest ? 7.5 : 6}
                       fill="#fff"
                       stroke="#2563eb"
-                      strokeWidth={2}
+                      strokeWidth={isSelected ? 3 : 2}
+                      onClick={() => setSelectedIndex((prev) => (prev === p.index ? null : p.index))}
                     />
                   </g>
                 );
@@ -2035,9 +2079,54 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
                   </text>
                 </g>
               )}
+
+              {selectedPoint && (
+                <line
+                  x1={selectedPoint.x}
+                  y1={padTop}
+                  x2={selectedPoint.x}
+                  y2={xAxisY}
+                  stroke="#3b82f6"
+                  strokeWidth="1.6"
+                  strokeDasharray="4 4"
+                  opacity="0.7"
+                />
+              )}
+
+              {points.map((p, i) => {
+                const x = padLeft + step * i;
+                const left = i === 0 ? padLeft : x - step / 2;
+                const right = i === points.length - 1 ? width - padRight : x + step / 2;
+                return (
+                  <rect
+                    key={`lt-hit-${p.date}-${i}`}
+                    x={left}
+                    y={padTop}
+                    width={Math.max(18, right - left)}
+                    height={height - padTop - padBottom}
+                    fill="transparent"
+                    onClick={() => setSelectedIndex((prev) => (prev === i ? null : i))}
+                    onTouchStart={() => setSelectedIndex(i)}
+                  />
+                );
+              })}
             </svg>
           </div>
         </div>
+        {selectedPoint && (
+          <div
+            ref={tooltipRef}
+            className="insightsFixedTrend__tooltip"
+            style={
+              tooltipPos
+                ? { left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }
+                : { left: "-9999px", top: "-9999px" }
+            }
+          >
+            <div>{selectedPoint.date}</div>
+            <div>ロングトーン: {selectedPoint.value.toFixed(1)}秒</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2073,13 +2162,18 @@ function ScoreTrendChart({
   };
   compact?: boolean;
 }) {
-  const width = compact ? Math.max(290, 100 + points.length * 32) : 760;
-  const height = 260;
-  const axisWidth = compact ? 34 : 40;
-  const padTop = 18;
-  const padBottom = 36;
-  const padLeft = 18;
-  const padRight = 18;
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number } | null>(null);
+  const width = compact ? Math.max(480, 120 + points.length * 42) : Math.max(980, 140 + points.length * 44);
+  const height = compact ? 340 : 380;
+  const axisWidth = compact ? 42 : 48;
+  const padTop = compact ? 22 : 24;
+  const padBottom = compact ? 52 : 56;
+  const padLeft = 20;
+  const padRight = compact ? 22 : 28;
   const values = points.map((p) => p.value).filter((v): v is number => v != null);
   const computedAxis =
     autoScale != null
@@ -2127,6 +2221,7 @@ function ScoreTrendChart({
   const tickStep = computedAxis?.step ?? (yAxisTicks.length >= 2 ? Math.abs(yAxisTicks[1] - yAxisTicks[0]) : 1);
   const xAxisY = height - padBottom;
   const isSemitoneAxis = unit === "半音";
+  const selectedPoint = plotted.find((p) => p.index === selectedIndex) ?? null;
   const formatAxisTick = (value: number) => {
     if (tickFormatter) {
       const formatted = tickFormatter(value);
@@ -2136,9 +2231,45 @@ function ScoreTrendChart({
     return isSemitoneAxis ? `${rendered}` : `${rendered}${unit}`;
   };
 
+  useEffect(() => {
+    const updateTooltip = () => {
+      if (!selectedPoint || !frameRef.current || !scrollRef.current || !tooltipRef.current) {
+        setTooltipPos(null);
+        return;
+      }
+      const frameRect = frameRef.current.getBoundingClientRect();
+      const scrollRect = scrollRef.current.getBoundingClientRect();
+      const tipRect = tooltipRef.current.getBoundingClientRect();
+      const pointClientX = scrollRect.left + (selectedPoint.x - scrollRef.current.scrollLeft);
+      const pointClientY = scrollRect.top + selectedPoint.y;
+      const margin = 8;
+      const halfTipW = tipRect.width / 2;
+      const preferredLeft = pointClientX - frameRect.left;
+      const left = clamp(preferredLeft, margin + halfTipW, frameRect.width - margin - halfTipW);
+      const aboveTop = pointClientY - frameRect.top - tipRect.height - 10;
+      const belowTop = pointClientY - frameRect.top + 12;
+      const top =
+        aboveTop >= margin ? aboveTop : clamp(belowTop, margin, Math.max(margin, frameRect.height - tipRect.height - margin));
+      setTooltipPos({ left, top });
+    };
+
+    const raf = requestAnimationFrame(updateTooltip);
+    const scroller = scrollRef.current;
+    const onScroll = () => requestAnimationFrame(updateTooltip);
+    const onResize = () => requestAnimationFrame(updateTooltip);
+    scroller?.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      scroller?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [selectedPoint, width, height]);
+
   return (
     <div className="insightsFixedTrend">
-      <div className="insightsFixedTrend__frame">
+      <div className="insightsTrendScrollHint">左右にスクロールして大きく確認できます</div>
+      <div className="insightsFixedTrend__frame" ref={frameRef}>
         <div className="insightsFixedTrend__axis" style={{ width: `${axisWidth}px`, minWidth: `${axisWidth}px`, maxWidth: `${axisWidth}px` }}>
           <svg viewBox={`0 0 ${axisWidth} ${height}`} className="insightsFixedTrend__axisSvg" aria-hidden="true">
             {isSemitoneAxis && (
@@ -2160,7 +2291,7 @@ function ScoreTrendChart({
             })}
           </svg>
         </div>
-        <div className="insightsFixedTrend__scroll">
+        <div className="insightsFixedTrend__scroll" ref={scrollRef}>
           <div className="insightsFixedTrend__plotInner" style={{ minWidth: `${width}px` }}>
             <svg viewBox={`0 0 ${width} ${height}`} className="insightsFixedTrend__svg" style={{ width: `${width}px` }} aria-hidden="true">
               <defs>
@@ -2198,15 +2329,17 @@ function ScoreTrendChart({
 
               {plotted.map((p) => {
                 const isLatest = latestPoint != null && latestPoint.index === p.index;
+                const isSelected = selectedPoint != null && selectedPoint.index === p.index;
                 return (
                   <g key={`score-dot-${p.index}`}>
                     <circle
                       cx={p.x}
                       cy={p.y}
-                      r={isLatest ? 7.5 : 6}
+                      r={isSelected ? (isLatest ? 9 : 8) : isLatest ? 7.5 : 6}
                       fill="#fff"
                       stroke={color}
-                      strokeWidth={2}
+                      strokeWidth={isSelected ? 3 : 2}
+                      onClick={() => setSelectedIndex((prev) => (prev === p.index ? null : p.index))}
                     />
                   </g>
                 );
@@ -2220,9 +2353,54 @@ function ScoreTrendChart({
                   </text>
                 </g>
               )}
+
+              {selectedPoint && (
+                <line
+                  x1={selectedPoint.x}
+                  y1={padTop}
+                  x2={selectedPoint.x}
+                  y2={xAxisY}
+                  stroke={color}
+                  strokeWidth="1.6"
+                  strokeDasharray="4 4"
+                  opacity="0.7"
+                />
+              )}
+
+              {points.map((p, i) => {
+                const x = padLeft + step * i;
+                const left = i === 0 ? padLeft : x - step / 2;
+                const right = i === points.length - 1 ? width - padRight : x + step / 2;
+                return (
+                  <rect
+                    key={`score-hit-${p.date}-${i}`}
+                    x={left}
+                    y={padTop}
+                    width={Math.max(18, right - left)}
+                    height={height - padTop - padBottom}
+                    fill="transparent"
+                    onClick={() => setSelectedIndex((prev) => (prev === i ? null : i))}
+                    onTouchStart={() => setSelectedIndex(i)}
+                  />
+                );
+              })}
             </svg>
           </div>
         </div>
+        {selectedPoint && (
+          <div
+            ref={tooltipRef}
+            className="insightsFixedTrend__tooltip"
+            style={
+              tooltipPos
+                ? { left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }
+                : { left: "-9999px", top: "-9999px" }
+            }
+          >
+            <div>{selectedPoint.date}</div>
+            <div>{isSemitoneAxis ? `平均ズレ: ${selectedPoint.value.toFixed(2)}半音` : `結果: ${selectedPoint.value.toFixed(1)}${unit}`}</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2248,16 +2426,16 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
   const compactMode = compact || isMobile;
   const layout = compactMode
     ? {
-        height: 420,
-        padTop: 42,
-        padBottom: 62,
-        axisWidth: 34,
-        plotPadLeft: 16,
-        plotPadRight: 26,
-        plotEdgeInset: 16,
-        pxPerPoint: 34,
+        height: 500,
+        padTop: 44,
+        padBottom: 74,
+        axisWidth: 42,
+        plotPadLeft: 18,
+        plotPadRight: 30,
+        plotEdgeInset: 18,
+        pxPerPoint: 46,
         yTickMax: 6,
-        yTickMinGap: 34,
+        yTickMinGap: 42,
         bgTickMax: 6,
         lowDotR: 3.2,
         highDotR: 2.3,
@@ -2269,16 +2447,16 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
         bestFont: 7.1,
       }
     : {
-        height: 420,
-        padTop: 42,
-        padBottom: 64,
-        axisWidth: 44,
-        plotPadLeft: 16,
-        plotPadRight: 24,
+        height: 540,
+        padTop: 46,
+        padBottom: 78,
+        axisWidth: 52,
+        plotPadLeft: 18,
+        plotPadRight: 28,
         plotEdgeInset: 0,
-        pxPerPoint: 42,
-        yTickMax: 9,
-        yTickMinGap: 28,
+        pxPerPoint: 52,
+        yTickMax: 10,
+        yTickMinGap: 34,
         bgTickMax: 10,
         lowDotR: 3.4,
         highDotR: 2.6,
@@ -2290,7 +2468,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
         bestFont: 7.6,
       };
 
-  const minPlotWidth = compactMode ? 300 : 760;
+  const minPlotWidth = compactMode ? 500 : 1080;
   const width = Math.max(
     minPlotWidth,
     layout.plotPadLeft + layout.plotPadRight + layout.plotEdgeInset * 2 + Math.max(0, points.length - 1) * layout.pxPerPoint
@@ -2420,6 +2598,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
 
   return (
     <div className="insightsRangeTrend">
+      <div className="insightsTrendScrollHint">左右にスクロールして大きく確認できます</div>
       <div className="insightsRangeTrend__frame" ref={frameRef}>
         <div
           className="insightsRangeTrend__axis"
@@ -2515,6 +2694,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
             opacity={p.improvedFromPrev ? layout.highDotStrongOpacity : layout.highDotNormalOpacity}
             stroke="#fff"
             strokeWidth={p.improvedFromPrev ? 1.5 : 0.9}
+            onClick={() => setHoveredIndex((prev) => (prev === p.index ? null : p.index))}
           />
         ))}
 
@@ -2582,6 +2762,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseMove={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex((prev) => (prev === i ? null : prev))}
+              onClick={() => setHoveredIndex((prev) => (prev === i ? null : i))}
               onTouchStart={() => setHoveredIndex(i)}
             />
           );

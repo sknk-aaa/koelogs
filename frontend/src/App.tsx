@@ -24,6 +24,7 @@ import AiChatPage from "./pages/AiChatPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityProfilePage from "./pages/CommunityProfilePage";
 import CommunityRankingPage from "./pages/CommunityRankingPage";
+import LandingPage from "./pages/LandingPage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
 import HelpContactPage from "./pages/HelpContactPage";
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/log" replace />} />
 
           {/* 公開ページ（レイアウト外） */}
+          <Route path="/lp" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
 

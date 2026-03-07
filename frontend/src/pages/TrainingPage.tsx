@@ -72,7 +72,7 @@ type MeasurementInstantResult = {
   replayDurationSec?: number;
   replayGuideRange?: PitchGuideRange | null;
 };
-const DEFAULT_NOISE_DB_THRESHOLD = -70;
+const DEFAULT_NOISE_DB_THRESHOLD = -100;
 const VOLUME_NOISE_DB_THRESHOLD = -60;
 const MIN_VOICED_STREAK_FRAMES = 2;
 const PITCH_ACCURACY_MIN_VOICED_STREAK_FRAMES = 2;

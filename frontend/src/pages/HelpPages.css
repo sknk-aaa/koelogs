@@ -100,6 +100,89 @@
   font-weight: 900;
 }
 
+.helpGuide__introCard {
+  gap: 10px;
+}
+
+.helpGuide__sectionTitle {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.12px;
+}
+
+.helpGuide__lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.85;
+  opacity: 0.84;
+}
+
+.helpGuide__featureGrid,
+.helpGuide__planGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.helpGuide__featureGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.helpGuide__featureCard,
+.helpGuide__planCard,
+.helpGuide__flowStep {
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 4%, var(--card));
+  padding: 14px;
+}
+
+.helpGuide__featureHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.helpGuide__featureTitle,
+.helpGuide__planTitle,
+.helpGuide__flowTitle {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0.08px;
+}
+
+.helpGuide__featureLink {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  color: color-mix(in srgb, var(--text) 84%, var(--accent));
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.helpGuide__featureDescription,
+.helpGuide__flowBody {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.75;
+  opacity: 0.84;
+}
+
+.helpGuide__flow {
+  display: grid;
+  gap: 10px;
+}
+
+.helpGuide__planCard--accent {
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(140deg, color-mix(in srgb, var(--accent) 34%, transparent), rgba(0, 0, 0, 0.08)) border-box;
+  border: 1px solid transparent;
+}
+
 .helpAbout__toc {
   display: flex;
   flex-wrap: wrap;
@@ -204,6 +287,15 @@
 }
 
 @media (max-width: 640px) {
+  .helpGuide__featureGrid,
+  .helpGuide__planGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .helpGuide__sectionTitle {
+    font-size: 19px;
+  }
+
   .helpAbout__tocLink {
     font-size: 12px;
     padding: 8px 12px;

@@ -2441,9 +2441,18 @@
 }
 
 .insightsRangeTrend__frame {
+  position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: stretch;
+}
+
+.insightsTrendScrollHint {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--ins-text-2, #526578) 88%, var(--accent) 12%);
 }
 
 .insightsRangeTrend__axis {
@@ -2468,15 +2477,17 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+  scrollbar-gutter: stable both-edges;
 }
 
 .insightsRangeTrend__plotInner {
   position: relative;
-  height: 420px;
+  height: 540px;
 }
 
 .insightsRangeTrend__canvas {
-  height: 420px;
+  height: 540px;
 }
 
 .insightsRangeTrend__svg {
@@ -2535,7 +2546,25 @@
   white-space: nowrap;
 }
 
+.insightsFixedTrend__tooltip {
+  position: absolute;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 10px;
+  border: 1px solid rgba(25, 118, 210, 0.22);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 22px rgba(16, 54, 89, 0.14);
+  color: #223547;
+  padding: 9px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.45;
+  white-space: nowrap;
+}
+
 .insightsFixedTrend__frame {
+  position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: stretch;
@@ -2558,6 +2587,14 @@
   border-right-color: rgba(255, 255, 255, 0.1);
 }
 
+:root[data-theme-mode="dark"] .insightsRangeTrend__tooltip,
+:root[data-theme-mode="dark"] .insightsFixedTrend__tooltip {
+  border-color: rgba(147, 197, 253, 0.24);
+  background: rgba(18, 28, 42, 0.94);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+  color: rgba(255, 255, 255, 0.94);
+}
+
 .insightsFixedTrend__axisSvg {
   width: 100%;
   height: 100%;
@@ -2569,11 +2606,13 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+  scrollbar-gutter: stable both-edges;
 }
 
 .insightsFixedTrend__plotInner {
   position: relative;
-  height: 260px;
+  height: 380px;
 }
 
 .insightsFixedTrend__svg {
@@ -2601,6 +2640,26 @@
 :root[data-theme-mode="dark"] .insightsFixedTrend__xLabel,
 :root[data-theme-mode="dark"] .insightsFixedTrend__axisTitle {
   fill: rgba(255, 255, 255, 0.85);
+}
+
+:root[data-theme-mode="dark"] .insightsTrendScrollHint {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+@media (max-width: 760px) {
+  .insightsTrendScrollHint {
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+
+  .insightsRangeTrend__plotInner,
+  .insightsRangeTrend__canvas {
+    height: 500px;
+  }
+
+  .insightsFixedTrend__plotInner {
+    height: 340px;
+  }
 }
 
 :root[data-theme-mode="dark"] .insightsPage {

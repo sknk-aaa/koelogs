@@ -6,6 +6,7 @@ module Ai
   class UserLongTermProfileManager
     PROFILE_VERSION = "v1"
     PROFILE_MAX_CHARS = 1000
+    TITLE_AVOID = "避けたい練習/注意点"
     CHALLENGE_SCORE_FIELD = "challenge_scores"
     CHALLENGE_SCORE_UP = 2.0
     CHALLENGE_SCORE_DOWN = 0.5

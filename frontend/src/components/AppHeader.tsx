@@ -19,6 +19,19 @@ function useIsMobile(breakpointPx = 520) {
   return isMobile;
 }
 
+function formatLogHeaderDate(value: string | null): string {
+  if (!value) return "";
+  const matched = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (matched) {
+    return `${Number(matched[2])}月${Number(matched[3])}日`;
+  }
+  const monthMatched = value.match(/^(\d{4})-(\d{2})$/);
+  if (monthMatched) {
+    return `${Number(monthMatched[2])}月`;
+  }
+  return "";
+}
+
 export default function AppHeader() {
   const { me, isLoading, logout } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +39,14 @@ export default function AppHeader() {
 
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile(520);
+  const isLogPage = location.pathname === "/log";
+  const logHeaderDate = useMemo(() => {
+    if (!isLogPage) return "";
+    const params = new URLSearchParams(location.search);
+    const mode = params.get("mode");
+    if (mode === "month") return formatLogHeaderDate(params.get("month"));
+    return formatLogHeaderDate(params.get("date")) || formatLogHeaderDate(new Date().toISOString().slice(0, 10));
+  }, [isLogPage, location.search]);
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -125,38 +146,54 @@ export default function AppHeader() {
     navigate(getLastLogPath());
   };
 
+  const onClickLogHeaderDate = useCallback(() => {
+    window.dispatchEvent(new CustomEvent("koelog:open-monthly-logs"));
+  }, []);
+
+  const headerStyle = isLogPage
+    ? { ...styles.header, background: "#ffffff", backdropFilter: "none" }
+    : styles.header;
+
   return (
     <>
-      <header style={styles.header}>
-        {/* absolute中央を確実にするための relative ラッパー */}
+      <header style={headerStyle}>
         <div style={styles.inner}>
-          {/* 左：アプリ名（クリックで /log） */}
           <div style={styles.left}>
-            <button
-              type="button"
-              onClick={onClickBrand}
-              style={styles.brandBtn}
-              aria-label="ログページへ"
-              title="ログへ"
-            >
-              <img
-                src="/koelog-logo.svg"
-                alt="KoeLog"
-                style={styles.brandLogo}
-                className="appHeader__logo"
-              />
-            </button>
+            {isLogPage ? <div style={styles.logSpacer} aria-hidden="true" /> : (
+              <button
+                type="button"
+                onClick={onClickBrand}
+                style={styles.brandBtn}
+                aria-label="ログページへ"
+                title="ログへ"
+              >
+                <img
+                  src="/koelog-logo.svg"
+                  alt="KoeLog"
+                  style={styles.brandLogo}
+                  className="appHeader__logo"
+                />
+              </button>
+            )}
           </div>
 
-          {/* 右：ログイン状態に応じて切り替え */}
+          <div style={styles.center}>
+            {isLogPage && (
+              <button type="button" onClick={onClickLogHeaderDate} style={styles.logTitleBtn} aria-label="今月のログ一覧を開く">
+                <span style={styles.logTitleText}>{logHeaderDate}</span>
+                <span style={styles.logTitleChevron} aria-hidden="true">▾</span>
+              </button>
+            )}
+          </div>
+
           <div style={styles.right}>
-            {!isLoading && me && !isMobile && (
+            {!isLogPage && !isLoading && me && !isMobile && (
               <div style={styles.email} title={me.display_name ?? me.email}>
                 {me.display_name ?? me.email}
               </div>
             )}
 
-            {!isLoading && !me && (
+            {!isLogPage && !isLoading && !me && (
               <>
                 <button
                   type="button"
@@ -211,7 +248,6 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 80,
     background: "var(--headerBg)",
     backdropFilter: "blur(10px)",
-    borderBottom: "1px solid var(--headerBorder)",
     color: "var(--pageText, var(--text))",
   },
 
@@ -226,6 +262,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   left: { display: "flex", alignItems: "center", gap: 10 },
+  center: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 0,
+  },
 
   right: {
     display: "flex",
@@ -254,6 +296,32 @@ const styles: Record<string, React.CSSProperties> = {
     width: "auto",
     transform: "translate(6px, 2px)",
   },
+  logSpacer: {
+    width: 40,
+    height: 40,
+  },
+  logTitleBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    border: "none",
+    background: "transparent",
+    padding: "6px 10px",
+    borderRadius: 12,
+    color: "var(--pageText, var(--text))",
+    cursor: "pointer",
+  },
+  logTitleText: {
+    fontSize: 18,
+    fontWeight: 800,
+    letterSpacing: "-0.02em",
+    color: "var(--pageText, var(--text))",
+  },
+  logTitleChevron: {
+    fontSize: 14,
+    fontWeight: 800,
+    opacity: 0.65,
+  },
 
   email: {
     color: "var(--text)",
@@ -281,23 +349,26 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   menuBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    border: "1px solid var(--border)",
-    background: "var(--surface)",
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    border: "none",
+    background: "transparent",
     cursor: "pointer",
-    display: "grid",
-    placeItems: "center",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
     padding: 0,
   },
 
   bar: {
     display: "block",
-    width: 18,
-    height: 2,
+    width: 20,
+    height: 1.5,
     borderRadius: 999,
     background: "var(--menuLine)",
-    margin: "2px 0",
+    margin: 0,
   },
 };

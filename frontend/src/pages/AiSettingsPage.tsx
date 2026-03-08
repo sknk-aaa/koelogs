@@ -24,6 +24,7 @@ import memoryEditIcon from "../assets/ai_settings/memory-edit.svg";
 import "./AiSettingsPage.css";
 
 const CUSTOM_MAX = 600;
+const GOAL_MAX = 50;
 const LONG_PROFILE_ITEM_MAX = 6;
 const LONG_PROFILE_LINE_MAX = 6;
 const LONG_PROFILE_TEXT_MAX = 220;
@@ -171,10 +172,12 @@ export default function AiSettingsPage() {
   const [status, setStatus] = useState<string | null>(null);
 
   const [customInstructions, setCustomInstructions] = useState("");
+  const [goalText, setGoalText] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [responseStylePrefs, setResponseStylePrefs] = useState<AiResponseStylePrefs>(DEFAULT_STYLE_PREFS);
 
   const [initialCustomInstructions, setInitialCustomInstructions] = useState("");
+  const [initialGoalText, setInitialGoalText] = useState("");
   const [initialSelectedTags, setInitialSelectedTags] = useState<string[]>([]);
   const [initialResponseStylePrefs, setInitialResponseStylePrefs] = useState<AiResponseStylePrefs>(DEFAULT_STYLE_PREFS);
 
@@ -233,12 +236,15 @@ export default function AiSettingsPage() {
         }
 
         const custom = me.ai_custom_instructions ?? "";
+        const goal = me.goal_text ?? "";
         const tags = normalizeImprovementTags(me.ai_improvement_tags ?? []);
         const stylePrefs = normalizeResponseStylePrefs(me.ai_response_style_prefs);
         setCustomInstructions(custom);
+        setGoalText(goal);
         setSelectedTags(tags);
         setResponseStylePrefs(stylePrefs);
         setInitialCustomInstructions(custom);
+        setInitialGoalText(goal);
         setInitialSelectedTags(tags);
         setInitialResponseStylePrefs(stylePrefs);
 
@@ -277,6 +283,7 @@ export default function AiSettingsPage() {
   const isOverLimit = normalizedDraftInstructions.length > CUSTOM_MAX;
   const isDirty =
     normalizedDraftInstructions !== normalizeInstructions(initialCustomInstructions) ||
+    goalText.trim() !== initialGoalText.trim() ||
     !sameStringArray(normalizedDraftTags, initialSelectedTags) ||
     !sameResponseStylePrefs(responseStylePrefs, initialResponseStylePrefs) ||
     strengthsText.trim() !== initialStrengthsText.trim() ||
@@ -316,6 +323,7 @@ export default function AiSettingsPage() {
       });
 
       const updated = await updateMe({
+        goal_text: goalText.trim() || undefined,
         ai_custom_instructions: normalizedDraftInstructions,
         ai_improvement_tags: normalizedDraftTags,
         ai_response_style_prefs: responseStylePrefs,
@@ -328,6 +336,7 @@ export default function AiSettingsPage() {
       });
 
       const nextCustom = updated.ai_custom_instructions ?? "";
+      const nextGoal = updated.goal_text ?? "";
       const nextTags = normalizeImprovementTags(updated.ai_improvement_tags ?? []);
       const nextStylePrefs = normalizeResponseStylePrefs(updated.ai_response_style_prefs);
       const profile = updated.ai_long_term_profile;
@@ -336,9 +345,11 @@ export default function AiSettingsPage() {
       );
 
       setCustomInstructions(nextCustom);
+      setGoalText(nextGoal);
       setSelectedTags(nextTags);
       setResponseStylePrefs(nextStylePrefs);
       setInitialCustomInstructions(nextCustom);
+      setInitialGoalText(nextGoal);
       setInitialSelectedTags(nextTags);
       setInitialResponseStylePrefs(nextStylePrefs);
       applyLongTermProfileState(profile, nextItems);
@@ -373,6 +384,30 @@ export default function AiSettingsPage() {
       )}
 
       {error && <div className="aiSettingsPage__error">{error}</div>}
+
+      <section className="card aiSettingsPage__card">
+        <div className="aiSettingsPage__sectionHead">
+          <h2 className="aiSettingsPage__sectionTitle aiSettingsPage__sectionTitle--goal">目標</h2>
+        </div>
+        <p className="aiSettingsPage__hint">
+          AIおすすめの根拠として使う、今の目標を設定します。
+        </p>
+        <div className="aiSettingsPage__textareaWrap">
+          <label className="aiSettingsPage__fieldLabel" htmlFor="ai-settings-goal-text">
+            今月の目標
+          </label>
+          <input
+            id="ai-settings-goal-text"
+            className="aiSettingsPage__textInput"
+            type="text"
+            value={goalText}
+            onChange={(e) => setGoalText(e.target.value.slice(0, GOAL_MAX))}
+            placeholder="例：喉を閉めずにミドルを出す"
+            maxLength={GOAL_MAX}
+          />
+          <div className="aiSettingsPage__countText">{goalText.trim().length}/{GOAL_MAX}</div>
+        </div>
+      </section>
 
       <section className="card aiSettingsPage__card">
         <div className="aiSettingsPage__sectionHead">

@@ -3,16 +3,16 @@ import { Link } from "react-router-dom";
 import InsightsCardHeader from "../features/insights/components/InsightsCardHeader";
 import "./InsightsPages.css";
 
-function currentMonth() {
+function todayISO() {
   const d = new Date();
   const y = d.getFullYear();
+  const day = String(d.getDate()).padStart(2, "0");
   const m = String(d.getMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
+  return `${y}-${m}-${day}`;
 }
 
 export default function InsightsMenusPage() {
-  const month = currentMonth();
-  const to = `/log?mode=month&month=${encodeURIComponent(month)}`;
+  const to = `/log?date=${encodeURIComponent(todayISO())}`;
 
   return (
     <div className="page insightsPage">
@@ -23,7 +23,7 @@ export default function InsightsMenusPage() {
           <div>
             <div className="insightsHero__kicker">Insights</div>
             <h1 className="insightsHero__title">メニュー実施数</h1>
-            <p className="insightsHero__sub">この指標は月ログへ移動しました。</p>
+            <p className="insightsHero__sub">この指標はログページの日別表示へ統合しました。</p>
           </div>
           <Link to="/insights" className="insightsBack">
             戻る
@@ -33,10 +33,10 @@ export default function InsightsMenusPage() {
 
       <section className="insightsCard">
         <InsightsCardHeader title="移動先" />
-        <p className="insightsMuted">今月の日ログ一覧・合計実施メニュー・累計練習時間は月ログで確認できます。</p>
+        <p className="insightsMuted">日付を切り替えながら、その日のメニュー記録をログページで確認できます。</p>
         <div style={{ marginTop: 10 }}>
           <Link to={to} className="insightsBack">
-            月ログを開く
+            ログを開く
           </Link>
         </div>
       </section>

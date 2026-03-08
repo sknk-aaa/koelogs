@@ -16,7 +16,7 @@ function LogTabIcon({ active }: { active: boolean }) {
         d="M4 10.6L12 4l8 6.6V19a1 1 0 0 1-1 1h-5.4v-5.3a1 1 0 0 0-1-1h-1.2a1 1 0 0 0-1 1V20H5a1 1 0 0 1-1-1v-8.4Z"
         fill={active ? "currentColor" : "none"}
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -31,7 +31,7 @@ function ChatTabIcon({ active }: { active: boolean }) {
         d="M4.6 6.8a2 2 0 0 1 2-2h10.8a2 2 0 0 1 2 2v7.2a2 2 0 0 1-2 2H10l-3.4 2.8v-2.8H6.6a2 2 0 0 1-2-2V6.8Z"
         fill={active ? "currentColor" : "none"}
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -53,10 +53,10 @@ function TrainingTabIcon({ active }: { active: boolean }) {
         rx="2.9"
         fill={active ? "currentColor" : "none"}
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
       />
-      <path d="M7.2 11.6a4.8 4.8 0 0 0 9.6 0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M12 16.5v3.3M9.4 19.8h5.2" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M7.2 11.6a4.8 4.8 0 0 0 9.6 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 16.5v3.3M9.4 19.8h5.2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -64,16 +64,16 @@ function TrainingTabIcon({ active }: { active: boolean }) {
 function CommunityTabIcon({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-      <circle cx="9.2" cy="8.2" r="2.5" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.7" />
+      <circle cx="9.2" cy="8.2" r="2.5" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" />
       <path
         d="M4.8 16.9c0-2.2 1.9-4 4.4-4s4.4 1.8 4.4 4"
         fill={active ? "currentColor" : "none"}
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="2"
         strokeLinecap="round"
       />
-      <circle cx="16.3" cy="9.1" r="2" fill="none" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M14 16.9c.1-1.8 1.5-3.2 3.4-3.2 1 0 1.9.4 2.5 1.1" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <circle cx="16.3" cy="9.1" r="2" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M14 16.9c.1-1.8 1.5-3.2 3.4-3.2 1 0 1.9.4 2.5 1.1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -81,10 +81,10 @@ function CommunityTabIcon({ active }: { active: boolean }) {
 function InsightsTabIcon({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-      <path d="M4 18.8h16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <rect x="5.5" y="12.3" width="2.8" height="6.3" rx="0.9" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" />
-      <rect x="10.6" y="9.2" width="2.8" height="9.4" rx="0.9" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" />
-      <rect x="15.7" y="6.1" width="2.8" height="12.5" rx="0.9" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" />
+      <path d="M4 18.8h16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <rect x="5.5" y="12.3" width="2.8" height="6.3" rx="0.9" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" />
+      <rect x="10.6" y="9.2" width="2.8" height="9.4" rx="0.9" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" />
+      <rect x="15.7" y="6.1" width="2.8" height="12.5" rx="0.9" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" />
     </svg>
   );
 }
@@ -263,13 +263,13 @@ export default function AppFooterTabs() {
 const TAB_BAR_H = 58; // ベース高さ（画像っぽい。56〜60で調整可）
 
 function buildStyles(mode: "light" | "dark"): Record<string, React.CSSProperties> {
-  const inactiveColor = mode === "dark" ? "rgba(222, 233, 252, 0.74)" : "#8e8e93";
+  const inactiveColor = mode === "dark" ? "rgba(222, 233, 252, 0.74)" : "#9a9aa0";
   const activeColor = mode === "dark" ? "#60a5fa" : "var(--accent)";
   const navBackground =
     mode === "dark"
-      ? "linear-gradient(180deg, rgba(20, 27, 46, 0.98) 0%, rgba(13, 20, 38, 0.98) 100%)"
-      : "rgb(255, 255, 255)";
-  const navBorder = mode === "dark" ? "1px solid rgba(129, 154, 209, 0.24)" : "1px solid rgba(0,0,0,0.06)";
+      ? "rgba(13, 20, 38, 0.98)"
+      : "#ffffff";
+  const navBorder = mode === "dark" ? "1px solid rgba(129, 154, 209, 0.24)" : "1px solid #ececec";
 
   return {
     nav: {
@@ -302,8 +302,8 @@ function buildStyles(mode: "light" | "dark"): Record<string, React.CSSProperties
     alignItems: "center",
     justifyContent: "center",
 
-    gap: 3,
-    paddingTop: 6,
+    gap: 4,
+    paddingTop: 4,
     fontWeight: 700,
     WebkitTapHighlightColor: "transparent",
   },
@@ -313,7 +313,7 @@ function buildStyles(mode: "light" | "dark"): Record<string, React.CSSProperties
 
   tabActive: {
     color: activeColor,
-    background: mode === "dark" ? "rgba(96, 165, 250, 0.12)" : "color-mix(in srgb, var(--accent) 12%, transparent)",
+    background: "transparent",
   },
 
   iconSvgWrap: {
@@ -355,7 +355,7 @@ function buildStyles(mode: "light" | "dark"): Record<string, React.CSSProperties
     gap: 1,
     lineHeight: 1.1,
   },
-  label: { fontSize: 11, whiteSpace: "nowrap" },
+  label: { fontSize: 11, whiteSpace: "nowrap", fontWeight: 700 },
   labelLocked: {
     color: "#75849b",
   },

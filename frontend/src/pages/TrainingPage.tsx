@@ -22,6 +22,12 @@ import premiumAmbientReplayUi from "../assets/premium/ambient-replay-ui.svg";
 import "./TrainingPage.css";
 
 type MeasurementSystemKey = "range" | "long_tone" | "volume_stability" | "pitch_accuracy";
+function parseMeasurementSystemKey(value: string | null): MeasurementSystemKey | null {
+  if (value === "range" || value === "long_tone" || value === "volume_stability" || value === "pitch_accuracy") {
+    return value;
+  }
+  return null;
+}
 type RangePhase = "chest" | "falsetto";
 type PitchGuideRange = "low" | "mid" | "high";
 type PitchJudgeTone = "inactive" | "green" | "yellow" | "red";
@@ -253,6 +259,7 @@ export default function TrainingPage() {
     () => MEASUREMENT_SHORTCUTS.find((v) => v.systemKey === activeMeasurementKey) ?? null,
     [activeMeasurementKey]
   );
+  const queryMeasurementKey = parseMeasurementSystemKey(searchParams.get("measurement"));
   const effectivePitchGuideRange: PitchGuideRange = pitchGuideRange ?? "mid";
   const pitchGuide = useMemo(() => buildPitchGuide(effectivePitchGuideRange), [effectivePitchGuideRange]);
   const selectedPitchGuideOption = useMemo(
@@ -322,6 +329,11 @@ export default function TrainingPage() {
     }
     setTutorialModalStage(null);
   }, [me]);
+
+  useEffect(() => {
+    if (!queryMeasurementKey || queryMeasurementKey === activeMeasurementKey) return;
+    setActiveMeasurementKey(queryMeasurementKey);
+  }, [activeMeasurementKey, queryMeasurementKey]);
 
   useEffect(() => {
     if (!tutorialRangeDonePending || measurementResultModalOpen) return;
@@ -1206,7 +1218,12 @@ export default function TrainingPage() {
   const onSelectMeasurementShortcut = (systemKey: MeasurementSystemKey) => {
     setMeasurementError(null);
     setActiveMeasurementKey(systemKey);
-    if (!isMdUp) setMobileMeasureStep("execute");
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("measurement", systemKey);
+      if (!isMdUp) next.set("measureStep", "execute");
+      return next;
+    });
   };
   const moveMeasurementShortcut = (delta: -1 | 1) => {
     const count = MEASUREMENT_SHORTCUTS.length;

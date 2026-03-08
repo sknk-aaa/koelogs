@@ -748,6 +748,16 @@
   justify-content: flex-end;
 }
 
+.aiChatPage__msgRow--recommendation {
+  display: block;
+}
+
+.aiChatPage__msgRow--recommendation .logPage__card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
 .aiChatPage__msgBubble {
   width: 100%;
   border: none;

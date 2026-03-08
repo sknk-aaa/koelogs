@@ -711,8 +711,7 @@ module Ai
       prune_state_offtopic_sentences!(lines, explicit_theme: explicit_theme)
 
       source_labels = build_web_source_labels(web_evidence).first(2)
-      source_urls = build_web_source_urls(web_evidence).first(2)
-      web_available = source_urls.any?
+      web_available = source_labels.any?
 
       menu_range = menu_section_range(lines)
       return text if menu_range.nil?
@@ -788,7 +787,7 @@ module Ai
           ensure_web_source_line!(
             lines,
             evidence_idx: entry[:evidence_idx],
-            source_urls: source_urls
+            source_labels: source_labels
           )
         end
       end
@@ -817,20 +816,13 @@ module Ai
       end.uniq
     end
 
-    def build_web_source_urls(web_evidence)
-      Array(web_evidence[:sources]).filter_map do |source|
-        next unless source.is_a?(Hash)
-        source[:url].to_s.strip.presence || source["url"].to_s.strip.presence
-      end.uniq
-    end
-
-    def ensure_web_source_line!(lines, evidence_idx:, source_urls:)
-      return if source_urls.blank?
+    def ensure_web_source_line!(lines, evidence_idx:, source_labels:)
+      return if source_labels.blank?
 
       evidence_line = lines[evidence_idx].to_s
       return unless evidence_line.include?("Web") || evidence_line.include?("両方")
 
-      line_text = "Web出典: #{source_urls.join(' / ')}"
+      line_text = "Web出典: #{source_labels.join(' / ')}"
       next_idx = evidence_idx + 1
       if next_idx < lines.length && lines[next_idx].to_s.strip.start_with?("Web出典:")
         lines[next_idx] = line_text

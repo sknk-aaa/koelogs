@@ -1,8 +1,3 @@
-import { useEffect, useState } from "react";
-import { fetchInsights } from "../api/insights";
-import { useAuth } from "../features/auth/useAuth";
-import { THEMES } from "../features/theme/themes";
-import { isThemeUnlocked, readLastSeenLevel, unlockLabel } from "../features/theme/themeUnlock";
 import { useTheme } from "../features/theme/useTheme";
 import { useSettings } from "../features/settings/useSettings";
 
@@ -14,27 +9,10 @@ function clamp01(n: number) {
 }
 
 export default function SettingsPage() {
-  const { me } = useAuth();
-  const { themeKey, setThemeKey, themeMode, setThemeMode, resolvedMode } = useTheme();
+  const { themeMode, setThemeMode, resolvedMode } = useTheme();
   const { settings, patchSettings } = useSettings();
-  const [level, setLevel] = useState<number>(() => readLastSeenLevel());
 
   const volumePct = Math.round(clamp01(settings.defaultVolume) * 100);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!me) return () => {};
-
-    void (async () => {
-      const res = await fetchInsights(7);
-      if (cancelled || !res.data) return;
-      setLevel((prev) => Math.max(prev, res.data.gamification.level));
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [me]);
 
   return (
     <div className="page settingsPage">
@@ -67,58 +45,10 @@ export default function SettingsPage() {
               />
               <span>ダーク</span>
             </label>
-            <label className={`settingsPage__pillRadio ${themeMode === "system" ? "isSelected" : ""}`}>
-              <input
-                type="radio"
-                checked={themeMode === "system"}
-                onChange={() => setThemeMode("system")}
-              />
-              <span>システム</span>
-            </label>
           </div>
           <div className="settingsPage__hint">
             現在適用中: {resolvedMode === "dark" ? "ダーク" : "ライト"}
           </div>
-        </div>
-      </section>
-
-      <section className="card settingsPage__card">
-        <div className="settingsPage__cardTitle">テーマカラー</div>
-        <div className="settingsPage__hint settingsPage__hint--themeLevel">現在レベル: Lv{level}</div>
-        {themeMode === "dark" && (
-          <div className="settingsPage__hint">ダークモード選択中はテーマカラーを変更できません。</div>
-        )}
-        <div className="settingsPage__themeGrid">
-          {THEMES.map((t) => {
-            const unlocked = isThemeUnlocked(t, level);
-            const disabledByMode = themeMode === "dark";
-            const selected = t.key === themeKey;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setThemeKey(t.key)}
-                className={`settingsPage__themeBtn ${selected ? "isSelected" : ""}${unlocked ? "" : " isLocked"}${disabledByMode ? " isModeLocked" : ""}`}
-                disabled={!unlocked || disabledByMode}
-                aria-label={
-                  disabledByMode
-                    ? "ダークモード中は選択できません"
-                    : unlocked
-                      ? `${t.name}テーマを選択`
-                      : `${t.name}テーマは未開放`
-                }
-              >
-                <span className="settingsPage__swatchWrap">
-                  <span className="settingsPage__swatch" style={{ background: t.vars["--accent"] }} />
-                  <span className="settingsPage__swatch" style={{ background: t.vars["--accentSoft"] }} />
-                </span>
-                <span className="settingsPage__themeMeta">
-                  <span className="settingsPage__themeName">{t.name}</span>
-                  {!unlocked && <span className="settingsPage__themeLock">{unlockLabel(t)}</span>}
-                </span>
-              </button>
-            );
-          })}
         </div>
       </section>
 

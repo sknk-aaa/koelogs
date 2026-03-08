@@ -12,6 +12,7 @@ import {
 import { fetchAiRecommendationByDate, fetchAiRecommendationHistory } from "../api/aiRecommendations";
 import type { AiChatMessage, AiChatThread } from "../types/aiChat";
 import { useAuth } from "../features/auth/useAuth";
+import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
 import TutorialModal from "../components/TutorialModal";
 import searchIconDark from "../assets/chat/search-dark.svg";
@@ -262,6 +263,12 @@ export default function AiChatPage() {
   const latestAssistantMessage = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
       if (messages[i].role === "assistant") return messages[i];
+    }
+    return null;
+  }, [messages]);
+  const firstAssistantMessageId = useMemo(() => {
+    for (let i = 0; i < messages.length; i += 1) {
+      if (messages[i].role === "assistant") return messages[i].id;
     }
     return null;
   }, [messages]);
@@ -566,7 +573,7 @@ export default function AiChatPage() {
             thread.source_kind === "ai_recommendation" && thread.source_date === recommendationDate
         ) ?? null;
 
-      if (!targetThread && seed.length === 0) {
+      if (!targetThread && seed.length === 0 && recommendationText.length === 0) {
         navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
         recommendationBootingRef.current = false;
         return;
@@ -1135,16 +1142,36 @@ export default function AiChatPage() {
                         message.role === "assistant"
                           ? splitMemoryCandidatePrompt(message.content).bodyText
                           : message.content;
+                      const isRecommendationSeedMessage =
+                        isRecommendationThread &&
+                        message.role === "assistant" &&
+                        message.id === firstAssistantMessageId;
                       return (
                         <article
                           key={item.key}
                           data-message-id={message.id}
-                          className={`aiChatPage__msgRow aiChatPage__msgRow--${message.role}`}
+                          className={`aiChatPage__msgRow aiChatPage__msgRow--${message.role} ${isRecommendationSeedMessage ? "aiChatPage__msgRow--recommendation" : ""}`.trim()}
                         >
-                          <div className="aiChatPage__msgBubble">
-                            <div className="aiChatPage__msgRole">{message.role === "user" ? "あなた" : "AIコーチ"}</div>
-                            <div className="aiChatPage__msgText">{renderChatMessageText(messageText, message.role)}</div>
-                          </div>
+                          {isRecommendationSeedMessage ? (
+                            <AiRecommendationCard
+                              title="今週のおすすめメニュー"
+                              meta={activeThread?.source_date ?? undefined}
+                              aiLoading={false}
+                              aiError={null}
+                              recommendationText={messageText}
+                              isSaved
+                              shownText={messageText}
+                              collapsible={false}
+                              expanded
+                              onToggleExpanded={() => {}}
+                              showFollowupButton={false}
+                            />
+                          ) : (
+                            <div className="aiChatPage__msgBubble">
+                              <div className="aiChatPage__msgRole">{message.role === "user" ? "あなた" : "AIコーチ"}</div>
+                              <div className="aiChatPage__msgText">{renderChatMessageText(messageText, message.role)}</div>
+                            </div>
+                          )}
                         </article>
                       );
                     })

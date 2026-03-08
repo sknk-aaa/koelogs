@@ -1,74 +1,92 @@
 import { useEffect, useMemo, useState } from "react";
 import { ThemeContext, type ThemeState } from "./ThemeContext";
-import { THEMES, type ThemeKey } from "./themes";
-import { loadThemeKey, loadThemeMode, saveThemeKey, saveThemeMode, type ThemeMode } from "./themeStorage";
+import { loadThemeMode, saveThemeMode, type ThemeMode } from "./themeStorage";
 
-function applyThemeToRoot(key: ThemeKey, mode: "light" | "dark") {
-  const def = THEMES.find((t) => t.key === key) ?? THEMES[0];
+const FIXED_LIGHT_VARS = {
+  "--accent": "#0e91d8",
+  "--accentSoft": "rgba(14, 145, 216, 0.2)",
+  "--accentText": "#ffffff",
+  "--accentTextSoft": "#0f324f",
+  "--bgTop": "#c8def5",
+  "--bgMid": "#d9e4f2",
+  "--bgBottom": "#cfd9e8",
+  "--text": "#0f1d2e",
+  "--muted": "rgba(16, 30, 48, 0.68)",
+  "--border": "rgba(29, 58, 94, 0.18)",
+  "--card": "#ffffff",
+  "--surface": "#ffffff",
+  "--surfaceStrong": "#ffffff",
+  "--surface-strong": "#ffffff",
+  "--pageText": "#0f1d2e",
+  "--cardText": "#0f1d2e",
+  "--headerBg": "rgba(255, 255, 255, 0.72)",
+  "--headerBorder": "rgba(0, 0, 0, 0.06)",
+  "--drawerBackdrop": "rgba(0, 0, 0, 0.35)",
+  "--drawerSheet": "rgba(255, 255, 255, 0.92)",
+  "--drawerBorder": "rgba(0, 0, 0, 0.08)",
+  "--drawerCard": "#ffffff",
+  "--drawerText": "#111111",
+  "--bg-glow-1": "rgba(0, 0, 0, 0)",
+  "--bg-glow-2": "rgba(0, 0, 0, 0)",
+  "--card-tint": "#ffffff",
+} as const;
+
+const FIXED_DARK_VARS = {
+  "--accent": "#2f9fff",
+  "--accentSoft": "rgba(47, 159, 255, 0.2)",
+  "--accentText": "#ffffff",
+  "--accentTextSoft": "#10273d",
+  "--bg": "#0a111d",
+  "--bgTop": "#101a2d",
+  "--bgMid": "#0b1220",
+  "--bgBottom": "#0a0f1a",
+  "--text": "#e7eefb",
+  "--muted": "rgba(231, 238, 251, 0.66)",
+  "--border": "rgba(255, 255, 255, 0.08)",
+  "--card": "#141f33",
+  "--surface": "#111a2b",
+  "--surfaceStrong": "#162238",
+  "--surface-strong": "#162238",
+  "--pageText": "#e7eefb",
+  "--cardText": "#e7eefb",
+  "--headerBg": "rgba(12, 16, 27, 0.82)",
+  "--headerBorder": "rgba(255, 255, 255, 0.08)",
+  "--drawerBackdrop": "rgba(4, 8, 16, 0.7)",
+  "--drawerSheet": "#141f33",
+  "--drawerBorder": "rgba(255, 255, 255, 0.08)",
+  "--drawerCard": "#141f33",
+  "--drawerText": "#e6edf8",
+  "--bg-glow-1": "rgba(90, 161, 242, 0.18)",
+  "--bg-glow-2": "rgba(155, 123, 255, 0.16)",
+  "--card-tint": "#1d2a45",
+} as const;
+
+function applyThemeToRoot(mode: "light" | "dark") {
   const root = document.documentElement;
-  const dynamicLightVars = [ "--bg-glow-1", "--bg-glow-2", "--card-tint" ] as const;
+  const vars = mode === "dark" ? FIXED_DARK_VARS : FIXED_LIGHT_VARS;
 
-  root.dataset.theme = def.key;
+  root.dataset.theme = "default";
   root.dataset.themeMode = mode;
   root.style.colorScheme = mode;
-
-  // Reset inline vars first so stylesheet-based dark tokens can take over.
-  Object.keys(def.vars).forEach((k) => {
-    root.style.removeProperty(k);
+  Object.entries(vars).forEach(([key, value]) => {
+    root.style.setProperty(key, value);
   });
-  dynamicLightVars.forEach((k) => {
-    root.style.removeProperty(k);
-  });
-
-  // Light mode uses selected theme colors.
-  // Dark mode intentionally ignores theme variants (rose/sky/etc).
-  if (mode === "light") {
-    Object.entries(def.vars).forEach(([k, v]) => {
-      root.style.setProperty(k, v);
-    });
-    root.style.setProperty("--bg-glow-1", "color-mix(in srgb, var(--accent) 20%, transparent)");
-    root.style.setProperty("--bg-glow-2", "color-mix(in srgb, var(--accent) 14%, transparent)");
-    root.style.setProperty("--card-tint", "color-mix(in srgb, var(--accent) 8%, #ffffff)");
-  }
-}
-
-function systemPrefersDark() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeKey, setThemeKeyState] = useState<ThemeKey>(() => {
-    return loadThemeKey() ?? "rose";
-  });
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => loadThemeMode() ?? "dark");
-  const [systemDark, setSystemDark] = useState<boolean>(() => systemPrefersDark());
-
-  const resolvedMode: "light" | "dark" = themeMode === "system" ? (systemDark ? "dark" : "light") : themeMode;
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => loadThemeMode() ?? "light");
+  const resolvedMode: "light" | "dark" = themeMode;
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mql = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = (e: MediaQueryListEvent) => {
-      setSystemDark(e.matches);
-    };
-    setSystemDark(mql.matches);
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
-
-  useEffect(() => {
-    applyThemeToRoot(themeKey, resolvedMode);
-    saveThemeKey(themeKey);
+    applyThemeToRoot(resolvedMode);
     saveThemeMode(themeMode);
-  }, [themeKey, themeMode, resolvedMode]);
+  }, [themeMode, resolvedMode]);
 
-  const setThemeKey = (k: ThemeKey) => setThemeKeyState(k);
   const setThemeMode = (m: ThemeMode) => setThemeModeState(m);
 
   const value: ThemeState = useMemo(
-    () => ({ themeKey, setThemeKey, themeMode, resolvedMode, setThemeMode }),
-    [resolvedMode, themeKey, themeMode]
+    () => ({ themeMode, resolvedMode, setThemeMode }),
+    [resolvedMode, themeMode]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

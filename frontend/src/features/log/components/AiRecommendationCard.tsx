@@ -3,6 +3,7 @@ import MetronomeLoader from "../../../components/MetronomeLoader";
 import InfoModal from "../../../components/InfoModal";
 import type { AiCollectiveSummary } from "../../../types/aiRecommendation";
 import { Card } from "../../ui";
+import AiRecommendationInfoContent from "./AiRecommendationInfoContent";
 
 type Props = {
   title: string;
@@ -69,36 +70,7 @@ export default function AiRecommendationCard({
             bodyClassName="logPage__aiInfoBody"
             triggerClassName="logPage__aiInfoBtn"
           >
-            <div className="logPage__aiInfoLead">直近の記録と目標から、今週の練習プランをAIが提案します。</div>
-            <div className="logPage__aiInfoBlocks">
-              <section className="logPage__aiInfoBlock logPage__aiInfoBlock--primary">
-                <div className="logPage__aiInfoBlockTitle">
-                  <span className="logPage__aiInfoIcon" aria-hidden="true">🎯</span>
-                  <span>主に使う</span>
-                </div>
-                <div className="logPage__aiInfoBlockText">
-                  詳細ログは直近14日を使い、選択した参照期間が30/90日の場合は月ログ傾向も補助で参照します。
-                </div>
-              </section>
-              <section className="logPage__aiInfoBlock">
-                <div className="logPage__aiInfoBlockTitle">
-                  <span className="logPage__aiInfoIcon" aria-hidden="true">💡</span>
-                  <span>補助</span>
-                </div>
-                <div className="logPage__aiInfoBlockText">
-                  コミュニティで投稿されたトレーニング内容を参考にすることがあります。
-                </div>
-              </section>
-              <section className="logPage__aiInfoBlock logPage__aiInfoBlock--save">
-                <div className="logPage__aiInfoBlockTitle">
-                  <span className="logPage__aiInfoIcon" aria-hidden="true">🧠</span>
-                  <span>保存</span>
-                </div>
-                <div className="logPage__aiInfoBlockText">
-                  生成結果は当日分として保存され、後から見返せます。
-                </div>
-              </section>
-            </div>
+            <AiRecommendationInfoContent />
           </InfoModal>
         </div>
       </div>
@@ -470,9 +442,21 @@ function renderHighlightedMultiline(text: string) {
       {rows.map((row, idx) => (
         <Fragment key={`ml-${idx}`}>
           {idx > 0 ? <br /> : null}
-          {renderHighlighted(row)}
+          {renderMenuDescriptionRow(row)}
         </Fragment>
       ))}
+    </>
+  );
+}
+
+function renderMenuDescriptionRow(text: string) {
+  const m = text.match(/^(やり方|なぜ有効か|失敗時)[:：]\s*(.*)$/);
+  if (!m) return renderHighlighted(text);
+  return (
+    <>
+      <span className="logAiMenuRow__label">{m[1]}:</span>
+      {m[2] ? " " : null}
+      {m[2] ? renderHighlighted(m[2]) : null}
     </>
   );
 }

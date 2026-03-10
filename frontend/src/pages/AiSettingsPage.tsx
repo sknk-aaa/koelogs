@@ -17,6 +17,7 @@ import {
 } from "../features/improvementTags/improvementTags";
 import { IMPROVEMENT_TAG_OPTIONS } from "../types/community";
 import InfoModal from "../components/InfoModal";
+import { InfoModalItem, InfoModalItems, InfoModalLead, InfoModalSection } from "../components/InfoModalSections";
 import memoryOrganizeIcon from "../assets/ai_settings/memory-organize.svg";
 import memoryPriorityIcon from "../assets/ai_settings/memory-priority.svg";
 import memoryEditIcon from "../assets/ai_settings/memory-edit.svg";
@@ -486,11 +487,6 @@ export default function AiSettingsPage() {
 
   return (
     <div className="page aiSettingsPage">
-      <section className="aiSettingsPage__hero">
-        <h1 className="aiSettingsPage__title">AI SETTINGS</h1>
-        <p className="aiSettingsPage__sub">回答スタイル・ボイトレメモリ・改善項目・参照期間を設定できます。</p>
-      </section>
-
       {status && (
         <div className="aiSettingsPage__toast" role="status" aria-live="polite">
           {status}
@@ -537,39 +533,29 @@ export default function AiSettingsPage() {
             <div className="aiSettingsPage__sectionEyebrow">MEMORY</div>
           </div>
           <InfoModal title="ボイトレメモリとは？" triggerClassName="aiSettingsPage__memoryInfoBtn" bodyClassName="aiSettingsPage__memoryInfoBody">
-            <p className="aiSettingsPage__memoryInfoLead">
-              あなたの練習メモをAIが整理し
-              「今の状態（強み・課題・成長）」をまとめます。
-            </p>
-            <div className="aiSettingsPage__memoryInfoSteps">
-              <section className="aiSettingsPage__memoryInfoStep">
-                <div className="aiSettingsPage__memoryInfoStepHead">
-                  <img className="aiSettingsPage__memoryInfoStepIcon" src={memoryOrganizeIcon} alt="" aria-hidden="true" />
-                  <h3 className="aiSettingsPage__memoryInfoStepTitle">悩みを整理</h3>
-                </div>
-                <p className="aiSettingsPage__memoryInfoStepText">
-                  同じ意味の悩み（喉が締まる / 詰まる）を、1つの課題にまとめます。
-                </p>
-              </section>
-              <section className="aiSettingsPage__memoryInfoStep">
-                <div className="aiSettingsPage__memoryInfoStepHead">
-                  <img className="aiSettingsPage__memoryInfoStepIcon" src={memoryPriorityIcon} alt="" aria-hidden="true" />
-                  <h3 className="aiSettingsPage__memoryInfoStepTitle">よく出る課題を表示</h3>
-                </div>
-                <p className="aiSettingsPage__memoryInfoStepText">
-                  一時的な不調より、継続している課題が上に表示されます。
-                </p>
-              </section>
-              <section className="aiSettingsPage__memoryInfoStep">
-                <div className="aiSettingsPage__memoryInfoStepHead">
-                  <img className="aiSettingsPage__memoryInfoStepIcon" src={memoryEditIcon} alt="" aria-hidden="true" />
-                  <h3 className="aiSettingsPage__memoryInfoStepTitle">内容は編集できます</h3>
-                </div>
-                <p className="aiSettingsPage__memoryInfoStepText">
-                  AI整理後も、内容はいつでも自由に修正できます。
-                </p>
-              </section>
-            </div>
+            <InfoModalLead>
+              あなたの練習メモをAIが整理し、「今の状態（強み・課題・成長）」をまとめます。
+            </InfoModalLead>
+            <InfoModalSection icon={renderAiSettingsSectionIcon("memory")} title="MEMORY">
+              <InfoModalItems>
+                <InfoModalItem
+                  icon={<img src={memoryOrganizeIcon} alt="" aria-hidden="true" />}
+                  title="悩みを整理"
+                  description="同じ意味の悩み（喉が締まる / 詰まる）を、1つの課題にまとめます。"
+                />
+                <InfoModalItem
+                  icon={<img src={memoryPriorityIcon} alt="" aria-hidden="true" />}
+                  title="よく出る課題を表示"
+                  description="一時的な不調より、継続している課題が上に表示されます。"
+                />
+                <InfoModalItem
+                  icon={<img src={memoryEditIcon} alt="" aria-hidden="true" />}
+                  title="内容は編集できます"
+                  description="AI整理後も、内容はいつでも自由に修正できます。"
+                  noDivider
+                />
+              </InfoModalItems>
+            </InfoModalSection>
           </InfoModal>
         </div>
         <p className="aiSettingsPage__hint aiSettingsPage__hint--profile">

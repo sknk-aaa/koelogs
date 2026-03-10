@@ -1,3 +1,7 @@
+.myPage.page {
+  padding-bottom: 0;
+}
+
 .myPage {
   position: relative;
   display: grid;
@@ -54,7 +58,7 @@
 .myPage__accentWave {
   display: block;
   height: 24px;
-  color: color-mix(in srgb, var(--accent) 7%, #ffffff);
+  color: var(--ui-measure-section-bg);
 }
 
 .myPage__accentWave svg {
@@ -64,7 +68,7 @@
 }
 
 .myPage__accentInner {
-  background: color-mix(in srgb, var(--accent) 7%, #ffffff);
+  background: var(--ui-measure-section-bg);
   padding: 2px 16px 0;
   display: grid;
   gap: 18px;
@@ -103,7 +107,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: color-mix(in srgb, var(--accent) 62%, #70839a);
   flex: 0 0 auto;
 }
 
@@ -115,15 +118,6 @@
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.myPage__sectionIcon svg .accent {
-  stroke: var(--accent);
-}
-
-.myPage__sectionIcon svg .accent-fill {
-  fill: var(--accent);
-  stroke: none;
 }
 
 .myPage__sectionEyebrow {
@@ -192,7 +186,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: color-mix(in srgb, var(--accent) 48%, #70839a);
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
   flex: 0 0 auto;
   transform: translateY(1px);
 }
@@ -212,7 +206,7 @@
 }
 
 .myPage__missionGroupIcon svg .accent {
-  stroke: var(--accent);
+  stroke: color-mix(in srgb, var(--accent) 62%, #70839a);
 }
 
 .myPage__missionGroupTitle {
@@ -338,7 +332,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: color-mix(in srgb, var(--accent) 24%, #a7dce6);
+  background: color-mix(in srgb, var(--accent) 62%, #62d3f2);
 }
 
 .myPage__missionGuideCard.is-guided,
@@ -432,12 +426,35 @@
   color: #344e5d;
 }
 
+.myPage__contributionLeadIcon {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  display: inline-flex;
+  vertical-align: -2px;
+  color: #7b8b96;
+}
+
+.myPage__contributionLeadIcon svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.myPage__contributionLeadIcon svg .accent {
+  stroke: var(--ui-accent-strong);
+}
+
 .myPage__contributionCount {
   display: inline-block;
   margin: 0 2px;
   font-size: 18px;
   font-weight: 950;
-  color: color-mix(in srgb, var(--accent) 56%, #866100);
+  color: var(--ui-accent-strong);
 }
 
 .myPage__contributionHelp {
@@ -467,7 +484,7 @@
 }
 
 .myPage__statIcon svg .accent {
-  stroke: var(--accent);
+  stroke: color-mix(in srgb, var(--accent) 62%, #70839a);
 }
 
 .myPage__statBody {
@@ -531,8 +548,8 @@
   border-radius: inherit;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--accent) 24%, #62d3f2),
-    color-mix(in srgb, var(--accent) 58%, #7e82ee)
+    color-mix(in srgb, var(--accent) 56%, #62d3f2),
+    color-mix(in srgb, var(--accent) 78%, #14c6d8)
   );
 }
 
@@ -558,7 +575,7 @@
   width: 100%;
   border-radius: 8px;
   border: 0;
-  background: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.5);
   padding: 6px 4px;
   display: grid;
   gap: 3px;
@@ -572,7 +589,7 @@
 }
 
 .myPage__badge.is-unlocked {
-  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+  background: #f3feff;
   box-shadow: none;
 }
 
@@ -600,7 +617,7 @@
 }
 
 .myPage__badgeIcon svg .accent {
-  stroke: var(--accent);
+  stroke: color-mix(in srgb, var(--accent) 62%, #70839a);
 }
 
 .myPage__badge.is-locked .myPage__badgeIcon {
@@ -676,7 +693,7 @@
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  color: color-mix(in srgb, var(--accent) 42%, #5f7480);
+  color: var(--ui-accent-strong);
   font-size: 12px;
   font-weight: 800;
 }
@@ -1168,7 +1185,7 @@ body[data-mypage-tutorial-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .myPage__badgeDetailIcon svg .accent {
-  stroke: var(--accent);
+  stroke: color-mix(in srgb, var(--accent) 62%, #70839a);
 }
 
 .myPage__badgeDetailName {

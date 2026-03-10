@@ -181,9 +181,7 @@ module Api
       if memory_decision
         decision_text = apply_memory_candidate_decision(memory_decision)
         assistant_message = @thread.messages.create!(role: "assistant", content: decision_text)
-        if @thread.title == "新しい会話"
-          @thread.title = message_text.tr("\n", " ").slice(0, 40)
-        end
+        assign_generated_thread_title!(message_text)
         @thread.last_message_at = Time.current
         @thread.save!
 
@@ -208,9 +206,7 @@ module Api
       )
       response_text = append_memory_candidate_prompt(response_text, created_candidate: created_candidate)
       assistant_message = @thread.messages.create!(role: "assistant", content: response_text.to_s.strip)
-      if @thread.title == "新しい会話"
-        @thread.title = message_text.tr("\n", " ").slice(0, 40)
-      end
+      assign_generated_thread_title!(message_text)
       @thread.last_message_at = Time.current
       @thread.save!
 
@@ -291,6 +287,15 @@ module Api
       @thread.messages.where(role: "user").exists?
     end
 
+    def assign_generated_thread_title!(message_text)
+      return unless @thread.title == "新しい会話"
+
+      @thread.title = Ai::ChatThreadTitleGenerator.generate!(
+        message_text: message_text,
+        user: current_user
+      )
+    end
+
     def render_premium_required!(message)
       render json: { errors: [ message ], code: "premium_required" }, status: :payment_required
     end
@@ -317,7 +322,7 @@ module Api
       return nil unless text.start_with?("保存（訂正）") || text.start_with?("訂正保存")
 
       saved_text = text[/保存内容[:：]\s*([^\n]+)/, 1].to_s.strip
-      section_label = text[/保存先[:：]\s*AIが参照する長期プロフィール\s*-\s*([^\n]+)/, 1].to_s.strip
+      section_label = text[/保存先[:：]\s*MEMORY\s*-\s*([^\n]+)/, 1].to_s.strip
       return nil if saved_text.blank?
 
       {
@@ -344,7 +349,7 @@ module Api
         lines = []
         lines << "ユーザーデータを更新しました。"
         lines << "保存内容：#{saved_text.presence || candidate.candidate_text}"
-        lines << "保存先：AIが参照する長期プロフィール - #{section_label}"
+        lines << "保存先：MEMORY - #{section_label}"
         lines.join("\n")
       when "save_corrected"
         destination = decision[:destination].presence || "voice"
@@ -358,7 +363,7 @@ module Api
         lines = []
         lines << "ユーザーデータを更新しました。"
         lines << "保存内容：#{saved_text.presence || candidate.candidate_text}"
-        lines << "保存先：AIが参照する長期プロフィール - #{section_label}"
+        lines << "保存先：MEMORY - #{section_label}"
         lines.join("\n")
       else
         "保存候補の操作を受け取れませんでした。"
@@ -374,7 +379,7 @@ module Api
       prompt_lines << ""
       prompt_lines << "保存候補を検出しました。"
       prompt_lines << "保存内容：#{saved_text}"
-      prompt_lines << "保存先：AIが参照する長期プロフィール - #{section_label}"
+      prompt_lines << "保存先：MEMORY - #{section_label}"
 
       [ base_text.to_s.strip, prompt_lines.join("\n") ].join("\n")
     end

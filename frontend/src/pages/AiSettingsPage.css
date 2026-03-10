@@ -73,7 +73,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: color-mix(in srgb, var(--accent) 62%, #70839a);
   flex: 0 0 auto;
 }
 
@@ -87,21 +86,11 @@
   stroke-linejoin: round;
 }
 
-.aiSettingsPage__sectionIcon svg .accent {
-  stroke: var(--accent);
-}
-
-.aiSettingsPage__sectionIcon svg .accent-fill {
-  fill: var(--accent);
-  stroke: none;
-}
-
 .aiSettingsPage__sectionEyebrow {
   font-size: var(--ui-section-eyebrow-size);
   font-weight: 800;
   letter-spacing: var(--ui-section-eyebrow-letter-spacing);
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--accent) 20%, #5f7480);
 }
 
 .aiSettingsPage__memoryInfoBtn {

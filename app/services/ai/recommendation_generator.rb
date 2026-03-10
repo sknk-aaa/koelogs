@@ -712,6 +712,7 @@ module Ai
 
       source_labels = build_web_source_labels(web_evidence).first(2)
       web_available = source_labels.any?
+      web_used = web_evidence[:used] == true
 
       menu_range = menu_section_range(lines)
       return text if menu_range.nil?
@@ -744,13 +745,13 @@ module Ai
 
         replacement =
           if !community_enabled
-            if web_available
+            if web_used
               site_suffix.present? ? "根拠: Web（#{site_suffix}）" : "根拠: Web"
             else
               "根拠: 個人ログ"
             end
           elsif community_match_count > 0
-            if web_available
+            if web_used
               if site_suffix.present?
                 "根拠: 両方（コミュニティ#{community_match_count}件 + Web、#{site_suffix}）"
               else
@@ -760,7 +761,7 @@ module Ai
               "根拠: コミュニティ#{community_match_count}件"
             end
           else
-            if web_available
+            if web_used
               site_suffix.present? ? "根拠: Web（#{site_suffix}）" : "根拠: Web"
             else
               "根拠: 個人ログ"

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
 import HamburgerDrawer, { type DrawerSection } from "./HamburgerDrawer";
-import { getLastLogPath } from "../features/log/logNavigation";
+import { avatarIconPath } from "../features/profile/avatarIcons";
 
 function useIsMobile(breakpointPx = 520) {
   const [isMobile, setIsMobile] = useState(() => {
@@ -19,6 +19,27 @@ function useIsMobile(breakpointPx = 520) {
   return isMobile;
 }
 
+function headerTitleForPath(pathname: string): string {
+  if (pathname.startsWith("/log/new")) return "NEW LOG";
+  if (pathname.startsWith("/training")) return "TRAINING";
+  if (pathname.startsWith("/insights/time")) return "PRACTICE TIME";
+  if (pathname.startsWith("/insights/menus")) return "MENU INSIGHTS";
+  if (pathname.startsWith("/insights/notes")) return "MEASURE DETAILS";
+  if (pathname.startsWith("/insights")) return "INSIGHTS";
+  if (pathname.startsWith("/community/rankings")) return "RANKINGS";
+  if (pathname.startsWith("/community/profile")) return "PROFILE";
+  if (pathname.startsWith("/community")) return "COMMUNITY";
+  if (pathname.startsWith("/settings/ai")) return "AI SETTINGS";
+  if (pathname.startsWith("/settings")) return "SETTINGS";
+  if (pathname.startsWith("/profile")) return "ACCOUNT";
+  if (pathname.startsWith("/mypage")) return "MY PAGE";
+  if (pathname.startsWith("/help/guide")) return "GUIDE";
+  if (pathname.startsWith("/help/about")) return "ABOUT";
+  if (pathname.startsWith("/help/contact")) return "CONTACT";
+  if (pathname.startsWith("/premium")) return "PREMIUM";
+  return "";
+}
+
 function formatLogHeaderDate(value: string | null): string {
   if (!value) return "";
   const matched = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -32,6 +53,32 @@ function formatLogHeaderDate(value: string | null): string {
   return "";
 }
 
+function renderDrawerSectionIcon(kind: "settings" | "account" | "help"): React.ReactNode {
+  if (kind === "settings") {
+    return (
+      <svg viewBox="0 0 24 24" width="20" height="20" focusable="false" aria-hidden="true">
+        <path d="M12 8.4a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2Z" fill="none" stroke="currentColor" strokeWidth="1.9" />
+        <path d="M19 12a7 7 0 0 0-.1-1.1l2-1.5-1.9-3.2-2.4 1a7.7 7.7 0 0 0-1.9-1.1l-.3-2.5h-3.8l-.3 2.5a7.7 7.7 0 0 0-1.9 1.1l-2.4-1-1.9 3.2 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.1l-2 1.5 1.9 3.2 2.4-1a7.7 7.7 0 0 0 1.9 1.1l.3 2.5h3.8l.3-2.5a7.7 7.7 0 0 0 1.9-1.1l2.4 1 1.9-3.2-2-1.5c.1-.3.1-.7.1-1.1Z" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (kind === "account") {
+    return (
+      <svg viewBox="0 0 24 24" width="20" height="20" focusable="false" aria-hidden="true">
+        <circle cx="12" cy="8.3" r="3.3" fill="none" stroke="currentColor" strokeWidth="1.9" />
+        <path d="M6.8 18c.5-2.6 2.6-4.4 5.2-4.4s4.7 1.8 5.2 4.4" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" focusable="false" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" strokeWidth="1.9" />
+      <path d="M9.7 9.4a2.7 2.7 0 1 1 4.6 1.9c-.8.8-1.5 1.3-1.5 2.6" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <circle cx="12" cy="16.9" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function AppHeader() {
   const { me, isLoading, logout } = useAuth();
   const navigate = useNavigate();
@@ -40,6 +87,7 @@ export default function AppHeader() {
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile(520);
   const isLogPage = location.pathname === "/log";
+  const headerTitle = useMemo(() => headerTitleForPath(location.pathname), [location.pathname]);
   const logHeaderDate = useMemo(() => {
     if (!isLogPage) return "";
     const params = new URLSearchParams(location.search);
@@ -69,7 +117,8 @@ export default function AppHeader() {
   const sections: DrawerSection[] = useMemo(
     () => {
       const baseHelp: DrawerSection = {
-        title: "ヘルプ",
+        title: "HELP",
+        icon: renderDrawerSectionIcon("help"),
         items: [
           {
             label: "使い方",
@@ -95,7 +144,8 @@ export default function AppHeader() {
       if (!me) {
         return [
           {
-            title: "アカウント",
+            title: "ACCOUNT",
+            icon: renderDrawerSectionIcon("account"),
             items: [
               { label: "ログイン", onClick: () => navigate("/login"), to: "/login", match: "exact" },
               { label: "Sign up", onClick: () => navigate("/signup"), to: "/signup", match: "exact" },
@@ -107,14 +157,8 @@ export default function AppHeader() {
 
       return [
         {
-          title: "設定",
-          items: [
-            { label: "設定", onClick: () => navigate("/settings"), to: "/settings", match: "exact" },
-            { label: "AIカスタム指示", onClick: () => navigate("/settings/ai"), to: "/settings/ai", match: "exact" },
-          ],
-        },
-        {
-          title: "アカウント",
+          title: "ACCOUNT",
+          icon: renderDrawerSectionIcon("account"),
           items: [
             {
               label: "マイページ",
@@ -128,11 +172,14 @@ export default function AppHeader() {
               match: "exact",
               onClick: () => navigate("/profile"),
             },
-            {
-              label: "ログアウト",
-              variant: "danger",
-              onClick: onLogout,
-            },
+          ],
+        },
+        {
+          title: "SETTINGS",
+          icon: renderDrawerSectionIcon("settings"),
+          items: [
+            { label: "設定", onClick: () => navigate("/settings"), to: "/settings", match: "exact" },
+            { label: "AIカスタム指示", onClick: () => navigate("/settings/ai"), to: "/settings/ai", match: "exact" },
           ],
         },
         baseHelp,
@@ -141,58 +188,36 @@ export default function AppHeader() {
     [me, navigate, onLogout]
   );
 
-  const onClickBrand = () => {
-    navigate(getLastLogPath());
-  };
-
   const onClickLogHeaderDate = useCallback(() => {
     window.dispatchEvent(new CustomEvent("koelog:open-monthly-logs"));
   }, []);
 
-  const headerStyle = isLogPage
-    ? { ...styles.header, background: "#ffffff", backdropFilter: "none" }
-    : styles.header;
-
   return (
     <>
-      <header style={headerStyle}>
+      <header style={styles.header}>
         <div style={styles.inner}>
-          <div style={styles.left}>
-            {isLogPage ? <div style={styles.logSpacer} aria-hidden="true" /> : (
-              <button
-                type="button"
-                onClick={onClickBrand}
-                style={styles.brandBtn}
-                aria-label="ログページへ"
-                title="ログへ"
-              >
-                <img
-                  src="/koelog-logo.svg"
-                  alt="KoeLog"
-                  style={styles.brandLogo}
-                  className="appHeader__logo"
-                />
-              </button>
-            )}
+          <div style={styles.left} aria-hidden="true">
+            <div style={styles.sideSpacer} />
           </div>
-
           <div style={styles.center}>
-            {isLogPage && (
+            {isLogPage ? (
               <button type="button" onClick={onClickLogHeaderDate} style={styles.logTitleBtn} aria-label="今月のログ一覧を開く">
                 <span style={styles.logTitleText}>{logHeaderDate}</span>
                 <span style={styles.logTitleChevron} aria-hidden="true">▾</span>
               </button>
-            )}
+            ) : headerTitle ? (
+              <div style={styles.pageTitle}>{headerTitle}</div>
+            ) : null}
           </div>
 
           <div style={styles.right}>
-            {!isLogPage && !isLoading && me && !isMobile && (
+            {!isLoading && me && !isMobile && (
               <div style={styles.email} title={me.display_name ?? me.email}>
                 {me.display_name ?? me.email}
               </div>
             )}
 
-            {!isLogPage && !isLoading && !me && (
+            {!isLoading && !me && !isMobile && (
               <>
                 <button
                   type="button"
@@ -230,9 +255,25 @@ export default function AppHeader() {
       <HamburgerDrawer
         open={open}
         onClose={() => setOpen(false)}
-        headerTitle="メニュー"
+        headerTitle="MENU"
         headerSub={isLoading ? "読み込み中…" : me ? "ログイン中" : "未ログイン"}
+        profile={
+          me
+            ? {
+                avatar: (
+                  <img
+                    src={avatarIconPath(me.avatar_icon, me.avatar_image_url)}
+                    alt=""
+                    style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
+                  />
+                ),
+                name: me.display_name ?? me.email,
+                planLabel: me.plan_tier === "premium" ? "PREMIUM" : "FREE",
+              }
+            : undefined
+        }
         sections={sections}
+        footerItem={me ? { label: "ログアウト", variant: "danger", onClick: onLogout } : undefined}
         activePath={location.pathname}
       />
     </>
@@ -245,27 +286,36 @@ const styles: Record<string, React.CSSProperties> = {
     position: "sticky",
     top: 0,
     zIndex: 80,
-    background: "var(--headerBg)",
-    backdropFilter: "blur(10px)",
+    background: "#ffffff",
     color: "var(--pageText, var(--text))",
   },
 
-  // ★ sticky の中で absolute 中央を安定させるためのラッパー
   inner: {
     height: "100%",
-    display: "grid",
-    gridTemplateColumns: "auto minmax(0, 1fr) auto",
+    display: "flex",
     alignItems: "center",
+    justifyContent: "space-between",
     padding: "0 16px",
     position: "relative",
   },
 
-  left: { display: "flex", alignItems: "center", gap: 10 },
+  left: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    minWidth: 36,
+  },
   center: {
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+    transform: "translate(-50%, -50%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     minWidth: 0,
+    maxWidth: "calc(100% - 132px)",
+    pointerEvents: "none",
   },
 
   right: {
@@ -275,29 +325,9 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "flex-end",
   },
 
-  // ★中央タイトル：画面のど真ん中に固定
-  // アプリ名ボタン（リンク風）
-  brandBtn: {
-    letterSpacing: 0.2,
-    border: "none",
-    background: "transparent",
-    cursor: "pointer",
-    padding: "6px 4px",
-    borderRadius: 12,
-    display: "inline-flex",
-    alignItems: "center",
-    lineHeight: 0,
-  },
-
-  brandLogo: {
-    display: "block",
-    height: 40,
-    width: "auto",
-    transform: "translate(6px, 2px)",
-  },
-  logSpacer: {
-    width: 40,
-    height: 40,
+  sideSpacer: {
+    width: 36,
+    height: 36,
   },
   logTitleBtn: {
     display: "inline-flex",
@@ -309,17 +339,29 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 12,
     color: "var(--pageText, var(--text))",
     cursor: "pointer",
+    pointerEvents: "auto",
   },
   logTitleText: {
     fontSize: 18,
     fontWeight: 800,
     letterSpacing: "-0.02em",
     color: "var(--pageText, var(--text))",
+    whiteSpace: "nowrap",
   },
   logTitleChevron: {
     fontSize: 14,
     fontWeight: 800,
     opacity: 0.65,
+  },
+  pageTitle: {
+    fontSize: 15,
+    fontWeight: 800,
+    letterSpacing: "0.16em",
+    color: "var(--pageText, var(--text))",
+    textTransform: "uppercase",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   },
 
   email: {

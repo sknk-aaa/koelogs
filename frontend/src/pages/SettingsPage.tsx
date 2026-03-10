@@ -48,18 +48,15 @@ export default function SettingsPage() {
 
       return (
     <div className="page settingsPage">
-      <section className="settingsPage__hero">
-        <h1 className="settingsPage__title">SETTINGS</h1>
-        <p className="settingsPage__sub">テーマ、再生挙動、読みやすさを整えるためのページです。</p>
-      </section>
-
       <section className="settingsPage__section">
         <div className="settingsPage__sectionHead">
-          <span className="settingsPage__sectionIcon" aria-hidden="true">
-            {renderSettingsSectionIcon("display")}
-          </span>
-          <div>
-            <div className="settingsPage__sectionEyebrow">DISPLAY</div>
+          <div className="settingsPage__sectionHeadMain">
+            <span className="settingsPage__sectionIcon" aria-hidden="true">
+              {renderSettingsSectionIcon("display")}
+            </span>
+            <div>
+              <div className="settingsPage__sectionEyebrow">DISPLAY</div>
+            </div>
           </div>
         </div>
         <div className="settingsPage__block">
@@ -89,11 +86,13 @@ export default function SettingsPage() {
 
       <section className="settingsPage__section">
         <div className="settingsPage__sectionHead">
-          <span className="settingsPage__sectionIcon" aria-hidden="true">
-            {renderSettingsSectionIcon("training")}
-          </span>
-          <div>
-            <div className="settingsPage__sectionEyebrow">TRAINING</div>
+          <div className="settingsPage__sectionHeadMain">
+            <span className="settingsPage__sectionIcon" aria-hidden="true">
+              {renderSettingsSectionIcon("training")}
+            </span>
+            <div>
+              <div className="settingsPage__sectionEyebrow">TRAINING</div>
+            </div>
           </div>
         </div>
 
@@ -144,11 +143,13 @@ export default function SettingsPage() {
 
       <section className="settingsPage__section">
         <div className="settingsPage__sectionHead">
-          <span className="settingsPage__sectionIcon" aria-hidden="true">
-            {renderSettingsSectionIcon("readability")}
-          </span>
-          <div>
-            <div className="settingsPage__sectionEyebrow">READABILITY</div>
+          <div className="settingsPage__sectionHeadMain">
+            <span className="settingsPage__sectionIcon" aria-hidden="true">
+              {renderSettingsSectionIcon("readability")}
+            </span>
+            <div>
+              <div className="settingsPage__sectionEyebrow">READABILITY</div>
+            </div>
           </div>
         </div>
         <div className="settingsPage__block">

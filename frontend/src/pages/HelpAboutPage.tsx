@@ -77,8 +77,6 @@ export default function HelpAboutPage() {
       <div className="helpPage__bg" aria-hidden="true" />
 
       <section className="card helpPage__hero">
-        <div className="helpPage__kicker">About</div>
-        <h1 className="helpPage__title">このアプリについて</h1>
         <p className="helpPage__sub">
           仕組みを透明にするため、AIおすすめの生成方法を公開しています。今後、他の仕組みも順次公開します。
         </p>

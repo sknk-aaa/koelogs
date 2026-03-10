@@ -11,6 +11,7 @@ import type { MeasurementPoint } from "../types/insights";
 import { useAuth } from "../features/auth/useAuth";
 import MetronomeLoader from "../components/MetronomeLoader";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
+import AppSelect from "../components/AppSelect";
 import premiumPreviewInsights from "../assets/premium/preview-insights.svg";
 import "./InsightsPages.css";
 
@@ -863,8 +864,6 @@ export default function InsightsNotesPage() {
       <section className="card insightsHero">
         <div className="insightsHero__head">
           <div>
-            <div className="insightsHero__kicker">Insights</div>
-            <h1 className="insightsHero__title">測定の推移（詳細）</h1>
             <p className="insightsHero__sub">
               {explicitMetricMode ? `${metricLabel}の詳細データを表示しています。` : "音域・ロングトーン・音量安定性・音程精度を確認できます。"}
             </p>
@@ -901,20 +900,18 @@ export default function InsightsNotesPage() {
           {!isFreeLimited && (
             <label className="insightsMonthFilter">
               <span>月</span>
-              <select
+              <AppSelect
                 value={monthFilter}
-                onChange={(e) => {
-                  setMonthFilter(e.target.value);
-                }}
+                onChange={setMonthFilter}
                 className="insightsSelect insightsSelect--month"
-              >
-                <option value="all">すべて</option>
-                {availableMonths.map((m) => (
-                  <option key={m} value={m}>
-                    {formatMonthLabel(m)}
-                  </option>
-                ))}
-              </select>
+                buttonClassName="insightsSelect__button"
+                menuClassName="insightsSelect__menu"
+                options={[
+                  { value: "all", label: "すべて" },
+                  ...availableMonths.map((m) => ({ value: m, label: formatMonthLabel(m) })),
+                ]}
+                ariaLabel="月を選択"
+              />
             </label>
           )}
         </div>

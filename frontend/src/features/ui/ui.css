@@ -6,6 +6,185 @@
   --ui-section-eyebrow-letter-spacing: 0.16em;
   --ui-section-icon-size: 28px;
   --ui-section-icon-stroke-width: 1.9;
+  --ui-section-icon-color: color-mix(in srgb, #14c6d8 62%, #70839a);
+  --ui-section-icon-accent: color-mix(in srgb, #14c6d8 62%, #70839a);
+  --ui-section-eyebrow-color: color-mix(in srgb, #14c6d8 20%, #5f7480);
+  --ui-accent-strong: color-mix(in srgb, #14c6d8 78%, #09363d);
+  --ui-measure-section-bg: #effbfc;
+  --ui-section-gap: 12px;
+  --ui-section-divider: 1px solid color-mix(in srgb, var(--accent) 6%, #edf2f7);
+  --ui-hint-size: 11px;
+  --ui-hint-line-height: 1.6;
+  --ui-hint-color: #83939d;
+  --ui-meta-size: 12px;
+  --ui-meta-color: #708390;
+  --ui-info-surface-radius: 12px;
+  --ui-info-surface-bg: #ffffff;
+}
+
+:is(
+  .settingsPage__sectionHead,
+  .aiSettingsPage__sectionHead,
+  .myPage__sectionHead,
+  .profilePage__sectionHead,
+  .insightsTimePage__sectionHead
+) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-section-gap);
+}
+
+:is(
+  .settingsPage__sectionHeadMain,
+  .aiSettingsPage__sectionHeadMain,
+  .myPage__sectionHeadMain,
+  .profilePage__sectionHeadMain,
+  .insightsTimePage__sectionHeadMain
+) {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-section-gap);
+}
+
+:is(
+  .settingsPage__sectionIcon,
+  .aiSettingsPage__sectionIcon,
+  .myPage__sectionIcon,
+  .profilePage__sectionIcon,
+  .insightsTimePage__sectionIcon,
+  .helpPage__sectionIcon,
+  .communityProfile__sectionIcon,
+  .communityPage__heroIcon
+) {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-section-icon-color);
+  flex: 0 0 auto;
+}
+
+:is(
+  .settingsPage__sectionIcon svg,
+  .aiSettingsPage__sectionIcon svg,
+  .myPage__sectionIcon svg,
+  .profilePage__sectionIcon svg,
+  .insightsTimePage__sectionIcon svg,
+  .helpPage__sectionIcon svg,
+  .communityProfile__sectionIcon svg,
+  .communityPage__heroIcon svg
+) {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  stroke: currentColor;
+  stroke-width: var(--ui-section-icon-stroke-width);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:is(
+  .settingsPage__sectionIcon svg .accent,
+  .aiSettingsPage__sectionIcon svg .accent,
+  .myPage__sectionIcon svg .accent,
+  .profilePage__sectionIcon svg .accent,
+  .insightsTimePage__sectionIcon svg .accent,
+  .communityProfile__sectionIcon svg .accent,
+  .helpPage__sectionIcon svg .accent,
+  .communityPage__heroIcon svg .accent
+) {
+  stroke: var(--ui-section-icon-accent);
+}
+
+:is(
+  .settingsPage__sectionIcon svg .accent-fill,
+  .aiSettingsPage__sectionIcon svg .accent-fill,
+  .myPage__sectionIcon svg .accent-fill,
+  .helpPage__sectionIcon svg .accent-fill,
+  .communityPage__heroIcon svg .accent-fill
+) {
+  fill: var(--ui-section-icon-accent);
+  stroke: none;
+}
+
+:is(
+  .settingsPage__sectionEyebrow,
+  .aiSettingsPage__sectionEyebrow,
+  .myPage__sectionEyebrow,
+  .profilePage__sectionEyebrow,
+  .insightsTimePage__sectionEyebrow,
+  .helpPage__kicker,
+  .communityProfile__kicker,
+  .communityProfile__sectionEyebrow,
+  .communityPage__introBadge,
+  .communityPage__rankingGuideKicker
+) {
+  font-size: var(--ui-section-eyebrow-size);
+  font-weight: 800;
+  letter-spacing: var(--ui-section-eyebrow-letter-spacing);
+  text-transform: uppercase;
+  color: var(--ui-section-eyebrow-color);
+}
+
+:is(.settingsPage__section, .aiSettingsPage__section, .profilePage__section) {
+  padding-bottom: 18px;
+  display: grid;
+  border-bottom: var(--ui-section-divider);
+}
+
+:is(.settingsPage__hint, .profilePage__hint, .myPage__hint) {
+  font-size: var(--ui-hint-size);
+  line-height: var(--ui-hint-line-height);
+  color: var(--ui-hint-color);
+}
+
+:is(.aiSettingsPage__metaNote, .myPage__summaryPeriod) {
+  font-size: var(--ui-meta-size);
+  font-weight: 800;
+  color: var(--ui-meta-color);
+}
+
+:is(.myPage__linkBtn, .aiSettingsPage__subtleLink) {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+:is(.myPage__stat, .myPage__dayItem, .myPage__contribution) {
+  border-radius: var(--ui-info-surface-radius);
+  border: 0;
+  background: var(--ui-info-surface-bg);
+}
+
+:is(.aiSettingsPage__saveDock, .profilePage__saveDock) {
+  position: fixed;
+  left: 0;
+  right: 0;
+}
+
+:is(.aiSettingsPage__saveDockInner, .profilePage__saveDockInner) {
+  margin: 0 auto;
+}
+
+:is(.aiSettingsPage__saveBtn, .profilePage__saveBtn) {
+  height: 42px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+:is(.aiSettingsPage__saveBtn, .profilePage__saveBtn):disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
 }
 
 .uiCard {

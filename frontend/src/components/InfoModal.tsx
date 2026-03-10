@@ -77,8 +77,8 @@ export default function InfoModal({
       >
         <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
           <circle cx="12" cy="12" r="8.5" />
-          <text x="12" y="12.55" className="infoModal__triggerText" textAnchor="middle" dominantBaseline="middle">
-            ?
+          <text x="12" y="12.45" className="infoModal__triggerText" textAnchor="middle" dominantBaseline="middle">
+            i
           </text>
         </svg>
       </button>

@@ -1,31 +1,24 @@
-/* =========================
-   Apple-ish Community Ranking
-   ========================= */
-
-/* Page root */
 .communityRanking {
-  /* Base palette (Apple-like neutrals) */
-  --bg: #f2f3f7;
+  --bg: var(--ui-measure-section-bg);
   --card: #ffffff;
   --border: rgba(17, 24, 39, 0.10);
   --hairline: rgba(17, 24, 39, 0.06);
-
   --text: #0b1220;
+  --value-text: #233f56;
   --muted: rgba(11, 18, 32, 0.62);
-
-  /* Subtle shadow (no “3D”) */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08);
-
-  /* Default accent (AI = purple) */
+  --shadow-sm: none;
+  --shadow-md: none;
   --theme-100: rgba(124, 92, 255, 0.12);
   --theme-200: rgba(124, 92, 255, 0.20);
   --theme-500: #7c5cff;
   --theme-600: #4b2fe6;
-  --theme-grad: linear-gradient(135deg, #7c5cff, #4b2fe6);
-
+  --community-ranking-tabs-h: 58px;
   color: var(--text);
   background: var(--bg);
+}
+
+.communityRanking.page {
+  padding-top: 82px;
 }
 
 :root[data-theme-mode="dark"] .communityRanking {
@@ -39,7 +32,6 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
 
-/* Accent presets (keep: only used as “current tab accent”) */
 .communityRanking--streak {
   --theme-100: rgba(255, 138, 31, 0.14);
   --theme-200: rgba(255, 138, 31, 0.22);
@@ -49,6 +41,14 @@
 }
 
 .communityRanking--weekly {
+  --theme-100: rgba(20, 198, 216, 0.14);
+  --theme-200: rgba(20, 198, 216, 0.22);
+  --theme-500: #14c6d8;
+  --theme-600: #0f93a0;
+  --theme-grad: linear-gradient(135deg, #2bcfdf, #0f93a0);
+}
+
+.communityRanking--ai {
   --theme-100: rgba(59, 130, 246, 0.14);
   --theme-200: rgba(59, 130, 246, 0.22);
   --theme-500: #3b82f6;
@@ -63,65 +63,94 @@
 .communityRanking__tabs {
   display: flex;
   gap: 0;
-  padding: 4px;
-  border-radius: 16px;
-
-  /* iOS segmented background */
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  /* layout */
-  max-width: 560px;
-  margin: 0 auto 14px;
+  justify-content: stretch;
+  align-items: center;
+  padding: 0;
+  border-radius: 0;
+  background: #ffffff;
+  border: none;
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 56px;
+  z-index: 30;
   box-shadow: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+  box-sizing: border-box;
+}
+
+.communityRanking__tabs.card,
+.communityRanking__focusCard.card,
+.communityRanking__listCard.card,
+.communityRanking__card.card {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.communityRanking__tabs.card {
+  background: #ffffff !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.communityRanking__tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .communityRanking__tabBtn {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
-
   border: none;
   background: transparent;
-  border-radius: 12px;
-
-  padding: 10px 10px;
-  min-height: 40px;
-
+  border-radius: 0;
+  padding: 12px 8px 10px;
+  min-height: 44px;
   font-size: 13px;
   font-weight: 800;
-  color: rgba(11, 18, 32, 0.70);
-
-  display: flex;
+  color: color-mix(in srgb, var(--muted) 92%, #667784);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  position: relative;
+}
+
+.communityRanking__tabBtn:hover {
+  background: transparent;
 }
 
 .communityRanking__tabBtn.is-active {
-  background: #ffffff;
-  color: var(--text);
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  color: #1c3f52;
+  box-shadow: none;
+  outline: none;
+}
 
-  /* tiny accent hint (Apple-like) */
-  outline: 2px solid color-mix(in srgb, var(--theme-500) 28%, transparent);
-  outline-offset: 0;
+.communityRanking__tabBtn.is-active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 0;
+  background: var(--theme-500);
 }
 
 :root[data-theme-mode="dark"] .communityRanking__tabBtn {
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.74);
 }
 
 :root[data-theme-mode="dark"] .communityRanking__tabBtn.is-active {
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.55);
-  outline: 2px solid color-mix(in srgb, var(--theme-500) 40%, rgba(255, 255, 255, 0.05));
+  color: #ffffff;
 }
 
 :root[data-theme-mode="dark"] .communityRanking__focusCard,
@@ -144,9 +173,13 @@
 .communityRanking__focusCard,
 .communityRanking__listCard {
   border-radius: 20px;
-  border: 1px solid var(--hairline);
+  border: none;
   background: var(--card);
-  box-shadow: var(--shadow-md);
+  box-shadow: none;
+}
+
+.communityRanking__focusCard.card {
+  background: var(--card) !important;
 }
 
 /* Focus card */
@@ -157,17 +190,8 @@
   margin-bottom: 12px;
 }
 
-/* Replace thick gradient bar with thin accent line */
 .communityRanking__focusCard::before {
-  content: "";
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 10px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--theme-500);
-  opacity: 0.9;
+  display: none;
 }
 
 /* Focus top */
@@ -227,7 +251,7 @@
   font-weight: 850;
   letter-spacing: -0.8px;
   line-height: 1;
-  color: var(--text);
+  color: var(--value-text);
 }
 
 .communityRanking__focusValue span {
@@ -242,7 +266,7 @@
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 10px;
   flex-wrap: wrap;
   padding-left: 64px;
 }
@@ -263,14 +287,14 @@
 
 .communityRanking__focusRank {
   color: rgba(11, 18, 32, 0.78);
-  background: rgba(17, 24, 39, 0.04);
-  border: 1px solid rgba(17, 24, 39, 0.08);
+  background: rgba(17, 24, 39, 0.03);
+  border: 1px solid rgba(17, 24, 39, 0.06);
 }
 
 .communityRanking__focusDiff {
-  border: 1px solid color-mix(in srgb, var(--theme-500) 26%, rgba(17, 24, 39, 0.10));
-  background: color-mix(in srgb, var(--theme-500) 10%, #ffffff);
-  color: color-mix(in srgb, var(--theme-600) 70%, #0b1220);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, rgba(17, 24, 39, 0.08));
+  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 62%, #4b6678);
 }
 
 .communityRanking__focusHint {
@@ -282,14 +306,6 @@
 /* List card */
 .communityRanking__listCard {
   padding: 14px;
-}
-
-.communityRanking__listTitle {
-  font-size: 18px;
-  font-weight: 850;
-  letter-spacing: -0.3px;
-  margin: 2px 0 12px;
-  color: var(--text);
 }
 
 /* =========================
@@ -304,10 +320,10 @@
 .communityRanking__row {
   position: relative;
   border-radius: 18px;
-  border: 1px solid rgba(17, 24, 39, 0.10);
+  border: none;
   background: #ffffff;
   padding: 12px 12px;
-  box-shadow: none; /* list items are flatter */
+  box-shadow: none;
 }
 
 /* Remove medal backgrounds & frames completely */
@@ -315,7 +331,6 @@
 .communityRanking__row.is-top2,
 .communityRanking__row.is-top3 {
   background: #ffffff;
-  border-color: rgba(17, 24, 39, 0.10);
   box-shadow: none;
   padding: 12px 12px;
 }
@@ -331,20 +346,11 @@
 
 /* “Me” highlight: subtle accent outline, not heavy effects */
 .communityRanking__row.is-me {
-  border: 1px solid color-mix(in srgb, var(--theme-500) 40%, rgba(17, 24, 39, 0.10));
-  background: color-mix(in srgb, var(--theme-500) 6%, #ffffff);
+  background: #ffffee;
 }
 
 .communityRanking__row.is-me::before {
-  content: "";
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  bottom: 10px;
-  width: 3px;
-  border-radius: 999px;
-  background: var(--theme-500);
-  opacity: 0.65;
+  display: none;
 }
 
 /* Row main layout */
@@ -458,7 +464,7 @@
   display: flex;
   align-items: baseline;
   gap: 4px;
-  color: var(--text);
+  color: var(--value-text);
 }
 
 .communityRanking__value span {
@@ -481,7 +487,7 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--theme-500); /* single accent */
+  background: var(--theme-500);
   opacity: 0.85;
   transition: width 0.7s ease;
   filter: none;
@@ -497,16 +503,63 @@
   position: static;
   padding: 4px 8px;
   border-radius: 999px;
-
-  border: 1px solid rgba(17, 24, 39, 0.10);
-  color: rgba(11, 18, 32, 0.72);
-  background: rgb(255, 255, 255);
-
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  color: rgba(11, 18, 32, 0.68);
+  background: rgba(255, 255, 255, 0.84);
   font-size: 10px;
   font-weight: 850;
   letter-spacing: 0.2px;
   line-height: 1;
   pointer-events: none;
+}
+
+.communityRanking__sectionLabelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.communityRanking__sectionLabelRow--section {
+  margin: 0 0 2px;
+  position: relative;
+  top: -6px;
+}
+
+.communityRanking__sectionLabelRow--community {
+  top: 10px;
+}
+
+.communityRanking__sectionLabelIcon {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-section-icon-color);
+  flex: 0 0 auto;
+}
+
+.communityRanking__sectionLabelIcon svg {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  stroke: currentColor;
+  stroke-width: var(--ui-section-icon-stroke-width);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.communityRanking__sectionLabelIcon svg .accent {
+  stroke: var(--ui-section-icon-accent);
+}
+
+.communityRanking__sectionLabel {
+  font-size: var(--ui-section-eyebrow-size);
+  font-weight: 800;
+  letter-spacing: var(--ui-section-eyebrow-letter-spacing);
+  text-transform: uppercase;
+  color: var(--ui-section-eyebrow-color);
 }
 /* Empty */
 .communityRanking__empty {
@@ -542,7 +595,7 @@
 }
 
 :root[data-theme-mode="dark"] .communityRanking__row.is-me {
-  background: color-mix(in srgb, var(--theme-500) 12%, rgba(255, 255, 255, 0.04));
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.04));
 }
 
 :root[data-theme-mode="dark"] .communityRanking__youTag {
@@ -580,6 +633,18 @@
   }
 
   .communityRanking__tabs {
-    max-width: 100%;
+    width: 100vw;
+    max-width: 100vw;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@media (min-width: 760px) {
+  .communityRanking__tabs {
+    width: 100vw;
+    max-width: 100vw;
+    padding-left: 24px;
+    padding-right: 24px;
   }
 }

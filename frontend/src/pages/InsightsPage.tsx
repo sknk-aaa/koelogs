@@ -290,6 +290,8 @@ const CSV_MEASUREMENT_TYPES: MeasurementType[] = ["range", "long_tone", "volume_
 
 function ClickableCard({
   title,
+  eyebrow,
+  icon,
   to,
   hintText = "詳細を見る",
   mobileHintText,
@@ -298,6 +300,8 @@ function ClickableCard({
   children,
 }: {
   title: string;
+  eyebrow?: string;
+  icon?: React.ReactNode;
   to: string;
   hintText?: string;
   mobileHintText?: string;
@@ -309,6 +313,8 @@ function ClickableCard({
     <Link to={to} className={`insightsCard insightsCard--link${className ? ` ${className}` : ""}`}>
       <InsightsCardHeader
         title={title}
+        eyebrow={eyebrow}
+        icon={icon}
         hintText={(
           <>
             <span className="insightsCard__hintTextDesktop">{hintText}</span>
@@ -453,7 +459,15 @@ export default function InsightsPage() {
 
       <section className="card insightsHighlightsCard">
         <div className="insightsHighlightsCard__topRow">
-          <div className="insightsMuted">最新の測定結果を表示しています。</div>
+          <div className="insightsHighlightsCard__copy">
+            <div className="insightsHighlightsCard__eyebrowRow">
+              <span className="insightsHighlightsCard__eyebrowIcon" aria-hidden="true">
+                <MeasureSectionIcon />
+              </span>
+              <div className="insightsHighlightsCard__eyebrow">MEASURE</div>
+            </div>
+            <div className="insightsMuted">結果は、最新の測定の結果を表示しています。</div>
+          </div>
           <button
             type="button"
             className="csvButton"
@@ -480,24 +494,29 @@ export default function InsightsPage() {
       </section>
 
       <div className="insightsGrid">
-        <ClickableCard title="音域" to="/insights/notes?metric=range" className="insightsRangeMainCard">
+        <ClickableCard
+          title="音域"
+          icon={<RangeSectionIcon />}
+          to="/insights/notes?metric=range"
+          className="insightsRangeMainCard"
+        >
           <RangeLikeCard range={range} compact />
         </ClickableCard>
 
         <div className="insightsTwinGrid">
           <ClickableCard
             title="音量安定性"
+            icon={<VolumeSectionIcon />}
             to="/insights/notes?metric=volume_stability"
             mobileHintText="詳細"
-            className="insightsGaugeCard"
+            className="insightsGaugeCard insightsGaugeCard--volume"
           >
             <div className="insightsGaugePanel">
               <CircleGauge
-                label="許容幅内率（±3dB）"
                 value={volume?.loudness_range_pct ?? null}
                 unit="%"
                 progress={volume?.loudness_range_pct != null ? Math.max(0, Math.min(1, volume.loudness_range_pct / 100)) : 0}
-                color="#ffe06a"
+                tone="volume"
               />
               <div className="insightsGaugeMeta">
                 <span>平均 {formatDb(volume?.avg_loudness_db ?? null)}</span>
@@ -508,17 +527,17 @@ export default function InsightsPage() {
 
           <ClickableCard
             title="ロングトーン"
+            icon={<LongToneSectionIcon />}
             to="/insights/notes?metric=long_tone"
             mobileHintText="詳細"
-            className="insightsGaugeCard"
+            className="insightsGaugeCard insightsGaugeCard--longTone"
           >
             <div className="insightsGaugePanel">
               <CircleGauge
-                label="ロングトーン"
                 value={longToneSeconds}
                 unit="sec"
                 progress={longToneProgress}
-                color="#3b82f6"
+                tone="longTone"
               />
               <div className="insightsGaugeMeta">
                 <span>ベスト {longToneBest != null ? `${longToneBest.toFixed(1)}s` : "—"}</span>
@@ -528,7 +547,12 @@ export default function InsightsPage() {
           </ClickableCard>
         </div>
 
-        <ClickableCard title="音程精度" to="/insights/notes?metric=pitch_accuracy" className="insightsPitchSemitoneCard">
+        <ClickableCard
+          title="音程精度"
+          icon={<PitchSectionIcon />}
+          to="/insights/notes?metric=pitch_accuracy"
+          className="insightsPitchSemitoneCard"
+        >
           <div className="insightsPitchSemitone">
             <div className="insightsPitchSemitone__main">
               {pitchSemitoneDrift != null ? `${pitchSemitoneDrift.toFixed(2)} 半音` : "-"}
@@ -597,47 +621,85 @@ export default function InsightsPage() {
   );
 }
 
+function MeasureSectionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M4 5v14h11" />
+      <path d="m7 14 3-3 2.5 2.5 4-5" />
+      <circle className="accent" cx="18" cy="16" r="3.2" />
+      <path className="accent" d="m20.3 18.3 2 2" />
+    </svg>
+  );
+}
+
+function RangeSectionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M6 18h12" />
+      <path className="accent" d="M8 15.5V8.5" />
+      <path className="accent" d="M16 15.5V6.5" />
+      <path d="M8 8.5 6.5 10" />
+      <path d="M8 8.5 9.5 10" />
+      <path d="M16 6.5 14.5 8" />
+      <path d="M16 6.5 17.5 8" />
+    </svg>
+  );
+}
+
+function VolumeSectionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M5.5 14.5h3l4 4v-13l-4 4h-3Z" />
+      <path className="accent" d="M16 10a3 3 0 0 1 0 4" />
+      <path d="M18 8a6 6 0 0 1 0 8" />
+    </svg>
+  );
+}
+
+function LongToneSectionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M6 18V9.5" />
+      <path className="accent" d="M12 18V6.5" />
+      <path d="M18 18V11.5" />
+      <path d="M4.5 18h15" />
+    </svg>
+  );
+}
+
+function PitchSectionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M12 4.5v12" />
+      <path className="accent" d="M8 8.5a4 4 0 0 1 8 0" />
+      <path d="M9 17.5h6" />
+      <path d="M10.5 20h3" />
+    </svg>
+  );
+}
+
 function CircleGauge({
-  label,
   value,
   unit,
   progress,
-  color,
+  tone,
 }: {
-  label: string;
   value: number | null;
   unit: string;
   progress: number;
-  color: string;
+  tone: "longTone" | "volume";
 }) {
   const p = Math.max(0, Math.min(1, progress));
-  const r = 66;
-  const c = 78;
-  const arc = 2 * Math.PI * r;
-  const offset = arc * (1 - p);
   return (
-    <div className="insightsCircleGauge">
-      <div className="insightsCircleGauge__label">{label}</div>
-      <div className="insightsCircleGauge__wrap">
-        <svg viewBox="0 0 156 156" className="insightsCircleGauge__svg" aria-hidden="true">
-          <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(45, 102, 184, 0.24)" strokeWidth="12" />
-          <circle
-            cx={c}
-            cy={c}
-            r={r}
-            fill="none"
-            stroke={color}
-            strokeWidth="12"
-            strokeDasharray={arc}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            transform="rotate(-90 78 78)"
-          />
-        </svg>
-        <div className="insightsCircleGauge__center">
-          <div className="insightsCircleGauge__value">{value != null ? value.toFixed(1) : "-"}</div>
-          <div className="insightsCircleGauge__unit">{unit}</div>
-        </div>
+    <div className="insightsMiniRingWrap">
+      <div
+        className={`insightsMiniRing${tone === "volume" ? " insightsMiniRing--volume" : ""}`}
+        style={{ ["--ring-progress" as string]: String(p) }}
+        aria-hidden="true"
+      >
+        <span>
+          {value != null ? `${unit === "%" ? Math.round(value) : value.toFixed(1)}${unit}` : `-${unit === "%" ? "" : unit}`}
+        </span>
       </div>
     </div>
   );

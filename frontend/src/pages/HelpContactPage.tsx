@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { submitHelpContact, type ContactCategory } from "../api/helpContact";
 import { useAuth } from "../features/auth/useAuth";
+import AppSelect from "../components/AppSelect";
 import "./HelpPages.css";
 
 const SUBJECT_MAX = 80;
@@ -74,32 +75,23 @@ export default function HelpContactPage() {
 
   return (
     <div className="page helpPage">
-      <div className="helpPage__bg" aria-hidden="true" />
-
-      <section className="card helpPage__hero">
-        <div className="helpPage__kicker">Contact</div>
-        <h1 className="helpPage__title">お問い合わせ</h1>
-        <p className="helpPage__sub">
-          不具合報告・要望・その他の問い合わせを受け付けています。内容を確認のうえ運営から連絡します。
-        </p>
+      <section className="helpPage__hero">
+        <p className="helpPage__sub">不具合や要望があれば、ここから送れます。</p>
+        <p className="helpPage__note">返信が必要な場合は、入力したメールアドレスへ連絡します。</p>
       </section>
 
-      <section className="card helpPage__card">
+      <section className="helpPage__contactSection">
         <form className="contactForm" onSubmit={onSubmit}>
           <label className="contactForm__field">
             <span className="contactForm__label">種別</span>
-            <select
+            <AppSelect
               className="contactForm__control contactForm__select"
               value={category}
-              onChange={(e) => setCategory(e.target.value as ContactCategory)}
+              onChange={(value) => setCategory(value as ContactCategory)}
               disabled={submitting}
-            >
-              {categoryOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              options={categoryOptions.map((option) => ({ value: option.value, label: option.label }))}
+              ariaLabel="お問い合わせ種別"
+            />
           </label>
 
           <label className="contactForm__field">
@@ -149,9 +141,11 @@ export default function HelpContactPage() {
           {error && <p className="contactForm__status contactForm__status--error">{error}</p>}
           {success && <p className="contactForm__status contactForm__status--success">{success}</p>}
 
-          <button className="contactForm__submit" type="submit" disabled={submitting}>
-            {submitting ? "送信中..." : "送信する"}
-          </button>
+          <div className="contactForm__submitRow">
+            <button className="contactForm__submit" type="submit" disabled={submitting}>
+              {submitting ? "送信中..." : "送信する"}
+            </button>
+          </div>
         </form>
       </section>
     </div>

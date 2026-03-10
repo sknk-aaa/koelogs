@@ -24,11 +24,12 @@ import {
   usedScaleLabel,
 } from "../types/community";
 import InfoModal from "../components/InfoModal";
+import AppSelect from "../components/AppSelect";
+import { InfoModalItem, InfoModalItems, InfoModalLead, InfoModalSection } from "../components/InfoModalSections";
 
 import "./CommunityPage.css";
 
-type ListTab = "posts" | "favorites";
-type BrowseSort = "newest" | "by_tag" | "mine";
+type BrowseTab = "newest" | "by_tag" | "favorites" | "mine";
 
 const FREE_NOTE_TEMPLATE = [
   "改善された点:", "",
@@ -36,16 +37,54 @@ const FREE_NOTE_TEMPLATE = [
   "意識した点:",
 ].join("\n");
 
-const FREE_NOTE_PLACEHOLDER = [
-  "改善された点：（ミドルが楽に出せるようになった / 声量が上がった）", "",
-  "音域：（地声レンジ / 換声点付近 / 裏声レンジ）", "",
-  "意識した点：（声帯閉鎖を維持する / 鼻に響かせる）",
-].join("\n");
+const FREE_NOTE_PLACEHOLDER = "感じた効果や、意識したことがあれば自由に書いてください";
+
+const browseTagOptions = [
+  { value: "", label: "タグを選択してください" },
+  ...IMPROVEMENT_TAG_OPTIONS.map((opt) => ({ value: opt.key, label: opt.label })),
+];
+
+function CommunityInfoIcon({ kind }: { kind: "browse" | "post" | "favorite" | "ranking" }) {
+  if (kind === "browse") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="11" cy="11" r="5.2" />
+        <path className="accent" d="m15 15 4 4" />
+      </svg>
+    );
+  }
+  if (kind === "post") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M5.5 18.5h13" />
+        <path d="M7.3 14.8 16.8 5.3" />
+        <path className="accent" d="m15.4 4.8 3.8 3.8" />
+        <path d="m6.2 17.8.8-3.6 2.8 2.8Z" />
+      </svg>
+    );
+  }
+  if (kind === "favorite") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path className="accent" d="m12 18.5-5.6-5.4a3.6 3.6 0 0 1 5.1-5.1L12 8.5l.5-.5a3.6 3.6 0 1 1 5.1 5.1Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M5 18.5h14" />
+      <path d="M7.3 18.5v-5.2" />
+      <path d="M12 18.5v-8.1" />
+      <path d="M16.7 18.5v-11" />
+      <path className="accent" d="m6.8 12.1 4-2.7 3.1 1.9 3.7-3" />
+    </svg>
+  );
+}
 
 export default function CommunityPage() {
   const navigate = useNavigate();
   const { me } = useAuth();
-  const [listTab, setListTab] = useState<ListTab>("posts");
+  const [activeTab, setActiveTab] = useState<BrowseTab>("newest");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -53,7 +92,6 @@ export default function CommunityPage() {
   const [favoritePosts, setFavoritePosts] = useState<CommunityPost[]>([]);
   const [minePosts, setMinePosts] = useState<CommunityPost[]>([]);
   const [highlightPostId, setHighlightPostId] = useState<number | null>(null);
-  const [browseSort, setBrowseSort] = useState<BrowseSort>("newest");
   const [selectedBrowseTag, setSelectedBrowseTag] = useState<string>("");
 
   const [postModalOpen, setPostModalOpen] = useState(false);
@@ -118,7 +156,7 @@ export default function CommunityPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (listTab !== "favorites" || !me) return;
+      if (activeTab !== "favorites" || !me) return;
       setLoading(true);
       setError(null);
       try {
@@ -136,12 +174,12 @@ export default function CommunityPage() {
     return () => {
       cancelled = true;
     };
-  }, [listTab, me]);
+  }, [activeTab, me]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (listTab !== "posts" || browseSort !== "mine" || !me) return;
+      if (activeTab !== "mine" || !me) return;
       setLoading(true);
       setError(null);
       try {
@@ -159,13 +197,13 @@ export default function CommunityPage() {
     return () => {
       cancelled = true;
     };
-  }, [listTab, browseSort, me]);
+  }, [activeTab, me]);
 
   useEffect(() => {
-    if (me || browseSort !== "mine") return;
-    setBrowseSort("newest");
+    if (me || activeTab !== "mine") return;
+    setActiveTab("newest");
     setMinePosts([]);
-  }, [me, browseSort]);
+  }, [me, activeTab]);
 
   useEffect(() => {
     let cancelled = false;
@@ -204,13 +242,17 @@ export default function CommunityPage() {
   };
 
   const visiblePosts = useMemo(() => {
-    const source = listTab === "posts" ? (browseSort === "mine" ? minePosts : posts) : favoritePosts;
+    const source =
+      activeTab === "favorites"
+        ? favoritePosts
+        : activeTab === "mine"
+          ? minePosts
+          : posts;
     const base = [ ...source ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    if (listTab === "posts" && browseSort === "mine") return base;
-    if (browseSort === "newest") return base;
+    if (activeTab === "favorites" || activeTab === "mine" || activeTab === "newest") return base;
     if (!selectedBrowseTag) return base;
     return base.filter((post) => post.improvement_tags.includes(selectedBrowseTag));
-  }, [listTab, posts, minePosts, favoritePosts, browseSort, selectedBrowseTag]);
+  }, [activeTab, posts, minePosts, favoritePosts, selectedBrowseTag]);
 
   const onToggleTag = (tagKey: string) => {
     setTags((prev) => (prev.includes(tagKey) ? prev.filter((v) => v !== tagKey) : [ ...prev, tagKey ]));
@@ -274,7 +316,7 @@ export default function CommunityPage() {
       }
       await reloadAllLists();
       setHighlightPostId(savedPost.id);
-      if (!editingPost) setListTab("posts");
+      if (!editingPost) setActiveTab("newest");
       setNotice(editingPost ? "投稿を更新しました。" : "投稿しました。");
       setComment("");
       setTags([]);
@@ -358,171 +400,196 @@ export default function CommunityPage() {
 
   return (
     <div className="page communityPage">
-      <section className="card communityPage__introLine">
-        <div className="communityPage__introText">
-          <div className="communityPage__introBadge">コミュニティ</div>
-          <div className="communityPage__introLead">ここでは「練習メニューの効果」を共有・閲覧できます。</div>
-          <div className="communityPage__introSub">
-            投稿はAIの分析にも活用され、「AIおすすめメニュー」の精度向上に反映されます。
-          </div>
-          <div className="communityPage__introNote">あなたの投稿が、みんなの練習をより良くします。</div>
-        </div>
-        <InfoModal
-          title="「コミュニティ」でできること "
-          bodyClassName="communityPage__communityInfo"
-          triggerClassName="communityPage__introInfoBtn"
-        >
-          <section className="communityPage__communityInfoSection">
-            <h3 className="communityPage__communityInfoTitle">みんなの練習</h3>
-            <ul>
-              <li>
-                <span className="communityPage__communityInfoIcon" aria-hidden="true">🔎</span>
-                <span>
-                  <strong>閲覧</strong>：他のユーザーの「メニュー × 効果」を見られます。
-                </span>
-              </li>
-              <li>
-                <span className="communityPage__communityInfoIcon" aria-hidden="true">✍️</span>
-                <span>
-                  <strong>投稿</strong>：あなたの実践結果を共有できます（公開されます）。
-                </span>
-              </li>
-              <li>
-                <span className="communityPage__communityInfoIcon" aria-hidden="true">★</span>
-                <span>
-                  <strong>お気に入り</strong>：参考になった投稿を保存できます（ログインが必要）。
-                </span>
-              </li>
-            </ul>
-          </section>
-
-          <section className="communityPage__communityInfoSection">
-            <h3 className="communityPage__communityInfoTitle">みんなの進捗</h3>
-            <div className="communityPage__communityInfoRank">
-              <span className="communityPage__communityInfoIcon" aria-hidden="true">🏆</span>
-              <span>
-                ランキングでは、継続日数・週間XP・AI貢献度の上位メンバーを確認できます。<br />
-                ほかのユーザーの取り組みを見て、日々の練習の目安にできます。
-              </span>
+      <section className="communityPage__heroShell">
+        <div className="communityPage__heroMain">
+          <div className="communityPage__heroLeadRow">
+            <div className="communityPage__introCopy">
+              <p className="communityPage__introLead">「コミュニティ」でできること</p>
+              <p className="communityPage__introSub">練習メニューの効果や工夫を共有し、みんなの練習を参考にできます。</p>
             </div>
+            <InfoModal
+              title="「コミュニティ」でできること "
+              bodyClassName="communityPage__communityInfo"
+              triggerClassName="communityPage__introInfoBtn"
+            >
+              <InfoModalLead muted>あなたの投稿データが、AIおすすめの精度向上に反映されます。</InfoModalLead>
+
+              <InfoModalSection
+                title="POSTS"
+                icon={(
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <rect x="4.5" y="5.5" width="15" height="4.2" rx="2.1" />
+                    <rect x="4.5" y="9.9" width="15" height="4.2" rx="2.1" />
+                    <rect x="4.5" y="14.3" width="15" height="4.2" rx="2.1" />
+                    <circle className="accent-fill" cx="7.3" cy="7.6" r="0.9" />
+                    <circle className="accent-fill" cx="7.3" cy="12" r="0.9" />
+                    <circle className="accent-fill" cx="7.3" cy="16.4" r="0.9" />
+                  </svg>
+                )}
+              >
+                <InfoModalItems>
+                  <InfoModalItem
+                    icon={<CommunityInfoIcon kind="browse" />}
+                    title="みんなの練習"
+                    description="他のユーザーの「メニュー × 効果」を見て、練習のヒントを探せます。"
+                  />
+                  <InfoModalItem
+                    icon={<CommunityInfoIcon kind="post" />}
+                    title="投稿"
+                    description="自分の実践結果を投稿して、他のユーザーに共有できます。"
+                  />
+                  <InfoModalItem
+                    icon={<CommunityInfoIcon kind="favorite" />}
+                    title="お気に入り"
+                    description="参考になった投稿を保存して、あとで見返せます。"
+                    noDivider
+                  />
+                </InfoModalItems>
+              </InfoModalSection>
+
+              <InfoModalSection
+                title="RANKINGS"
+                icon={(
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M5 18.5h14" />
+                    <path d="M7.3 18.5v-5.2" />
+                    <path d="M12 18.5v-8.1" />
+                    <path d="M16.7 18.5v-11" />
+                    <path className="accent" d="m6.8 12.1 4-2.7 3.1 1.9 3.7-3" />
+                  </svg>
+                )}
+              >
+                <InfoModalItems>
+                  <InfoModalItem
+                    icon={<CommunityInfoIcon kind="ranking" />}
+                    title="みんなの進捗"
+                    description="継続日数・週間XP・AI貢献度の上位メンバーを見て、日々の練習の目安にできます。"
+                    noDivider
+                  />
+                </InfoModalItems>
+              </InfoModalSection>
+            </InfoModal>
+          </div>
+        </div>
+
+        <div className="communityPage__heroActions">
+          <Link className="communityPage__rankingGuide" to="/community/rankings">
+            <span className="communityPage__rankingGuideBody">
+              <span className="communityPage__rankingGuideKickerRow">
+                <span className="communityPage__rankingGuideIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M5 18.5h14" />
+                    <path d="M7.3 18.5v-5.2" />
+                    <path d="M12 18.5v-8.1" />
+                    <path d="M16.7 18.5v-11" />
+                    <path className="accent" d="m6.8 12.1 4-2.7 3.1 1.9 3.7-3" />
+                  </svg>
+                </span>
+                <span className="communityPage__rankingGuideKicker">RANKINGS</span>
+              </span>
+              <span className="communityPage__rankingGuideDesc">みんなの進捗を確認できます</span>
+            </span>
+            <span className="communityPage__rankingGuideArrow" aria-hidden="true">ランキングを見る→</span>
+          </Link>
+        </div>
+      </section>
+
+      <div className="communityPage__accentGroup">
+        <div className="communityPage__accentWave" aria-hidden="true">
+          <svg viewBox="0 0 100 16" preserveAspectRatio="none">
+            <path
+              fill="currentColor"
+              d="M0 16V8C18 8 22 2 38 2C56 2 64 10 82 10C91 10 96 8 100 6V16Z"
+            />
+          </svg>
+        </div>
+        <div className="communityPage__accentInner">
+          <section className="communityPage__controls">
+            <div className="communityPage__controlsLabelRow">
+              <span className="communityPage__controlsLabelIcon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <rect x="4.5" y="5.5" width="15" height="4.2" rx="2.1" />
+                  <rect x="4.5" y="9.9" width="15" height="4.2" rx="2.1" />
+                  <rect x="4.5" y="14.3" width="15" height="4.2" rx="2.1" />
+                  <circle className="accent-fill" cx="7.3" cy="7.6" r="0.9" />
+                  <circle className="accent-fill" cx="7.3" cy="12" r="0.9" />
+                  <circle className="accent-fill" cx="7.3" cy="16.4" r="0.9" />
+                </svg>
+              </span>
+              <div className="communityPage__controlsLabel">POSTS</div>
+            </div>
+            <div className="communityPage__subTabs communityPage__subTabs--primary" role="tablist" aria-label="表示切替">
+              <button
+                type="button"
+                className={`communityPage__subTab ${activeTab === "newest" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("newest")}
+                role="tab"
+                aria-selected={activeTab === "newest"}
+              >
+                新着
+              </button>
+              <button
+                type="button"
+                className={`communityPage__subTab ${activeTab === "by_tag" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("by_tag")}
+                role="tab"
+                aria-selected={activeTab === "by_tag"}
+              >
+                タグ
+              </button>
+              <button
+                type="button"
+                className={`communityPage__subTab ${activeTab === "favorites" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("favorites")}
+                role="tab"
+                aria-selected={activeTab === "favorites"}
+              >
+                お気に入り
+              </button>
+              {me && (
+                <button
+                  type="button"
+                  className={`communityPage__subTab ${activeTab === "mine" ? "is-active" : ""}`}
+                  onClick={() => setActiveTab("mine")}
+                  role="tab"
+                  aria-selected={activeTab === "mine"}
+                >
+                  自分
+                </button>
+              )}
+            </div>
+            {activeTab === "by_tag" && (
+              <div className="communityPage__tagFilter">
+                <AppSelect
+                  className="communityPage__input"
+                  value={selectedBrowseTag}
+                  options={browseTagOptions}
+                  onChange={setSelectedBrowseTag}
+                  ariaLabel="タグを選択"
+                />
+              </div>
+            )}
           </section>
-        </InfoModal>
-      </section>
 
-      <section className="communityPage__rankingGuideWrap">
-        <Link className="communityPage__rankingGuide uiCard uiCard--accent2 uiCard--interactive" to="/community/rankings">
-          <span className="communityPage__rankingGuideIcon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false">
-              <path d="M4 19h16" />
-              <path d="M7 19v-4.5" />
-              <path d="M12 19v-7.5" />
-              <path d="M17 19v-10" />
-              <path d="m6.5 10.5 4-2.8 3.2 1.9 3.8-3.2" />
-            </svg>
-          </span>
-          <span className="communityPage__rankingGuideBody">
-            <span className="communityPage__rankingGuideTitle">ランキングを見る</span>
-            <span className="communityPage__rankingGuideDesc">みんなの進捗をチェックして刺激をもらう</span>
-          </span>
-          <span className="communityPage__rankingGuideArrow" aria-hidden="true">→</span>
-        </Link>
-      </section>
+          {notice && <section className="communityPage__notice">{notice}</section>}
+          {error && <section className="communityPage__error">{error}</section>}
 
-      <section className="card communityPage__controls">
-        <div className="communityPage__segmentGroup" role="tablist" aria-label="投稿一覧切替">
-          <button
-            type="button"
-            className={`communityPage__segmentBtn ${listTab === "posts" ? "is-active" : ""}`}
-            onClick={() => setListTab("posts")}
-            role="tab"
-            aria-selected={listTab === "posts"}
-          >
-            投稿一覧
-          </button>
-          <button
-            type="button"
-            className={`communityPage__segmentBtn ${listTab === "favorites" ? "is-active" : ""}`}
-            onClick={() => {
-              setListTab("favorites");
-              if (browseSort === "mine") setBrowseSort("newest");
-            }}
-            role="tab"
-            aria-selected={listTab === "favorites"}
-          >
-            お気に入り
-          </button>
-        </div>
-        <div className="communityPage__subTabs" role="tablist" aria-label="表示順切替">
-          <button
-            type="button"
-            className={`communityPage__subTab ${browseSort === "newest" ? "is-active" : ""}`}
-            onClick={() => setBrowseSort("newest")}
-            role="tab"
-            aria-selected={browseSort === "newest"}
-          >
-            新着一覧
-          </button>
-          <button
-            type="button"
-            className={`communityPage__subTab ${browseSort === "by_tag" ? "is-active" : ""}`}
-            onClick={() => setBrowseSort("by_tag")}
-            role="tab"
-            aria-selected={browseSort === "by_tag"}
-          >
-            タグ別
-          </button>
-          {me && (
-            <button
-              type="button"
-              className={`communityPage__subTab ${browseSort === "mine" ? "is-active" : ""}`}
-              onClick={() => {
-                setListTab("posts");
-                setBrowseSort("mine");
-              }}
-              role="tab"
-              aria-selected={browseSort === "mine"}
-            >
-              自分の投稿
-            </button>
-          )}
-        </div>
-        {browseSort === "by_tag" && (
-          <div className="communityPage__tagFilter">
-            <select
-              className="communityPage__input"
-              value={selectedBrowseTag}
-              onChange={(e) => setSelectedBrowseTag(e.target.value)}
-            >
-              <option value="">タグを選択してください</option>
-              {IMPROVEMENT_TAG_OPTIONS.map((opt) => (
-                <option key={opt.key} value={opt.key}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-      </section>
-
-      {notice && <section className="card communityPage__notice">{notice}</section>}
-      {error && <section className="card communityPage__error">{error}</section>}
-
-      <section className="communityPage__list">
-        {listTab === "favorites" && !me ? (
-          <div className="card communityPage__empty">
-            お気に入りの閲覧にはログインが必要です。<Link to="/login">ログイン</Link>
-          </div>
-        ) : loading ? (
-          <div className="card communityPage__empty">読み込み中…</div>
-        ) : visiblePosts.length === 0 ? (
-          <div className="card communityPage__empty">
-            {listTab === "favorites" ? "お気に入り投稿がありません。" : browseSort === "mine" ? "自分の投稿がまだありません。" : "まだ投稿がありません。"}
-          </div>
-        ) : (
-          visiblePosts.map((post) => (
+          <section className="communityPage__list">
+            {activeTab === "favorites" && !me ? (
+              <div className="communityPage__empty">
+                お気に入りの閲覧にはログインが必要です。<Link to="/login">ログイン</Link>
+              </div>
+            ) : loading ? (
+              <div className="communityPage__empty">読み込み中…</div>
+            ) : visiblePosts.length === 0 ? (
+              <div className="communityPage__empty">
+                {activeTab === "favorites" ? "お気に入り投稿がありません。" : activeTab === "mine" ? "自分の投稿がまだありません。" : activeTab === "by_tag" ? "該当する投稿がありません。" : "まだ投稿がありません。"}
+              </div>
+            ) : (
+              visiblePosts.map((post) => (
             <article
               key={post.id}
-              className={`card communityPage__post communityPage__listCard ${highlightPostId === post.id ? "is-highlight" : ""}`}
+              className={`communityPage__post ${highlightPostId === post.id ? "is-highlight" : ""}`}
             >
               <div className="communityPage__cardHeader">
                 {post.user.public && post.user.user_id ? (
@@ -577,11 +644,15 @@ export default function CommunityPage() {
               </div>
 
               <div className="communityPage__cardBody">
-                <div className="communityPage__fieldLabel--muted">効果のあったメニュー</div>
                 <div className="communityPage__cardTitleMain">{post.menu_name}</div>
                 {post.improvement_tags.length > 0 ? (
                   <>
-                    <div className="communityPage__tagsLabel">感じられた効果</div>
+                    <div className="communityPage__cardMetaLabel communityPage__cardMetaLabel--effects">
+                      <span className="communityPage__cardMetaLabelIcon" aria-hidden="true">
+                        <EffectsLabelIcon />
+                      </span>
+                      <span>EFFECTS</span>
+                    </div>
                     <div className="communityPage__tags communityPage__tags--field">
                       {post.improvement_tags.map((tag) => {
                         const label = improvementTagLabel(tag);
@@ -595,10 +666,12 @@ export default function CommunityPage() {
                     </div>
                   </>
                 ) : null}
-                <div className="communityPage__fieldLabel--muted">使用したスケール</div>
-                <div className="communityPage__usedScale">
-                  {usedScaleLabel(post.used_scale_type, post.used_scale_other_text)}
-                </div>
+                {!post.comment?.trim() ? (
+                  <div className="communityPage__usedScaleRow">
+                    <span className="communityPage__fieldLabel--muted">SCALE</span>
+                    <span className="communityPage__usedScale">{usedScaleLabel(post.used_scale_type, post.used_scale_other_text)}</span>
+                  </div>
+                ) : null}
               </div>
 
               {post.comment?.trim() ? (() => {
@@ -609,7 +682,11 @@ export default function CommunityPage() {
                 return (
                   <div className="communityPage__commentSection">
                     <div className={`communityPage__commentCard ${isCollapsed ? "is-collapsed" : ""}`}>
-                      <p className={`communityPage__comment ${isCollapsed ? "is-collapsed" : ""}`}>{trimmedComment}</p>
+                      <div className="communityPage__commentMetaRow">
+                        <span className="communityPage__fieldLabel--muted">SCALE</span>
+                        <span className="communityPage__usedScale">{usedScaleLabel(post.used_scale_type, post.used_scale_other_text)}</span>
+                      </div>
+                      <p className={`communityPage__comment ${isCollapsed ? "is-collapsed" : ""}`}>{renderCommentText(trimmedComment)}</p>
                     </div>
                     {isLong ? (
                       <button
@@ -643,17 +720,19 @@ export default function CommunityPage() {
                 </button>
               </div>
             </article>
-          ))
-        )}
-      </section>
+              ))
+            )}
+          </section>
+        </div>
+      </div>
 
-      <button type="button" className="communityPage__fab" onClick={onClickOpenPost}>
-        + 投稿する
+      <button type="button" className="communityPage__fab" onClick={onClickOpenPost} aria-label="投稿する">
+        投稿
       </button>
 
       {postModalOpen && (
         <div className="communityPage__modalOverlay" role="dialog" aria-modal="true" aria-label="投稿する">
-          <section className="card communityPage__modal">
+          <section className="communityPage__modal">
             <div className="communityPage__modalHead">
               <div className="communityPage__cardTitle">{editingPost ? "投稿を編集" : "投稿する"}</div>
               <button type="button" className="communityPage__modalClose" onClick={closePostModal}>
@@ -662,21 +741,31 @@ export default function CommunityPage() {
             </div>
 
             <div className="communityPage__modalBody">
+              <section className="communityPage__editorNote" aria-label="投稿のポイント">
+                <span className="communityPage__editorNoteIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M12 3.8 14.2 8.2 19 8.9 15.5 12.3 16.3 17.1 12 14.8 7.7 17.1 8.5 12.3 5 8.9 9.8 8.2Z" />
+                    <circle className="accent-fill" cx="12" cy="12" r="1.5" />
+                  </svg>
+                </span>
+                <p className="communityPage__editorNoteText">あなたの投稿データが、AIおすすめの精度向上に反映されます。</p>
+              </section>
+
               <section className="communityPage__editorCard">
                 <div className="communityPage__editorTitle">メニュー</div>
                 <div className="communityPage__editorHelper">例: 裏声リップロール</div>
-                <select
-                  value={menuId}
+                <AppSelect
+                  value={typeof menuId === "number" ? String(menuId) : ""}
                   className="communityPage__input"
-                  onChange={(e) => setMenuId(Number.parseInt(e.target.value, 10) || "")}
-                >
-                  {menus.length === 0 && <option value="">メニューがありません</option>}
-                  {menus.map((menu) => (
-                    <option key={menu.id} value={menu.id}>
-                      {menu.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(next) => setMenuId(Number.parseInt(next, 10) || "")}
+                  options={
+                    menus.length === 0
+                      ? [{ value: "", label: "メニューがありません" }]
+                      : menus.map((menu) => ({ value: String(menu.id), label: menu.name }))
+                  }
+                  placeholder="メニューを選択"
+                  ariaLabel="メニューを選択"
+                />
                 {typeof menuId !== "number" ? (
                   <div className="communityPage__fieldHint is-error">メニューを選んでね</div>
                 ) : null}
@@ -684,18 +773,16 @@ export default function CommunityPage() {
 
               <section className="communityPage__editorCard">
                 <div className="communityPage__editorTitle">使用したスケール</div>
-                <select
+                <AppSelect
                   value={usedScaleType}
                   className="communityPage__input"
-                  onChange={(e) => setUsedScaleType(e.target.value as CommunityUsedScaleType | "")}
-                >
-                  <option value="">選択してください</option>
-                  {COMMUNITY_USED_SCALE_OPTIONS.map((opt) => (
-                    <option key={opt.key} value={opt.key}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(next) => setUsedScaleType(next as CommunityUsedScaleType | "")}
+                  options={[
+                    { value: "", label: "選択してください" },
+                    ...COMMUNITY_USED_SCALE_OPTIONS.map((opt) => ({ value: opt.key, label: opt.label })),
+                  ]}
+                  ariaLabel="使用したスケールを選択"
+                />
                 {usedScaleType === "other" && (
                   <input
                     type="text"
@@ -769,5 +856,40 @@ export default function CommunityPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function renderCommentText(text: string) {
+  const lines = text.split("\n");
+  return lines.map((line, index) => {
+    const match = line.match(/^(改善された点:|音域:|意識した点:)(.*)$/);
+    if (!match) {
+      return (
+        <span key={`line-${index}`}>
+          {line}
+          {index < lines.length - 1 ? "\n" : null}
+        </span>
+      );
+    }
+
+    const [, label, rest] = match;
+    return (
+      <span key={`line-${index}`}>
+        <span className="communityPage__commentTemplateLabel">{label}</span>
+        {rest}
+        {index < lines.length - 1 ? "\n" : null}
+      </span>
+    );
+  });
+}
+
+function EffectsLabelIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M5 18.5h14" />
+      <path d="M5 18.5V7.5" />
+      <path className="accent" d="m7.5 15 3.5-3.5 2.5 2.5 4.5-5" />
+      <path className="accent" d="M18 9h2v2" />
+    </svg>
   );
 }

@@ -2275,7 +2275,11 @@ export default function LogPage() {
                         <section className="logPage__todayMenusCard">
                           <div className="logPage__daySectionHead">
                             <div className="logPage__noteSubtext">今日実施したトレーニングメニューを記録します</div>
-                            <button type="button" className="logPage__btn logPage__todayMenusEditBtn" onClick={openTodayMenuModal}>
+                            <button
+                              type="button"
+                              className="logPage__btn logPage__summaryCardAction logPage__todayMenusEditBtn"
+                              onClick={openTodayMenuModal}
+                            >
                               <span className="logPage__actionIconOnly" aria-hidden="true">
                                 {renderEditPencilIcon()}
                               </span>
@@ -2336,7 +2340,11 @@ export default function LogPage() {
                               </button>
                             </div>
                           ) : (
-                            <button type="button" className="logPage__btn" onClick={() => setDayNotesEditing(true)}>
+                            <button
+                              type="button"
+                              className="logPage__btn logPage__summaryCardAction"
+                              onClick={() => setDayNotesEditing(true)}
+                            >
                               <span className="logPage__actionIconOnly" aria-hidden="true">
                                 {renderEditPencilIcon()}
                               </span>

@@ -171,11 +171,11 @@ body:has(.page.logPage) {
 }
 
 .logPage__sectionLabelIcon svg .accent {
-  stroke: var(--accent);
+  stroke: color-mix(in srgb, var(--accent) 62%, #70839a);
 }
 
 .logPage__sectionLabelIcon svg .accent-fill {
-  fill: var(--accent);
+  fill: color-mix(in srgb, var(--accent) 62%, #70839a);
   stroke: none;
 }
 
@@ -235,7 +235,7 @@ body:has(.page.logPage) {
 }
 
 .logPage__contentInner--measure {
-  background: color-mix(in srgb, var(--accent) 7%, #ffffff);
+  background: var(--ui-measure-section-bg);
 }
 
 .logPage__contentInner--white {
@@ -334,7 +334,7 @@ body:has(.page.logPage) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: color-mix(in srgb, var(--accent) 78%, #09363d);
+  color: var(--ui-accent-strong);
   font-size: 0.92rem;
   font-weight: 800;
   line-height: 1.2;
@@ -399,7 +399,7 @@ body:has(.page.logPage) {
 .logPage__metricCard {
   min-width: 0;
   min-height: 144px;
-  padding: 18px 16px 16px;
+  padding: 14px 12px 12px;
   position: relative;
   overflow: hidden;
   border: none;
@@ -615,7 +615,7 @@ body:has(.page.logPage) {
   place-items: center;
   align-content: center;
   gap: 2px;
-  color: #163641;
+  color: #1d1d54;
 }
 
 .logPage__summaryCardRingValue span {
@@ -628,7 +628,7 @@ body:has(.page.logPage) {
   font-size: 14px;
   line-height: 1;
   font-weight: 700;
-  color: #64748b;
+  color: #506a7d;
 }
 
 .logPage__summaryCardMainRow {
@@ -682,9 +682,11 @@ body:has(.page.logPage) {
 
 .logPage__summaryCardAction {
   flex: 0 0 auto;
-  min-height: 34px;
-  min-width: 34px;
-  padding: 0 9px;
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  min-width: 38px;
+  padding: 0;
   border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
   border-radius: 999px;
   background: #ffffff;
@@ -920,7 +922,7 @@ body:has(.page.logPage) {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 10px;
+  gap: 3px;
   margin-bottom: 2px;
   width: 100%;
 }
@@ -1005,11 +1007,13 @@ body:has(.page.logPage) {
 }
 
 .logPage__rangeNotes {
-  width: 100%;
+  width: auto;
   display: grid;
-  grid-template-columns: auto minmax(28px, 1fr) auto;
+  grid-template-columns: auto 52px auto;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 4px;
+  margin-inline: auto;
 }
 
 .logPage__rangeNote {
@@ -1017,6 +1021,8 @@ body:has(.page.logPage) {
   line-height: 1;
   font-weight: 700;
   color: #3265d6;
+  text-align: center;
+  justify-self: center;
 }
 
 .logPage__rangeDivider {
@@ -1060,8 +1066,8 @@ body:has(.page.logPage) {
 
 .logPage__miniRing {
   --ring-progress: 0;
-  width: 72px;
-  height: 72px;
+  width: 84px;
+  height: 84px;
   border-radius: 999px;
   background:
     conic-gradient(#7a4dff calc(var(--ring-progress) * 1turn), rgba(122, 77, 255, 0.16) 0);
@@ -1071,8 +1077,8 @@ body:has(.page.logPage) {
 
 .logPage__miniRing::before {
   content: "";
-  width: 54px;
-  height: 54px;
+  width: 62px;
+  height: 62px;
   border-radius: inherit;
   background: rgba(255, 255, 255, 0.92);
   grid-area: 1 / 1;
@@ -1164,7 +1170,7 @@ body:has(.page.logPage) {
 
 .logPage__daySectionHead {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
@@ -1216,7 +1222,7 @@ body:has(.page.logPage) {
 }
 
 .logPage__noteSubtext {
-  margin-top: 4px;
+  margin-top: 0;
   font-size: 13px;
   line-height: 1.45;
   color: #64748b;
@@ -1260,11 +1266,22 @@ body:has(.page.logPage) {
 }
 
 .logPage__todayMenusEditBtn {
-  height: 30px;
-  min-width: 30px;
-  padding-inline: 7px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0;
   border-radius: 999px;
   font-size: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  background: #ffffff;
+  color: var(--log-brand-text);
+}
+
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn {
+  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  background: #ffffff;
+  color: var(--log-brand-text);
 }
 
 .logPage__actionIconOnly {
@@ -1381,7 +1398,7 @@ body:has(.page.logPage) {
   }
 
   .logPage__metricCard {
-    padding: 16px;
+    padding: 10px;
     border-radius: 24px;
     min-height: 156px;
   }
@@ -2325,6 +2342,20 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   box-shadow: none;
 }
 
+.logPage__btn.logPage__summaryCardAction {
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  min-width: 38px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--log-brand-text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
 .logPage__btn--subtle {
   background: #f7fafc;
   box-shadow: none;
@@ -2493,6 +2524,10 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   font-weight: 950;
   letter-spacing: -0.6px;
   line-height: 1;
+}
+
+.logPage__mini--time .logPage__kpiNumber {
+  color: #233f56;
 }
 
 .logPage__kpiUnit {
@@ -4230,7 +4265,7 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 900;
   margin-bottom: 8px;
 }
@@ -4239,21 +4274,21 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 7px;
   border: 1px solid color-mix(in srgb, var(--border) 75%, var(--surface));
   background: color-mix(in srgb, var(--surface) 72%, var(--card));
 }
 
 .logAiSection__icon svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: block;
 }
 
 .logAiSection__icon--theme {
-  color: color-mix(in srgb, var(--log-ai-theme-accent) 72%, var(--text));
+  color: var(--ui-section-icon-color);
 }
 
 .logAiSection__icon--state {
@@ -4265,7 +4300,7 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .logAiSection--theme .logAiSection__title {
-  color: color-mix(in srgb, var(--log-ai-theme-accent) 62%, var(--text));
+  color: var(--ui-section-eyebrow-color);
   margin-bottom: 6px;
 }
 
@@ -4386,13 +4421,11 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .logAiTheme {
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--log-ai-theme-accent) 20%, var(--border));
-  border-left: 4px solid color-mix(in srgb, var(--log-ai-theme-accent) 56%, var(--border));
-  background: color-mix(in srgb, var(--log-ai-theme-accent) 8%, var(--surface));
-  padding: 12px 12px 12px 14px;
+  border: 0;
+  background: transparent;
+  padding: 0;
   font-size: 14px;
-  line-height: 1.68;
+  line-height: 1.74;
   font-weight: 900;
 }
 
@@ -4418,11 +4451,13 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  margin-top: 4px;
 }
 
 .logAiMenuRow__name {
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 950;
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -4445,6 +4480,13 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   font-size: 13px;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.logAiMenuRow__label {
+  display: inline-block;
+  margin-right: 2px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 74%, var(--text));
 }
 
 .logAiMenuRow__evidence {
@@ -4897,9 +4939,8 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .logAiTheme {
-  border-color: rgba(96, 165, 250, 0.26);
-  border-left-color: rgba(96, 165, 250, 0.72);
-  background: rgba(59, 130, 246, 0.14);
+  border: 0;
+  background: transparent;
 }
 
 :root[data-theme-mode="dark"] .logAiMenuRow__time {
@@ -5122,15 +5163,18 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   }
 
   .logAiSection__title {
-    font-size: 13px;
+    font-size: 15px;
     margin-bottom: 6px;
   }
 
   .logAiSection__body p,
   .logAiStateItem,
-  .logAiMenuRow__name,
   .logAiMenuRow__desc {
     font-size: 12px;
+  }
+  
+  .logAiMenuRow__name {
+    font-size: 15px;
   }
 
   .logAi__collective {
@@ -5655,6 +5699,28 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.logPage__noteActions .logPage__btn {
+  height: 36px;
+  min-width: 72px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
+}
+
+.logPage__noteActions .logPage__btn:hover {
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+}
+
+.logPage__noteActions .logPage__btn--softAccent {
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  color: #294452;
+}
+
+.logPage__noteActions .logPage__btn--softAccent:hover {
+  background: color-mix(in srgb, var(--accent) 10%, #ffffff);
 }
 
 .logPage__notePreview {

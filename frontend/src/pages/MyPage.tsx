@@ -9,6 +9,7 @@ import type { BadgeProgress } from "../types/gamification";
 import type { InsightsData } from "../types/insights";
 import type { MissionsResponseData } from "../types/missions";
 import InfoModal from "../components/InfoModal";
+import { InfoModalItem, InfoModalItems, InfoModalLead, InfoModalSection } from "../components/InfoModalSections";
 import TutorialModal from "../components/TutorialModal";
 import {
   BeginnerMissionGuideCard,
@@ -156,6 +157,36 @@ function ProgressXpIcon(): React.ReactNode {
       <path className="accent" d="M8.4 12h7.2" />
       <path d="M17.4 6.6 18.9 5.1" />
       <path d="M5.1 18.9 6.6 17.4" />
+    </svg>
+  );
+}
+
+function renderMyPageInfoItemIcon(kind: "log" | "measure" | "community"): React.ReactNode {
+  if (kind === "log") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <rect x="6" y="4.8" width="12" height="14.8" rx="2.4" />
+        <path d="M9 9.2h6" />
+        <path d="M9 12.4h6" />
+        <path d="M9 15.6h4.2" />
+      </svg>
+    );
+  }
+  if (kind === "measure") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M4.8 18.5h14.4" />
+        <path d="m7.2 14.6 3-3 2.4 2.3 4.2-5.2" />
+        <circle cx="18.2" cy="16" r="1.8" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <circle cx="8.1" cy="10" r="2.1" />
+      <circle cx="15.9" cy="8.1" r="1.8" />
+      <path d="M4.8 17.2c.5-2.3 2.2-3.8 4.4-3.8 1.7 0 3 .7 3.8 2" />
+      <path d="M14.2 14.8c.4-1.3 1.5-2.2 2.9-2.2 1.2 0 2.2.6 2.8 1.7" />
     </svg>
   );
 }
@@ -519,7 +550,6 @@ export default function MyPage() {
     return (
       <div className="page myPage">
         <section className="myPage__hero">
-          <h1 className="myPage__title">MY PAGE</h1>
           <p className="myPage__sub">読み込み中…</p>
         </section>
       </div>
@@ -530,7 +560,6 @@ export default function MyPage() {
     return (
       <div className="page myPage">
         <section className="myPage__hero">
-          <h1 className="myPage__title">MY PAGE</h1>
           <p className="myPage__sub">データを取得できませんでした。</p>
         </section>
       </div>
@@ -625,44 +654,28 @@ export default function MyPage() {
                 title="XP（進捗）について"
                 bodyClassName="myPage__xpInfoBody"
               >
-                <div className="myPage__xpInfoLead">
-                  XPは「継続の証」として、日々の練習記録を評価します。
-                </div>
-                <div className="myPage__xpInfoBlocks">
-                  <section className="myPage__xpInfoBlock">
-                    <div className="myPage__xpInfoTitle">
-                      <span className="myPage__xpInfoIcon" aria-hidden="true">📝</span>
-                      <span>ログ記録</span>
-                    </div>
-                    <ul>
-                      <li>日ログを保存するたびにXPを蓄積</li>
-                      <li>月振り返り（メモ）を更新すると追加ボーナス</li>
-                    </ul>
-                  </section>
-                  <section className="myPage__xpInfoBlock">
-                    <div className="myPage__xpInfoTitle">
-                      <span className="myPage__xpInfoIcon" aria-hidden="true">🎚</span>
-                      <span>測定・分析</span>
-                    </div>
-                    <ul>
-                      <li>Trainingページで測定を完了するとXP付与</li>
-                      <li>Insights上で一定の計測を達成すると累積</li>
-                    </ul>
-                  </section>
-                  <section className="myPage__xpInfoBlock">
-                    <div className="myPage__xpInfoTitle">
-                      <span className="myPage__xpInfoIcon" aria-hidden="true">🌐</span>
-                      <span>コミュニティ + AI</span>
-                    </div>
-                    <ul>
-                      <li>コミュニティ投稿を公開・貢献するとXP</li>
-                      <li>AIおすすめを生成・活用してもXPを獲得</li>
-                    </ul>
-                  </section>
-                </div>
-                <div className="myPage__xpInfoNote">
-                  XPは上達の約束ではなく、継続を実感するための指標です。
-                </div>
+                <InfoModalLead>XPは「継続の証」として、日々の練習記録を評価します。</InfoModalLead>
+                <InfoModalSection icon={renderMyPageSectionIcon("progress")} title="PROGRESS">
+                  <InfoModalItems>
+                    <InfoModalItem
+                      icon={renderMyPageInfoItemIcon("log")}
+                      title="ログ記録"
+                      description="日ログや月振り返りを保存すると、XPが積み上がります。"
+                    />
+                    <InfoModalItem
+                      icon={renderMyPageInfoItemIcon("measure")}
+                      title="測定・分析"
+                      description="Trainingの測定完了やInsightsの利用でも、XPを獲得できます。"
+                    />
+                    <InfoModalItem
+                      icon={renderMyPageInfoItemIcon("community")}
+                      title="コミュニティ + AI"
+                      description="コミュニティ投稿の公開やAIおすすめの活用でも、XPが増えます。"
+                      meta="XPは上達の約束ではなく、継続を実感するための指標です。"
+                      noDivider
+                    />
+                  </InfoModalItems>
+                </InfoModalSection>
               </InfoModal>
             </div>
             <div className="myPage__stats">
@@ -740,6 +753,17 @@ export default function MyPage() {
             </div>
             <div className="myPage__contribution">
               <div className="myPage__contributionValue">
+                <span className="myPage__contributionLeadIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M8 5h8v3a4 4 0 0 1-8 0V5Z" />
+                    <path d="M9.5 17h5" />
+                    <path d="M12 12v5" />
+                    <path d="M7 6H5.5a1.5 1.5 0 0 0 0 3H7" />
+                    <path d="M17 6h1.5a1.5 1.5 0 0 1 0 3H17" />
+                    <path className="accent" d="m18.4 4.2.8.8" />
+                    <path className="accent" d="m5.6 4.2-.8.8" />
+                  </svg>
+                </span>
                 あなたの投稿は <span className="myPage__contributionCount">{me?.ai_contribution_count ?? 0}回</span> AIおすすめの根拠として使われました
               </div>
               <div className="myPage__contributionHelp">

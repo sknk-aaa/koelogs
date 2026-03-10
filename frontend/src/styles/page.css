@@ -5,6 +5,10 @@
   color: var(--pageText, var(--text));
 }
 
+.page:not(.logPage):not(.aiChatPage):not(.communityRanking) {
+  padding-top: 0;
+}
+
 .h1 {
   font-size: 20px;
   font-weight: 900;
@@ -61,6 +65,10 @@
     padding-top: 18px;
     padding-left: 18px;
     padding-right: 18px;
+  }
+
+  .page:not(.logPage):not(.aiChatPage):not(.communityRanking) {
+    padding-top: 0;
   }
 
   .h1 {

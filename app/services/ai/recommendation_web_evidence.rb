@@ -46,9 +46,10 @@ module Ai
 
       parsed = parse_payload(result[:text])
       sources = sanitize_sources(result[:sources])
+      web_used = parsed[:insights].any? || parsed[:menu_hints].any? || sources.any?
       {
         attempted: true,
-        used: sources.any?,
+        used: web_used,
         intensity: intensity,
         query: query_text,
         insights: parsed[:insights].first(3),

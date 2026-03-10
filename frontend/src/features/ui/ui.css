@@ -1,53 +1,54 @@
 .pageContainer {
   min-height: 100vh;
-  background:
-    radial-gradient(900px 600px at 12% -10%, var(--bg-glow-2), transparent 62%),
-    radial-gradient(760px 520px at 88% 0%, var(--bg-glow-1), transparent 62%),
-    linear-gradient(180deg, var(--bgTop), var(--bgMid) 50%, var(--bgBottom) 100%);
+  background: #ffffff;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom) + 12px);
+  --ui-section-eyebrow-size: 1.05rem;
+  --ui-section-eyebrow-letter-spacing: 0.16em;
+  --ui-section-icon-size: 28px;
+  --ui-section-icon-stroke-width: 1.9;
 }
 
 .uiCard {
-  background:
-    linear-gradient(160deg, color-mix(in srgb, var(--card) 92%, var(--card-tint)), var(--card));
-  border: 1px solid color-mix(in srgb, var(--border) 84%, var(--text) 16%);
-  border-radius: var(--radius-xl);
+  background: #ffffff;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  border-radius: 16px;
   padding: var(--space-4);
   color: var(--cardText, var(--text));
-  box-shadow: 0 4px 12px rgba(12, 28, 54, 0.08);
+  box-shadow: none;
 }
 
 .uiCard--accent1 {
-  border-color: color-mix(in srgb, var(--accent-1) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent-1) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-1) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent-1) 7%, #ffffff);
 }
 
 .uiCard--accent2 {
-  border-color: color-mix(in srgb, var(--accent-2) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent-2) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-2) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent-2) 7%, #ffffff);
 }
 
 .uiCard--accent3 {
-  border-color: color-mix(in srgb, var(--accent-3) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent-3) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-3) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent-3) 7%, #ffffff);
 }
 
 .uiCard--accent4 {
-  border-color: color-mix(in srgb, var(--accent-4) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent-4) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-4) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent-4) 7%, #ffffff);
 }
 
 .uiCard--accent5 {
-  border-color: color-mix(in srgb, var(--accent-5) 36%, var(--border));
-  background: color-mix(in srgb, var(--accent-5) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-5) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent-5) 7%, #ffffff);
 }
 
 .uiCard--interactive {
-  transition: transform 140ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition: transform 140ms ease, background-color 160ms ease, border-color 160ms ease;
 }
 
 .uiCard--interactive:hover {
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
 }
 
 .uiCardHeader {
@@ -60,7 +61,7 @@
 .uiCardTitle {
   font-size: 16px;
   font-weight: 900;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.04em;
 }
 
 .uiCardSub {
@@ -70,24 +71,28 @@
 
 .uiSectionTitle {
   font-size: 15px;
-  font-weight: 900;
-  letter-spacing: 0.2px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 20%, var(--muted));
   margin: 0 0 var(--space-3);
 }
 
 .uiPillButton {
-  border: 1px solid color-mix(in srgb, var(--accent) 36%, transparent);
-  background: color-mix(in srgb, var(--accent) 20%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
   color: var(--cardText, var(--text));
-  border-radius: var(--radius-pill);
+  border-radius: 999px;
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 160ms ease, background 160ms ease;
-  box-shadow: 0 6px 16px rgba(8, 12, 24, 0.25);
+  transition: transform 120ms ease, border-color 160ms ease, background-color 160ms ease;
+  box-shadow: none;
 }
 
 .uiPillButton:hover {
   transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, #ffffff);
 }

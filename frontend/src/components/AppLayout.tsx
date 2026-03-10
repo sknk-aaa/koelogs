@@ -14,7 +14,7 @@ export default function AppLayout() {
   return (
     <div style={styles.page}>
       {!hideHeader && <AppHeader />}
-      <main style={{ ...styles.main, paddingBottom: isPremiumPage ? 0 : styles.main.paddingBottom }}>
+      <main style={styles.main}>
         {isPremiumPage ? (
           <Outlet />
         ) : (
@@ -35,6 +35,6 @@ const styles: Record<string, React.CSSProperties> = {
     overflowX: "clip",
   },
   main: {
-    paddingBottom: "calc(64px + env(safe-area-inset-bottom) + 12px)",
+    paddingBottom: 0,
   },
 };

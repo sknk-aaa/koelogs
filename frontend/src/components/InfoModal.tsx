@@ -75,7 +75,12 @@ export default function InfoModal({
         onClick={() => setOpen(true)}
         aria-label={`${title}の説明を開く`}
       >
-        ⓘ
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.5" />
+          <text x="12" y="12.55" className="infoModal__triggerText" textAnchor="middle" dominantBaseline="middle">
+            ?
+          </text>
+        </svg>
       </button>
       {modal}
     </>

@@ -1,22 +1,38 @@
 .infoModal__trigger {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-  color: var(--cardText, var(--text));
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--text) 30%, #b5bec8);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1;
   cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease, transform 120ms ease;
+}
+
+.infoModal__trigger svg {
+  width: 30px;
+  height: 30px;
+  stroke: color-mix(in srgb, currentColor 58%, transparent);
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.infoModal__triggerText {
+  fill: color-mix(in srgb, currentColor 92%, #6f7a86);
+  stroke: none;
+  font-size: 13px;
+  font-weight: 800;
+  font-family: "Hiragino Sans", "Yu Gothic UI", "YuGothic", sans-serif;
 }
 
 .infoModal__trigger:hover {
-  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: color-mix(in srgb, var(--text) 40%, #a6b0bb);
+  transform: translateY(-1px);
 }
 
 .infoModal__overlay {
@@ -128,9 +144,8 @@
 }
 
 :root[data-theme-mode="dark"] .infoModal__trigger {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--on-dark-1);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 :root[data-theme-mode="dark"] .infoModal__close {

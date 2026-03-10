@@ -25,6 +25,13 @@
   gap: 16px;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .todayMenuModal__panel {
+    inset: auto 12px 12px 12px;
+    max-height: min(calc(100dvh - 24px), 760px);
+  }
+}
+
 .todayMenuModal__head {
   display: flex;
   align-items: flex-start;

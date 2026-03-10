@@ -1,63 +1,137 @@
 .myPage {
   position: relative;
-  isolation: isolate;
-  overflow-x: hidden;
   display: grid;
-  gap: 14px;
+  gap: 26px;
+  overflow-x: hidden;
 }
 
 .myPage__hero {
   display: grid;
-  gap: 8px;
-}
-
-.myPage__kicker {
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--on-light-3);
+  gap: 6px;
+  padding: 4px 0 2px;
 }
 
 .myPage__title {
   margin: 0;
-  font-size: 22px;
+  font-size: 1.2rem;
   font-weight: 950;
-  color: var(--on-light-1);
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--accent) 12%, #09363d);
 }
 
 .myPage__sub {
   margin: 0;
-  font-size: 14px;
-  color: var(--on-light-3);
+  font-size: 13px;
+  line-height: 1.6;
+  color: #5f7480;
 }
 
-.myPage__missionCard,
-.myPage__card {
+.myPage__section {
+  padding-bottom: 18px;
+  display: grid;
+  gap: 14px;
+  border-bottom: 0;
+}
+
+.myPage__section--missions {
+  padding: 0;
+  gap: 8px;
+}
+
+.myPage__missionsFrame {
+  padding: 14px;
   border-radius: 16px;
-  border: 1px solid transparent;
-  background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-  color: #0b1220;
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, #dee7ee);
+  background: transparent;
 }
 
-.myPage__cardTitle {
-  font-size: 15px;
-  font-weight: 950;
-  margin-bottom: 10px;
+.myPage__accentGroup {
+  display: grid;
+  gap: 0;
+  margin: 2px -16px 0;
 }
 
-.myPage__cardTitleRow {
+.myPage__accentWave {
+  display: block;
+  height: 24px;
+  color: color-mix(in srgb, var(--accent) 7%, #ffffff);
+}
+
+.myPage__accentWave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.myPage__accentInner {
+  background: color-mix(in srgb, var(--accent) 7%, #ffffff);
+  padding: 2px 16px 0;
+  display: grid;
+  gap: 18px;
+}
+
+.myPage__accentInner > .myPage__section:last-child {
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+}
+
+.myPage__section--progress {
+  margin-top: 10px;
+  margin-bottom: 18px;
+}
+
+@media (min-width: 760px) {
+  .myPage__accentGroup {
+    margin-left: -18px;
+    margin-right: -18px;
+  }
+}
+
+.myPage__sectionHead,
+.myPage__sectionHeadMain {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 12px;
 }
 
-.myPage__cardTitle--tight {
-  margin-bottom: 0;
+.myPage__sectionHead {
+  justify-content: space-between;
+}
+
+.myPage__sectionIcon {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+  flex: 0 0 auto;
+}
+
+.myPage__sectionIcon svg {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  stroke: currentColor;
+  stroke-width: var(--ui-section-icon-stroke-width);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.myPage__sectionIcon svg .accent {
+  stroke: var(--accent);
+}
+
+.myPage__sectionIcon svg .accent-fill {
+  fill: var(--accent);
+  stroke: none;
+}
+
+.myPage__sectionEyebrow {
+  font-size: var(--ui-section-eyebrow-size);
+  font-weight: 800;
+  letter-spacing: var(--ui-section-eyebrow-letter-spacing);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 20%, #5f7480);
 }
 
 .myPage__missionMoreBtn {
@@ -84,15 +158,15 @@
 
 .myPage__missionGroup {
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.84);
+  border: 0;
+  background: rgba(255, 255, 255, 0.58);
   padding: 10px;
   display: grid;
   gap: 8px;
 }
 
 .myPage__missionGroup--collapsed {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.46);
 }
 
 .myPage__missionGroupHead {
@@ -102,10 +176,51 @@
   gap: 8px;
 }
 
+.myPage__missionGroupTitleRow,
+.myPage__missionSubgroupLabelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+.myPage__missionGroupIcon {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 48%, #70839a);
+  flex: 0 0 auto;
+  transform: translateY(1px);
+}
+
+.myPage__missionGroupIcon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.myPage__missionSubgroupLabelRow .myPage__missionGroupIcon {
+  transform: translateY(2px);
+}
+
+.myPage__missionGroupIcon svg .accent {
+  stroke: var(--accent);
+}
+
 .myPage__missionGroupTitle {
-  font-size: 13px;
-  font-weight: 950;
-  color: var(--on-light-1);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 20%, #5f7480);
 }
 
 .myPage__missionGroupSub {
@@ -117,16 +232,15 @@
 
 .myPage__mission {
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.84);
+  border: 0;
+  background: rgba(255, 255, 255, 0.68);
   padding: 10px;
   display: grid;
   gap: 6px;
 }
 
 .myPage__mission.is-done {
-  border-color: rgba(34, 197, 94, 0.38);
-  background: rgba(34, 197, 94, 0.08);
+  background: rgba(34, 197, 94, 0.1);
 }
 
 .myPage__missionTitle {
@@ -167,56 +281,56 @@
 }
 
 .myPage__missionGuideCard {
-  margin-top: 10px;
+  margin-top: 0;
   width: 100%;
-  border-radius: 18px;
-  border: 1px solid #d7dee8;
-  background: #ffffff;
-  box-shadow: 0 8px 18px rgba(31, 64, 122, 0.08);
-  padding: 14px 14px 12px;
+  border-radius: 14px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.56);
+  box-shadow: none;
+  padding: 12px 12px 10px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   text-align: left;
   cursor: pointer;
 }
 
 .myPage__missionGuideTitle {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 950;
-  color: #4b5567;
+  color: #425766;
   line-height: 1.35;
 }
 
 .myPage__missionGuideMetaRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .myPage__missionGuideLabel {
-  font-size: 12px;
-  font-weight: 700;
-  color: #5e6d86;
+  font-size: 11px;
+  font-weight: 800;
+  color: #718492;
 }
 
 .myPage__missionGuideCount {
   margin-left: auto;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
-  color: #2cb2c9;
+  color: color-mix(in srgb, var(--accent) 64%, #4e6978);
 }
 
 .myPage__missionGuideArrow {
-  font-size: 38px;
+  font-size: 30px;
   line-height: 0.6;
-  color: #b9c4d7;
+  color: #c2ccd8;
 }
 
 .myPage__missionGuideProgressTrack {
-  height: 16px;
+  height: 8px;
   border-radius: 999px;
   overflow: hidden;
-  background: #dce4ef;
+  background: color-mix(in srgb, var(--accent) 6%, #e8eef3);
   display: block;
 }
 
@@ -224,7 +338,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #42c7da, #2da6cb);
+  background: color-mix(in srgb, var(--accent) 24%, #a7dce6);
 }
 
 .myPage__missionGuideCard.is-guided,
@@ -288,18 +402,84 @@
 
 .myPage__stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .myPage__stat,
 .myPage__dayItem {
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.86);
+  border: 0;
+  background: #ffffff;
   padding: 10px;
   display: grid;
   gap: 5px;
+}
+
+.myPage__contribution {
+  border-radius: 12px;
+  border: 0;
+  background: #ffffff;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.myPage__contributionValue {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.6;
+  color: #344e5d;
+}
+
+.myPage__contributionCount {
+  display: inline-block;
+  margin: 0 2px;
+  font-size: 18px;
+  font-weight: 950;
+  color: color-mix(in srgb, var(--accent) 56%, #866100);
+}
+
+.myPage__contributionHelp {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #83939d;
+}
+
+.myPage__statIcon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 56%, #5f7480);
+  flex: 0 0 auto;
+}
+
+.myPage__statIcon svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.myPage__statIcon svg .accent {
+  stroke: var(--accent);
+}
+
+.myPage__statBody {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.myPage__labelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .myPage__label {
@@ -312,14 +492,37 @@
   font-size: 18px;
   font-weight: 950;
   color: var(--on-light-1);
+  text-align: center;
+}
+
+.myPage__xpRailRow {
+  margin-top: -2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .myPage__xpRail {
-  margin-top: 10px;
+  flex: 1 1 auto;
   height: 8px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.08);
+  background: color-mix(in srgb, var(--accent) 6%, #dfe7ee);
   overflow: hidden;
+}
+
+.myPage__xpRailMeta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: -4px;
+  margin-bottom: -12px;
+}
+
+.myPage__xpRailMetaText {
+  font-size: 10px;
+  font-weight: 800;
+  color: #7c8f9c;
+  white-space: nowrap;
 }
 
 .myPage__xpFill {
@@ -333,10 +536,18 @@
   );
 }
 
+.myPage__xpRailTag {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 800;
+  color: #7c8f9c;
+  letter-spacing: 0.08em;
+}
+
 .myPage__badgeGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 6px;
 }
 
 .myPage__badge {
@@ -345,12 +556,12 @@
   color: inherit;
   cursor: pointer;
   width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.88);
-  padding: 10px;
+  border-radius: 8px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.34);
+  padding: 6px 4px;
   display: grid;
-  gap: 6px;
+  gap: 3px;
   justify-items: center;
   text-align: center;
 }
@@ -361,50 +572,62 @@
 }
 
 .myPage__badge.is-unlocked {
-  border-color: color-mix(in srgb, var(--accent) 50%, #82d7ff);
-  background:
-    linear-gradient(
-      165deg,
-      color-mix(in srgb, var(--accent) 14%, #ffffff),
-      color-mix(in srgb, var(--accent) 8%, #f6fbff)
-    );
-  box-shadow: 0 8px 16px rgba(84, 127, 237, 0.16);
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+  box-shadow: none;
 }
 
 .myPage__badge.is-locked {
-  opacity: 0.72;
+  opacity: 0.62;
 }
 
 .myPage__badgeIcon {
-  width: 56px;
-  height: 56px;
-  object-fit: contain;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 34%, #728491);
+}
+
+.myPage__badgeIcon svg {
+  width: 28px;
+  height: 28px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.myPage__badgeIcon svg .accent {
+  stroke: var(--accent);
 }
 
 .myPage__badge.is-locked .myPage__badgeIcon {
-  filter: grayscale(1);
+  color: #a6b2bc;
 }
 
 .myPage__badgeName {
-  font-size: 12px;
-  font-weight: 900;
-  color: var(--on-light-1);
+  font-size: 10px;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--on-light-1) 74%, #6d7f8d);
+  line-height: 1.2;
 }
 
 .myPage__badgeMeta {
-  font-size: 11px;
-  font-weight: 900;
-  color: var(--on-light-3);
+  font-size: 9px;
+  font-weight: 800;
+  color: #8798a5;
 }
 
 .myPage__badge.is-unlocked .myPage__badgeMeta {
-  color: color-mix(in srgb, var(--accent) 64%, #3f5ac6);
+  color: color-mix(in srgb, var(--accent) 20%, #6c7f8d);
 }
 
 .myPage__badgeSummary {
-  font-size: 12px;
-  font-weight: 900;
-  color: var(--on-light-3);
+  font-size: 11px;
+  font-weight: 800;
+  color: #7b8c98;
 }
 
 .myPage__badgeToggle {
@@ -421,9 +644,14 @@
 }
 
 .myPage__hint {
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--on-light-3);
+  margin-top: 6px;
+  font-size: 11px;
+  color: #7c8f9c;
+}
+
+.myPage .durationHeatmap {
+  border: 0;
+  background: #ffffff;
 }
 
 .myPage__trendHead {
@@ -434,40 +662,23 @@
   gap: 10px;
 }
 
-.myPage__summarySwitch {
-  display: inline-flex;
-  gap: 6px;
-}
-
-.myPage__summaryBtn {
-  min-height: 30px;
-  padding: 0 10px;
-  border-radius: 9px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.86);
-  color: var(--on-light-2);
+.myPage__summaryPeriod {
   font-size: 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.myPage__summaryBtn.is-active {
-  border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
-  background: color-mix(in srgb, var(--accent) 12%, #fff);
+  font-weight: 800;
+  color: #708390;
 }
 
 .myPage__linkBtn {
-  min-height: 30px;
-  padding: 0 10px;
-  border-radius: 9px;
-  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
-  background: color-mix(in srgb, var(--accent) 10%, white);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  color: var(--accentTextSoft);
+  color: color-mix(in srgb, var(--accent) 42%, #5f7480);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .myPage__daysGrid {
@@ -511,9 +722,9 @@
   max-height: min(80vh, 760px);
   overflow: auto;
   border-radius: 16px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid color-mix(in srgb, var(--accent) 8%, #e4ebf1);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 12px 28px rgba(9, 54, 61, 0.08);
   padding: 14px;
 }
 
@@ -522,55 +733,126 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.myPage__modalHeadMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .myPage__modalTitle {
-  font-size: 16px;
-  font-weight: 950;
-  color: var(--on-light-1);
+  font-size: var(--ui-section-eyebrow-size);
+  font-weight: 800;
+  letter-spacing: var(--ui-section-eyebrow-letter-spacing);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 20%, #5f7480);
 }
 
 .myPage__modalClose {
-  min-height: 34px;
-  padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--text);
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  color: #718492;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   cursor: pointer;
 }
 
 .myPage__modalList {
   display: grid;
+  gap: 12px;
+}
+
+.myPage__missionModalIntro {
+  display: grid;
+  gap: 10px;
+  margin: 2px 0 14px;
+}
+
+.myPage__missionModalLead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #5d707b;
+  text-align: center;
+}
+
+.myPage__missionModalProgressRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 10px;
 }
 
-.myPage__modalMission {
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.88);
-  padding: 10px;
+.myPage__missionModalProgressLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: #405562;
+}
+
+.myPage__missionModalProgressValue {
+  font-size: 14px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 54%, #58727d);
+}
+
+.myPage__missionModalProgressTrack {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e9edf0;
+}
+
+.myPage__missionModalProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent) 58%, #8fd0da);
+}
+
+.myPage__missionGroup {
   display: grid;
-  gap: 6px;
+  gap: 0;
+}
+
+.myPage__modalMission {
+  border-radius: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.46);
+  padding: 12px 10px;
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 8%, #e4ebf1);
+  border-radius: 10px;
+}
+
+.myPage__missionGroup > .myPage__modalMission:first-of-type {
+  margin-top: 6px;
+}
+
+.myPage__missionGroup > .myPage__modalMission + .myPage__modalMission {
+  margin-top: 6px;
 }
 
 .myPage__modalMission.is-done {
-  opacity: 0.75;
+  opacity: 0.82;
 }
 
 .myPage__modalMission.is-locked {
-  opacity: 0.5;
+  opacity: 0.44;
 }
 
 .myPage__missionActionWrap {
   position: relative;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 6px;
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .myPage__modalCard.is-guide {
@@ -645,30 +927,30 @@
   display: inline-flex;
   align-items: center;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .myPage__missionStatus.is-pending {
-  border: 1px solid rgba(245, 158, 11, 0.56);
-  background: rgba(245, 158, 11, 0.18);
-  color: #92400e;
+  border: 0;
+  background: rgba(245, 158, 11, 0.12);
+  color: #9b7a39;
 }
 
 .myPage__missionStatus.is-done {
-  border: 1px solid rgba(22, 163, 74, 0.44);
-  background: rgba(22, 163, 74, 0.18);
-  color: #166534;
+  border: 0;
+  background: rgba(22, 163, 74, 0.1);
+  color: #4d8062;
+}
+
+.myPage__missionSubgroupLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8798a5;
 }
 
 @media (max-width: 780px) {
-  .myPage__stats,
-  .myPage__daysGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .myPage__badgeGrid {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
 :root[data-theme-mode="dark"] .myPage__cardTitle {
@@ -716,6 +998,22 @@
 :root[data-theme-mode="dark"] .myPage__modalMission {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .myPage__missionModalLead {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme-mode="dark"] .myPage__missionModalProgressLabel {
+  color: var(--on-dark-1);
+}
+
+:root[data-theme-mode="dark"] .myPage__missionModalProgressValue {
+  color: color-mix(in srgb, var(--accent) 44%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .myPage__missionModalProgressTrack {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 :root[data-theme-mode="dark"] .myPage__missionGroup--collapsed {
@@ -850,10 +1148,27 @@ body[data-mypage-tutorial-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .myPage__badgeDetailIcon {
-  width: 76px;
-  height: 76px;
+  width: 56px;
+  height: 56px;
   justify-self: center;
-  object-fit: contain;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 48%, #6c7f8d);
+}
+
+.myPage__badgeDetailIcon svg {
+  width: 56px;
+  height: 56px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.myPage__badgeDetailIcon svg .accent {
+  stroke: var(--accent);
 }
 
 .myPage__badgeDetailName {

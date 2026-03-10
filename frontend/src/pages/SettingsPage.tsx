@@ -8,26 +8,64 @@ function clamp01(n: number) {
   return Math.min(1, Math.max(0, n));
 }
 
+function renderSettingsSectionIcon(kind: "display" | "training" | "readability") {
+  if (kind === "display") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <rect x="4.5" y="5.5" width="15" height="10.5" rx="2.2" />
+        <path d="M9 19h6" />
+        <path d="M12 16v3" />
+      </svg>
+    );
+  }
+  if (kind === "training") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="11.5" cy="12.2" r="7.2" />
+        <path d="M11.5 8.4v4.2l2.8 1.8" />
+        <path className="accent" d="M18.3 4.8v3.1" />
+        <path className="accent" d="M16.8 6.35h3" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M12 4v16" />
+      <path d="M6.5 8.2h2.3" />
+      <path d="M6.5 15.8h2.3" />
+      <path d="M15.2 8.2h2.3" />
+      <path d="M15.2 15.8h2.3" />
+      <circle className="accent-fill" cx="12" cy="12" r="2.1" />
+    </svg>
+  );
+}
+
 export default function SettingsPage() {
-  const { themeMode, setThemeMode, resolvedMode } = useTheme();
+  const { themeMode, setThemeMode } = useTheme();
   const { settings, patchSettings } = useSettings();
 
   const volumePct = Math.round(clamp01(settings.defaultVolume) * 100);
 
-  return (
+      return (
     <div className="page settingsPage">
-      <div className="settingsPage__bg" aria-hidden="true" />
-
-      <section className="card settingsPage__hero">
-        <div className="settingsPage__kicker">Settings</div>
-        <h1 className="settingsPage__title">設定</h1>
-        <p className="settingsPage__sub">テーマ、再生挙動、表示の読みやすさをここで調整できます。</p>
+      <section className="settingsPage__hero">
+        <h1 className="settingsPage__title">SETTINGS</h1>
+        <p className="settingsPage__sub">テーマ、再生挙動、読みやすさを整えるためのページです。</p>
       </section>
 
-      <section className="card settingsPage__card">
-        <div className="settingsPage__cardTitle">表示モード</div>
+      <section className="settingsPage__section">
+        <div className="settingsPage__sectionHead">
+          <span className="settingsPage__sectionIcon" aria-hidden="true">
+            {renderSettingsSectionIcon("display")}
+          </span>
+          <div>
+            <div className="settingsPage__sectionEyebrow">DISPLAY</div>
+          </div>
+        </div>
         <div className="settingsPage__block">
-          <div className="settingsPage__label">ライト / ダーク</div>
+          <div className="settingsPage__hint settingsPage__hint--sectionLead">
+            アプリ全体のテーマを設定できます。
+          </div>
           <div className="settingsPage__row">
             <label className={`settingsPage__pillRadio ${themeMode === "light" ? "isSelected" : ""}`}>
               <input
@@ -46,14 +84,18 @@ export default function SettingsPage() {
               <span>ダーク</span>
             </label>
           </div>
-          <div className="settingsPage__hint">
-            現在適用中: {resolvedMode === "dark" ? "ダーク" : "ライト"}
-          </div>
         </div>
       </section>
 
-      <section className="card settingsPage__card">
-        <div className="settingsPage__cardTitle">トレーニング</div>
+      <section className="settingsPage__section">
+        <div className="settingsPage__sectionHead">
+          <span className="settingsPage__sectionIcon" aria-hidden="true">
+            {renderSettingsSectionIcon("training")}
+          </span>
+          <div>
+            <div className="settingsPage__sectionEyebrow">TRAINING</div>
+          </div>
+        </div>
 
         <div className="settingsPage__block">
           <div className="settingsPage__label">トレーニング音源のデフォルト音量</div>
@@ -100,8 +142,15 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="card settingsPage__card">
-        <div className="settingsPage__cardTitle">アクセシビリティ</div>
+      <section className="settingsPage__section">
+        <div className="settingsPage__sectionHead">
+          <span className="settingsPage__sectionIcon" aria-hidden="true">
+            {renderSettingsSectionIcon("readability")}
+          </span>
+          <div>
+            <div className="settingsPage__sectionEyebrow">READABILITY</div>
+          </div>
+        </div>
         <div className="settingsPage__block">
           <div className="settingsPage__label">フォントサイズ</div>
           <div className="settingsPage__row">

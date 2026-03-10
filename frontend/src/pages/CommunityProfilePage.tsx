@@ -69,7 +69,6 @@ export default function CommunityProfilePage() {
               <div>XP: {profile.total_xp}</div>
               <div>AIで参考にされた数: {profile.ai_contribution_count} 回</div>
             </div>
-            {profile.goal_text && <div className="communityProfile__goal">目標: {profile.goal_text}</div>}
           </section>
 
           <section className="card communityProfile__card">

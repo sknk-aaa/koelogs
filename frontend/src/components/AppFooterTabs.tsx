@@ -89,6 +89,21 @@ function InsightsTabIcon({ active }: { active: boolean }) {
   );
 }
 
+function LockedChatBadgeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+      <rect x="6.8" y="10.4" width="10.4" height="8" rx="2.4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M9.2 10.4V8.8a2.8 2.8 0 0 1 5.6 0v1.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function readBeginnerLastPending(userId: number): number | null {
   try {
     const raw = window.localStorage.getItem(`${BEGINNER_LAST_PENDING_KEY_PREFIX}${userId}`);
@@ -226,7 +241,7 @@ export default function AppFooterTabs() {
                       ...styles.lockBadge,
                     }}
                   >
-                    🔒
+                    <LockedChatBadgeIcon />
                   </span>
                 )}
               </div>
@@ -334,19 +349,18 @@ function buildStyles(mode: "light" | "dark"): Record<string, React.CSSProperties
   },
   lockBadge: {
     position: "absolute",
-    right: -9,
-    top: -8,
-    width: 20,
-    height: 20,
+    right: -7,
+    top: -6,
+    width: 18,
+    height: 18,
     borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.9)",
-    backgroundColor: "#2f6fb7",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.24)",
-    color: "#ffffff",
-    fontSize: 13,
-    lineHeight: "20px",
-    textAlign: "center",
-    fontWeight: 900,
+    border: mode === "dark" ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(89, 117, 137, 0.18)",
+    backgroundColor: mode === "dark" ? "rgba(255,255,255,0.06)" : "#f6fafc",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+    color: mode === "dark" ? "rgba(230,238,252,0.82)" : "#7e919d",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   labelWrap: {

@@ -17,6 +17,11 @@ import { emitGamificationRewards } from "../features/gamification/rewardBus";
 import { improvementTagToneClass } from "../features/improvementTags/improvementTags";
 
 import MonthCalendarSheet from "../features/log/components/MonthCalendarSheet";
+import {
+  BeginnerMissionGuideCard,
+  BeginnerMissionModal,
+  renderMissionGroupIcon,
+} from "../features/missions/components/BeginnerMissionGuide";
 import TodayMenuModal from "../features/log/components/TodayMenuModal";
 import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
 import ProcessingOverlay from "../components/ProcessingOverlay";
@@ -79,12 +84,6 @@ function parseISODate(value: string): Date | null {
 
   if (out.getFullYear() !== y || out.getMonth() + 1 !== mo || out.getDate() !== d) return null;
   return out;
-}
-
-function monthStartISO(month: string): string {
-  const m = month.match(/^(\d{4})-(\d{2})$/);
-  if (!m) return `${todayISO().slice(0, 7)}-01`;
-  return `${m[1]}-${m[2]}-01`;
 }
 
 function monthLabel(month: string): string {
@@ -496,7 +495,7 @@ export default function LogPage() {
   const [params, setParams] = useSearchParams();
   const today = useMemo(() => todayISO(), []);
   const selectedDate = useMemo(
-    () => params.get("date") || monthStartISO(params.get("month") || "") || today,
+    () => params.get("date") || today,
     [params, today]
   );
   const selectedMonth = useMemo(
@@ -1026,6 +1025,10 @@ export default function LogPage() {
       goLogin();
       return;
     }
+    if (!aiFeaturesUnlocked) {
+      navigate("/mypage");
+      return;
+    }
     if (aiLoading) return;
     if (forceGuideAiFlow) {
       setAiMissionGuideStep(null);
@@ -1065,7 +1068,7 @@ export default function LogPage() {
   };
 
   const openAiChat = (initialMessage?: string) => {
-    if (!authMe || !effectiveAiRec || guestMode) return;
+    if (!authMe || !effectiveAiRec || guestMode || !aiFeaturesUnlocked) return;
     const seed = initialMessage?.trim() ?? "";
     const recommendationDate = effectiveAiRec.week_start_date || selectedDate;
     navigate("/chat", {
@@ -1184,9 +1187,18 @@ export default function LogPage() {
   const beginnerTotalCount = beginnerMissions.length;
   const beginnerPendingCount = pendingBeginnerMissions.length;
   const beginnerDoneCount = Math.max(0, beginnerTotalCount - beginnerPendingCount);
+  const doneBeginnerMissions = useMemo(
+    () => beginnerMissions.filter((mission) => mission.done),
+    [beginnerMissions]
+  );
   const beginnerProgressPercent =
     beginnerTotalCount > 0 ? Math.round((beginnerDoneCount / beginnerTotalCount) * 100) : 0;
   const hasPendingBeginnerMissions = !beginnerCompletedOnce && beginnerPendingCount > 0;
+  const aiFeaturesUnlocked =
+    guestMode ||
+    beginnerCompletedOnce ||
+    authMe?.beginner_missions_completed === true ||
+    (beginnerTotalCount > 0 && beginnerPendingCount === 0);
   const beginnerAiCustomizationDone = useMemo(() => {
     if (aiCustomDoneParam === "1") return true;
     if (aiCustomDoneParam === "0") return false;
@@ -1597,13 +1609,17 @@ export default function LogPage() {
                 <span>今週のAIおすすめ</span>
               </div>
               <div className="logPage__aiWeekActionSubtext">
-                {!effectiveAiRec || guestMode
+                {!aiFeaturesUnlocked && !guestMode
+                  ? "ビギナーミッション完了で解放されます"
+                  : !effectiveAiRec || guestMode
                   ? "記録・目標・測定結果をもとに、今週の練習メニューを提案します"
                   : "今週の提案を確認できます"}
               </div>
             </div>
             <div className="logPage__aiWeekActionRow">
-              {effectiveAiRec && !guestMode ? (
+              {!aiFeaturesUnlocked && !guestMode ? (
+                <span className="logPage__aiWeekActionLock">LOCKED</span>
+              ) : effectiveAiRec && !guestMode ? (
                 <button type="button" className="logPage__aiWeekActionLink" onClick={() => openAiChat()}>
                   <span>提案を見る</span>
                   <span aria-hidden="true">→</span>
@@ -1632,7 +1648,7 @@ export default function LogPage() {
               )}
             </div>
           </div>
-          {(!effectiveAiRec || guestMode) && aiThemeOpen ? (
+          {(aiFeaturesUnlocked || guestMode) && (!effectiveAiRec || guestMode) && aiThemeOpen ? (
             <div className={`logPage__aiThemeInputWrap ${forceGuideAiThemeInput ? "is-guided" : ""}`.trim()}>
               <label className="logPage__aiThemeInputLabel" htmlFor="log-ai-theme-input">
                 今週のテーマ
@@ -1689,83 +1705,50 @@ export default function LogPage() {
 
       {!!authMe && isDayMode && hasPendingBeginnerMissions && (
         <section className="logPage__beginnerGuide" aria-label="ビギナーミッション">
-          <button
-            type="button"
+          <div className="logPage__beginnerGuideLabelRow">
+            <span className="logPage__beginnerGuideLabelIcon" aria-hidden="true">
+              {renderMissionGroupIcon("beginner")}
+            </span>
+            <span className="logPage__beginnerGuideLabelText">BEGINNER</span>
+          </div>
+          <BeginnerMissionGuideCard
             className="logPage__missionGuideCard"
             onClick={() => setBeginnerMissionModalOpen(true)}
-            aria-haspopup="dialog"
-            aria-expanded={beginnerMissionModalOpen}
-          >
-            <div className="logPage__missionGuideTitle">ミッションをクリアしよう</div>
-            <div className="logPage__missionGuideMetaRow">
-              <span className="logPage__missionGuideLabel">ビギナーミッション</span>
-              <span className="logPage__missionGuideCount">
-                {beginnerDoneCount} / {beginnerTotalCount}
-              </span>
-              <span className="logPage__missionGuideArrow" aria-hidden="true">
-                ›
-              </span>
-            </div>
-            <span className="logPage__missionGuideProgressTrack" aria-hidden="true">
-              <span
-                className="logPage__missionGuideProgressFill"
-                style={{ width: `${beginnerProgressPercent}%` }}
-              />
-            </span>
-          </button>
+            expanded={beginnerMissionModalOpen}
+            doneCount={beginnerDoneCount}
+            totalCount={beginnerTotalCount}
+            progressPercent={beginnerProgressPercent}
+            title="ビギナーミッションをクリアしよう"
+            label={null}
+            description="基本機能を順番に体験できます"
+          />
         </section>
       )}
 
-      {beginnerMissionModalOpen && (
-        <div
-          className="logPage__missionModalOverlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="ビギナーミッション"
-          onClick={() => setBeginnerMissionModalOpen(false)}
-        >
-          <section className="card logPage__missionModalCard" onClick={(event) => event.stopPropagation()}>
-            <div className="logPage__missionModalHead">
-              <div className="logPage__missionModalTitle">ビギナーミッション</div>
-              <button
-                type="button"
-                className="logPage__missionModalClose"
-                onClick={() => setBeginnerMissionModalOpen(false)}
-                aria-label="閉じる"
-              >
-                ×
-              </button>
-            </div>
-            <div className="logPage__missionModalStatus">残り {pendingBeginnerMissions.length} 件</div>
-            <div className="logPage__beginnerGuideList">
-              {pendingBeginnerMissions.map((mission) => (
-                <article key={mission.key} className="logPage__beginnerGuideItem">
-                  <div className="logPage__beginnerGuideItemMain">
-                    <span className="logPage__beginnerGuideItemIcon" aria-hidden="true">
-                      ○
-                    </span>
-                    <div className="logPage__beginnerGuideItemText">
-                      <div className="logPage__beginnerGuideItemTitle">{mission.title}</div>
-                      <div className="logPage__beginnerGuideItemDesc">{mission.description}</div>
-                    </div>
-                  </div>
-                  <Link
-                    to={
-                      mission.key === "beginner_ai"
-                        ? `${mission.to}${mission.to.includes("?") ? "&" : "?"}aiCustomDone=${beginnerAiCustomizationDone ? "1" : "0"}`
-                        : mission.to
-                    }
-                    className="logPage__beginnerGuideItemAction"
-                    onClick={() => setBeginnerMissionModalOpen(false)}
-                  >
-                    開く
-                  </Link>
-                </article>
-              ))}
-            </div>
-          </section>
-        </div>
-      )}
+      <BeginnerMissionModal
+        open={beginnerMissionModalOpen}
+        onClose={() => setBeginnerMissionModalOpen(false)}
+        ariaLabel="ビギナーミッション"
+        pendingMissions={pendingBeginnerMissions}
+        doneMissions={doneBeginnerMissions}
+        pendingStatusLabel={`残り ${pendingBeginnerMissions.length} 件`}
+        overlayClassName="logPage__missionModalOverlay"
+        cardClassName="logPage__missionModalCard"
+        cardBodyClassName="logPage__beginnerGuideList"
+        renderPendingAction={(mission) => (
+          <Link
+            to={
+              mission.key === "beginner_ai"
+                ? `${mission.to}${mission.to.includes("?") ? "&" : "?"}aiCustomDone=${beginnerAiCustomizationDone ? "1" : "0"}`
+                : mission.to
+            }
+            className="logPage__beginnerGuideItemAction"
+            onClick={() => setBeginnerMissionModalOpen(false)}
+          >
+            挑戦する
+          </Link>
+        )}
+      />
 
       <TutorialModal
         open={tutorialWelcomeOpen}
@@ -1847,15 +1830,15 @@ export default function LogPage() {
       <TutorialModal
         open={beginnerCompletionModalStep === "unlocked"}
         badge="UNLOCKED"
-        title="AIチャット機能が解放されました"
+        title="AIおすすめとAIチャットが解放されました"
         paragraphs={[
-          "ここでは、自由な会話の作成やAIおすすめに対しての質問が可能になります。",
+          "ログページでAIおすすめを生成でき、AIチャットでも自由な相談やおすすめへの質問ができるようになります。",
         ]}
         primaryLabel="さっそく使ってみる"
         secondaryLabel="あとで"
         onPrimary={() => {
           setBeginnerCompletionModalStep(null);
-          navigate("/chat");
+          navigate("/log");
         }}
         onSecondary={() => setBeginnerCompletionModalStep(null)}
         onClose={() => setBeginnerCompletionModalStep(null)}
@@ -2181,12 +2164,12 @@ export default function LogPage() {
                 </div>
               </div>
               <div className="logPage__contentSection">
-                <div className="logPage__contentWave" aria-hidden="true">
+                <div className="logPage__contentWave logPage__contentWave--measure" aria-hidden="true">
                   <svg viewBox="0 0 100 16" preserveAspectRatio="none">
                     <path d="M0 16V8C18 8 22 2 38 2C56 2 64 10 82 10C91 10 96 8 100 6V16Z" fill="currentColor" />
                   </svg>
                 </div>
-                <div className="logPage__contentInner">
+                <div className="logPage__contentInner logPage__contentInner--measure">
                   <div className="logPage__sectionBlock">
                     <div className="logPage__sectionLabelRow">
                       <span className="logPage__sectionLabelIcon is-measure" aria-hidden="true">

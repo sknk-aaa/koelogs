@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTheme } from "../features/theme/useTheme";
 
 export type DrawerItem = {
   label: string;
@@ -46,6 +47,7 @@ export default function HamburgerDrawer({
   footerItem,
   activePath,
 }: Props) {
+  const { resolvedMode } = useTheme();
   // close animationのためだけに残すフラグ
   const [mounted, setMounted] = useState(open);
   // 見た目（transform/opacity）用
@@ -127,10 +129,27 @@ export default function HamburgerDrawer({
     };
   }, [activePath]);
 
+  const drawerThemeVars = useMemo(
+    () =>
+      ({
+        "--drawerBackdrop":
+          resolvedMode === "dark" ? "rgba(4, 8, 16, 0.7)" : "rgba(0, 0, 0, 0.35)",
+        "--drawerSheet": resolvedMode === "dark" ? "#0c101b" : "#ffffff",
+        "--drawerBorder":
+          resolvedMode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)",
+        "--drawerCard": resolvedMode === "dark" ? "#141f33" : "#ffffff",
+        "--drawerText": resolvedMode === "dark" ? "#e6edf8" : "#111111",
+        "--muted":
+          resolvedMode === "dark" ? "rgba(231, 238, 251, 0.78)" : "rgba(16, 30, 48, 0.68)",
+        "--menuLine": resolvedMode === "dark" ? "#ffffff" : "rgba(0, 0, 0, 0.78)",
+      }) as React.CSSProperties,
+    [resolvedMode]
+  );
+
   if (!shouldRender) return null;
 
   return (
-    <div style={styles.root} role="dialog" aria-modal="true">
+    <div style={{ ...styles.root, ...drawerThemeVars }} role="dialog" aria-modal="true">
       <button
         type="button"
         aria-label="メニューを閉じる"
@@ -293,14 +312,14 @@ const styles: Record<string, React.CSSProperties> = {
     width: "min(380px, 92vw)",
     display: "flex",
     flexDirection: "column",
-    background: "#ffffff",
+    background: "var(--drawerSheet, #ffffff)",
     boxShadow: "none",
     transition: `transform ${TRANSITION_MS}ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity ${TRANSITION_MS}ms ease`,
     willChange: "transform, opacity",
   },
   sheetHeader: {
     padding: "16px 16px 12px",
-    borderBottom: "1px solid color-mix(in srgb, var(--accent) 6%, #edf2f7)",
+    borderBottom: "1px solid var(--drawerBorder, rgba(18, 53, 58, 0.08))",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
@@ -313,12 +332,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 800,
     letterSpacing: "0.16em",
-    color: "#5f7480",
+    color: "var(--drawerText, #5f7480)",
   },
   sheetSub: {
     fontSize: 12,
     marginTop: 2,
-    color: "#97a6b1",
+    color: "var(--muted, #97a6b1)",
   },
   closeBtn: {
     width: 36,
@@ -365,7 +384,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "50%",
     overflow: "hidden",
     flex: "0 0 auto",
-    background: "color-mix(in srgb, var(--accent) 4%, #ffffff)",
+    background: "var(--drawerCard, #ffffff)",
   },
   profileText: {
     minWidth: 0,
@@ -375,7 +394,7 @@ const styles: Record<string, React.CSSProperties> = {
   profileName: {
     fontSize: 14,
     fontWeight: 800,
-    color: "#244050",
+    color: "var(--drawerText, #244050)",
     lineHeight: 1.3,
   },
   profilePlan: {
@@ -383,9 +402,9 @@ const styles: Record<string, React.CSSProperties> = {
     minHeight: 24,
     padding: "0 10px",
     borderRadius: 999,
-    border: "1px solid color-mix(in srgb, var(--accent) 14%, #dbe4ea)",
-    background: "color-mix(in srgb, var(--accent) 6%, #ffffff)",
-    color: "#728592",
+    border: "1px solid var(--drawerBorder, rgba(18, 53, 58, 0.08))",
+    background: "color-mix(in srgb, var(--accent) 8%, var(--drawerCard, #ffffff))",
+    color: "var(--muted, #728592)",
     fontSize: 11,
     fontWeight: 800,
     display: "inline-flex",
@@ -404,14 +423,14 @@ const styles: Record<string, React.CSSProperties> = {
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    color: "color-mix(in srgb, var(--accent) 48%, #70839a)",
+    color: "color-mix(in srgb, var(--accent) 48%, var(--muted, #70839a))",
     flex: "0 0 auto",
   },
   sectionTitle: {
     fontSize: 12,
     fontWeight: 800,
     letterSpacing: "0.14em",
-    color: "#738795",
+    color: "var(--muted, #738795)",
   },
   group: {
     borderTop: "0",
@@ -431,8 +450,8 @@ const styles: Record<string, React.CSSProperties> = {
   itemWithDivider: {
     marginTop: 10,
   },
-  itemLabel: { fontSize: 14, fontWeight: 800, color: "#314a5a" },
-  itemLabelActive: { fontWeight: 900, color: "#173e52" },
+  itemLabel: { fontSize: 14, fontWeight: 800, color: "var(--drawerText, #314a5a)" },
+  itemLabelActive: { fontWeight: 900, color: "var(--drawerText, #173e52)" },
   itemActive: {
   },
   trailingSlot: {
@@ -449,17 +468,17 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "50%",
     background: "color-mix(in srgb, var(--accent) 72%, #5aa6d0)",
   },
-  chev: { fontSize: 16, lineHeight: 1, color: "#91a2ae", transform: "translateY(-1px)" },
+  chev: { fontSize: 16, lineHeight: 1, color: "var(--muted, #91a2ae)", transform: "translateY(-1px)" },
   itemDanger: { color: "#866a6a" },
   itemDangerSpacing: {
     marginTop: 10,
-    borderTop: "1px solid color-mix(in srgb, var(--accent) 6%, #edf2f7)",
+    borderTop: "1px solid var(--drawerBorder, rgba(18, 53, 58, 0.08))",
   },
   itemDisabled: { opacity: 0.35, cursor: "not-allowed" },
   footerArea: {
     marginTop: "auto",
     padding: "8px 16px 18px",
-    borderTop: "1px solid color-mix(in srgb, var(--accent) 6%, #edf2f7)",
+    borderTop: "1px solid var(--drawerBorder, rgba(18, 53, 58, 0.08))",
   },
   footerItem: {
     minHeight: 48,

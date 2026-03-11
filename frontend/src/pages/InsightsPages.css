@@ -3200,13 +3200,45 @@
   --ins-text-2: var(--on-dark-2);
   --ins-text-3: var(--on-dark-3);
   --ins-link: var(--on-dark-link);
+  background: var(--ui-measure-section-bg);
+}
+
+:root[data-theme-mode="dark"] .insightsPage::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--ui-measure-section-bg);
+  z-index: -1;
+}
+
+:root[data-theme-mode="dark"] .pageContainer:has(.page.insightsPage) {
+  background: var(--ui-measure-section-bg);
+}
+
+:root[data-theme-mode="dark"] body:has(.page.insightsPage) {
+  background: var(--ui-measure-section-bg);
 }
 
 :root[data-theme-mode="dark"] .page.insightsPage {
   max-width: none;
   margin: 0;
-  padding-left: 0;
-  padding-right: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+  background: var(--ui-measure-section-bg);
+}
+
+:root[data-theme-mode="dark"] .insightsPage,
+:root[data-theme-mode="dark"] .insightsPage > *,
+:root[data-theme-mode="dark"] .insightsGrid,
+:root[data-theme-mode="dark"] .insightsTwinGrid,
+:root[data-theme-mode="dark"] .insightsStack,
+:root[data-theme-mode="dark"] .insightsControls {
+  background: var(--ui-measure-section-bg);
+}
+
+:root[data-theme-mode="dark"] .insightsHighlightsCard,
+:root[data-theme-mode="dark"] .insightsGrid,
+:root[data-theme-mode="dark"] .insightsTwinGrid {
   background: var(--ui-measure-section-bg);
 }
 
@@ -3460,6 +3492,202 @@
 
 :root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__cell.level-4 {
   background: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.06));
+}
+
+:root[data-theme-mode="dark"] .insightsNotesPage__sectionNote {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryMeta {
+  gap: 8px;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryMeta__item {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryMonth__head {
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryMonth__caret {
+  color: rgba(255, 255, 255, 0.56);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryMonth__rows {
+  gap: 6px;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+  padding: 10px 10px;
+  column-gap: 10px;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow__date {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow__top,
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__sec {
+  color: #ffffff;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow__notes {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow__low,
+:root[data-theme-mode="dark"] .insightsHistoryRow__rangeUnit,
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__note,
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__ratio {
+  color: rgba(255, 255, 255, 0.72);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsHistoryRow__rangeValue {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__compare {
+  gap: 4px;
+}
+
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__badges {
+  gap: 3px;
+}
+
+:root[data-theme-mode="dark"] .insightsLongToneHistoryRow__badge {
+  min-width: 62px;
+  justify-content: center;
+  text-align: center;
+  padding: 1px 4px;
+  font-size: 9px;
+}
+
+:root[data-theme-mode="dark"] .insightsHighlightsCard .insightsMuted {
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.65;
+}
+
+:root[data-theme-mode="dark"] .insightsHighlightsCard .csvButton {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme-mode="dark"] .insightsHighlightsCard .csvButton__icon,
+:root[data-theme-mode="dark"] .insightsHighlightsCard .csvButton svg {
+  color: rgba(255, 255, 255, 0.82);
+  stroke: currentColor;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeMainCard,
+:root[data-theme-mode="dark"] .insightsGaugeCard,
+:root[data-theme-mode="dark"] .insightsPitchSemitoneCard {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(8, 15, 28, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .insightsCard__head {
+  margin-bottom: 10px;
+}
+
+:root[data-theme-mode="dark"] .insightsCard__hint {
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:root[data-theme-mode="dark"] .insightsCard__hintText {
+  color: rgba(255, 255, 255, 0.74);
+  border-bottom-color: rgba(255, 255, 255, 0.24);
+}
+
+:root[data-theme-mode="dark"] .insightsCard__hint svg,
+:root[data-theme-mode="dark"] .insightsCard__hint path {
+  stroke: rgba(255, 255, 255, 0.6);
+}
+
+:root[data-theme-mode="dark"] .insightsGaugePanel--topCard {
+  gap: 10px;
+}
+
+:root[data-theme-mode="dark"] .insightsGaugeMeta--topCard,
+:root[data-theme-mode="dark"] .insightsPitchSemitone__meta {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+
+:root[data-theme-mode="dark"] .insightsGaugeMeta--topCard span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.76);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+:root[data-theme-mode="dark"] .insightsGaugeMeta--side span {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard {
+  gap: 10px;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__grid {
+  gap: 6px;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__section {
+  padding: 8px 9px;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__chip {
+  font-size: 10px;
+  padding: 3px 8px;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__line span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+}
+
+:root[data-theme-mode="dark"] .insightsRangeCard__line strong {
+  font-size: 15px;
+}
+
+:root[data-theme-mode="dark"] .insightsPitchSemitone__status {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 @media (max-width: 760px) {

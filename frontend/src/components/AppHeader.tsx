@@ -354,10 +354,10 @@ const styles: Record<string, React.CSSProperties> = {
     opacity: 0.65,
   },
   pageTitle: {
-    fontSize: 15,
+    fontSize: "var(--ui-section-eyebrow-size, 1.05rem)",
     fontWeight: 800,
-    letterSpacing: "0.16em",
-    color: "var(--pageText, var(--text))",
+    letterSpacing: "var(--ui-section-eyebrow-letter-spacing, 0.16em)",
+    color: "var(--headerTitleText, var(--ui-section-eyebrow-color, var(--pageText, var(--text))))",
     textTransform: "uppercase",
     whiteSpace: "nowrap",
     overflow: "hidden",

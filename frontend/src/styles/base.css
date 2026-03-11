@@ -23,13 +23,14 @@
   --drawerText: #12353a;
   --pageText: #12353a;
   --cardText: #12353a;
+  --headerTitleText: #16384a;
   --on-light-1: #12353a;
   --on-light-2: #42656a;
   --on-light-3: #7d9598;
   --on-light-link: #109db0;
   --on-dark-1: rgba(246, 250, 255, 0.96);
-  --on-dark-2: rgba(246, 250, 255, 0.86);
-  --on-dark-3: rgba(246, 250, 255, 0.72);
+  --on-dark-2: rgba(246, 250, 255, 0.9);
+  --on-dark-3: rgba(246, 250, 255, 0.8);
   --on-dark-link: rgba(246, 250, 255, 0.9);
 
   font-family: "Avenir Next", "SF Pro Display", "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
@@ -59,12 +60,12 @@ body {
   --bgBottom: #0a0f1a;
 
   --text: #e7eefb;
-  --muted: rgba(231, 238, 251, 0.78);
+  --muted: rgba(231, 238, 251, 0.84);
   --border: rgba(255, 255, 255, 0.08);
   --card: #141f33;
   --surface: #111a2b;
   --surfaceStrong: #162238;
-  --headerBg: rgba(22, 28, 36, 0.84);
+  --headerBg: #0c101b;
   --headerBorder: rgba(255, 255, 255, 0.08);
   --menuLine: #ffffff;
   --drawerBackdrop: rgba(4, 8, 16, 0.7);
@@ -74,6 +75,7 @@ body {
   --drawerText: #e6edf8;
   --pageText: #e7eefb;
   --cardText: #e7eefb;
+  --headerTitleText: #baeef4;
   --bg-glow-1: rgba(90, 161, 242, 0.18);
   --bg-glow-2: rgba(155, 123, 255, 0.16);
   --card-tint: #1d2a45;

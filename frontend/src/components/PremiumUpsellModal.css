@@ -711,6 +711,28 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.42);
 }
 
+:root[data-theme-mode="dark"] .premiumModal__card,
+:root[data-theme-mode="dark"] .premiumModal__card.is-lp {
+  border-color: rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(120% 88% at 50% 0%, rgba(101, 184, 255, 0.08) 0%, transparent 72%),
+    color-mix(in srgb, var(--surface) 90%, #08111d 10%);
+  box-shadow: 0 24px 52px rgba(0, 0, 0, 0.44);
+}
+
+:root[data-theme-mode="dark"] .premiumModal__preview,
+:root[data-theme-mode="dark"] .premiumModal__benefitsWrap--panel,
+:root[data-theme-mode="dark"] .premiumModal__lpSection,
+:root[data-theme-mode="dark"] .premiumModal__lpGrowthItem {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .premiumModal__kicker,
+:root[data-theme-mode="dark"] .premiumModal__lpFlowPill {
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24);
+}
+
 :root:not([data-theme-mode="dark"]) .premiumModal__overlay {
   background: rgba(7, 16, 30, 0.26);
 }

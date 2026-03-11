@@ -49,6 +49,18 @@ function matchesLog(log: TrainingLog, q: string): boolean {
   return normalize(date).includes(nq) || normalize(notes).includes(nq) || normalize(menuText).includes(nq);
 }
 
+function tagTextColor(bg: string) {
+  const hex = bg.trim();
+  const matched = hex.match(/^#([0-9a-fA-F]{6})$/);
+  if (!matched) return "#17324a";
+  const value = matched[1];
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return luminance > 0.68 ? "#17324a" : "#ffffff";
+}
+
 export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }: Props) {
   const [state, setState] = useState<LoadState>({ kind: "idle" });
   const [q, setQ] = useState("");
@@ -182,6 +194,7 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
                               key={menu.id}
                               text={menu.name}
                               color={menu.color || "#E5E7EB"}
+                              style={{ color: tagTextColor(menu.color || "#E5E7EB") }}
                               title={menu.archived ? "このメニューは現在アーカイブされています" : undefined}
                               className={menu.archived ? "is-archived" : undefined}
                             />

@@ -95,3 +95,7 @@ body.premiumPlanModal--open nav[aria-label="mode tabs"] {
   background: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.9);
 }
+
+:root[data-theme-mode="dark"] .premiumPlanModal__body {
+  background: color-mix(in srgb, var(--surface) 92%, #09111d 8%);
+}

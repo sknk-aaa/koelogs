@@ -41,8 +41,8 @@
   --ui-measure-section-bg: var(--ui-section-soft-bg);
   --ui-info-surface-bg: var(--card);
   --ui-section-eyebrow-color: #baeef4;
-  --ui-hint-color: rgba(255, 255, 255, 0.78);
-  --ui-meta-color: rgba(255, 255, 255, 0.8);
+  --ui-hint-color: rgba(255, 255, 255, 0.84);
+  --ui-meta-color: rgba(255, 255, 255, 0.86);
 }
 
 :is(

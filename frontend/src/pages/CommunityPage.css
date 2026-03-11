@@ -2088,6 +2088,13 @@
   color: var(--community-text);
 }
 
+:root[data-theme-mode="dark"] .communityPage__empty {
+  background: var(--community-card);
+  border-color: var(--community-border);
+  color: var(--community-muted);
+  opacity: 1;
+}
+
 /* モーダル */
 :root[data-theme-mode="dark"] .communityPage__modalOverlay {
   background: rgba(0, 0, 0, 0.55);
@@ -2119,4 +2126,38 @@
 }
 :root[data-theme-mode="dark"] .communityPage__editorNoteText {
   color: color-mix(in srgb, var(--community-text) 76%, var(--community-muted));
+}
+
+:root[data-theme-mode="dark"] .communityPage__heroTitle,
+:root[data-theme-mode="dark"] .communityPage__rankingGuideTitle,
+:root[data-theme-mode="dark"] .communityPage__rankHeroTitle,
+:root[data-theme-mode="dark"] .communityPage__controlsLabel,
+:root[data-theme-mode="dark"] .communityPage__menu,
+:root[data-theme-mode="dark"] .communityPage__fieldValue,
+:root[data-theme-mode="dark"] .communityPage__usedScale {
+  color: var(--community-text);
+}
+
+:root[data-theme-mode="dark"] .communityPage__heroLeadRow,
+:root[data-theme-mode="dark"] .communityPage__rankHero,
+:root[data-theme-mode="dark"] .communityPage__post,
+:root[data-theme-mode="dark"] .communityPage__postActionMenu,
+:root[data-theme-mode="dark"] .communityPage__editorCard,
+:root[data-theme-mode="dark"] .communityPage__communityInfo,
+:root[data-theme-mode="dark"] .communityPage__commentCard {
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme-mode="dark"] .communityPage__subTab {
+  color: color-mix(in srgb, var(--community-text) 64%, var(--community-muted));
+}
+
+:root[data-theme-mode="dark"] .communityPage__subTab.is-active {
+  color: var(--community-text);
+}
+
+:root[data-theme-mode="dark"] .communityPage__postActionTrigger:hover,
+:root[data-theme-mode="dark"] .communityPage__commentToggle:hover,
+:root[data-theme-mode="dark"] .communityPage__introInfoBtn:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
 }

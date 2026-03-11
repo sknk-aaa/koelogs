@@ -35,11 +35,12 @@
   --border: rgba(255, 255, 255, 0.08);
   --pageText: var(--text);
   --cardText: var(--text);
+  --headerTitleText: #baeef4;
 
   --bgTop: #101a2d;
   --bgMid: #0b1220;
   --bgBottom: #0a0f1a;
-  --headerBg: rgba(12, 16, 27, 0.82);
+  --headerBg: #0c101b;
   --headerBorder: rgba(255, 255, 255, 0.08);
   --drawerBackdrop: rgba(4, 8, 16, 0.7);
   --drawerSheet: #141f33;

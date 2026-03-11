@@ -141,6 +141,18 @@
   font-size: 13px;
 }
 
+:root:not([data-theme-mode="dark"]) .mlm__footer .mlm__close {
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(18, 53, 58, 0.18);
+  background: #ffffff;
+  color: #12353a;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
 @media (max-width: 520px) {
   .mlm__monthNav {
     gap: 8px;

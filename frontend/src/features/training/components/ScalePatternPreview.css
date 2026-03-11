@@ -49,3 +49,14 @@
   }
 }
 
+:root[data-theme-mode="dark"] .scalePattern__bg {
+  fill: #15243a;
+}
+
+:root[data-theme-mode="dark"] .scalePattern__guide {
+  stroke: rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .scalePattern__note {
+  fill: #f6e63a;
+}

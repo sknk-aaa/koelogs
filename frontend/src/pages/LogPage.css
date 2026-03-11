@@ -7,13 +7,15 @@
   --accent: #14c6d8;
   --log-brand-text: #09363d;
   --log-brand-muted: #5f7480;
+  --ui-section-eyebrow-muted-base: var(--log-brand-muted);
   --log-card-border: #e8ecf3;
   --log-card-shadow: 0 4px 14px rgba(9, 54, 61, 0.06);
+  --log-neutral-surface: #ffffff;
 }
 
 .page.logPage {
   padding-top: 0;
-  background: #ffffff;
+  background: var(--log-neutral-surface);
 }
 
 body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
@@ -21,14 +23,14 @@ body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
 }
 
 body:has(.page.logPage) {
-  background: #ffffff;
+  background: var(--log-neutral-surface);
 }
 
 .logPage__dateRail {
   margin-bottom: 8px;
   padding: 4px 0 4px;
   position: relative;
-  background: #ffffff;
+  background: var(--log-neutral-surface);
 }
 
 .logPage__weekRail {
@@ -141,7 +143,7 @@ body:has(.page.logPage) {
   font-size: var(--ui-section-eyebrow-size);
   font-weight: 800;
   letter-spacing: var(--ui-section-eyebrow-letter-spacing);
-  color: color-mix(in srgb, var(--accent) 20%, var(--log-brand-muted));
+  color: var(--ui-section-eyebrow-color);
 }
 
 .logPage__sectionLabelRow {
@@ -214,11 +216,11 @@ body:has(.page.logPage) {
 }
 
 .logPage__contentWave--white {
-  color: #ffffff;
+  color: var(--log-neutral-surface);
 }
 
 .logPage__contentWave--measure {
-  color: color-mix(in srgb, var(--accent) 7%, #ffffff);
+  color: var(--ui-section-wave-fill);
 }
 
 .logPage__contentWave svg {
@@ -239,7 +241,7 @@ body:has(.page.logPage) {
 }
 
 .logPage__contentInner--white {
-  background: #ffffff;
+  background: var(--log-neutral-surface);
   padding-bottom: calc(0px + env(safe-area-inset-bottom));
 }
 
@@ -378,6 +380,13 @@ body:has(.page.logPage) {
   background: color-mix(in srgb, var(--accent) 8%, #ffffff);
   color: color-mix(in srgb, var(--accent) 44%, #09363d);
   box-shadow: none;
+}
+
+.logPage__aiWeekActionBtn.uiButton,
+.logPage__aiWeekActionBtn.logPage__btn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--log-card-border));
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 44%, #09363d);
 }
 
 .logPage__aiWeekActionBtn.logPage__btn:hover {
@@ -583,52 +592,48 @@ body:has(.page.logPage) {
 
 .logPage__summaryCardRing {
   position: relative;
-  width: 108px;
-  height: 108px;
+  --ring-progress: 0;
+  width: 112px;
+  height: 112px;
+  border-radius: 999px;
+  background: conic-gradient(#14c6d8 calc(var(--ring-progress) * 1turn), rgba(20, 198, 216, 0.14) 0);
+  display: grid;
+  place-items: center;
 }
 
-.logPage__summaryCardRing svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.logPage__summaryCardRingTrack,
-.logPage__summaryCardRingProgress {
-  fill: none;
-  stroke-width: 7;
-}
-
-.logPage__summaryCardRingTrack {
-  stroke: rgba(20, 198, 216, 0.12);
-}
-
-.logPage__summaryCardRingProgress {
-  stroke: #14c6d8;
-  stroke-linecap: round;
+.logPage__summaryCardRing::before {
+  content: "";
+  width: 86px;
+  height: 86px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.94);
+  grid-area: 1 / 1;
 }
 
 .logPage__summaryCardRingValue {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
   display: grid;
-  place-items: center;
+  justify-items: center;
   align-content: center;
-  gap: 2px;
+  gap: 1px;
   color: #1d1d54;
 }
 
 .logPage__summaryCardRingValue span {
-  font-size: 34px;
-  line-height: 1;
-  font-weight: 700;
+  font-size: 38px;
+  line-height: 0.95;
+  font-weight: 900;
+  color: #0f766e;
 }
 
 .logPage__summaryCardRingValue small {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
-  font-weight: 700;
+  font-weight: 800;
   color: #506a7d;
+  text-transform: lowercase;
 }
 
 .logPage__summaryCardMainRow {
@@ -680,7 +685,9 @@ body:has(.page.logPage) {
   justify-self: start;
 }
 
-.logPage__summaryCardAction {
+.logPage__summaryCardAction,
+.logPage__todayMenusEditBtn,
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn {
   flex: 0 0 auto;
   width: 38px;
   height: 38px;
@@ -696,7 +703,9 @@ body:has(.page.logPage) {
   cursor: pointer;
 }
 
-.logPage__summaryCardAction:disabled {
+.logPage__summaryCardAction:disabled,
+.logPage__todayMenusEditBtn:disabled,
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn:disabled {
   opacity: 0.7;
   cursor: default;
 }
@@ -730,35 +739,30 @@ body:has(.page.logPage) {
 }
 
 .logPage__durationModalHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
 }
 
 .logPage__durationModalEyebrow {
   font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
   color: color-mix(in srgb, var(--accent) 20%, var(--log-brand-muted));
 }
 
 .logPage__durationModalTitle {
-  margin: 4px 0 0;
   font-size: 1.2rem;
-  line-height: 1.3;
-  font-weight: 800;
   color: var(--log-brand-text);
 }
 
 .logPage__durationModalClose {
-  border: 0;
-  background: transparent;
-  padding: 0;
+  padding: 0 10px;
+  min-height: 34px;
   font-size: 0.94rem;
   font-weight: 700;
-  color: #6d818c;
   cursor: pointer;
+}
+
+.logPage__durationModalClose.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__durationModalBody {
@@ -808,13 +812,16 @@ body:has(.page.logPage) {
   flex: 0 0 auto;
   min-height: 48px;
   padding: 0 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
   border-radius: 999px;
-  background: #ffffff;
-  color: var(--log-brand-text);
   font-size: 0.96rem;
   font-weight: 800;
   cursor: pointer;
+}
+
+.logPage__durationModalSave.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__durationModalSave:disabled {
@@ -1084,13 +1091,27 @@ body:has(.page.logPage) {
   grid-area: 1 / 1;
 }
 
-.logPage__miniRing > span {
+.logPage__miniRingLabel {
   grid-area: 1 / 1;
   position: relative;
   z-index: 1;
-  font-size: 0.9rem;
-  font-weight: 800;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
   color: #5a36d6;
+}
+
+.logPage__miniRingLabel strong {
+  font-size: 1.25rem;
+  line-height: 0.95;
+  font-weight: 900;
+}
+
+.logPage__miniRingLabel small {
+  font-size: 0.72rem;
+  line-height: 1;
+  font-weight: 800;
+  text-transform: lowercase;
 }
 
 .logPage__miniRing--volume {
@@ -1098,8 +1119,12 @@ body:has(.page.logPage) {
     conic-gradient(#32b965 calc(var(--ring-progress) * 1turn), rgba(50, 185, 101, 0.16) 0);
 }
 
-.logPage__miniRing--volume > span {
+.logPage__miniRing--volume .logPage__miniRingLabel {
   color: #228a49;
+}
+
+.logPage__miniRing--volume .logPage__miniRingLabel strong {
+  font-size: 1.45rem;
 }
 
 .logPage__pitchBar {
@@ -1265,21 +1290,14 @@ body:has(.page.logPage) {
   gap: 10px;
 }
 
-.logPage__todayMenusEditBtn {
-  width: 38px;
-  height: 38px;
-  min-width: 38px;
-  min-height: 38px;
-  padding: 0;
-  border-radius: 999px;
-  font-size: 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+.logPage__todayMenusEditBtn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 58%, #b4c7cf);
   background: #ffffff;
   color: var(--log-brand-text);
 }
 
-.logPage__memoCard > .logPage__daySectionHead > .logPage__btn {
-  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 58%, #b4c7cf);
   background: #ffffff;
   color: var(--log-brand-text);
 }
@@ -2056,12 +2074,15 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: color-mix(in srgb, var(--surface) 84%, var(--card));
-  color: var(--log-text-2);
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
+}
+
+.logPage__compareModalClose.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__compareModalBody {
@@ -2317,15 +2338,18 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   padding: 0 14px;
   min-width: 84px;
   border-radius: 999px;
-  border: none;
-  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
-  color: var(--text);
   font-size: 16px;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
   transition: transform 120ms ease, background-color 160ms ease, color 160ms ease, opacity 160ms ease;
   box-shadow: none;
+}
+
+.logPage__btn.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__btn:hover {
@@ -2342,23 +2366,34 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   box-shadow: none;
 }
 
-.logPage__btn.logPage__summaryCardAction {
+.logPage__btn.logPage__summaryCardAction,
+.logPage__btn.logPage__todayMenusEditBtn,
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn.uiButton {
   width: 38px;
   height: 38px;
   min-height: 38px;
   min-width: 38px;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
   border-radius: 999px;
-  background: #ffffff;
-  color: var(--log-brand-text);
   font-size: 16px;
   font-weight: 800;
+}
+
+.logPage__btn.logPage__summaryCardAction.uiButton,
+.logPage__btn.logPage__todayMenusEditBtn.uiButton,
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  background: #ffffff;
+  color: color-mix(in srgb, var(--accent) 44%, var(--log-brand-text));
 }
 
 .logPage__btn--subtle {
   background: #f7fafc;
   box-shadow: none;
+}
+
+.logPage__btn--subtle.uiButton {
+  background: inherit;
 }
 
 .logPage__btn--subtle:hover {
@@ -2367,6 +2402,10 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .logPage__btn--softAccent {
   background: color-mix(in srgb, var(--accent) 12%, #ffffff);
+}
+
+.logPage__btn--softAccent.uiButton {
+  background: inherit;
 }
 
 .logPage__btn--softAccent:hover {
@@ -3108,6 +3147,194 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   color: rgba(255, 255, 255, 0.74);
 }
 
+:root[data-theme-mode="dark"] .logPage__weekDay {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__weekDayNumber,
+:root[data-theme-mode="dark"] .logPage__weekDayLabel {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme-mode="dark"] .logPage__dateRail,
+:root[data-theme-mode="dark"] .logPage__weekRail {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage,
+:root[data-theme-mode="dark"] .page.logPage,
+:root[data-theme-mode="dark"] body:has(.page.logPage),
+:root[data-theme-mode="dark"] .logPage__dayBoard,
+:root[data-theme-mode="dark"] .logPage__aiWeekAction {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__dateRail {
+  margin-inline: -16px;
+  padding-inline: 16px;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekStrip {
+  background: transparent;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekDay.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 54%, rgba(255, 255, 255, 0.22));
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .logPage__weekDay.is-selected .logPage__weekDayNumber,
+:root[data-theme-mode="dark"] .logPage__weekDay.is-selected .logPage__weekDayLabel {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logPage__contentWave--white {
+  color: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__contentInner--white {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__sectionLabel {
+  color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.82));
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekAction {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionTitle {
+  color: color-mix(in srgb, var(--accent) 48%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionSubtext {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionIcon {
+  color: color-mix(in srgb, var(--accent) 40%, #dffbff);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionIcon svg .accent {
+  fill: color-mix(in srgb, var(--accent) 74%, #8aefff);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionLink {
+  color: var(--accent);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionLink:hover {
+  color: color-mix(in srgb, var(--accent) 82%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCard,
+:root[data-theme-mode="dark"] .logPage__durationModalPanel {
+  background: var(--card);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__durationModalBackdrop {
+  background: rgba(4, 10, 20, 0.68);
+}
+
+:root[data-theme-mode="dark"] .logPage__todayMenusCard,
+:root[data-theme-mode="dark"] .logPage__memoCard {
+  background: transparent;
+  border-color: transparent;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardAction,
+:root[data-theme-mode="dark"] .logPage__todayMenusEditBtn,
+:root[data-theme-mode="dark"] .logPage__memoCard > .logPage__daySectionHead > .logPage__btn,
+:root[data-theme-mode="dark"] .logPage__btn.logPage__summaryCardAction.uiButton,
+:root[data-theme-mode="dark"] .logPage__btn.logPage__todayMenusEditBtn.uiButton,
+:root[data-theme-mode="dark"] .logPage__memoCard > .logPage__daySectionHead > .logPage__btn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 64%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--surface) 92%, rgba(255, 255, 255, 0.04));
+  color: color-mix(in srgb, var(--accent) 34%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardLabel,
+:root[data-theme-mode="dark"] .logPage__summaryCardSubMetaLabel,
+:root[data-theme-mode="dark"] .logPage__noteSubtext,
+:root[data-theme-mode="dark"] .logPage__metricEmpty,
+:root[data-theme-mode="dark"] .logPage__dayMemoInput::placeholder,
+:root[data-theme-mode="dark"] .logPage__durationModalEyebrow,
+:root[data-theme-mode="dark"] .logPage__durationModalInput::placeholder,
+:root[data-theme-mode="dark"] .logPage__durationModalUnit {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardSubMetaValue,
+:root[data-theme-mode="dark"] .logPage__todayMenuItemName,
+:root[data-theme-mode="dark"] .logPage__durationModalTitle,
+:root[data-theme-mode="dark"] .logPage__todayMenusTitle,
+:root[data-theme-mode="dark"] .logPage__daySectionTitle {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardRing::before,
+:root[data-theme-mode="dark"] .logPage__miniRing::before {
+  background: color-mix(in srgb, var(--surfaceStrong) 92%, rgba(255, 255, 255, 0.06));
+}
+
+:root[data-theme-mode="dark"] .logPage__durationModalInputWrap {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--surface) 90%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .logPage__durationModalInput {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__durationModalClose.uiButton {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardRingValue,
+:root[data-theme-mode="dark"] .logPage__summaryCardRingValue span,
+:root[data-theme-mode="dark"] .logPage__miniRingLabel,
+:root[data-theme-mode="dark"] .logPage__miniRingLabel strong,
+:root[data-theme-mode="dark"] .logPage__rangePrimary,
+:root[data-theme-mode="dark"] .logPage__rangeNote,
+:root[data-theme-mode="dark"] .logPage__metricTitle,
+:root[data-theme-mode="dark"] .logPage__metricValue {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardRingValue small,
+:root[data-theme-mode="dark"] .logPage__metricMeta,
+:root[data-theme-mode="dark"] .logPage__pitchCaption,
+:root[data-theme-mode="dark"] .logPage__rangePrimary {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme-mode="dark"] .logPage__todayMenuItem,
+:root[data-theme-mode="dark"] .logPage__dayMemoInput,
+:root[data-theme-mode="dark"] .logPage__notePreview {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__notePreview.is-placeholder {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+:root[data-theme-mode="dark"] .logPage__dayMemoInput {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .logPage__metricCard {
+  background: var(--card);
+  color: rgba(255, 255, 255, 0.94);
+}
+
 .logPage__sectionTitle--comparison {
   margin-bottom: 0;
   color: color-mix(in srgb, var(--accent) 78%, var(--text));
@@ -3293,6 +3520,13 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   gap: 6px;
 }
 
+.logPage__comparisonActionCard.uiPanel,
+.logPage__comparisonReasonCard.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
 .logPage__comparisonReasonList,
 .logPage__comparisonActionList {
   margin: 0;
@@ -3333,9 +3567,16 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.06em;
-  color: color-mix(in srgb, var(--accent) 84%, var(--text));
-  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.logPage__comparisonActionBadge.uiCompareChip {
+  color: inherit;
+  border-color: inherit;
+  background: inherit;
+  min-height: 20px;
+  padding: 0 8px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
 }
 
 .logPage__comparisonActionTitleRow {
@@ -3417,6 +3658,12 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   padding: 10px;
   display: grid;
   gap: 4px;
+}
+
+.logPage__comparisonIntensity.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__comparisonBlockTitle {
@@ -3545,6 +3792,12 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
   background: color-mix(in srgb, var(--surface) 86%, var(--card));
+}
+
+.logPage__comparisonBucket.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__comparisonBucket.is-improved {
@@ -3883,6 +4136,13 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   height: auto;
   min-height: 0;
   padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6c8390;
+}
+
+.logPage__aiThemeToggle.uiButton,
+.logPage__aiThemeToggle.logPage__btn.uiButton {
   border: 0;
   background: transparent;
   color: #6c8390;
@@ -5332,9 +5592,16 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   color: rgba(255, 255, 255, 0.8);
 }
 
+:root[data-theme-mode="dark"] .logPage__aiInfoBody {
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
 :root[data-theme-mode="dark"] .logPage__aiInfoBlock {
   border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 :root[data-theme-mode="dark"] .logPage__aiInfoBlock--primary {
@@ -6350,8 +6617,6 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logMonthSheet__backdrop {
   position: absolute;
   inset: 0;
-  border: 0;
-  background: rgba(15, 23, 42, 0.18);
 }
 
 .logMonthSheet__panel {
@@ -6363,8 +6628,6 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   max-width: 420px;
   margin: 0 auto;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
   padding: 14px 14px 18px;
 }
 
@@ -6389,13 +6652,10 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logMonthSheet__nav,
 .logMonthSheet__today {
   height: 38px;
-  border: 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 10%, #f5f5f5);
   color: #111111;
   font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
 }
 
 .logMonthSheet__nav {
@@ -6457,7 +6717,6 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .logMonthSheet__today--subtle {
-  background: rgba(17, 17, 17, 0.05);
 }
 
 @media (max-width: 560px) {

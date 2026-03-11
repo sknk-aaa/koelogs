@@ -39,7 +39,6 @@
   position: fixed;
   inset: 0;
   z-index: 220;
-  background: rgba(0, 0, 0, 0.4);
   display: grid;
   place-items: center;
   padding: 14px;
@@ -50,18 +49,11 @@
   max-height: min(78vh, 720px);
   overflow: auto;
   border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  box-shadow: var(--shadow-md);
   display: grid;
   gap: 12px;
 }
 
 .infoModal__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
 }
@@ -69,7 +61,6 @@
 .infoModal__title {
   margin: 0;
   font-size: 17px;
-  font-weight: 950;
   line-height: 1.4;
   color: var(--cardText, var(--text));
 }
@@ -78,12 +69,7 @@
   min-height: 32px;
   padding: 0 10px;
   border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--cardText, var(--text));
   font-size: 12px;
-  font-weight: 900;
-  cursor: pointer;
 }
 
 .infoModal__body {
@@ -98,7 +84,7 @@
   --info-modal-section-icon-stroke-width: 1.9;
   --info-modal-section-icon-color: color-mix(in srgb, #14c6d8 62%, #70839a);
   --info-modal-section-icon-accent: color-mix(in srgb, #14c6d8 62%, #70839a);
-  --info-modal-section-eyebrow-color: color-mix(in srgb, #14c6d8 20%, #5f7480);
+  --info-modal-section-eyebrow-color: var(--ui-section-eyebrow-color);
   --info-modal-item-icon-color: #5c6f7c;
   --info-modal-item-divider: color-mix(in srgb, var(--accent) 8%, #e6edf1);
 }
@@ -288,13 +274,15 @@
   background: rgba(0, 0, 0, 0.58);
 }
 
-:root[data-theme-mode="dark"] .infoModal__card {
-  background: rgba(16, 20, 30, 0.95);
+:root[data-theme-mode="dark"] .infoModal__card.uiModalPanel {
+  background: var(--card);
   border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38);
 }
 
 :root[data-theme-mode="dark"] .infoModal__head {
   border-bottom-color: rgba(255, 255, 255, 0.12);
+  background: transparent;
 }
 
 :root[data-theme-mode="dark"] .infoModal__trigger {
@@ -321,6 +309,17 @@
   color: color-mix(in srgb, var(--cardText, var(--on-dark-1)) 64%, #7b8794);
 }
 
+:root[data-theme-mode="dark"] .infoModal__title,
+:root[data-theme-mode="dark"] .infoModal__itemTitle {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .infoModal__body,
+:root[data-theme-mode="dark"] .infoModal__itemText,
+:root[data-theme-mode="dark"] .infoModal__itemMeta {
+  color: rgba(255, 255, 255, 0.76);
+}
+
 :root[data-theme-mode="dark"] .infoModal__sectionTitleIcon {
   color: color-mix(in srgb, var(--accent) 64%, rgba(255, 255, 255, 0.68));
 }
@@ -331,6 +330,10 @@
 
 :root[data-theme-mode="dark"] .infoModal__item {
   border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .infoModal__itemIcon {
+  color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.76));
 }
 
 :root[data-theme-mode="dark"] .infoModal__itemIcon {

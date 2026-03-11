@@ -13,7 +13,7 @@
   --card: #ffffff;
   --surface: #fbfefe;
   --surfaceStrong: #f3fbfc;
-  --headerBg: rgba(255, 255, 255, 0.86);
+  --headerBg: #ffffff;
   --headerBorder: rgba(18, 53, 58, 0.06);
   --menuLine: rgba(0, 0, 0, 0.78);
   --drawerBackdrop: rgba(18, 53, 58, 0.2);
@@ -28,8 +28,8 @@
   --on-light-3: #7d9598;
   --on-light-link: #109db0;
   --on-dark-1: rgba(246, 250, 255, 0.96);
-  --on-dark-2: rgba(246, 250, 255, 0.78);
-  --on-dark-3: rgba(246, 250, 255, 0.58);
+  --on-dark-2: rgba(246, 250, 255, 0.86);
+  --on-dark-3: rgba(246, 250, 255, 0.72);
   --on-dark-link: rgba(246, 250, 255, 0.9);
 
   font-family: "Avenir Next", "SF Pro Display", "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
@@ -59,7 +59,7 @@ body {
   --bgBottom: #0a0f1a;
 
   --text: #e7eefb;
-  --muted: rgba(231, 238, 251, 0.66);
+  --muted: rgba(231, 238, 251, 0.78);
   --border: rgba(255, 255, 255, 0.08);
   --card: #141f33;
   --surface: #111a2b;

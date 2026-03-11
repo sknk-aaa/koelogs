@@ -37,8 +37,8 @@ export default function BadgeUnlockPopup() {
   if (!current) return null;
 
   return (
-    <div className="badgeUnlockPopup__overlay" role="dialog" aria-modal="true" aria-label="バッジ獲得">
-      <section className="badgeUnlockPopup__card">
+    <div className="badgeUnlockPopup__overlay uiModalBackdrop" role="dialog" aria-modal="true" aria-label="バッジ獲得">
+      <section className="badgeUnlockPopup__card uiModalPanel">
         <div className="badgeUnlockPopup__aurora" aria-hidden="true" />
         <div className="badgeUnlockPopup__spark badgeUnlockPopup__spark--a" aria-hidden="true" />
         <div className="badgeUnlockPopup__spark badgeUnlockPopup__spark--b" aria-hidden="true" />
@@ -48,7 +48,7 @@ export default function BadgeUnlockPopup() {
           <img src={current.badge.icon_path} alt={current.badge.name} className="badgeUnlockPopup__icon" />
         </div>
         <div className="badgeUnlockPopup__name">{current.badge.name}</div>
-        <button type="button" className="badgeUnlockPopup__close" onClick={close}>
+        <button type="button" className="badgeUnlockPopup__close uiButton uiButton--secondary" onClick={close}>
           閉じる
         </button>
       </section>

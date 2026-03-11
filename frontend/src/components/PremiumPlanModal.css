@@ -25,6 +25,10 @@ body.premiumPlanModal--open nav[aria-label="mode tabs"] {
   overflow: hidden;
 }
 
+.premiumPlanModal__card.uiModalPanel {
+  box-shadow: 0 24px 48px rgba(9, 25, 46, 0.24);
+}
+
 .premiumPlanModal__header {
   min-height: 52px;
   padding: 8px 12px;
@@ -54,8 +58,40 @@ body.premiumPlanModal--open nav[aria-label="mode tabs"] {
   cursor: pointer;
 }
 
+.premiumPlanModal__close.uiButton {
+  min-height: 36px;
+  padding: 0;
+  font-size: 24px;
+  line-height: 1;
+}
+
 .premiumPlanModal__body {
   overflow: hidden;
   padding: 12px;
   min-height: 0;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanModal {
+  background: rgba(2, 8, 18, 0.82);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanModal__card {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--surface) 92%, #09111d 8%);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanModal__header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanModal__title {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanModal__close.uiButton {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
 }

@@ -75,7 +75,7 @@
 }
 
 .myPage__accentInner > .myPage__section:last-child {
-  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  padding-bottom: calc(144px + env(safe-area-inset-bottom));
 }
 
 .myPage__section--progress {
@@ -125,7 +125,7 @@
   font-weight: 800;
   letter-spacing: var(--ui-section-eyebrow-letter-spacing);
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--accent) 20%, #5f7480);
+  color: var(--ui-section-eyebrow-color);
 }
 
 .myPage__missionMoreBtn {
@@ -745,6 +745,10 @@
   padding: 14px;
 }
 
+.myPage__modalCard.uiModalPanel {
+  box-shadow: 0 12px 28px rgba(9, 54, 61, 0.08);
+}
+
 .myPage__modalHead {
   display: flex;
   align-items: center;
@@ -777,6 +781,11 @@
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+}
+
+.myPage__modalClose.uiButton {
+  min-height: 34px;
+  padding-inline: 14px;
 }
 
 .myPage__modalList {
@@ -997,7 +1006,7 @@
 
 /* kicker / sub は暗色向けに */
 :root[data-theme-mode="dark"] .myPage__kicker {
-  color: color-mix(in srgb, var(--on-dark-1) 65%, transparent);
+  color: var(--ui-section-eyebrow-color);
 }
 :root[data-theme-mode="dark"] .myPage__title {
   color: var(--on-dark-1);
@@ -1148,6 +1157,30 @@ body[data-mypage-tutorial-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 :root[data-theme-mode="dark"] .myPage__badge.is-unlocked .myPage__badgeMeta {
   color: color-mix(in srgb, var(--accent) 75%, #cfd9ff);
+}
+
+:root[data-theme-mode="dark"] .myPage__contribution,
+:root[data-theme-mode="dark"] .myPage .durationHeatmap,
+:root[data-theme-mode="dark"] .myPage__chip,
+:root[data-theme-mode="dark"] .myPage__badgeDetailRow,
+:root[data-theme-mode="dark"] .myPage__xpInfoBlock {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .myPage__contributionValue,
+:root[data-theme-mode="dark"] .myPage__badgeDetailName,
+:root[data-theme-mode="dark"] .myPage__badgeDetailRow strong {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .myPage__contributionHelp,
+:root[data-theme-mode="dark"] .myPage__summaryPeriod,
+:root[data-theme-mode="dark"] .myPage__xpInfoLead,
+:root[data-theme-mode="dark"] .myPage__xpInfoNote,
+:root[data-theme-mode="dark"] .myPage__badgeDetailDesc,
+:root[data-theme-mode="dark"] .myPage__badgeDetailRow {
+  color: rgba(255, 255, 255, 0.68);
 }
 
 .myPage__xpInfoBody {
@@ -1305,6 +1338,10 @@ body[data-mypage-tutorial-lock-footer="true"] nav[aria-label="mode tabs"] {
 :root[data-theme-mode="dark"] .myPage__modalCard {
   background: rgba(18, 20, 28, 0.96);
   border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
+}
+
+:root[data-theme-mode="dark"] .myPage__modalCard.uiModalPanel {
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
 }
 

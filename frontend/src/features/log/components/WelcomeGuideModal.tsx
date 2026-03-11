@@ -26,17 +26,17 @@ export default function WelcomeGuideModal({ open, onClose, onStartRecord, onOpen
 
   return (
     <div className="wgm__overlay" role="dialog" aria-modal="true" aria-label="welcome guide">
-      <button className="wgm__backdrop" onClick={onClose} aria-label="close guide" />
-      <section className="wgm__panel">
+      <button className="wgm__backdrop uiModalBackdrop" onClick={onClose} aria-label="close guide" />
+      <section className="wgm__panel uiModalPanel">
         <div className="wgm__title">voice-appへようこそ！</div>
         <p className="wgm__lead">まずは現在の最高音や声の状態を記録してみましょう。</p>
         <p className="wgm__sub">記録をもとに、AIが今週のおすすめトレーニングを提案します。</p>
 
         <div className="wgm__actions">
-          <button type="button" className="wgm__btn" onClick={onClose}>
+          <button type="button" className="wgm__btn uiButton uiButton--secondary" onClick={onClose}>
             あとで見る
           </button>
-          <button type="button" className="wgm__btn wgm__btn--primary" onClick={onStartRecord}>
+          <button type="button" className="wgm__btn wgm__btn--primary uiButton uiButton--primary" onClick={onStartRecord}>
             記録する
           </button>
         </div>

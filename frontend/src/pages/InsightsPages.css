@@ -5,6 +5,10 @@
   background: var(--ui-measure-section-bg);
 }
 
+.pageContainer:has(.page.insightsPage) {
+  background: var(--ui-measure-section-bg);
+}
+
 .insightsFreeMiniPill {
   margin-top: 8px;
   display: block;
@@ -159,6 +163,7 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
+  margin: 2px 0 4px;
 }
 
 .insightsHighlightsCard__eyebrowIcon,
@@ -216,6 +221,12 @@
   cursor: pointer;
 }
 
+.csvButton.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
 .csvButton:hover {
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
 }
@@ -242,7 +253,6 @@
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background: rgba(5, 10, 18, 0.48);
   display: grid;
   place-items: center;
   padding: 16px;
@@ -251,24 +261,22 @@
 .csvDialog {
   width: min(360px, 100%);
   border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
-  background: var(--card);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
   padding: 14px;
   display: grid;
   gap: 12px;
 }
 
+.csvDialog.uiModalPanel {
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: #ffffff;
+  color: var(--ins-text-1);
+}
+
 .csvDialog__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
 }
 
 .csvDialog__title {
   font-size: 15px;
-  font-weight: 950;
   color: var(--ins-text-1);
 }
 
@@ -284,6 +292,12 @@
   cursor: pointer;
 }
 
+.csvDialog__close.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--surface) 90%, var(--card));
+  color: var(--ins-text-2);
+}
+
 .csvDialog__section {
   border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
   border-radius: 10px;
@@ -291,6 +305,12 @@
   padding: 10px;
   display: grid;
   gap: 8px;
+}
+
+.csvDialog__section.uiPanel {
+  border-color: color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--surface) 94%, var(--card));
+  color: var(--ins-text-1);
 }
 
 .csvDialog__label {
@@ -329,12 +349,27 @@
   cursor: pointer;
 }
 
+.csvDialog__btn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--border));
+}
+
 .csvDialog__btn--secondary {
   background: color-mix(in srgb, var(--surface) 92%, var(--card));
   color: var(--ins-text-2);
 }
 
+.csvDialog__btn--secondary.uiButton {
+  background: color-mix(in srgb, var(--surface) 92%, var(--card));
+  color: var(--ins-text-2);
+}
+
 .csvDialog__btn--primary {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  color: var(--ins-text-1);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+}
+
+.csvDialog__btn--primary.uiButton {
   background: color-mix(in srgb, var(--accent) 22%, var(--surface));
   color: var(--ins-text-1);
   border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
@@ -348,11 +383,6 @@
 
 :root[data-theme-mode="dark"] .csvButton:hover {
   background: rgba(255, 255, 255, 0.1);
-}
-
-:root[data-theme-mode="dark"] .csvDialog {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: #102033;
 }
 
 :root[data-theme-mode="dark"] .csvDialog__title {
@@ -786,8 +816,8 @@
 }
 
 .insightsHighlightsCard {
-  margin-bottom: 12px;
-  padding: 18px 20px !important;
+  margin-bottom: 0px;
+  padding: 10px 12px !important;
   border: none !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -840,6 +870,35 @@
   box-shadow: none;
   min-width: 0;
   color: var(--cardText, var(--text));
+}
+
+.insightsNotesPage .insightsHero,
+.insightsNotesPage .insightsGuest,
+.insightsNotesPage .insightsCard {
+  border: none;
+  box-shadow: none !important;
+}
+
+.insightsNotesPage .insightsCard {
+  padding: 17px 16px;
+}
+
+.insightsNotesPage .insightsCard__head {
+  margin-bottom: 10px;
+}
+
+.insightsNotesPage__sectionNote {
+  margin-bottom: 12px;
+}
+
+.insightsNotesPage .insightsHero {
+  background: transparent !important;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.page.insightsNotesPage {
+  padding-top: 8px;
 }
 
 .insightsTimePage {
@@ -1124,6 +1183,11 @@
   line-height: 1.5;
 }
 
+.insightsMuted--right {
+  width: 100%;
+  text-align: right;
+}
+
 .insightsError {
   border-radius: 12px;
   border: 1px solid rgba(176, 0, 32, 0.24);
@@ -1139,16 +1203,39 @@
 }
 
 .insightsBestMenu__trigger {
-  min-width: 28px;
-  height: 24px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--ins-text-2);
-  font-size: 10px;
-  font-weight: 900;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--ins-text-1);
+  font-size: 16px;
+  font-weight: 800;
   line-height: 1;
   cursor: pointer;
+}
+
+.insightsBestMenu__triggerIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+}
+
+.insightsBestMenu__triggerIcon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .insightsBestMenu__panel {
@@ -1447,13 +1534,13 @@
 }
 
 .insightsHistoryMeta__item {
-  border: 1px solid var(--border);
+  border: 1px solid rgba(120, 148, 176, 0.22);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.64);
-  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.38);
+  padding: 3px 8px;
   font-size: 11px;
   font-weight: 800;
-  opacity: 0.78;
+  opacity: 0.72;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1465,12 +1552,16 @@
   font-size: 10px;
   font-weight: 900;
   color: #9b6f00;
-  background: rgba(212, 175, 55, 0.18);
+  background: rgba(212, 175, 55, 0.12);
 }
 
 .insightsHistoryMonth {
   display: grid;
   gap: 4px;
+}
+
+.insightsHistoryMonth + .insightsHistoryMonth {
+  margin-top: 14px;
 }
 
 .insightsHistoryMonth__head {
@@ -1505,18 +1596,19 @@
 
 .insightsHistoryMonth__rows {
   display: grid;
-  gap: 6px;
+  gap: 0;
 }
 
 .insightsHistoryRow {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.76);
+  border: 0;
+  border-bottom: 1px solid rgba(120, 148, 176, 0.22);
+  border-radius: 0;
+  background: transparent;
   display: grid;
   grid-template-columns: 54px 1fr auto;
   align-items: center;
   column-gap: 10px;
-  padding: 9px 12px;
+  padding: 14px 4px;
 }
 
 .insightsHistoryRow__date {
@@ -1602,7 +1694,7 @@
   display: grid;
   justify-items: end;
   align-content: center;
-  gap: 2px;
+  gap: 4px;
 }
 
 .insightsLongToneHistoryRow__ratio {
@@ -1645,13 +1737,14 @@
 }
 
 .insightsLongToneHistoryRow__badges {
-  display: inline-flex;
-  gap: 4px;
+  display: grid;
+  justify-items: end;
+  gap: 3px;
 }
 
 .insightsLongToneHistoryRow__badge {
   border-radius: 999px;
-  padding: 1px 6px;
+  padding: 1px 5px;
   font-size: 10px;
   font-weight: 900;
   line-height: 1.2;
@@ -1659,17 +1752,17 @@
 
 .insightsLongToneHistoryRow__badge.is-best {
   color: #9b6f00;
-  background: rgba(212, 175, 55, 0.18);
+  background: rgba(212, 175, 55, 0.1);
 }
 
 .insightsLongToneHistoryRow__badge.is-up {
   color: #1f8a50;
-  background: rgba(44, 165, 96, 0.14);
+  background: rgba(44, 165, 96, 0.08);
 }
 
 .insightsLongToneHistoryRow__badge.is-down {
   color: #b14848;
-  background: rgba(214, 86, 86, 0.14);
+  background: rgba(214, 86, 86, 0.08);
 }
 
 .insightsRankRow {
@@ -1995,17 +2088,75 @@
 .insightsGaugePanel {
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 4px;
   flex: 1;
+}
+
+.insightsGaugePanel--topCard {
+  height: 100%;
+  align-content: space-between;
+}
+
+.insightsGaugeRow {
+  width: fit-content;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 12px;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.insightsGaugeLead {
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.3;
+  color: #223547;
+  margin-top: -6px;
+  margin-bottom: 8px;
 }
 
 .insightsGaugeMeta {
   width: 100%;
   display: grid;
-  gap: 2px;
+  gap: 1px;
   font-size: 12px;
   font-weight: 800;
   color: #2d3f55;
+}
+
+.insightsGaugeMeta--topCard {
+  justify-items: start;
+  text-align: left;
+  margin-top: auto;
+}
+
+.insightsGaugeMeta--center {
+  justify-items: center;
+  text-align: center;
+}
+
+.insightsGaugeMeta--side {
+  justify-items: start;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 900;
+  color: #223547;
+  gap: 6px;
+}
+
+.insightsGaugeMeta--side span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 148, 176, 0.24);
+  background: rgba(255, 255, 255, 0.72);
+  box-sizing: border-box;
 }
 
 .insightsPitchSemitoneCard {
@@ -2313,8 +2464,8 @@
 
 .insightsMiniRing {
   --ring-progress: 0;
-  width: 104px;
-  height: 104px;
+  width: 124px;
+  height: 124px;
   border-radius: 999px;
   background:
     conic-gradient(#7a4dff calc(var(--ring-progress) * 1turn), rgba(122, 77, 255, 0.16) 0);
@@ -2324,20 +2475,38 @@
 
 .insightsMiniRing::before {
   content: "";
-  width: 78px;
-  height: 78px;
+  width: 92px;
+  height: 92px;
   border-radius: inherit;
   background: rgba(255, 255, 255, 0.92);
   grid-area: 1 / 1;
 }
 
-.insightsMiniRing > span {
+.insightsMiniRing__label {
   grid-area: 1 / 1;
   position: relative;
   z-index: 1;
-  font-size: 0.96rem;
-  font-weight: 800;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
   color: #5a36d6;
+}
+
+.insightsMiniRing__label strong {
+  font-size: 1.7rem;
+  line-height: 0.95;
+  font-weight: 900;
+}
+
+.insightsGaugeCard .insightsMiniRing__label strong {
+  font-size: 2rem;
+}
+
+.insightsMiniRing__label small {
+  font-size: 0.82rem;
+  line-height: 1;
+  font-weight: 800;
+  text-transform: lowercase;
 }
 
 .insightsMiniRing--volume {
@@ -2345,8 +2514,12 @@
     conic-gradient(#32b965 calc(var(--ring-progress) * 1turn), rgba(50, 185, 101, 0.16) 0);
 }
 
-.insightsMiniRing--volume > span {
+.insightsMiniRing--volume .insightsMiniRing__label {
   color: #228a49;
+}
+
+.insightsMiniRing--volume .insightsMiniRing__label strong {
+  font-size: 2.15rem;
 }
 
 .insightsMeasureGrid {
@@ -2681,9 +2854,16 @@
 .insightsRangeCard__chip {
   border-radius: 999px;
   text-align: center;
-  color: #fff;
   font-size: 11px;
   font-weight: 900;
+  padding: 3px 8px;
+  color: #ffffff;
+}
+
+.insightsRangeCard__chip.uiCompareChip {
+  color: #ffffff;
+  border-color: transparent;
+  min-height: 0;
   padding: 3px 8px;
 }
 
@@ -2763,18 +2943,18 @@
   position: relative;
   --ins-range-plot-bg-start: #f5f9ff;
   --ins-range-plot-bg-end: #eaf2ff;
-  --ins-range-band-start: #3b82f6;
-  --ins-range-band-end: #3b82f6;
-  --ins-range-high-line-start: #2563eb;
-  --ins-range-high-line-end: #3b82f6;
-  --ins-range-low-line: #93c5fd;
-  --ins-range-dot-strong: #2563eb;
-  --ins-range-dot: #3b82f6;
+  --ins-range-band-start: #4f8eff;
+  --ins-range-band-end: #4f8eff;
+  --ins-range-high-line-start: #4f8eff;
+  --ins-range-high-line-end: #4f8eff;
+  --ins-range-low-line: #9fc2ff;
+  --ins-range-dot-strong: #4f8eff;
+  --ins-range-dot: #4f8eff;
   --ins-range-grid-major: #8eb7e8;
   --ins-range-grid-minor: #c5daf2;
   --ins-range-axis-line: #9fc2ea;
   --ins-range-tick-line: #7ea8d8;
-  --ins-range-hover-line: #3b82f6;
+  --ins-range-hover-line: #4f8eff;
 }
 
 .insightsRangeTrend__frame {
@@ -2785,7 +2965,7 @@
 }
 
 .insightsTrendScrollHint {
-  margin: 0 0 10px;
+  margin: 0 0 6px;
   font-size: 12px;
   font-weight: 800;
   line-height: 1.5;
@@ -2798,9 +2978,9 @@
   max-width: 72px;
   flex-shrink: 0;
   padding-left: 0;
-  padding-right: 4px;
-  background: linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%);
-  border-right: 1px solid #d8e3ef;
+  padding-right: 0;
+  background: transparent;
+  border-right: 0;
 }
 
 .insightsRangeTrend__axisSvg {
@@ -2815,7 +2995,7 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 8px;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 .insightsRangeTrend__plotInner {
@@ -2850,8 +3030,8 @@
 }
 
 :root[data-theme-mode="dark"] .insightsRangeTrend {
-  --ins-range-plot-bg-start: rgba(255, 255, 255, 0.05);
-  --ins-range-plot-bg-end: rgba(255, 255, 255, 0.02);
+  --ins-range-plot-bg-start: rgba(18, 28, 42, 0.94);
+  --ins-range-plot-bg-end: rgba(18, 28, 42, 0.94);
   --ins-range-band-start: #60a5fa;
   --ins-range-band-end: #3b82f6;
   --ins-range-high-line-start: #93c5fd;
@@ -2881,6 +3061,22 @@
   font-weight: 800;
   line-height: 1.45;
   white-space: nowrap;
+  min-width: 132px;
+}
+
+.insightsRangeTrend__tooltipDate {
+  margin-bottom: 4px;
+}
+
+.insightsRangeTrend__tooltipRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.insightsRangeTrend__tooltipRow strong {
+  font-weight: 900;
 }
 
 .insightsFixedTrend__tooltip {
@@ -2913,9 +3109,9 @@
   max-width: 72px;
   flex-shrink: 0;
   padding-left: 0;
-  padding-right: 4px;
-  background: linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%);
-  border-right: 1px solid #d8e3ef;
+  padding-right: 0;
+  background: transparent;
+  border-right: 0;
 }
 
 :root[data-theme-mode="dark"] .insightsRangeTrend__axis,
@@ -2944,7 +3140,7 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 8px;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 .insightsFixedTrend__plotInner {
@@ -3006,9 +3202,26 @@
   --ins-link: var(--on-dark-link);
 }
 
+:root[data-theme-mode="dark"] .page.insightsPage {
+  max-width: none;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+  background: var(--ui-measure-section-bg);
+}
+
 :root[data-theme-mode="dark"] .insightsCircleGauge__label {
   color: var(--on-dark-2);
   opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .insightsMiniRing__label,
+:root[data-theme-mode="dark"] .insightsMiniRing__label strong,
+:root[data-theme-mode="dark"] .insightsMiniRing__label small,
+:root[data-theme-mode="dark"] .insightsMiniRing--volume .insightsMiniRing__label,
+:root[data-theme-mode="dark"] .insightsCompactGauge__value,
+:root[data-theme-mode="dark"] .insightsCompactGauge__unit {
+  color: rgba(255, 255, 255, 0.94);
 }
 
 :root[data-theme-mode="dark"] .insightsCircleGauge__value {
@@ -3026,6 +3239,10 @@
 
 :root[data-theme-mode="dark"] .insightsGaugeMeta {
   color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .insightsGaugeLead {
+  color: rgba(255, 255, 255, 0.94);
 }
 
 :root[data-theme-mode="dark"] .insightsGaugePanel {
@@ -3168,13 +3385,81 @@
 :root[data-theme-mode="dark"] .insightsCard__title,
 :root[data-theme-mode="dark"] .insightsCard__hint,
 :root[data-theme-mode="dark"] .insightsCard__hintText {
-  color: #ffffff;
+  color: inherit;
 }
 
 :root[data-theme-mode="dark"] .insightsCard__hintSub,
 :root[data-theme-mode="dark"] .insightsMuted,
 :root[data-theme-mode="dark"] .insightsKeyValue__k {
   color: rgba(255, 255, 255, 0.8);
+}
+
+:root[data-theme-mode="dark"] .insightsTimePage .insightsStat,
+:root[data-theme-mode="dark"] .insightsSegment,
+:root[data-theme-mode="dark"] .insightsStat,
+:root[data-theme-mode="dark"] .insightsInput,
+:root[data-theme-mode="dark"] .insightsSelect,
+:root[data-theme-mode="dark"] .insightsSelect__button,
+:root[data-theme-mode="dark"] .insightsBadge,
+:root[data-theme-mode="dark"] .insightsHistoryMeta__item,
+:root[data-theme-mode="dark"] .insightsMeasureCard,
+:root[data-theme-mode="dark"] .insightsPitchHeroCard {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .insightsSegment__btn.is-active {
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.06));
+}
+
+:root[data-theme-mode="dark"] .insightsTimePage .insightsStat__label,
+:root[data-theme-mode="dark"] .insightsStat__label,
+:root[data-theme-mode="dark"] .insightsMeasureLabel,
+:root[data-theme-mode="dark"] .insightsMeasureUnit,
+:root[data-theme-mode="dark"] .insightsHistoryMeta__item,
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__meta,
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__legend,
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__empty,
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__dow,
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__months {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme-mode="dark"] .insightsTimePage .insightsStat__value,
+:root[data-theme-mode="dark"] .insightsMeasureNumber,
+:root[data-theme-mode="dark"] .insightsPitchHeroCard__valueRow,
+:root[data-theme-mode="dark"] .insightsPitchHeroCard__value,
+:root[data-theme-mode="dark"] .insightsPitchHeroCard__unit {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .insightsMiniRing::before {
+  background: rgba(11, 18, 32, 0.94);
+}
+
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__cell {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__cell.level-0 {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__cell.level-1 {
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.03));
+}
+
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__cell.level-2 {
+  background: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__cell.level-3 {
+  background: color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.05));
+}
+
+:root[data-theme-mode="dark"] .insightsTimePage__calendarShell .durationHeatmap__cell.level-4 {
+  background: color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.06));
 }
 
 @media (max-width: 760px) {
@@ -3425,6 +3710,7 @@
   .insightsRangeTrend__tooltip {
     font-size: 10px;
     padding: 7px 8px;
+    min-width: 124px;
   }
 
   .insightsHistoryRow {
@@ -3480,8 +3766,7 @@
   }
 
   .insightsRangeTrend__tooltip {
-    white-space: normal;
-    max-width: min(72vw, 240px);
-    word-break: break-word;
+    white-space: nowrap;
+    max-width: none;
   }
 }

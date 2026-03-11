@@ -36,22 +36,22 @@ export default function ExportCsvDialog({
   if (!open) return null;
 
   return (
-    <div className="csvDialogOverlay" role="presentation" onClick={onClose}>
+    <div className="csvDialogOverlay uiModalBackdrop" role="presentation" onClick={onClose}>
       <section
-        className="csvDialog"
+        className="csvDialog uiModalPanel"
         role="dialog"
         aria-modal="true"
         aria-label="CSV出力"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="csvDialog__head">
-          <div className="csvDialog__title">CSV出力</div>
-          <button type="button" className="csvDialog__close" onClick={onClose} aria-label="閉じる">
+        <div className="csvDialog__head uiModalHeader">
+          <div className="csvDialog__title uiModalTitle">CSV出力</div>
+          <button type="button" className="csvDialog__close uiButton uiButton--secondary uiIconButton" onClick={onClose} aria-label="閉じる">
             ×
           </button>
         </div>
 
-        <div className="csvDialog__section">
+        <div className="csvDialog__section uiPanel">
           <div className="csvDialog__label">期間</div>
           <label className="csvDialog__option">
             <input
@@ -82,7 +82,7 @@ export default function ExportCsvDialog({
           </label>
         </div>
 
-        <div className="csvDialog__section">
+        <div className="csvDialog__section uiPanel">
           <div className="csvDialog__label">指標フィルタ</div>
           <label className="csvDialog__option">
             <input
@@ -132,10 +132,10 @@ export default function ExportCsvDialog({
         </div>
 
         <div className="csvDialog__actions">
-          <button type="button" className="csvDialog__btn csvDialog__btn--secondary" onClick={onClose}>
+          <button type="button" className="csvDialog__btn csvDialog__btn--secondary uiButton uiButton--secondary" onClick={onClose}>
             キャンセル
           </button>
-          <button type="button" className="csvDialog__btn csvDialog__btn--primary" onClick={onDownload}>
+          <button type="button" className="csvDialog__btn csvDialog__btn--primary uiButton uiButton--primary" onClick={onDownload}>
             ダウンロード
           </button>
         </div>

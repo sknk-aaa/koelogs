@@ -118,15 +118,23 @@
 }
 
 :root[data-theme-mode="dark"] .appSelect__menu {
-  background: rgba(16, 20, 30, 0.98);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+  background: rgba(28, 37, 56, 0.98);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.34);
 }
 
 :root[data-theme-mode="dark"] .appSelect__option {
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 :root[data-theme-mode="dark"] .appSelect__option.is-selected {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .appSelect__option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .appSelect__check {
+  color: rgba(255, 255, 255, 0.82);
 }

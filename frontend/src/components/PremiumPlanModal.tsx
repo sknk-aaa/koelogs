@@ -27,17 +27,17 @@ export default function PremiumPlanModal({ open, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <div className="premiumPlanModal" role="presentation" onClick={onClose}>
+    <div className="premiumPlanModal uiModalBackdrop" role="presentation" onClick={onClose}>
       <section
-        className="premiumPlanModal__card"
+        className="premiumPlanModal__card uiModalPanel"
         role="dialog"
         aria-modal="true"
         aria-label="プレミアムプラン詳細"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="premiumPlanModal__header">
-          <div className="premiumPlanModal__title">プレミアムプラン</div>
-          <button type="button" className="premiumPlanModal__close" onClick={onClose} aria-label="閉じる">
+        <div className="premiumPlanModal__header uiModalHeader">
+          <div className="premiumPlanModal__title uiModalTitle">プレミアムプラン</div>
+          <button type="button" className="premiumPlanModal__close uiButton uiButton--secondary uiIconButton" onClick={onClose} aria-label="閉じる">
             ×
           </button>
         </div>

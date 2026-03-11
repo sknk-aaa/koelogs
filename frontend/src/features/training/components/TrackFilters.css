@@ -113,3 +113,32 @@
     font-size: 12px;
   }
 }
+
+:root[data-theme-mode="dark"] .trackFilters__label {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme-mode="dark"] .trackFilters__selectButton {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .trackFilters__rangeBtn {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.78);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .trackFilters__rangeBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .trackFilters__rangeBtn.is-active {
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.04));
+  color: rgba(255, 255, 255, 0.96);
+  border-color: color-mix(in srgb, var(--accent) 46%, rgba(255, 255, 255, 0.18));
+  box-shadow: none;
+}

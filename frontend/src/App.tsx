@@ -11,7 +11,6 @@ import LogNewPage from "./pages/LogNewPage";
 import TrainingPage from "./pages/TrainingPage";
 import InsightsPage from "./pages/InsightsPage";
 import InsightsTimePage from "./pages/InsightsTimePage";
-import InsightsMenusPage from "./pages/InsightsMenusPage";
 import InsightsNotesPage from "./pages/InsightsNotesPage";
 
 import LoginPage from "./pages/LoginPage";
@@ -49,7 +48,6 @@ export default function App() {
             <Route path="/training" element={<TrainingPage />} />
             <Route path="/insights" element={<InsightsPage />} />
             <Route path="/insights/time" element={<InsightsTimePage />} />
-            <Route path="/insights/menus" element={<InsightsMenusPage />} />
             <Route path="/insights/notes" element={<InsightsNotesPage />} />
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/community/rankings" element={<CommunityRankingPage />} />

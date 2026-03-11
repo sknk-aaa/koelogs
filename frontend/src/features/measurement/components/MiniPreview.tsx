@@ -21,28 +21,15 @@ export default function MiniPreview({ kind, size = "md" }: Props) {
 function RangePreview() {
   return (
     <svg viewBox="0 0 96 56" className="miniPreview__svg">
-      <rect x="10" y="12" width="76" height="32" rx="7" className="miniPreview__keyboardBody" />
-
-      {/* white keys */}
-      <rect x="12" y="14" width="10" height="28" rx="2" className="miniPreview__keyWhite" />
-      <rect x="22" y="14" width="10" height="28" rx="2" className="miniPreview__keyWhite" />
-      <rect x="32" y="14" width="10" height="28" rx="2" className="miniPreview__keyWhite" />
-      <rect x="42" y="14" width="10" height="28" rx="2" className="miniPreview__keyWhite" />
-      <rect x="52" y="14" width="10" height="28" rx="2" className="miniPreview__keyWhite" />
-      <rect x="62" y="14" width="10" height="28" rx="2" className="miniPreview__keyWhite" />
-      <rect x="72" y="14" width="10" height="28" rx="2" className="miniPreview__keyWhite" />
-
-      {/* black keys (2-3 pattern) */}
-      <rect x="19" y="14" width="6" height="14" rx="2" className="miniPreview__blackKey" />
-      <rect x="29" y="14" width="6" height="14" rx="2" className="miniPreview__blackKey" />
-      <rect x="49" y="14" width="6" height="14" rx="2" className="miniPreview__blackKey" />
-      <rect x="59" y="14" width="6" height="14" rx="2" className="miniPreview__blackKey" />
-      <rect x="69" y="14" width="6" height="14" rx="2" className="miniPreview__blackKey" />
-
-      {/* measured range overlay on keyboard */}
-      <rect x="25" y="30" width="38" height="9" rx="4.5" className="miniPreview__overlayBand" />
-      <circle cx="25" cy="34.5" r="2.7" className="miniPreview__rangeMarker" />
-      <circle cx="63" cy="34.5" r="2.7" className="miniPreview__rangeMarker" />
+      <line x1="16" y1="14" x2="16" y2="43" className="miniPreview__lineFaint" />
+      <line x1="16" y1="43" x2="82" y2="43" className="miniPreview__lineFaint" />
+      <line x1="22" y1="19" x2="78" y2="19" className="miniPreview__lineFaint" />
+      <line x1="22" y1="29" x2="78" y2="29" className="miniPreview__lineFaint" />
+      <line x1="22" y1="38" x2="78" y2="38" className="miniPreview__lineFaint" />
+      <line x1="28" y1="35" x2="68" y2="17" className="miniPreview__path" />
+      <line x1="28" y1="35" x2="68" y2="17" className="miniPreview__lineStrong" />
+      <circle cx="28" cy="35" r="3" className="miniPreview__point" />
+      <circle cx="68" cy="17" r="3" className="miniPreview__point" />
     </svg>
   );
 }
@@ -77,18 +64,14 @@ function LoudnessPreview() {
 function PitchPreview() {
   return (
     <svg viewBox="0 0 96 56" className="miniPreview__svg">
-      <rect x="6" y="10" width="84" height="36" rx="8" className="miniPreview__pitchPanel" />
-
-      {/* pitch space guides */}
-      <line x1="14" y1="17" x2="82" y2="17" className="miniPreview__pitchGuideLine" />
-      <line x1="14" y1="28" x2="82" y2="28" className="miniPreview__pitchGuideLine" />
-      <line x1="14" y1="39" x2="82" y2="39" className="miniPreview__pitchGuideLine" />
-
-      {/* timeline pills (single layer, staggered) */}
-      <rect x="14" y="32" width="14" height="7" rx="3.5" className="miniPreview__pitchPill" />
-      <rect x="31" y="14" width="22" height="7" rx="3.5" className="miniPreview__pitchPill" />
-      <rect x="55" y="20" width="12" height="7" rx="3.5" className="miniPreview__pitchPill" />
-      <rect x="69" y="25" width="20" height="7" rx="3.5" className="miniPreview__pitchPill" />
+      <line x1="14" y1="14" x2="14" y2="42" className="miniPreview__lineFaint" />
+      <line x1="14" y1="42" x2="82" y2="42" className="miniPreview__lineFaint" />
+      <line x1="18" y1="18" x2="80" y2="18" className="miniPreview__pitchGuideLine" />
+      <line x1="18" y1="27" x2="80" y2="27" className="miniPreview__pitchGuideLine" />
+      <line x1="18" y1="36" x2="80" y2="36" className="miniPreview__pitchGuideLine" />
+      <path d="M20 31 L28 29 L36 24 L44 20 L52 23 L60 21 L68 25 L76 23" className="miniPreview__path" />
+      <line x1="20" y1="23" x2="76" y2="23" className="miniPreview__pitchGuideLine" />
+      <circle cx="44" cy="20" r="2.7" className="miniPreview__point" />
     </svg>
   );
 }

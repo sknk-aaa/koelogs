@@ -733,3 +733,94 @@
     width: 100%;
   }
 }
+
+:root[data-theme-mode="dark"] .landingAppco {
+  --bg: #071223;
+  --surface: rgba(13, 27, 48, 0.92);
+  --surface-soft: rgba(255, 255, 255, 0.05);
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --text: rgba(255, 255, 255, 0.95);
+  --body: rgba(255, 255, 255, 0.78);
+  --muted: rgba(255, 255, 255, 0.58);
+  --hero: color-mix(in srgb, var(--surface) 94%, #0a1830 6%);
+  background:
+    radial-gradient(circle at top left, rgba(99, 216, 255, 0.1), transparent 22%),
+    radial-gradient(circle at 88% 14%, rgba(111, 123, 255, 0.12), transparent 18%),
+    var(--bg);
+}
+
+:root[data-theme-mode="dark"] .landingAppco__header {
+  background: rgba(4, 13, 25, 0.88);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .landingAppco__navLink {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme-mode="dark"] .landingAppco__navButton,
+:root[data-theme-mode="dark"] .landingAppco__button {
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .landingAppco__navButton--ghost,
+:root[data-theme-mode="dark"] .landingAppco__button--ghost,
+:root[data-theme-mode="dark"] .landingAppco__button--light {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .landingAppco__heroInner,
+:root[data-theme-mode="dark"] .landingAppco__metricCard,
+:root[data-theme-mode="dark"] .landingAppco__screenCard,
+:root[data-theme-mode="dark"] .landingAppco__problemCard,
+:root[data-theme-mode="dark"] .landingAppco__benefitCard,
+:root[data-theme-mode="dark"] .landingAppco__supportCard,
+:root[data-theme-mode="dark"] .landingAppco__supportPanel,
+:root[data-theme-mode="dark"] .landingAppco__featureStack,
+:root[data-theme-mode="dark"] .landingAppco__featureStack--secondary,
+:root[data-theme-mode="dark"] .landingAppco__floatingBadge,
+:root[data-theme-mode="dark"] .landingAppco__miniCta,
+:root[data-theme-mode="dark"] .landingAppco__ctaInner {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .landingAppco__section--soft {
+  background: transparent;
+}
+
+:root[data-theme-mode="dark"] .landingAppco__heroBlob--one,
+:root[data-theme-mode="dark"] .landingAppco__heroBlob--two,
+:root[data-theme-mode="dark"] .landingAppco__heroBlob--three,
+:root[data-theme-mode="dark"] .landingAppco__visualGlow {
+  opacity: 0.42;
+}
+
+:root[data-theme-mode="dark"] .landingAppco__screenFallback,
+:root[data-theme-mode="dark"] .landingAppco__screenImage {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .landingAppco__metricValue,
+:root[data-theme-mode="dark"] .landingAppco__cardTitle,
+:root[data-theme-mode="dark"] .landingAppco__featureTitle,
+:root[data-theme-mode="dark"] .landingAppco__ctaTitle,
+:root[data-theme-mode="dark"] .landingAppco__sectionTitle,
+:root[data-theme-mode="dark"] .landingAppco__screenFallbackTitle,
+:root[data-theme-mode="dark"] .landingAppco__miniCtaTitle {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme-mode="dark"] .landingAppco__heroText,
+:root[data-theme-mode="dark"] .landingAppco__body,
+:root[data-theme-mode="dark"] .landingAppco__ctaText,
+:root[data-theme-mode="dark"] .landingAppco__metricLabel,
+:root[data-theme-mode="dark"] .landingAppco__screenPill,
+:root[data-theme-mode="dark"] .landingAppco__bulletList,
+:root[data-theme-mode="dark"] .landingAppco__floatingBadge {
+  color: rgba(255, 255, 255, 0.74);
+}

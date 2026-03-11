@@ -99,9 +99,9 @@ export default function PremiumUpsellModal({
   if (!open) return null;
 
   return (
-    <div className="premiumModal__overlay" role="presentation" onClick={onClose}>
+    <div className="premiumModal__overlay uiModalBackdrop" role="presentation" onClick={onClose}>
       <section
-        className={`premiumModal__card ${variant === "lp" ? "is-lp" : ""}${ambientArtSrc ? " premiumModal__card--ambient" : ""}`}
+        className={`premiumModal__card uiModalPanel ${variant === "lp" ? "is-lp" : ""}${ambientArtSrc ? " premiumModal__card--ambient" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-label="プレミアムプランの案内"
@@ -188,10 +188,10 @@ export default function PremiumUpsellModal({
           </div>
         )}
         <div className="premiumModal__actions">
-          <button type="button" className="premiumModal__btn premiumModal__btn--primary" onClick={onCta}>
+          <button type="button" className="premiumModal__btn premiumModal__btn--primary uiButton uiButton--primary" onClick={onCta}>
             {ctaLabel}
           </button>
-          <button type="button" className="premiumModal__btn" onClick={onClose}>
+          <button type="button" className="premiumModal__btn uiButton uiButton--secondary" onClick={onClose}>
             あとで
           </button>
         </div>

@@ -49,6 +49,8 @@ export default function ScalePatternPreview({ pattern, size = "md", active = fal
   const pillH = 8;
   const pillR = 4;
   const guides = [0.12, 0.36, 0.62, 0.88];
+  const notePadX = padX + pillW / 2;
+  const noteInnerW = Math.max(0, innerW - pillW);
 
   return (
     <div className={`scalePattern scalePattern--${size}${active ? " is-active" : ""} ${className}`.trim()} aria-hidden="true">
@@ -65,7 +67,7 @@ export default function ScalePatternPreview({ pattern, size = "md", active = fal
           />
         ))}
         {points.map((p, idx) => {
-          const x = padX + stepX * idx;
+          const x = noteCount > 1 ? notePadX + (noteInnerW * idx) / (noteCount - 1) : w / 2;
           const norm = (p - min) / range;
           const y = padY + innerH - norm * innerH;
           return (

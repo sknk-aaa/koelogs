@@ -41,7 +41,7 @@
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.14em;
-  color: #7b8d99;
+  color: #738795;
   margin: 14px 0 4px;
 }
 
@@ -61,14 +61,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #213a49;
+  color: #314a5a;
   background: #ffffff;
-  border: 1px solid color-mix(in srgb, var(--accent) 12%, #dbe7ee);
-  box-shadow: 0 1px 0 rgba(9, 54, 61, 0.03);
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 12%, #dfe7ec);
+  border: 1px solid #dfe7ec;
+  box-shadow: none;
+  border-bottom: 1px solid #dfe7ec;
   gap: 10px;
   border-radius: 18px;
-  transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
 }
 
 :root:not([data-theme-mode="dark"]) .drawer__item + .drawer__item {
@@ -76,19 +76,17 @@
 }
 
 :root:not([data-theme-mode="dark"]) .drawer__item:hover {
-  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
-  border-color: color-mix(in srgb, var(--accent) 18%, #d4e3eb);
-  box-shadow: 0 4px 14px rgba(20, 198, 216, 0.06);
+  background: #ffffff;
+  border-color: #d7e1e8;
 }
 
 :root:not([data-theme-mode="dark"]) .drawer__item:active {
-  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
+  background: #ffffff;
 }
 
 :root:not([data-theme-mode="dark"]) .drawer__item--active {
-  background: color-mix(in srgb, var(--accent) 9%, #ffffff);
-  border-color: color-mix(in srgb, var(--accent) 26%, #cfe2eb);
-  box-shadow: 0 8px 18px rgba(20, 198, 216, 0.08);
+  background: #ffffff;
+  border-color: #d7e1e8;
 }
 
 :root:not([data-theme-mode="dark"]) .drawer__chevron {

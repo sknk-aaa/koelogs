@@ -297,12 +297,15 @@ function renderSectionIcon(kind: "goal" | "measure" | "practice" | "today_menus"
   if (kind === "today_menus") {
     return (
       <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-        <circle cx="8" cy="16.2" r="2.2" />
-        <circle className="accent" cx="15" cy="13.2" r="2.2" />
-        <path d="M10.2 16.2V7.4" />
-        <path d="M17.2 13.2V5.4" />
-        <path d="M10.2 7.4 17.2 5.4" />
-        <path d="M10.2 10.2 17.2 8.2" />
+        <rect x="4.5" y="5" width="3" height="3" rx="0.8" />
+        <path className="accent" d="m5.2 6.4.9.9 1.6-1.8" />
+        <path d="M10 6.5h9" />
+        <rect x="4.5" y="10.5" width="3" height="3" rx="0.8" />
+        <path className="accent" d="m5.2 11.9.9.9 1.6-1.8" />
+        <path d="M10 12h9" />
+        <rect x="4.5" y="16" width="3" height="3" rx="0.8" />
+        <path className="accent" d="m5.2 17.4.9.9 1.6-1.8" />
+        <path d="M10 17.5h9" />
       </svg>
     );
   }
@@ -1317,14 +1320,7 @@ export default function LogPage() {
     pitchAccuracyResult?.avg_cents_error != null ? Math.abs(pitchAccuracyResult.avg_cents_error) / 100 : null;
   const pitchProgress = clamp01(pitchErrorSemitones ?? 0);
   const displayDuration = effectiveLog?.duration_min ?? null;
-  const practiceLapColors = ["#14c6d8", "#3b82f6", "#8b5cf6"] as const;
-  const practiceRingLayers = practiceLapColors.map((_, index) => {
-    const progress = clamp01(((displayDuration ?? 0) - index * 60) / 60);
-    return {
-      progress,
-      color: practiceLapColors[index],
-    };
-  }).filter((ring, index) => ring.progress > 0 || index === 0);
+  const practiceProgress = clamp01((displayDuration ?? 0) / 180);
   const practiceMetaItems = [
     { key: "streak", label: "連続日数", value: `${currentStreakDays ?? 0}日` },
     { key: "menus", label: "今日のメニュー", value: `${menuItems.length}件` },
@@ -1529,22 +1525,22 @@ export default function LogPage() {
         <div className="logPage__durationModal" role="dialog" aria-modal="true" aria-labelledby="duration-modal-title">
           <button
             type="button"
-            className="logPage__durationModalBackdrop"
+            className="logPage__durationModalBackdrop uiModalBackdrop"
             aria-label="練習時間入力を閉じる"
             onClick={() => {
               setDurationModalOpen(false);
               setDurationError(null);
             }}
           />
-          <div className="logPage__durationModalPanel">
-            <div className="logPage__durationModalHeader">
+          <div className="logPage__durationModalPanel uiModalPanel">
+            <div className="logPage__durationModalHeader uiModalHeader">
               <div>
-                <div className="logPage__durationModalEyebrow">PRACTICE</div>
-                <h2 id="duration-modal-title" className="logPage__durationModalTitle">練習時間を記録</h2>
+                <div className="logPage__durationModalEyebrow uiModalEyebrow">PRACTICE</div>
+                <h2 id="duration-modal-title" className="logPage__durationModalTitle uiModalTitle">練習時間を記録</h2>
               </div>
               <button
                 type="button"
-                className="logPage__durationModalClose"
+                className="logPage__durationModalClose uiButton uiButton--secondary"
                 onClick={() => {
                   setDurationModalOpen(false);
                   setDurationError(null);
@@ -1554,10 +1550,10 @@ export default function LogPage() {
               </button>
             </div>
             <div className="logPage__durationModalBody">
-              <label className="logPage__durationModalInputWrap">
+              <label className="logPage__durationModalInputWrap uiInputShell">
                 <span className="logPage__srOnly">練習時間を分で入力</span>
                 <input
-                  className="logPage__durationModalInput"
+                  className="logPage__durationModalInput uiInput"
                   type="number"
                   min="0"
                   step="1"
@@ -1570,7 +1566,7 @@ export default function LogPage() {
               </label>
               <button
                 type="button"
-                className="logPage__durationModalSave"
+                className="logPage__durationModalSave uiButton uiButton--primary"
                 onClick={() => void onSaveDuration()}
                 disabled={durationSaving}
               >
@@ -1629,7 +1625,7 @@ export default function LogPage() {
                   <button
                     ref={aiThemeToggleBtnRef}
                     type="button"
-                    className={`logPage__btn logPage__aiThemeToggle ${forceGuideAiThemeToggle ? "is-guided" : ""}`.trim()}
+                    className={`logPage__btn logPage__aiThemeToggle uiButton uiButton--secondary ${forceGuideAiThemeToggle ? "is-guided" : ""}`.trim()}
                     onClick={() => setAiThemeOpen((current) => !current)}
                     aria-expanded={aiThemeOpen}
                   >
@@ -1638,7 +1634,7 @@ export default function LogPage() {
                   <button
                     ref={aiGenerateBtnRef}
                     type="button"
-                    className={`logPage__btn logPage__aiWeekActionBtn ${forceGuideAiGenerate ? "is-guided" : ""}`.trim()}
+                    className={`logPage__btn logPage__aiWeekActionBtn uiButton uiButton--primary ${forceGuideAiGenerate ? "is-guided" : ""}`.trim()}
                     onClick={onAskAi}
                     disabled={aiLoading}
                   >
@@ -1880,7 +1876,7 @@ export default function LogPage() {
           >
             <div className="logPage__compareModalHead">
               <div className="logPage__compareModalTitle">先月との比較</div>
-              <button type="button" className="logPage__compareModalClose" onClick={() => setIsComparisonModalOpen(false)}>
+              <button type="button" className="logPage__compareModalClose uiButton uiButton--secondary" onClick={() => setIsComparisonModalOpen(false)}>
                 閉じる
               </button>
             </div>
@@ -1891,7 +1887,7 @@ export default function LogPage() {
             )}
             {!monthComparisonLoading && !monthComparisonError && monthComparisonData && (
               <div className="logPage__compareModalBody">
-                <section className="logPage__comparisonIntensity">
+                <section className="logPage__comparisonIntensity uiPanel">
                   <div className="logPage__comparisonBlockTitle">📈 練習強度（一日あたりの練習時間）</div>
                   <div className="logPage__comparisonIntensityCurrent">今月 {formatMinutesPerDay(monthComparisonData.practice_time.current)}</div>
                   <div className="logPage__comparisonCardMeta">
@@ -1931,7 +1927,7 @@ export default function LogPage() {
                       ).map((bucket) => {
                         const items = comparisonDiagnosis?.buckets[bucket.key] ?? [];
                         return (
-                          <section key={`bucket-${bucket.key}`} className={`logPage__comparisonBucket is-${bucket.key}`}>
+                          <section key={`bucket-${bucket.key}`} className={`logPage__comparisonBucket uiPanel is-${bucket.key}`}>
                             <div className="logPage__comparisonBucketHead static">
                               <span className="logPage__comparisonBucketTitle">{bucket.label}（{items.length}）</span>
                               <div className="logPage__comparisonBucketSummary">
@@ -1985,9 +1981,9 @@ export default function LogPage() {
                   )}
                 </section>
 
-                <section className="logPage__comparisonActionCard">
+                <section className="logPage__comparisonActionCard uiPanel uiPanel--tinted">
                   <div className="logPage__comparisonActionHead">
-                    <span className="logPage__comparisonActionBadge">AI COACH</span>
+                    <span className="logPage__comparisonActionBadge uiCompareChip">AI COACH</span>
                     <div className="logPage__comparisonActionTitleRow">
                       <span className="logPage__comparisonActionTitleIcon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" focusable="false">
@@ -2058,10 +2054,10 @@ export default function LogPage() {
             <div className="logPage__guestHeroTitle">声の状態を記録すると、今日の練習がすぐ決まる</div>
             <div className="logPage__guestHeroText">まずはサンプルで使い方を30秒で確認できます</div>
             <div className="logPage__guestHeroActions">
-              <button className="logPage__btn logPage__btn--subtle" onClick={scrollToGuestPreview}>
+              <button className="logPage__btn logPage__btn--subtle uiButton uiButton--secondary" onClick={scrollToGuestPreview}>
                 サンプルを見る
               </button>
-              <button className="logPage__btn logPage__btn--softAccent" onClick={goLogin}>
+              <button className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary" onClick={goLogin}>
                 ログインして始める
               </button>
             </div>
@@ -2090,7 +2086,7 @@ export default function LogPage() {
             </div>
 
             <div className="logPage__guestReCtaText">ここまでの流れをあなたのデータで始める</div>
-            <button className="logPage__btn logPage__btn--softAccent" onClick={goLogin}>
+            <button className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary" onClick={goLogin}>
               ログインして始める
             </button>
           </section>
@@ -2120,7 +2116,7 @@ export default function LogPage() {
                     </div>
                     <div className="logPage__summaryCardTop">
                       <div className="logPage__summaryCardLabel">今日の練習時間</div>
-                      <button type="button" className="logPage__summaryCardAction" onClick={openDurationModal}>
+                      <button type="button" className="logPage__summaryCardAction uiButton uiButton--secondary uiIconButton" onClick={openDurationModal}>
                         <span className="logPage__actionIconOnly" aria-hidden="true">
                           {renderEditPencilIcon()}
                         </span>
@@ -2129,25 +2125,14 @@ export default function LogPage() {
                     </div>
                     <div className="logPage__summaryCardMainRow">
                       <div className="logPage__summaryCardValueBlock">
-                        <div className="logPage__summaryCardRing" aria-hidden="true">
-                          <svg viewBox="0 0 120 120" focusable="false" aria-hidden="true">
-                            <circle className="logPage__summaryCardRingTrack" cx="60" cy="60" r="44" />
-                            {practiceRingLayers.map((ring, index) => (
-                              <circle
-                                key={`practice-ring-${index}`}
-                                className="logPage__summaryCardRingProgress"
-                                cx="60"
-                                cy="60"
-                                r="44"
-                                pathLength="100"
-                                strokeDasharray={`${ring.progress * 100} 100`}
-                                style={{ stroke: ring.color }}
-                              />
-                            ))}
-                          </svg>
+                        <div
+                          className="logPage__summaryCardRing"
+                          aria-hidden="true"
+                          style={{ ["--ring-progress" as string]: String(practiceProgress) }}
+                        >
                           <div className="logPage__summaryCardRingValue">
                             <span>{displayDuration ?? "--"}</span>
-                            <small>分</small>
+                            <small>min</small>
                           </div>
                         </div>
                       </div>
@@ -2220,7 +2205,10 @@ export default function LogPage() {
                                           className="logPage__miniRing"
                                           style={{ ["--ring-progress" as string]: String(longToneProgress) }}
                                         >
-                                          <span>{longToneResult?.sustain_sec != null ? `${longToneResult.sustain_sec.toFixed(1)}s` : "--"}</span>
+                                          <span className="logPage__miniRingLabel">
+                                            <strong>{longToneResult?.sustain_sec != null ? longToneResult.sustain_sec.toFixed(1) : "--"}</strong>
+                                            <small>sec</small>
+                                          </span>
                                         </div>
                                       </div>
                                     </>
@@ -2232,7 +2220,10 @@ export default function LogPage() {
                                           className="logPage__miniRing logPage__miniRing--volume"
                                           style={{ ["--ring-progress" as string]: String(volumeProgress) }}
                                         >
-                                          <span>{volumeResult?.loudness_range_pct != null ? `${Math.round(volumeResult.loudness_range_pct)}%` : "--"}</span>
+                                          <span className="logPage__miniRingLabel">
+                                            <strong>{volumeResult?.loudness_range_pct != null ? Math.round(volumeResult.loudness_range_pct).toString() : "--"}</strong>
+                                            <small>%</small>
+                                          </span>
                                         </div>
                                       </div>
                                     </>
@@ -2277,7 +2268,7 @@ export default function LogPage() {
                             <div className="logPage__noteSubtext">今日実施したトレーニングメニューを記録します</div>
                             <button
                               type="button"
-                              className="logPage__btn logPage__summaryCardAction logPage__todayMenusEditBtn"
+                              className="logPage__btn logPage__summaryCardAction logPage__todayMenusEditBtn uiButton uiButton--secondary uiIconButton"
                               onClick={openTodayMenuModal}
                             >
                               <span className="logPage__actionIconOnly" aria-hidden="true">
@@ -2320,7 +2311,7 @@ export default function LogPage() {
                             <div className="logPage__noteActions">
                               <button
                                 type="button"
-                                className="logPage__btn"
+                                className="logPage__btn uiButton uiButton--secondary"
                                 onClick={() => {
                                   setDayNotesDraft(effectiveLog?.notes ?? "");
                                   setDayNotesEditing(false);
@@ -2332,7 +2323,7 @@ export default function LogPage() {
                               </button>
                               <button
                                 type="button"
-                                className="logPage__btn logPage__btn--softAccent"
+                                className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary"
                                 onClick={() => void onSaveDayNotes()}
                                 disabled={dayNotesSaving}
                               >
@@ -2342,7 +2333,7 @@ export default function LogPage() {
                           ) : (
                             <button
                               type="button"
-                              className="logPage__btn logPage__summaryCardAction"
+                              className="logPage__btn logPage__summaryCardAction uiButton uiButton--secondary uiIconButton"
                               onClick={() => setDayNotesEditing(true)}
                             >
                               <span className="logPage__actionIconOnly" aria-hidden="true">
@@ -2465,7 +2456,7 @@ export default function LogPage() {
                   <div className="logPage__actions">
                     <button
                       type="button"
-                      className="logPage__btn"
+                      className="logPage__btn uiButton uiButton--primary"
                       onClick={() => void onSaveMonthlyLog({ notes: monthNotesDraft.trim() || null })}
                       disabled={monthSaveLoading}
                     >

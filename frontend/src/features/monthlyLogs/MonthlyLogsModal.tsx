@@ -108,37 +108,37 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
 
   return (
     <div className="mlm__overlay" role="dialog" aria-modal="true" aria-label={title}>
-      <button className="mlm__backdrop" onClick={onClose} aria-label="閉じる" />
-      <div className="mlm__panel">
-        <div className="mlm__header">
+      <button className="mlm__backdrop uiModalBackdrop" onClick={onClose} aria-label="閉じる" />
+      <div className="mlm__panel uiModalPanel">
+        <div className="mlm__header uiModalHeader">
           <div>
-            <div className="mlm__title">{title}</div>
+            <div className="mlm__title uiModalTitle">{title}</div>
             <div className="mlm__subtle">検索できます（メニュー / メモ / 日付）</div>
           </div>
-          <button className="mlm__close" onClick={onClose} aria-label="閉じる">
+          <button className="mlm__close uiButton uiButton--secondary uiIconButton" onClick={onClose} aria-label="閉じる">
             ×
           </button>
         </div>
 
         <div className="mlm__controls">
           <div className="mlm__monthNav">
-            <button type="button" className="mlm__monthNavBtn" onClick={() => setViewMonth((prev) => addMonths(prev, -1))}>
+            <button type="button" className="mlm__monthNavBtn uiButton uiButton--secondary uiIconButton" onClick={() => setViewMonth((prev) => addMonths(prev, -1))}>
               ‹
             </button>
             <input
               type="month"
-              className="mlm__monthInput"
+              className="mlm__monthInput uiInput uiInputShell"
               value={viewMonth}
               onChange={(e) => setViewMonth(e.target.value)}
             />
-            <button type="button" className="mlm__monthNavBtn" onClick={() => setViewMonth((prev) => addMonths(prev, 1))}>
+            <button type="button" className="mlm__monthNavBtn uiButton uiButton--secondary uiIconButton" onClick={() => setViewMonth((prev) => addMonths(prev, 1))}>
               ›
             </button>
           </div>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="mlm__search"
+            className="mlm__search uiInput uiInputShell"
             placeholder="検索（メニュー / メモ / 日付）"
           />
         </div>
@@ -196,8 +196,8 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
           )}
         </div>
 
-        <div className="mlm__footer">
-          <button className="mlm__close" onClick={onClose}>
+        <div className="mlm__footer uiModalFooter">
+          <button className="mlm__close uiButton uiButton--secondary" onClick={onClose}>
             閉じる
           </button>
         </div>

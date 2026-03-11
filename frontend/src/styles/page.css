@@ -106,3 +106,27 @@ button:not(:disabled) {
 button:not(:disabled):active {
   transform: translateY(1px);
 }
+
+:root[data-theme-mode="dark"] .page {
+  color: var(--pageText, rgba(255, 255, 255, 0.92));
+}
+
+:root[data-theme-mode="dark"] .card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--cardText, rgba(255, 255, 255, 0.92));
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .hr {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .k {
+  color: rgba(255, 255, 255, 0.64);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .v {
+  color: rgba(255, 255, 255, 0.9);
+}

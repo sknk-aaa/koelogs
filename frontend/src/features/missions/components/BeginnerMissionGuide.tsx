@@ -62,7 +62,7 @@ export function BeginnerMissionGuideCard({
     <button
       type="button"
       ref={buttonRef}
-      className={`beginnerMissionGuide__card ${className ?? ""}`.trim()}
+      className={`beginnerMissionGuide__card uiPanel ${className ?? ""}`.trim()}
       onClick={onClick}
       aria-haspopup="dialog"
       aria-expanded={expanded}
@@ -126,26 +126,26 @@ export function BeginnerMissionModal({
 
   return (
     <div
-      className={`beginnerMissionModal__overlay ${overlayClassName ?? ""}`.trim()}
+      className={`beginnerMissionModal__overlay uiModalBackdrop ${overlayClassName ?? ""}`.trim()}
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
       onClick={onClose}
     >
       <section
-        className={`beginnerMissionModal__card ${cardClassName ?? ""}`.trim()}
+        className={`beginnerMissionModal__card uiModalPanel ${cardClassName ?? ""}`.trim()}
         onClick={(event) => event.stopPropagation()}
       >
         {cardOverlay}
-        <div className="beginnerMissionModal__head">
+        <div className="beginnerMissionModal__head uiModalHeader">
           <div className="beginnerMissionModal__headMain">
             <span className="beginnerMissionModal__sectionIcon" aria-hidden="true">
               {renderMissionGroupIcon("beginner")}
             </span>
-            <div className="beginnerMissionModal__title">MISSIONS</div>
+            <div className="beginnerMissionModal__title uiModalEyebrow">MISSIONS</div>
           </div>
           {!closeButtonHidden && (
-            <button type="button" className="beginnerMissionModal__close" onClick={onClose}>
+            <button type="button" className="beginnerMissionModal__close uiButton uiButton--secondary" onClick={onClose}>
               {closeLabel}
             </button>
           )}
@@ -160,7 +160,7 @@ export function BeginnerMissionModal({
                 </span>
                 <div className="beginnerMissionModal__groupTitle">BEGINNER</div>
               </div>
-              <span className={`beginnerMissionModal__status ${pendingMissions.length === 0 ? "is-done" : "is-pending"}`}>
+              <span className={`beginnerMissionModal__status uiCompareChip ${pendingMissions.length === 0 ? "is-done" : "is-pending"}`}>
                 {pendingMissions.length === 0 ? "完了" : pendingStatusLabel}
               </span>
             </div>
@@ -184,7 +184,7 @@ export function BeginnerMissionModal({
               <article key={mission.key} className="beginnerMissionModal__item is-done">
                 <div className="beginnerMissionModal__itemTop">
                   <div className="beginnerMissionModal__itemTitle">{mission.title}</div>
-                  <span className="beginnerMissionModal__status is-done">{doneLabel}</span>
+                  <span className="beginnerMissionModal__status uiCompareChip is-done">{doneLabel}</span>
                 </div>
               </article>
             ))}

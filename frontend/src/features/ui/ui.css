@@ -1,16 +1,21 @@
 .pageContainer {
-  min-height: 100vh;
+  min-height: calc(100dvh - 56px);
   background: #ffffff;
-  padding-bottom: calc(64px + env(safe-area-inset-bottom) + 12px);
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
   --ui-section-eyebrow-size: 1.05rem;
   --ui-section-eyebrow-letter-spacing: 0.16em;
   --ui-section-icon-size: 28px;
   --ui-section-icon-stroke-width: 1.9;
   --ui-section-icon-color: color-mix(in srgb, #14c6d8 62%, #70839a);
   --ui-section-icon-accent: color-mix(in srgb, #14c6d8 62%, #70839a);
-  --ui-section-eyebrow-color: color-mix(in srgb, #14c6d8 20%, #5f7480);
+  --ui-section-eyebrow-muted-base: #5f7480;
+  --ui-section-eyebrow-color: color-mix(in srgb, var(--accent) 20%, var(--ui-section-eyebrow-muted-base));
   --ui-accent-strong: color-mix(in srgb, #14c6d8 78%, #09363d);
-  --ui-measure-section-bg: #effbfc;
+  --ui-section-soft-bg: #effbfc;
+  --ui-section-wave-fill: var(--ui-section-soft-bg);
+  --ui-measure-section-bg: var(--ui-section-soft-bg);
   --ui-section-gap: 12px;
   --ui-section-divider: 1px solid color-mix(in srgb, var(--accent) 6%, #edf2f7);
   --ui-hint-size: 11px;
@@ -20,6 +25,24 @@
   --ui-meta-color: #708390;
   --ui-info-surface-radius: 12px;
   --ui-info-surface-bg: #ffffff;
+}
+
+.pageContainer > .page {
+  flex: 1 0 auto;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom) + 12px);
+}
+
+:root[data-theme-mode="dark"] .pageContainer {
+  background: var(--bg);
+  --ui-section-soft-bg: color-mix(in srgb, var(--accent) 8%, var(--surfaceStrong));
+  --ui-section-wave-fill: var(--ui-section-soft-bg);
+  --ui-measure-section-bg: var(--ui-section-soft-bg);
+  --ui-info-surface-bg: var(--card);
+  --ui-section-eyebrow-color: #baeef4;
+  --ui-hint-color: rgba(255, 255, 255, 0.78);
+  --ui-meta-color: rgba(255, 255, 255, 0.8);
 }
 
 :is(
@@ -146,7 +169,7 @@
   color: var(--ui-meta-color);
 }
 
-:is(.myPage__linkBtn, .aiSettingsPage__subtleLink) {
+:is(.myPage__linkBtn) {
   min-height: 0;
   padding: 0;
   border: 0;
@@ -164,17 +187,17 @@
   background: var(--ui-info-surface-bg);
 }
 
-:is(.aiSettingsPage__saveDock, .profilePage__saveDock) {
+:is(.profilePage__saveDock) {
   position: fixed;
   left: 0;
   right: 0;
 }
 
-:is(.aiSettingsPage__saveDockInner, .profilePage__saveDockInner) {
+:is(.profilePage__saveDockInner) {
   margin: 0 auto;
 }
 
-:is(.aiSettingsPage__saveBtn, .profilePage__saveBtn) {
+:is(.profilePage__saveBtn) {
   height: 42px;
   border-radius: 12px;
   font-size: 13px;
@@ -182,7 +205,7 @@
   cursor: pointer;
 }
 
-:is(.aiSettingsPage__saveBtn, .profilePage__saveBtn):disabled {
+:is(.profilePage__saveBtn):disabled {
   opacity: 0.42;
   cursor: not-allowed;
 }
@@ -274,4 +297,485 @@
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
   background: color-mix(in srgb, var(--accent) 12%, #ffffff);
+}
+
+.uiButton {
+  min-width: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--cardText, var(--text));
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: none;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 120ms ease;
+}
+
+.uiButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.uiButton:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+}
+
+.uiButton--primary {
+  background: color-mix(in srgb, var(--accent) 9%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  color: color-mix(in srgb, var(--accent) 82%, #09363d);
+}
+
+.uiButton--secondary {
+  background: var(--card);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  color: var(--cardText, var(--text));
+}
+
+.uiButton--danger {
+  background: color-mix(in srgb, #d85d72 10%, #ffffff);
+  border-color: color-mix(in srgb, #d85d72 34%, var(--border));
+  color: #9b3045;
+}
+
+.uiIconButton {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.uiChoiceButton {
+  min-height: 42px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: var(--card);
+  color: var(--cardText, var(--text));
+  font-weight: 900;
+  cursor: pointer;
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  text-align: left;
+}
+
+.uiChoiceButton--active {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 9%, #ffffff);
+  box-shadow: none;
+}
+
+.uiStatusPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: var(--card);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.uiFileButton {
+  position: relative;
+  overflow: hidden;
+}
+
+.uiFileButton input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.uiPanel {
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  background: var(--card);
+  color: var(--cardText, var(--text));
+}
+
+.uiPanel--tinted {
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 16%, var(--border));
+}
+
+.uiCompareChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: var(--card);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.uiStatRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.uiStatItem {
+  display: grid;
+  gap: 3px;
+}
+
+.uiStatItemLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.uiStatItemValue {
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 900;
+  color: var(--cardText, var(--text));
+}
+
+.uiModalBackdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(15, 23, 42, 0.24);
+}
+
+.uiModalPanel {
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  border-radius: 20px;
+  background: var(--card);
+  color: var(--cardText, var(--text));
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+}
+
+.uiInputShell {
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 84%, #ffffff);
+}
+
+.uiInput {
+  border: 0;
+  background: transparent;
+  color: var(--cardText, var(--text));
+  font: inherit;
+  outline: none;
+}
+
+.uiInput::placeholder {
+  color: color-mix(in srgb, var(--cardText, var(--text)) 38%, transparent);
+}
+
+.uiModalFooter {
+  border-top: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  background: var(--card);
+}
+
+.uiModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.uiModalEyebrow {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--accent) 20%, var(--muted));
+}
+
+.uiModalTitle {
+  margin-top: 4px;
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 800;
+  color: var(--cardText, var(--text));
+}
+
+.uiSwatch {
+  --swatch-color: #dbeafe;
+  --swatch-display-color: var(--swatch-color);
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  background: var(--swatch-color);
+}
+
+.uiSwatch.is-active {
+  outline: 2px solid var(--cardText, var(--text));
+  outline-offset: 2px;
+}
+
+.uiSelectRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--cardText, var(--text));
+}
+
+.uiSelectRow.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--card));
+}
+
+.uiCheckDot {
+  width: 22px;
+  height: 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.uiSegmented {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  padding: 4px;
+}
+
+.uiSegmentedBtn {
+  min-height: 32px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--surface) 92%, var(--card));
+  color: color-mix(in srgb, var(--text) 66%, transparent);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.uiSegmentedBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  background: color-mix(in srgb, var(--accent) 70%, var(--card) 30%);
+  color: #ffffff;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.uiNotice {
+  font-size: 12px;
+  font-weight: 900;
+  border-radius: 10px;
+  padding: 7px 9px;
+}
+
+.uiNotice--warn {
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(253, 230, 138, 0.42);
+}
+
+.uiInsightPanel {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.uiInsightPanel--success {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+.uiInsightPanel--warn {
+  border-color: color-mix(in srgb, #f59e0b 26%, var(--border));
+  background: color-mix(in srgb, #f59e0b 10%, var(--surface));
+}
+
+:root[data-theme-mode="dark"] .uiButton {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme-mode="dark"] .uiButton--primary {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  color: #ffffff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+:root[data-theme-mode="dark"] .uiButton--secondary {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme-mode="dark"] .uiButton--danger {
+  background: color-mix(in srgb, #d85d72 30%, var(--surface));
+  border-color: color-mix(in srgb, #d85d72 62%, var(--border));
+  color: #ffffff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #d85d72 22%, transparent);
+}
+
+:root[data-theme-mode="dark"] .uiChoiceButton {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme-mode="dark"] .uiChoiceButton--active {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+:root[data-theme-mode="dark"] .uiStatusPill {
+  background: color-mix(in srgb, var(--surface) 88%, rgba(255, 255, 255, 0.03));
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme-mode="dark"] .uiPanel {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme-mode="dark"] .uiPanel--tinted {
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+}
+
+:root[data-theme-mode="dark"] .uiCompareChip {
+  background: color-mix(in srgb, var(--surface) 88%, rgba(255, 255, 255, 0.03));
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+:root[data-theme-mode="dark"] .uiModalBackdrop {
+  background: rgba(4, 10, 20, 0.68);
+}
+
+:root[data-theme-mode="dark"] .uiModalPanel {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
+}
+
+:root[data-theme-mode="dark"] .uiInputShell {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--surface) 90%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .uiInput {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .uiInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+:root[data-theme-mode="dark"] .uiModalFooter {
+  border-top-color: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--surface) 90%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .uiModalEyebrow {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme-mode="dark"] .uiModalTitle {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .uiSwatch {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: var(--swatch-display-color);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 4px 10px rgba(0, 0, 0, 0.22),
+    0 0 14px color-mix(in srgb, var(--swatch-display-color) 18%, transparent),
+    inset 0 0 0 1px rgba(4, 10, 20, 0.18);
+}
+
+:root[data-theme-mode="dark"] .uiSwatch.is-active {
+  outline-color: color-mix(in srgb, var(--accent) 72%, #ffffff);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 6px 12px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(4, 10, 20, 0.12);
+}
+
+:root[data-theme-mode="dark"] .uiSelectRow {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: color-mix(in srgb, var(--surface) 90%, rgba(255, 255, 255, 0.04));
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .uiSelectRow.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.03));
+}
+
+:root[data-theme-mode="dark"] .uiCheckDot {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--accent);
+}
+
+:root[data-theme-mode="dark"] .uiSegmented {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 16%, var(--border));
+}
+
+:root[data-theme-mode="dark"] .uiSegmentedBtn {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--surface) 92%, var(--card));
+  color: color-mix(in srgb, var(--text) 70%, transparent);
+}
+
+:root[data-theme-mode="dark"] .uiSegmentedBtn.is-active {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  background: color-mix(in srgb, var(--accent) 24%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+:root[data-theme-mode="dark"] .uiNotice--warn {
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.34);
+  background: rgba(245, 158, 11, 0.14);
+}
+
+:root[data-theme-mode="dark"] .uiInsightPanel {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+:root[data-theme-mode="dark"] .uiInsightPanel--warn {
+  border-color: color-mix(in srgb, #f59e0b 34%, var(--border));
+  background: color-mix(in srgb, #f59e0b 12%, var(--surface));
 }

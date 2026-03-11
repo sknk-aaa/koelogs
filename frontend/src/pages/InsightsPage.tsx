@@ -8,6 +8,7 @@ import {
   type MeasurementRun,
 } from "../api/measurements";
 import MetronomeLoader from "../components/MetronomeLoader";
+import MeasurementTypeIcon from "../components/MeasurementTypeIcon";
 import { useAuth } from "../features/auth/useAuth";
 import ExportCsvDialog, { type CsvExportPeriod, type CsvMetricFilter } from "../features/insights/components/ExportCsvDialog";
 import InsightsCardHeader from "../features/insights/components/InsightsCardHeader";
@@ -462,7 +463,7 @@ export default function InsightsPage() {
           <div className="insightsHighlightsCard__copy">
             <div className="insightsHighlightsCard__eyebrowRow">
               <span className="insightsHighlightsCard__eyebrowIcon" aria-hidden="true">
-                <MeasureSectionIcon />
+                <MeasurementTypeIcon kind="measure" />
               </span>
               <div className="insightsHighlightsCard__eyebrow">MEASURE</div>
             </div>
@@ -470,7 +471,7 @@ export default function InsightsPage() {
           </div>
           <button
             type="button"
-            className="csvButton"
+            className="csvButton uiButton uiButton--secondary"
             onClick={() => {
               if (!isPremium) {
                 setPremiumModalOpen(true);
@@ -496,7 +497,7 @@ export default function InsightsPage() {
       <div className="insightsGrid">
         <ClickableCard
           title="音域"
-          icon={<RangeSectionIcon />}
+          icon={<MeasurementTypeIcon kind="range" />}
           to="/insights/notes?metric=range"
           className="insightsRangeMainCard"
         >
@@ -506,19 +507,19 @@ export default function InsightsPage() {
         <div className="insightsTwinGrid">
           <ClickableCard
             title="音量安定性"
-            icon={<VolumeSectionIcon />}
+            icon={<MeasurementTypeIcon kind="volume_stability" />}
             to="/insights/notes?metric=volume_stability"
             mobileHintText="詳細"
             className="insightsGaugeCard insightsGaugeCard--volume"
           >
-            <div className="insightsGaugePanel">
+            <div className="insightsGaugePanel insightsGaugePanel--topCard">
               <CircleGauge
                 value={volume?.loudness_range_pct ?? null}
                 unit="%"
                 progress={volume?.loudness_range_pct != null ? Math.max(0, Math.min(1, volume.loudness_range_pct / 100)) : 0}
                 tone="volume"
               />
-              <div className="insightsGaugeMeta">
+              <div className="insightsGaugeMeta insightsGaugeMeta--topCard">
                 <span>平均 {formatDb(volume?.avg_loudness_db ?? null)}</span>
                 <span>範囲 {volume?.loudness_range_db != null ? `${volume.loudness_range_db.toFixed(1)} dB` : "-"}</span>
               </div>
@@ -527,19 +528,19 @@ export default function InsightsPage() {
 
           <ClickableCard
             title="ロングトーン"
-            icon={<LongToneSectionIcon />}
+            icon={<MeasurementTypeIcon kind="long_tone" />}
             to="/insights/notes?metric=long_tone"
             mobileHintText="詳細"
             className="insightsGaugeCard insightsGaugeCard--longTone"
           >
-            <div className="insightsGaugePanel">
+            <div className="insightsGaugePanel insightsGaugePanel--topCard">
               <CircleGauge
                 value={longToneSeconds}
                 unit="sec"
                 progress={longToneProgress}
                 tone="longTone"
               />
-              <div className="insightsGaugeMeta">
+              <div className="insightsGaugeMeta insightsGaugeMeta--topCard">
                 <span>ベスト {longToneBest != null ? `${longToneBest.toFixed(1)}s` : "—"}</span>
                 <span>音程 {longTone?.sustain_note ?? "-"}</span>
               </div>
@@ -549,7 +550,7 @@ export default function InsightsPage() {
 
         <ClickableCard
           title="音程精度"
-          icon={<PitchSectionIcon />}
+          icon={<MeasurementTypeIcon kind="pitch_accuracy" />}
           to="/insights/notes?metric=pitch_accuracy"
           className="insightsPitchSemitoneCard"
         >
@@ -621,63 +622,6 @@ export default function InsightsPage() {
   );
 }
 
-function MeasureSectionIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none">
-      <path d="M4 5v14h11" />
-      <path d="m7 14 3-3 2.5 2.5 4-5" />
-      <circle className="accent" cx="18" cy="16" r="3.2" />
-      <path className="accent" d="m20.3 18.3 2 2" />
-    </svg>
-  );
-}
-
-function RangeSectionIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none">
-      <path d="M6 18h12" />
-      <path className="accent" d="M8 15.5V8.5" />
-      <path className="accent" d="M16 15.5V6.5" />
-      <path d="M8 8.5 6.5 10" />
-      <path d="M8 8.5 9.5 10" />
-      <path d="M16 6.5 14.5 8" />
-      <path d="M16 6.5 17.5 8" />
-    </svg>
-  );
-}
-
-function VolumeSectionIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none">
-      <path d="M5.5 14.5h3l4 4v-13l-4 4h-3Z" />
-      <path className="accent" d="M16 10a3 3 0 0 1 0 4" />
-      <path d="M18 8a6 6 0 0 1 0 8" />
-    </svg>
-  );
-}
-
-function LongToneSectionIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none">
-      <path d="M6 18V9.5" />
-      <path className="accent" d="M12 18V6.5" />
-      <path d="M18 18V11.5" />
-      <path d="M4.5 18h15" />
-    </svg>
-  );
-}
-
-function PitchSectionIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none">
-      <path d="M12 4.5v12" />
-      <path className="accent" d="M8 8.5a4 4 0 0 1 8 0" />
-      <path d="M9 17.5h6" />
-      <path d="M10.5 20h3" />
-    </svg>
-  );
-}
-
 function CircleGauge({
   value,
   unit,
@@ -690,6 +634,8 @@ function CircleGauge({
   tone: "longTone" | "volume";
 }) {
   const p = Math.max(0, Math.min(1, progress));
+  const valueLabel =
+    value != null ? (unit === "%" ? Math.round(value).toString() : value.toFixed(1)) : "-";
   return (
     <div className="insightsMiniRingWrap">
       <div
@@ -697,8 +643,9 @@ function CircleGauge({
         style={{ ["--ring-progress" as string]: String(p) }}
         aria-hidden="true"
       >
-        <span>
-          {value != null ? `${unit === "%" ? Math.round(value) : value.toFixed(1)}${unit}` : `-${unit === "%" ? "" : unit}`}
+        <span className="insightsMiniRing__label">
+          <strong>{valueLabel}</strong>
+          <small>{unit}</small>
         </span>
       </div>
     </div>
@@ -763,7 +710,7 @@ function RangeCardSection({
 }) {
   return (
     <div className={`insightsRangeCard__section insightsRangeCard__section--${tone}`}>
-      <div className={`insightsRangeCard__chip insightsRangeCard__chip--${tone}`}>{title}</div>
+      <div className={`insightsRangeCard__chip insightsRangeCard__chip--${tone} uiCompareChip`}>{title}</div>
       <div className="insightsRangeCard__line">
         <span>最高音</span>
         <strong>{high}</strong>

@@ -115,12 +115,6 @@ export default function InsightsTimePage() {
       <section className="insightsTimePage__hero">
         <div className="insightsTimePage__heroHead">
           <div className="insightsTimePage__heroCopy">
-            <div className="insightsTimePage__heroEyebrowRow">
-              <span className="insightsTimePage__heroIcon" aria-hidden="true">
-                <TimeHeroIcon />
-              </span>
-              <div className="insightsTimePage__heroEyebrow">TIME</div>
-            </div>
             <p className="insightsTimePage__sub">期間を切り替えて、練習時間の流れと集計を確認できます。</p>
           </div>
           <Link to={backTo} className="insightsBack">
@@ -242,17 +236,6 @@ function CalendarIcon() {
       <path d="M12 13H14" />
       <path d="M8 16H10" />
       <path d="M12 16H14" />
-    </svg>
-  );
-}
-
-function TimeHeroIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-      <circle cx="11.5" cy="12.2" r="7.2" />
-      <path d="M11.5 8.4v4.2l2.8 1.8" />
-      <path className="accent" d="M18.3 4.8v3.1" />
-      <path className="accent" d="M16.8 6.3h3.1" />
     </svg>
   );
 }

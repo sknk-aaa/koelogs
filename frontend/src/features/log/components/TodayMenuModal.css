@@ -5,10 +5,6 @@
 }
 
 .todayMenuModal__backdrop {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: rgba(15, 23, 42, 0.24);
 }
 
 .todayMenuModal__panel {
@@ -17,10 +13,6 @@
   max-height: min(78dvh, 760px);
   overflow: auto;
   padding: 16px;
-  border: 1px solid #e8ecf3;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
   display: grid;
   gap: 16px;
 }
@@ -33,33 +25,19 @@
 }
 
 .todayMenuModal__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
 }
 
 .todayMenuModal__eyebrow {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  color: #5f7480;
+  color: var(--ui-section-eyebrow-color);
 }
 
 .todayMenuModal__title {
-  margin-top: 4px;
-  font-size: 1rem;
-  font-weight: 700;
   color: #09363d;
 }
 
 .todayMenuModal__close {
   width: 32px;
   height: 32px;
-  border: 1px solid #e8ecf3;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #5f7480;
   font-size: 1.1rem;
 }
 
@@ -70,12 +48,9 @@
 
 .todayMenuModal__input {
   height: 44px;
-  border: 1px solid #e8ecf3;
+  width: 100%;
   border-radius: 12px;
-  background: #ffffff;
   padding: 0 12px;
-  font: inherit;
-  color: #09363d;
 }
 
 .todayMenuModal__palette {
@@ -85,38 +60,25 @@
 }
 
 .todayMenuModal__swatch {
-  width: 28px;
-  height: 28px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 999px;
 }
 
 .todayMenuModal__swatch.is-active {
-  outline: 2px solid #09363d;
-  outline-offset: 2px;
 }
 
 .todayMenuModal__addBtn,
 .todayMenuModal__ghost,
 .todayMenuModal__save {
   height: 40px;
-  border-radius: 999px;
   padding: 0 14px;
-  font: inherit;
-  font-weight: 700;
 }
 
-.todayMenuModal__addBtn,
-.todayMenuModal__ghost {
-  border: 1px solid #e8ecf3;
-  background: #ffffff;
-  color: #09363d;
+.todayMenuModal__addBtn.is-ready {
+  border-color: color-mix(in srgb, #14c6d8 42%, #cfe6ea);
+  background: color-mix(in srgb, #14c6d8 12%, #ffffff);
+  color: color-mix(in srgb, #14c6d8 72%, #09363d);
 }
 
 .todayMenuModal__save {
-  border: 0;
-  background: #14c6d8;
-  color: #ffffff;
 }
 
 .todayMenuModal__list {
@@ -125,13 +87,6 @@
 }
 
 .todayMenuModal__item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid #e8ecf3;
-  border-radius: 14px;
-  background: #ffffff;
 }
 
 .todayMenuModal__item.is-selected {
@@ -140,16 +95,6 @@
 }
 
 .todayMenuModal__check {
-  width: 22px;
-  height: 22px;
-  border: 1px solid #e8ecf3;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  color: #14c6d8;
-  font-size: 0.8rem;
-  font-weight: 800;
 }
 
 .todayMenuModal__tag {
@@ -193,8 +138,6 @@
   gap: 8px;
   margin: 0 -16px -16px;
   padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
-  background: #ffffff;
-  border-top: 1px solid #e8ecf3;
 }
 
 .todayMenuModal__muted {
@@ -209,4 +152,51 @@
   background: rgba(176, 0, 32, 0.06);
   color: #b00020;
   font-size: 0.82rem;
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__muted {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__tag,
+:root[data-theme-mode="dark"] .todayMenuModal__remove {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__addBtn.is-ready {
+  border-color: color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.03));
+  color: color-mix(in srgb, var(--accent) 46%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__swatch {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: var(--swatch-display-color);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 4px 10px rgba(0, 0, 0, 0.22),
+    0 0 14px color-mix(in srgb, var(--swatch-display-color) 18%, transparent),
+    inset 0 0 0 1px rgba(4, 10, 20, 0.18);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__swatch.is-active {
+  outline-color: color-mix(in srgb, var(--accent) 72%, #ffffff);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 6px 12px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(4, 10, 20, 0.12);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__item.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.03));
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__tag {
+  border-color: color-mix(in srgb, var(--menu-color) 24%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--menu-color) 12%, rgba(255, 255, 255, 0.03));
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__save {
+  color: #ffffff;
 }

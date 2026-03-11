@@ -42,6 +42,7 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   opacity: 0.62;
+  color: var(--ui-section-eyebrow-color);
 }
 
 .authPage__title {

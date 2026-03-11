@@ -23,7 +23,6 @@ function headerTitleForPath(pathname: string): string {
   if (pathname.startsWith("/log/new")) return "NEW LOG";
   if (pathname.startsWith("/training")) return "TRAINING";
   if (pathname.startsWith("/insights/time")) return "PRACTICE TIME";
-  if (pathname.startsWith("/insights/menus")) return "MENU INSIGHTS";
   if (pathname.startsWith("/insights/notes")) return "MEASURE DETAILS";
   if (pathname.startsWith("/insights")) return "INSIGHTS";
   if (pathname.startsWith("/community/rankings")) return "RANKINGS";
@@ -286,7 +285,8 @@ const styles: Record<string, React.CSSProperties> = {
     position: "sticky",
     top: 0,
     zIndex: 80,
-    background: "#ffffff",
+    background: "var(--headerBg, #ffffff)",
+    borderBottom: "1px solid var(--headerBorder, transparent)",
     color: "var(--pageText, var(--text))",
   },
 
@@ -409,7 +409,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 20,
     height: 1.5,
     borderRadius: 999,
-    background: "var(--menuLine)",
+    background: "var(--menuLine, rgba(0, 0, 0, 0.78))",
     margin: 0,
   },
 };

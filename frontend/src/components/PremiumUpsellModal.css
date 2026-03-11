@@ -25,6 +25,10 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
   gap: 10px;
 }
 
+.premiumModal__card.uiModalPanel {
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.46);
+}
+
 .premiumModal__card--ambient {
   position: relative;
   overflow: hidden;
@@ -608,6 +612,10 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
   transition: transform 140ms ease, box-shadow 160ms ease, border-color 160ms ease, filter 140ms ease, background-color 160ms ease;
 }
 
+.premiumModal__btn.uiButton {
+  min-height: 34px;
+}
+
 .premiumModal__btn--primary {
   border-color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.38));
   background:
@@ -676,6 +684,31 @@ body.premiumModal--open nav[aria-label="mode tabs"] {
 
 .premiumModal__card.is-lp .premiumModal__footerNote {
   justify-self: center;
+}
+
+:root[data-theme-mode="dark"] .premiumModal__title,
+:root[data-theme-mode="dark"] .premiumModal__lpFlowTitle,
+:root[data-theme-mode="dark"] .premiumModal__lpGrowthAfter {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme-mode="dark"] .premiumModal__desc,
+:root[data-theme-mode="dark"] .premiumModal__note,
+:root[data-theme-mode="dark"] .premiumModal__footerNote,
+:root[data-theme-mode="dark"] .premiumModal__lpFlowSub,
+:root[data-theme-mode="dark"] .premiumModal__lpGrowthBefore,
+:root[data-theme-mode="dark"] .premiumModal__lpGrowthArrow {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme-mode="dark"] .premiumModal__btn:not(.premiumModal__btn--primary) {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+:root[data-theme-mode="dark"] .premiumModal__btn--primary {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.42);
 }
 
 :root:not([data-theme-mode="dark"]) .premiumModal__overlay {

@@ -776,16 +776,16 @@ export default function MyPage() {
 
       {selectedBadge && (
         <div
-          className="myPage__modalOverlay"
+          className="myPage__modalOverlay uiModalBackdrop"
           role="dialog"
           aria-modal="true"
           aria-label="バッジ詳細"
           onClick={() => setSelectedBadge(null)}
         >
-          <section className="myPage__modalCard myPage__badgeModalCard" onClick={(e) => e.stopPropagation()}>
-            <div className="myPage__modalHead">
-              <div className="myPage__modalTitle">バッジ詳細</div>
-              <button type="button" className="myPage__modalClose" onClick={() => setSelectedBadge(null)}>
+          <section className="myPage__modalCard myPage__badgeModalCard uiModalPanel" onClick={(e) => e.stopPropagation()}>
+            <div className="myPage__modalHead uiModalHeader">
+              <div className="myPage__modalTitle uiModalTitle">バッジ詳細</div>
+              <button type="button" className="myPage__modalClose uiButton uiButton--secondary" onClick={() => setSelectedBadge(null)}>
                 閉じる
               </button>
             </div>

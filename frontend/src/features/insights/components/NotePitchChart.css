@@ -86,3 +86,32 @@
   white-space: nowrap;
   text-align: center;
 }
+
+:root[data-theme-mode="dark"] .notePitchChart {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .notePitchChart__chip {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .notePitchChart__chip--fal {
+  background: color-mix(in srgb, #63d8ff 20%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .notePitchChart__chip--chest {
+  background: color-mix(in srgb, #5d8cff 22%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .notePitchChart__yTick,
+:root[data-theme-mode="dark"] .notePitchChart__labels {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme-mode="dark"] .notePitchChart__scroll {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}

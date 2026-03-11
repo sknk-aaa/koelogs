@@ -28,6 +28,12 @@
   text-align: center;
 }
 
+.badgeUnlockPopup__card.uiModalPanel {
+  box-shadow:
+    0 22px 48px rgba(22, 28, 45, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
 .badgeUnlockPopup__aurora {
   position: absolute;
   inset: -30% -20% auto -20%;
@@ -113,6 +119,12 @@
   cursor: pointer;
 }
 
+.badgeUnlockPopup__close.uiButton {
+  min-height: 40px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 @keyframes badgePulse {
   from { transform: scale(0.98); opacity: 0.75; }
   to { transform: scale(1.04); opacity: 0.2; }
@@ -139,12 +151,21 @@
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
 }
 
+:root[data-theme-mode="dark"] .badgeUnlockPopup__card.uiModalPanel {
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+}
+
 :root[data-theme-mode="dark"] .badgeUnlockPopup__title {
   color: #bfdbfe;
 }
 
 :root[data-theme-mode="dark"] .badgeUnlockPopup__name {
   color: #e5ecff;
+}
+
+:root[data-theme-mode="dark"] .badgeUnlockPopup__spark {
+  background: #ffe8a8;
+  box-shadow: 0 0 18px rgba(255, 221, 128, 0.72);
 }
 
 :root[data-theme-mode="dark"] .badgeUnlockPopup__iconFrame {
@@ -159,6 +180,12 @@
 }
 
 :root[data-theme-mode="dark"] .badgeUnlockPopup__close {
+  border-color: #4b5f8b;
+  background: #1e2c4e;
+  color: #d6e4ff;
+}
+
+:root[data-theme-mode="dark"] .badgeUnlockPopup__close.uiButton {
   border-color: #4b5f8b;
   background: #1e2c4e;
   color: #d6e4ff;

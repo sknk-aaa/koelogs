@@ -45,18 +45,18 @@ export default function InfoModal({
     open && typeof document !== "undefined"
       ? createPortal(
         <div
-          className="infoModal__overlay"
+          className="infoModal__overlay uiModalBackdrop"
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
           onClick={() => setOpen(false)}
         >
-          <section className="card infoModal__card" onClick={(event) => event.stopPropagation()}>
-            <div className="infoModal__head">
-              <h2 id={titleId} className="infoModal__title">
+          <section className="card infoModal__card uiModalPanel" onClick={(event) => event.stopPropagation()}>
+            <div className="infoModal__head uiModalHeader">
+              <h2 id={titleId} className="infoModal__title uiModalTitle">
                 {title}
               </h2>
-              <button type="button" className="infoModal__close" onClick={() => setOpen(false)}>
+              <button type="button" className="infoModal__close uiButton uiButton--secondary" onClick={() => setOpen(false)}>
                 {closeLabel}
               </button>
             </div>

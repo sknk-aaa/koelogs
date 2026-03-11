@@ -5,10 +5,21 @@
   scroll-behavior: smooth;
 }
 
+.helpPage:has(.helpPage__contactSection) {
+  display: grid;
+  gap: 16px;
+}
+
 .helpPage__hero {
   display: grid;
-  gap: 8px;
-  margin-bottom: 18px;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.helpPage:has(.helpPage__contactSection) .helpPage__hero,
+.helpPage:has(.helpPage__contactSection) .helpPage__contactSection {
+  width: min(100%, 560px);
+  margin-inline: auto;
 }
 
 .helpPage__kicker {
@@ -16,6 +27,7 @@
   font-weight: 800;
   letter-spacing: var(--ui-section-eyebrow-letter-spacing);
   text-transform: uppercase;
+  color: var(--ui-section-eyebrow-color);
 }
 
 .helpPage__sectionHead {
@@ -48,18 +60,19 @@
 
 .helpPage__sub {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #6f8594;
+  font-size: 18px;
+  line-height: 1.7;
+  font-weight: 700;
+  color: #4f6674;
 }
 
 .helpPage__contactSection {
   display: grid;
-  gap: 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 10%, #dbe4ea);
-  border-radius: 18px;
-  background: #ffffff;
-  padding: 18px 16px;
+  gap: 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, #d5e3ea);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--accent) 2%, #ffffff);
+  padding: 28px 28px 30px;
 }
 
 .helpPage__list,
@@ -77,9 +90,9 @@
 
 .helpPage__note {
   margin: 0;
-  font-size: 12px;
-  opacity: 0.72;
-  line-height: 1.6;
+  font-size: 14px;
+  color: #667b89;
+  line-height: 1.8;
 }
 
 .helpPage__chipRow {
@@ -309,82 +322,124 @@
 
 .contactForm {
   display: grid;
-  gap: 18px;
+  gap: 22px;
 }
 
 .contactForm__field {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .contactForm__label {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
   color: #244050;
 }
 
 .contactForm__control {
   width: 100%;
-  min-height: 46px;
-  border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 10%, #dbe4ea);
-  background: #ffffff;
+  min-height: 56px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, #d3e1e8);
+  background: #fcfeff;
   color: #244050;
-  padding: 12px 14px;
-  font-size: 14px;
+  padding: 15px 18px;
+  font-size: 15px;
   line-height: 1.5;
   font-family: inherit;
   transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
 }
 
 .contactForm__control:focus {
-  outline: 2px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 22%, transparent);
   outline-offset: 1px;
-  border-color: color-mix(in srgb, var(--accent) 34%, #cbd8e1);
+  border-color: color-mix(in srgb, var(--accent) 44%, #cbd8e1);
+  background: #ffffff;
 }
 
 .contactForm__textarea {
-  min-height: 168px;
+  min-height: 240px;
   resize: vertical;
 }
 
 .contactForm__meta {
-  font-size: 11px;
-  color: #97a6b1;
+  font-size: 12px;
+  color: #8b9ca8;
   text-align: right;
 }
 
 .contactForm__submitRow {
   display: flex;
   justify-content: flex-start;
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 .contactForm__submit {
-  min-width: 148px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, #d5e1e8);
+  min-width: 164px;
+  border: 1px solid color-mix(in srgb, var(--accent) 46%, #b9d8e3);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  background: color-mix(in srgb, var(--accent) 12%, #f7fdff);
   color: #16384a;
-  min-height: 42px;
-  font-size: 14px;
-  font-weight: 800;
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: 900;
   cursor: pointer;
-  padding: 0 18px;
+  padding: 0 22px;
   transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
 }
 
 .contactForm__submit:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--accent) 32%, #cad8e0);
-  background: color-mix(in srgb, var(--accent) 11%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 58%, #bfd6df);
+  background: color-mix(in srgb, var(--accent) 18%, #f7fdff);
 }
 
 .contactForm__submit:disabled {
   cursor: default;
   color: #9caab4;
   border-color: #dbe4ea;
-  background: #f8fbfd;
+  background: #f7fafc;
+}
+
+.contactForm__select.appSelect__button {
+  min-height: 56px;
+  border-radius: 20px;
+  border-color: color-mix(in srgb, var(--accent) 18%, #d3e1e8);
+  background: #fcfeff;
+  padding: 15px 18px;
+  font-size: 15px;
+}
+
+.contactForm__select.appSelect__button .appSelect__value {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.contactForm__select.appSelect__button .appSelect__chevron {
+  color: #8398a6;
+}
+
+@media (max-width: 640px) {
+  .helpPage:has(.helpPage__contactSection) {
+    gap: 12px;
+  }
+
+  .helpPage__sub {
+    font-size: 16px;
+  }
+
+  .helpPage__contactSection {
+    border-radius: 22px;
+    padding: 22px 16px 24px;
+  }
+
+  .contactForm__textarea {
+    min-height: 196px;
+  }
+
+  .contactForm__submit {
+    width: 100%;
+  }
 }
 
 .contactForm__status {
@@ -415,4 +470,77 @@
 
 :root[data-theme-mode="dark"] .contactForm__control::placeholder {
   color: rgba(255, 255, 255, 0.6);
+}
+
+:root[data-theme-mode="dark"] .helpPage {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .helpPage__title,
+:root[data-theme-mode="dark"] .helpGuide__sectionTitle,
+:root[data-theme-mode="dark"] .helpAbout__sectionTitle,
+:root[data-theme-mode="dark"] .helpAbout__subTitle,
+:root[data-theme-mode="dark"] .helpAbout__miniTitle,
+:root[data-theme-mode="dark"] .helpGuide__featureTitle,
+:root[data-theme-mode="dark"] .helpGuide__planTitle,
+:root[data-theme-mode="dark"] .helpGuide__flowTitle {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .helpPage__sub,
+:root[data-theme-mode="dark"] .helpPage__note,
+:root[data-theme-mode="dark"] .helpGuide__lead,
+:root[data-theme-mode="dark"] .helpGuide__featureDescription,
+:root[data-theme-mode="dark"] .helpGuide__flowBody,
+:root[data-theme-mode="dark"] .helpAbout__lead,
+:root[data-theme-mode="dark"] .helpPage__list,
+:root[data-theme-mode="dark"] .helpPage__ordered,
+:root[data-theme-mode="dark"] .contactForm__meta {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme-mode="dark"] .helpPage__contactSection,
+:root[data-theme-mode="dark"] .helpGuide__featureCard,
+:root[data-theme-mode="dark"] .helpGuide__planCard,
+:root[data-theme-mode="dark"] .helpGuide__flowStep,
+:root[data-theme-mode="dark"] .helpAbout__details {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme-mode="dark"] .helpPage__kicker,
+:root[data-theme-mode="dark"] .helpPage__sectionIcon,
+:root[data-theme-mode="dark"] .helpPage__sectionHead,
+:root[data-theme-mode="dark"] .helpAbout__tocLink,
+:root[data-theme-mode="dark"] .helpGuide__featureLink {
+  color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.86));
+}
+
+:root[data-theme-mode="dark"] .helpAbout__evidenceExample {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .helpAbout__detailsSummary {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .helpAbout__paragraph,
+:root[data-theme-mode="dark"] .helpAbout__exampleLine {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme-mode="dark"] .helpPage__chip,
+:root[data-theme-mode="dark"] .helpGuide__featureLink,
+:root[data-theme-mode="dark"] .helpAbout__tocLink,
+:root[data-theme-mode="dark"] .contactForm__submit {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+:root[data-theme-mode="dark"] .contactForm__submit:disabled {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.42);
 }

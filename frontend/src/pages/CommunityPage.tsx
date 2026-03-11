@@ -626,7 +626,9 @@ export default function CommunityPage() {
                           setActionMenuPostId((prev) => (prev === post.id ? null : post.id));
                         }}
                       >
-                        ⋯
+                        <span className="communityPage__postActionTriggerIcon" aria-hidden="true">
+                          <EditPencilIcon />
+                        </span>
                       </button>
                       {actionMenuPostId === post.id && (
                         <div className="communityPage__postActionMenu" onClick={(e) => e.stopPropagation()}>
@@ -731,11 +733,11 @@ export default function CommunityPage() {
       </button>
 
       {postModalOpen && (
-        <div className="communityPage__modalOverlay" role="dialog" aria-modal="true" aria-label="投稿する">
-          <section className="communityPage__modal">
-            <div className="communityPage__modalHead">
-              <div className="communityPage__cardTitle">{editingPost ? "投稿を編集" : "投稿する"}</div>
-              <button type="button" className="communityPage__modalClose" onClick={closePostModal}>
+        <div className="communityPage__modalOverlay uiModalBackdrop" role="dialog" aria-modal="true" aria-label="投稿する">
+          <section className="communityPage__modal uiModalPanel">
+            <div className="communityPage__modalHead uiModalHeader">
+              <div className="communityPage__cardTitle uiModalTitle">{editingPost ? "投稿を編集" : "投稿する"}</div>
+              <button type="button" className="communityPage__modalClose uiButton uiButton--secondary" onClick={closePostModal}>
                 閉じる
               </button>
             </div>
@@ -756,7 +758,7 @@ export default function CommunityPage() {
                 <div className="communityPage__editorHelper">例: 裏声リップロール</div>
                 <AppSelect
                   value={typeof menuId === "number" ? String(menuId) : ""}
-                  className="communityPage__input"
+                  className="communityPage__input uiInputShell"
                   onChange={(next) => setMenuId(Number.parseInt(next, 10) || "")}
                   options={
                     menus.length === 0
@@ -775,7 +777,7 @@ export default function CommunityPage() {
                 <div className="communityPage__editorTitle">使用したスケール</div>
                 <AppSelect
                   value={usedScaleType}
-                  className="communityPage__input"
+                  className="communityPage__input uiInputShell"
                   onChange={(next) => setUsedScaleType(next as CommunityUsedScaleType | "")}
                   options={[
                     { value: "", label: "選択してください" },
@@ -786,7 +788,7 @@ export default function CommunityPage() {
                 {usedScaleType === "other" && (
                   <input
                     type="text"
-                    className="communityPage__input"
+                    className="communityPage__input uiInput uiInputShell"
                     value={usedScaleOtherText}
                     onChange={(e) => setUsedScaleOtherText(e.target.value)}
                     maxLength={40}
@@ -832,13 +834,13 @@ export default function CommunityPage() {
               <section className="communityPage__editorCard">
                 <div className="communityPage__editorTitleRow">
                   <div className="communityPage__editorTitle">自由記述</div>
-                  <button type="button" className="communityPage__templateBtn" onClick={onInsertCommentTemplate}>
+                  <button type="button" className="communityPage__templateBtn uiButton uiButton--secondary" onClick={onInsertCommentTemplate}>
                     テンプレ挿入
                   </button>
                 </div>
                 <div className="communityPage__editorHelper">よかったら、メニューのやり方や効果を教えてね。</div>
                 <textarea
-                  className="communityPage__textarea"
+                  className="communityPage__textarea uiInput uiInputShell"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   maxLength={240}
@@ -847,8 +849,8 @@ export default function CommunityPage() {
               </section>
             </div>
 
-            <div className="communityPage__modalFooter">
-              <button type="button" className="communityPage__submit" disabled={!canSubmit || isSubmitting} onClick={onSubmit}>
+            <div className="communityPage__modalFooter uiModalFooter">
+              <button type="button" className="communityPage__submit uiButton uiButton--primary" disabled={!canSubmit || isSubmitting} onClick={onSubmit}>
                 {isSubmitting ? (editingPost ? "更新中…" : "投稿中…") : (editingPost ? "更新する" : "投稿する")}
               </button>
             </div>
@@ -856,6 +858,16 @@ export default function CommunityPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function EditPencilIcon() {
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M4 20h4.2l9.9-9.9-4.2-4.2L4 15.8Z" />
+      <path d="m12.8 6.1 4.2 4.2" />
+      <path d="M4 20h16" />
+    </svg>
   );
 }
 

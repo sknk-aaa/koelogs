@@ -47,13 +47,13 @@ export default function TutorialModal({
     <div className="tutorialModal__overlay" role="dialog" aria-modal="true" aria-label="チュートリアル">
       <button
         type="button"
-        className="tutorialModal__backdrop"
+        className="tutorialModal__backdrop uiModalBackdrop"
         onClick={() => onClose?.()}
         aria-label="モーダルを閉じる"
       />
-      <section className="tutorialModal__card">
+      <section className="tutorialModal__card uiModalPanel">
         <div className="tutorialModal__badge">{badge}</div>
-        <h2 className="tutorialModal__title">{title}</h2>
+        <h2 className="tutorialModal__title uiModalTitle">{title}</h2>
         <div className="tutorialModal__body">
           {paragraphs.map((line, idx) => (
             <p key={`${line}-${idx}`} className="tutorialModal__paragraph">
@@ -62,11 +62,11 @@ export default function TutorialModal({
           ))}
         </div>
         <div className="tutorialModal__actions">
-          <button type="button" className="tutorialModal__btn tutorialModal__btn--primary" onClick={onPrimary}>
+          <button type="button" className="tutorialModal__btn tutorialModal__btn--primary uiButton uiButton--primary" onClick={onPrimary}>
             {primaryLabel}
           </button>
           {secondaryLabel && (
-            <button type="button" className="tutorialModal__btn tutorialModal__btn--sub" onClick={onSecondary}>
+            <button type="button" className="tutorialModal__btn tutorialModal__btn--sub uiButton uiButton--secondary" onClick={onSecondary}>
               {secondaryLabel}
             </button>
           )}

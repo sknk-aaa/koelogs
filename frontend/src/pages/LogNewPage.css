@@ -205,37 +205,43 @@
   --lognew-border-dark: color-mix(in srgb, var(--muted) 70%, #0b1220);
 }
 
+:root[data-theme-mode="dark"] .logNew::before {
+  background:
+    radial-gradient(540px 180px at 10% 0%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 65%),
+    radial-gradient(460px 160px at 90% 0%, rgba(255, 255, 255, 0.12), transparent 70%);
+}
+
 :root[data-theme-mode="dark"] .logNew__section {
   background:
-    linear-gradient(#ffffff, #ffffff) padding-box,
-    linear-gradient(130deg, rgba(255, 255, 255, 0.95), rgba(0, 0, 0, 0.08)) border-box;
-  color: var(--on-light-2);
+    linear-gradient(rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.06)) padding-box,
+    linear-gradient(130deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.04)) border-box;
+  color: rgba(255, 255, 255, 0.9);
   border-color: var(--lognew-border-dark);
 }
 
 :root[data-theme-mode="dark"] .logNew__sectionTitle {
-  color: #000000;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 :root[data-theme-mode="dark"] .logNew__label {
-  color: var(--on-light-2);
+  color: rgba(255, 255, 255, 0.9);
   opacity: 1;
 }
 
 :root[data-theme-mode="dark"] .logNew__subLabel {
-  color: var(--on-light-3);
+  color: rgba(255, 255, 255, 0.74);
   opacity: 1;
 }
 
 :root[data-theme-mode="dark"] .logNew__muted {
-  color: var(--on-light-3);
+  color: rgba(255, 255, 255, 0.68);
   opacity: 1;
 }
 
 :root[data-theme-mode="dark"] .logNew__input,
 :root[data-theme-mode="dark"] .logNew__textarea {
-  background: #ffffff;
-  color: var(--on-light-2);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
   border-color: var(--lognew-border-dark);
 }
 
@@ -248,7 +254,7 @@
 
 :root[data-theme-mode="dark"] .logNew__input::placeholder,
 :root[data-theme-mode="dark"] .logNew__textarea::placeholder {
-  color: color-mix(in srgb, #0b1220 48%, #ffffff 52%);
+  color: rgba(255, 255, 255, 0.48);
 }
 
 :root[data-theme-mode="dark"] .logNew__panel,
@@ -256,8 +262,57 @@
 :root[data-theme-mode="dark"] .logNew__chip,
 :root[data-theme-mode="dark"] .logNew__effectBox {
   background: transparent;
-  color: var(--on-light-2);
+  color: rgba(255, 255, 255, 0.9);
   border-color: var(--lognew-border-dark);
+}
+
+:root[data-theme-mode="dark"] .logNew__chip {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .logNew__chip.is-selected {
+  background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.05));
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .logNew__swatch {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logNew__swatch.is-active {
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .logNew .logNew__btn--ghost {
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme-mode="dark"] .logNew .logNew__btn--disabledState {
+  color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .logNew .logNew__btn--addReady,
+:root[data-theme-mode="dark"] .logNew .logNew__btn--savePrimary {
+  color: rgba(255, 255, 255, 0.92);
+  background: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.06));
+  border-color: color-mix(in srgb, var(--accent) 46%, rgba(255, 255, 255, 0.16));
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .logNew .logNew__btn--addReady:hover,
+:root[data-theme-mode="dark"] .logNew .logNew__btn--savePrimary:hover {
+  background: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.07));
+  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.16));
+}
+
+:root[data-theme-mode="dark"] .logNew__stickyBar {
+  background: rgba(10, 18, 32, 0.88);
+  border-top-color: rgba(255, 255, 255, 0.1);
 }
 
 :root[data-theme-mode="dark"] .logNew__aiQualityTitle {

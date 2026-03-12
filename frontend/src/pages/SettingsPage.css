@@ -1,78 +1,79 @@
 .settingsPage {
   position: relative;
-  isolation: isolate;
+  display: grid;
+  gap: 26px;
   overflow-x: hidden;
-}
-
-.settingsPage__bg {
-  position: absolute;
-  top: -120px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100vw;
-  height: 320px;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 64%),
-    radial-gradient(420px 160px at 92% 0%, rgba(255, 255, 255, 0.58), transparent 68%);
-  filter: blur(8px);
+  background: #ffffff;
+  color: #09363d;
 }
 
 .settingsPage__hero {
-  border-radius: 18px;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(130deg, color-mix(in srgb, var(--accent) 40%, transparent), rgba(0, 0, 0, 0.08)) border-box;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
   display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.settingsPage__kicker {
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  opacity: 0.62;
+  gap: 6px;
+  padding: 4px 0 2px;
 }
 
 .settingsPage__title {
-  margin: 2px 0 0;
-  font-size: 22px;
+  margin: 0;
+  font-size: 1.2rem;
   font-weight: 950;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--accent) 12%, #09363d);
 }
 
 .settingsPage__sub {
   margin: 0;
-  font-size: 14px;
+  max-width: 42rem;
+  font-size: 13px;
   line-height: 1.6;
-  opacity: 0.75;
+  color: #5f7480;
 }
 
-.settingsPage__card {
-  border-radius: 16px;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0.09)) border-box;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
-  margin-bottom: 16px;
+.settingsPage__section {
+  padding-top: 0;
+  padding-bottom: 18px;
+  display: grid;
+  gap: 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 6%, #edf2f7);
 }
 
-.settingsPage__cardTitle {
-  font-size: 15px;
-  font-weight: 900;
-  margin-bottom: 12px;
+.settingsPage__sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settingsPage__sectionIcon {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.settingsPage__sectionIcon svg {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  stroke: currentColor;
+  stroke-width: var(--ui-section-icon-stroke-width);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.settingsPage__sectionEyebrow {
+  font-size: var(--ui-section-eyebrow-size);
+  font-weight: 800;
+  letter-spacing: var(--ui-section-eyebrow-letter-spacing);
+  text-transform: uppercase;
+  color: var(--ui-section-eyebrow-color);
 }
 
 .settingsPage__hr {
-  height: 1px;
-  background: rgba(0, 0, 0, 0.06);
-  margin: 14px 0;
+  height: 0;
+  background: transparent;
+  margin: 0;
 }
 
 .settingsPage__block {
@@ -80,16 +81,24 @@
   gap: 10px;
 }
 
+.settingsPage__section .settingsPage__block:last-child {
+  margin-bottom: 12px;
+}
+
 .settingsPage__label {
   font-size: 13px;
   font-weight: 900;
-  opacity: 0.86;
+  color: #09363d;
 }
 
 .settingsPage__hint {
   font-size: 12px;
-  opacity: 0.72;
+  color: #5f7480;
   line-height: 1.6;
+}
+
+.settingsPage__hint--sectionLead {
+  margin-bottom: 2px;
 }
 
 .settingsPage__row {
@@ -102,12 +111,15 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.8);
+  min-height: 38px;
+  border: 1px solid #d8e1ea;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #ffffff;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
+  color: #09363d;
+  transition: border-color 140ms ease, background-color 140ms ease, transform 120ms ease;
 }
 
 .settingsPage__pillRadio input {
@@ -115,76 +127,12 @@
 }
 
 .settingsPage__pillRadio.isSelected {
-  border-color: color-mix(in srgb, var(--accent) 48%, #999);
-  background: color-mix(in srgb, var(--accent) 10%, #fff);
+  border-color: color-mix(in srgb, var(--accent) 34%, #d8e1ea);
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
 }
 
-.settingsPage__themeGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.settingsPage__themeBtn {
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.82);
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.settingsPage__themeBtn:disabled {
-  cursor: default;
-}
-
-.settingsPage__themeBtn.isSelected {
-  border-color: color-mix(in srgb, var(--accent) 44%, #aaa);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-.settingsPage__themeBtn.isLocked {
-  opacity: 0.65;
-}
-
-.settingsPage__themeBtn.isModeLocked {
-  opacity: 0.55;
-}
-
-.settingsPage__swatchWrap {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.settingsPage__swatch {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.settingsPage__themeName {
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.settingsPage__themeMeta {
-  display: grid;
-  gap: 2px;
-  text-align: left;
-}
-
-.settingsPage__themeLock {
-  font-size: 11px;
-  font-weight: 800;
-  opacity: 0.78;
-}
-
-.settingsPage__hint--themeLevel {
-  margin-bottom: 8px;
+.settingsPage__pillRadio:hover {
+  transform: translateY(-1px);
 }
 
 .settingsPage__volumeRow {
@@ -192,16 +140,16 @@
   grid-template-columns: 34px 1fr 52px;
   gap: 10px;
   align-items: center;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, #d8e1ea);
+  border-radius: 16px;
   padding: 10px 12px;
 }
 
 .settingsPage__volumeIcon {
   font-size: 12px;
-  font-weight: 900;
-  opacity: 0.72;
+  font-weight: 800;
+  color: #5f7480;
 }
 
 .settingsPage__range {
@@ -211,8 +159,9 @@
 
 .settingsPage__volumeValue {
   text-align: right;
+  font-size: 13px;
   font-weight: 900;
-  opacity: 0.8;
+  color: #09363d;
 }
 
 .settingsPage__toggle {
@@ -234,12 +183,12 @@
   width: 46px;
   height: 28px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid #d8e1ea;
+  background: #f5f8fb;
   padding: 2px;
   display: flex;
   align-items: center;
-  transition: background 160ms ease;
+  transition: background-color 160ms ease, border-color 160ms ease;
 }
 
 .settingsPage__toggleThumb {
@@ -247,123 +196,88 @@
   height: 22px;
   border-radius: 50%;
   background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(9, 54, 61, 0.12);
   transition: transform 160ms ease;
 }
 
 .settingsPage__toggle input:checked + .settingsPage__toggleTrack {
-  background: color-mix(in srgb, var(--accent) 28%, #fff);
+  background: color-mix(in srgb, var(--accent) 22%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 28%, #d8e1ea);
 }
 
 .settingsPage__toggle input:checked + .settingsPage__toggleTrack .settingsPage__toggleThumb {
   transform: translateX(18px);
-  border-color: color-mix(in srgb, var(--accent) 44%, #999);
+  border-color: color-mix(in srgb, var(--accent) 32%, #d8e1ea);
 }
 
 .settingsPage__toggleText {
   font-size: 13px;
   font-weight: 900;
+  color: #09363d;
 }
 
-@media (min-width: 760px) {
-  .settingsPage__themeGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-/* ===============================
-   SettingsPage: Dark mode overrides
-================================= */
 :root[data-theme-mode="dark"] .settingsPage {
-  --settings-panel-bg: rgba(255, 255, 255, 0.07);
-  --settings-panel-border: rgba(255, 255, 255, 0.12);
-  --settings-text-1: #ffffff;
-  --settings-text-2: rgba(255, 255, 255, 0.88);
-  --settings-text-3: rgba(255, 255, 255, 0.72);
+  background: var(--bg);
+  color: rgba(255, 255, 255, 0.92);
 }
 
-/* 背景の白い光を弱める（残しても自然な程度に） */
-:root[data-theme-mode="dark"] .settingsPage__bg {
-  background:
-    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 64%),
-    radial-gradient(420px 160px at 92% 0%, rgba(255, 255, 255, 0.18), transparent 68%);
+:root[data-theme-mode="dark"] .settingsPage__section {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
-/* 区切り線 */
-:root[data-theme-mode="dark"] .settingsPage__hr {
-  background: rgba(255, 255, 255, 0.10);
+:root[data-theme-mode="dark"] .settingsPage__title,
+:root[data-theme-mode="dark"] .settingsPage__label,
+:root[data-theme-mode="dark"] .settingsPage__volumeValue,
+:root[data-theme-mode="dark"] .settingsPage__toggleText {
+  color: rgba(255, 255, 255, 0.94);
 }
 
-/* pill radio（白背景をやめる） */
+:root[data-theme-mode="dark"] .settingsPage__sectionEyebrow,
+:root[data-theme-mode="dark"] .settingsPage__sectionIcon {
+  color: var(--ui-section-eyebrow-color);
+}
+
+:root[data-theme-mode="dark"] .settingsPage__sub,
+:root[data-theme-mode="dark"] .settingsPage__hint,
+:root[data-theme-mode="dark"] .settingsPage__volumeIcon {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 :root[data-theme-mode="dark"] .settingsPage__pillRadio {
+  border-color: rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.06);
-  border-color: var(--settings-panel-border);
-  color: var(--settings-text-2);
-  backdrop-filter: blur(6px);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 :root[data-theme-mode="dark"] .settingsPage__pillRadio.isSelected {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.20);
-  color: #ffffff;
+  border-color: color-mix(in srgb, var(--accent) 38%, rgba(255, 255, 255, 0.22));
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.07));
 }
 
-/* テーマ選択ボタン（白タイルをやめる） */
-:root[data-theme-mode="dark"] .settingsPage__themeBtn {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--settings-panel-border);
-  color: #ffffff;
-  backdrop-filter: blur(6px);
-}
-
-:root[data-theme-mode="dark"] .settingsPage__themeBtn.isSelected {
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10);
-}
-
-/* 音量Row（白箱をやめる） */
 :root[data-theme-mode="dark"] .settingsPage__volumeRow {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--settings-panel-border);
-  color: #ffffff;
-  backdrop-filter: blur(6px);
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-:root[data-theme-mode="dark"] .settingsPage__volumeIcon,
-:root[data-theme-mode="dark"] .settingsPage__volumeValue {
-  opacity: 1;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-/* トグル（白トラック/白つまみをやめる） */
 :root[data-theme-mode="dark"] .settingsPage__toggleTrack {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--settings-panel-border);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 :root[data-theme-mode="dark"] .settingsPage__toggleThumb {
-  background: rgba(255, 255, 255, 0.92); /* “つまみ”は白寄りでOK。真っ白固定より柔らかい */
-  border-color: rgba(0, 0, 0, 0.20);    /* 明るいつまみなので境界は少し濃く */
+  background: rgba(255, 255, 255, 0.86);
+  border-color: rgba(0, 0, 0, 0.18);
 }
 
-/* checked時：白mixをやめて、アクセント寄りの暗背景に */
 :root[data-theme-mode="dark"] .settingsPage__toggle input:checked + .settingsPage__toggleTrack {
-  background: color-mix(in srgb, var(--accent) 35%, rgba(255, 255, 255, 0.10));
-  border-color: rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--accent) 30%, rgba(255, 255, 255, 0.1));
+  border-color: color-mix(in srgb, var(--accent) 42%, rgba(255, 255, 255, 0.2));
 }
 
 :root[data-theme-mode="dark"] .settingsPage__toggle input:checked + .settingsPage__toggleTrack .settingsPage__toggleThumb {
-  border-color: rgba(0, 0, 0, 0.22);
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.18));
 }
 
-/* テキストの可読性 */
-:root[data-theme-mode="dark"] .settingsPage__label {
-  opacity: 1;
-  color: rgba(255, 255, 255, 0.86);
-}
-
-:root[data-theme-mode="dark"] .settingsPage__hint,
-:root[data-theme-mode="dark"] .settingsPage__kicker,
-:root[data-theme-mode="dark"] .settingsPage__sub {
-  opacity: 1;
-  color: rgba(255, 255, 255, 0.72);
+:root[data-theme-mode="dark"] .settingsPage__range {
+  filter: brightness(0.92) saturate(1.08);
 }

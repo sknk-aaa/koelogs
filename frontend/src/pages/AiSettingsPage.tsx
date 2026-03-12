@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import {
   fetchMe,
-  recalculateAiLongTermProfile,
   updateMe,
   type AiLongTermProfile,
   type AiLongTermProfileCustomItem,
@@ -17,10 +16,16 @@ import {
   normalizeImprovementTags,
 } from "../features/improvementTags/improvementTags";
 import { IMPROVEMENT_TAG_OPTIONS } from "../types/community";
+import InfoModal from "../components/InfoModal";
+import { InfoModalItem, InfoModalItems, InfoModalLead, InfoModalSection } from "../components/InfoModalSections";
+import memoryOrganizeIcon from "../assets/ai_settings/memory-organize.svg";
+import memoryPriorityIcon from "../assets/ai_settings/memory-priority.svg";
+import memoryEditIcon from "../assets/ai_settings/memory-edit.svg";
 
 import "./AiSettingsPage.css";
 
 const CUSTOM_MAX = 600;
+const GOAL_MAX = 50;
 const LONG_PROFILE_ITEM_MAX = 6;
 const LONG_PROFILE_LINE_MAX = 6;
 const LONG_PROFILE_TEXT_MAX = 220;
@@ -49,14 +54,12 @@ const STYLE_TONE_OPTIONS: Array<{
   { value: "cynical", label: "シニカル", description: "批評寄りで辛口" },
 ];
 
-const STYLE_LEVEL_OPTIONS: Array<{
-  value: AiResponseStyleLevel;
+type StyleDropdownKey = "style_tone" | "warmth" | "energy" | "emoji";
+type StyleDropdownOption<T extends string> = {
+  value: T;
   label: string;
-}> = [
-  { value: "high", label: "多め" },
-  { value: "default", label: "デフォルト" },
-  { value: "low", label: "少なめ" },
-];
+  description?: string;
+};
 
 function normalizeInstructions(value: string): string {
   return value.trim();
@@ -157,6 +160,62 @@ function formatComputedAt(value: string | null): string {
   return value.slice(0, 16).replace("T", " ");
 }
 
+function renderAiSettingsSectionIcon(kind: "goal" | "memory" | "style" | "focus" | "range") {
+  if (kind === "goal") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="12" cy="12" r="7.5" />
+        <circle cx="12" cy="12" r="4.5" />
+        <circle className="accent-fill" cx="12" cy="12" r="1.7" />
+        <path className="accent" d="m14.7 9.3 4-4" />
+      </svg>
+    );
+  }
+  if (kind === "memory") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M8 5.5h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z" />
+        <path d="M9.5 9h5" />
+        <path d="M9.5 12h5" />
+        <path d="M9.5 15h3.4" />
+      </svg>
+    );
+  }
+  if (kind === "style") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M7 6.2h10" />
+        <path d="M9.2 12h5.6" />
+        <path d="M10.8 17.8h2.4" />
+        <path className="accent" d="M5.5 6.2h.01" />
+        <path className="accent" d="M7.1 12h.01" />
+        <path className="accent" d="M8.7 17.8h.01" />
+      </svg>
+    );
+  }
+  if (kind === "focus") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M4.8 8.2V5.8h2.4" />
+        <path d="M19.2 8.2V5.8h-2.4" />
+        <path d="M4.8 15.8v2.4h2.4" />
+        <path d="M19.2 15.8v2.4h-2.4" />
+        <circle className="accent-fill" cx="12" cy="12" r="2.1" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M12 4v16" />
+      <path d="M6.2 8h2.3" />
+      <path d="M6.2 16h2.3" />
+      <path d="M15.5 8h2.3" />
+      <path d="M15.5 16h2.3" />
+      <circle className="accent-fill" cx="12" cy="12" r="1.9" />
+    </svg>
+  );
+}
+
 export default function AiSettingsPage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
@@ -168,14 +227,14 @@ export default function AiSettingsPage() {
   const [status, setStatus] = useState<string | null>(null);
 
   const [customInstructions, setCustomInstructions] = useState("");
+  const [goalText, setGoalText] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [responseStylePrefs, setResponseStylePrefs] = useState<AiResponseStylePrefs>(DEFAULT_STYLE_PREFS);
 
   const [initialCustomInstructions, setInitialCustomInstructions] = useState("");
+  const [initialGoalText, setInitialGoalText] = useState("");
   const [initialSelectedTags, setInitialSelectedTags] = useState<string[]>([]);
   const [initialResponseStylePrefs, setInitialResponseStylePrefs] = useState<AiResponseStylePrefs>(DEFAULT_STYLE_PREFS);
-
-  const [recalcLoading, setRecalcLoading] = useState(false);
 
   const [strengthsText, setStrengthsText] = useState("");
   const [challengesText, setChallengesText] = useState("");
@@ -183,7 +242,8 @@ export default function AiSettingsPage() {
   const [avoidPracticeText, setAvoidPracticeText] = useState("");
   const [customItems, setCustomItems] = useState<AiLongTermProfileCustomItem[]>([]);
   const [computedAt, setComputedAt] = useState<string | null>(null);
-  const [windowDays, setWindowDays] = useState<number>(90);
+  const [openStyleMenu, setOpenStyleMenu] = useState<StyleDropdownKey | null>(null);
+  const styleMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [initialStrengthsText, setInitialStrengthsText] = useState("");
   const [initialChallengesText, setInitialChallengesText] = useState("");
@@ -215,7 +275,6 @@ export default function AiSettingsPage() {
     setInitialCustomItems(split.extras);
 
     setComputedAt(profile?.meta?.computed_at ?? null);
-    setWindowDays(profile?.meta?.source_window_days ?? 90);
   };
 
   useEffect(() => {
@@ -232,12 +291,15 @@ export default function AiSettingsPage() {
         }
 
         const custom = me.ai_custom_instructions ?? "";
+        const goal = me.goal_text ?? "";
         const tags = normalizeImprovementTags(me.ai_improvement_tags ?? []);
         const stylePrefs = normalizeResponseStylePrefs(me.ai_response_style_prefs);
         setCustomInstructions(custom);
+        setGoalText(goal);
         setSelectedTags(tags);
         setResponseStylePrefs(stylePrefs);
         setInitialCustomInstructions(custom);
+        setInitialGoalText(goal);
         setInitialSelectedTags(tags);
         setInitialResponseStylePrefs(stylePrefs);
 
@@ -264,6 +326,18 @@ export default function AiSettingsPage() {
     return () => window.clearTimeout(timer);
   }, [status]);
 
+  useEffect(() => {
+    if (!openStyleMenu) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (styleMenuRef.current?.contains(target)) return;
+      setOpenStyleMenu(null);
+    };
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => window.removeEventListener("pointerdown", onPointerDown);
+  }, [openStyleMenu]);
+
   const normalizedDraftInstructions = useMemo(
     () => normalizeInstructions(customInstructions),
     [customInstructions]
@@ -276,6 +350,7 @@ export default function AiSettingsPage() {
   const isOverLimit = normalizedDraftInstructions.length > CUSTOM_MAX;
   const isDirty =
     normalizedDraftInstructions !== normalizeInstructions(initialCustomInstructions) ||
+    goalText.trim() !== initialGoalText.trim() ||
     !sameStringArray(normalizedDraftTags, initialSelectedTags) ||
     !sameResponseStylePrefs(responseStylePrefs, initialResponseStylePrefs) ||
     strengthsText.trim() !== initialStrengthsText.trim() ||
@@ -283,7 +358,7 @@ export default function AiSettingsPage() {
     growthJourneyText.trim() !== initialGrowthJourneyText.trim() ||
     avoidPracticeText.trim() !== initialAvoidPracticeText.trim() ||
     !sameCustomItems(normalizeCustomItems(customItems), initialCustomItems);
-  const canSave = !loading && !saving && !isOverLimit;
+  const canSave = !loading && !saving && !isOverLimit && isDirty;
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) => {
@@ -296,24 +371,63 @@ export default function AiSettingsPage() {
     setSelectedTags([]);
   };
 
-  const onRecalculateProfile = async () => {
-    if (recalcLoading) return;
-    setRecalcLoading(true);
-    setError(null);
-    try {
-      await recalculateAiLongTermProfile();
-      setStatus("長期プロフィールの再計算を開始しました");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "再計算の開始に失敗しました");
-    } finally {
-      setRecalcLoading(false);
-    }
+  const renderStyleDropdown = <T extends string>(
+    key: StyleDropdownKey,
+    value: T,
+    options: Array<StyleDropdownOption<T>>,
+    onSelect: (next: T) => void
+  ) => {
+    const selected = options.find((opt) => opt.value === value) ?? options[0];
+    const isOpen = openStyleMenu === key;
+
+    return (
+      <div className={`aiSettingsPage__styleSelectWrap ${isOpen ? "is-open" : ""}`} ref={isOpen ? styleMenuRef : undefined}>
+        <button
+          type="button"
+          className="aiSettingsPage__styleSelectBtn"
+          onClick={() => setOpenStyleMenu((prev) => (prev === key ? null : key))}
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
+        >
+          <span className="aiSettingsPage__styleSelectValue">{selected.label}</span>
+          <span className="aiSettingsPage__styleSelectChevron" aria-hidden="true" />
+        </button>
+        {isOpen ? (
+          <div className="aiSettingsPage__styleMenu" role="menu">
+            {options.map((opt) => {
+              const active = opt.value === value;
+              return (
+                <button
+                  key={`${key}-${opt.value}`}
+                  type="button"
+                  className={`aiSettingsPage__styleMenuItem ${active ? "is-active" : ""}`}
+                  role="menuitemradio"
+                  aria-checked={active}
+                  onClick={() => {
+                    onSelect(opt.value);
+                    setOpenStyleMenu(null);
+                  }}
+                >
+                  <span className="aiSettingsPage__styleMenuText">
+                    <span className="aiSettingsPage__styleMenuLabel">{opt.label}</span>
+                    {opt.description ? <span className="aiSettingsPage__styleMenuDesc">{opt.description}</span> : null}
+                  </span>
+                  {active ? <span className="aiSettingsPage__styleMenuCheck">✓</span> : null}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+    );
   };
 
   const onSave = async () => {
-    if (!canSave) return;
     if (!isDirty) {
-      setStatus("変更はありません");
+      setStatus("更新された内容がありません");
+      return;
+    }
+    if (!canSave) {
       return;
     }
 
@@ -327,6 +441,7 @@ export default function AiSettingsPage() {
       });
 
       const updated = await updateMe({
+        goal_text: goalText.trim() || undefined,
         ai_custom_instructions: normalizedDraftInstructions,
         ai_improvement_tags: normalizedDraftTags,
         ai_response_style_prefs: responseStylePrefs,
@@ -339,6 +454,7 @@ export default function AiSettingsPage() {
       });
 
       const nextCustom = updated.ai_custom_instructions ?? "";
+      const nextGoal = updated.goal_text ?? "";
       const nextTags = normalizeImprovementTags(updated.ai_improvement_tags ?? []);
       const nextStylePrefs = normalizeResponseStylePrefs(updated.ai_response_style_prefs);
       const profile = updated.ai_long_term_profile;
@@ -347,9 +463,11 @@ export default function AiSettingsPage() {
       );
 
       setCustomInstructions(nextCustom);
+      setGoalText(nextGoal);
       setSelectedTags(nextTags);
       setResponseStylePrefs(nextStylePrefs);
       setInitialCustomInstructions(nextCustom);
+      setInitialGoalText(nextGoal);
       setInitialSelectedTags(nextTags);
       setInitialResponseStylePrefs(nextStylePrefs);
       applyLongTermProfileState(profile, nextItems);
@@ -369,14 +487,6 @@ export default function AiSettingsPage() {
 
   return (
     <div className="page aiSettingsPage">
-      <div className="aiSettingsPage__bg" aria-hidden="true" />
-
-      <section className="card aiSettingsPage__hero">
-        <div className="aiSettingsPage__kicker">AI Custom</div>
-        <h1 className="aiSettingsPage__title">AIカスタム指示</h1>
-        <p className="aiSettingsPage__sub">回答スタイル・長期プロフィール・改善項目・参照期間を設定できます。</p>
-      </section>
-
       {status && (
         <div className="aiSettingsPage__toast" role="status" aria-live="polite">
           {status}
@@ -385,20 +495,75 @@ export default function AiSettingsPage() {
 
       {error && <div className="aiSettingsPage__error">{error}</div>}
 
-      <section className="card aiSettingsPage__card">
+      <section className="aiSettingsPage__section">
         <div className="aiSettingsPage__sectionHead">
-          <h2 className="aiSettingsPage__sectionTitle aiSettingsPage__sectionTitle--profile">AIが参照する長期プロフィール</h2>
-          <button type="button" className="aiSettingsPage__ghostBtn" onClick={onRecalculateProfile} disabled={recalcLoading}>
-            {recalcLoading ? "再計算中…" : "再計算"}
-          </button>
+          <div className="aiSettingsPage__sectionHeadMain">
+            <span className="aiSettingsPage__sectionIcon" aria-hidden="true">
+              {renderAiSettingsSectionIcon("goal")}
+            </span>
+            <div className="aiSettingsPage__sectionEyebrow">GOAL</div>
+          </div>
+        </div>
+        <p className="aiSettingsPage__hint">
+          AIおすすめの根拠として使う、今の目標を設定します。
+        </p>
+        <div className="aiSettingsPage__textareaWrap">
+          <label className="aiSettingsPage__fieldLabel" htmlFor="ai-settings-goal-text">
+            今月の目標
+          </label>
+          <input
+            id="ai-settings-goal-text"
+            className="aiSettingsPage__textInput"
+            type="text"
+            value={goalText}
+            onChange={(e) => setGoalText(e.target.value.slice(0, GOAL_MAX))}
+            placeholder="例：喉を閉めずにミドルを出す"
+            maxLength={GOAL_MAX}
+          />
+          <div className="aiSettingsPage__countText">{goalText.trim().length}/{GOAL_MAX}</div>
+        </div>
+      </section>
+
+      <section className="aiSettingsPage__section">
+        <div className="aiSettingsPage__sectionHead">
+          <div className="aiSettingsPage__sectionHeadMain">
+            <span className="aiSettingsPage__sectionIcon" aria-hidden="true">
+              {renderAiSettingsSectionIcon("memory")}
+            </span>
+            <div className="aiSettingsPage__sectionEyebrow">MEMORY</div>
+          </div>
+          <InfoModal title="ボイトレメモリとは？" triggerClassName="aiSettingsPage__memoryInfoBtn" bodyClassName="aiSettingsPage__memoryInfoBody">
+            <InfoModalLead>
+              あなたの練習メモをAIが整理し、「今の状態（強み・課題・成長）」をまとめます。
+            </InfoModalLead>
+            <InfoModalSection icon={renderAiSettingsSectionIcon("memory")} title="MEMORY">
+              <InfoModalItems>
+                <InfoModalItem
+                  icon={<img src={memoryOrganizeIcon} alt="" aria-hidden="true" />}
+                  title="悩みを整理"
+                  description="同じ意味の悩み（喉が締まる / 詰まる）を、1つの課題にまとめます。"
+                />
+                <InfoModalItem
+                  icon={<img src={memoryPriorityIcon} alt="" aria-hidden="true" />}
+                  title="よく出る課題を表示"
+                  description="一時的な不調より、継続している課題が上に表示されます。"
+                />
+                <InfoModalItem
+                  icon={<img src={memoryEditIcon} alt="" aria-hidden="true" />}
+                  title="内容は編集できます"
+                  description="AI整理後も、内容はいつでも自由に修正できます。"
+                  noDivider
+                />
+              </InfoModalItems>
+            </InfoModalSection>
+          </InfoModal>
         </div>
         <p className="aiSettingsPage__hint aiSettingsPage__hint--profile">
-          直近{windowDays}日の要約をもとに、ここで上書きできます（修正内容が優先されます）。
-          {computedAt ? ` 最終更新: ${formatComputedAt(computedAt)}` : ""}
+          今の声の状態について、自分で内容を書けます。AIとの会話やログの記録をもとに自動で追記されることもあります。
         </p>
+        {computedAt ? <div className="aiSettingsPage__metaNote">最終更新: {formatComputedAt(computedAt)}</div> : null}
 
         <div className="aiSettingsPage__subsection">
-          <h3 className="aiSettingsPage__subTitle">声に関して</h3>
           <div className="aiSettingsPage__voiceEditor" role="group" aria-label="声に関して入力">
             <div className="aiSettingsPage__voiceField">
               <div className="aiSettingsPage__voiceFieldHead">
@@ -453,108 +618,85 @@ export default function AiSettingsPage() {
 
       </section>
 
-      <section className="card aiSettingsPage__card">
+      <section className="aiSettingsPage__section">
         <div className="aiSettingsPage__sectionHead">
-          <h2 className="aiSettingsPage__sectionTitle aiSettingsPage__sectionTitle--style">回答スタイル</h2>
+          <div className="aiSettingsPage__sectionHeadMain">
+            <span className="aiSettingsPage__sectionIcon" aria-hidden="true">
+              {renderAiSettingsSectionIcon("style")}
+            </span>
+            <div className="aiSettingsPage__sectionEyebrow">STYLE</div>
+          </div>
         </div>
         <p className="aiSettingsPage__hint aiSettingsPage__hint--style">
-          回答スタイル指示が最優先で使われます。未指定部分を選択式で補完します。
+          AIの回答スタイルをカスタマイズできます。
         </p>
 
         <div className="aiSettingsPage__styleRows">
-          <div className="aiSettingsPage__styleRow">
-            <div>
-              <div className="aiSettingsPage__previewLabel">基本のスタイルとトーン</div>
+          <div className="aiSettingsPage__styleRow aiSettingsPage__styleRow--lead">
+            <div className="aiSettingsPage__styleCopy">
+              <div className="aiSettingsPage__styleLabel">基本のスタイルとトーン</div>
+              <p className="aiSettingsPage__styleDesc">AIの回答全体の雰囲気を設定できます。</p>
             </div>
-            <select
-              className="aiSettingsPage__styleSelect"
-              value={responseStylePrefs.style_tone}
-              onChange={(e) =>
-                setResponseStylePrefs((prev) => ({
-                  ...prev,
-                  style_tone: normalizeStyleTone(e.target.value),
-                }))
-              }
-            >
-              {STYLE_TONE_OPTIONS.map((opt) => (
-                <option key={`style-tone-${opt.value}`} value={opt.value}>
-                  {opt.label} - {opt.description}
-                </option>
-              ))}
-            </select>
+            {renderStyleDropdown("style_tone", responseStylePrefs.style_tone, STYLE_TONE_OPTIONS, (next) =>
+              setResponseStylePrefs((prev) => ({ ...prev, style_tone: next }))
+            )}
+          </div>
+
+          <div className="aiSettingsPage__styleGroup">
+            <div className="aiSettingsPage__styleGroupTitle">特性</div>
+            <p className="aiSettingsPage__styleGroupDesc">基本のスタイルに加えて、追加のカスタマイズを選べます。</p>
           </div>
 
           <div className="aiSettingsPage__styleRow">
-            <div>
-              <div className="aiSettingsPage__previewLabel">温かみ</div>
-              <p className="aiSettingsPage__hint">共感や寄り添いの強さ</p>
+            <div className="aiSettingsPage__styleCopy">
+              <div className="aiSettingsPage__styleLabel">温かみ</div>
             </div>
-            <select
-              className="aiSettingsPage__styleSelect"
-              value={responseStylePrefs.warmth}
-              onChange={(e) =>
-                setResponseStylePrefs((prev) => ({
-                  ...prev,
-                  warmth: normalizeStyleLevel(e.target.value),
-                }))
-              }
-            >
-              {STYLE_LEVEL_OPTIONS.map((opt) => (
-                <option key={`style-warmth-${opt.value}`} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            {renderStyleDropdown(
+              "warmth",
+              responseStylePrefs.warmth,
+              [
+                { value: "high", label: "多め", description: "親しみやすく、より人間味のある表現" },
+                { value: "default", label: "デフォルト" },
+                { value: "low", label: "少なめ", description: "やや落ち着いた温度感で伝える" },
+              ],
+              (next) => setResponseStylePrefs((prev) => ({ ...prev, warmth: next }))
+            )}
           </div>
 
           <div className="aiSettingsPage__styleRow">
-            <div>
-              <div className="aiSettingsPage__previewLabel">熱量</div>
-              <p className="aiSettingsPage__hint">励ましや勢いの強さ</p>
+            <div className="aiSettingsPage__styleCopy">
+              <div className="aiSettingsPage__styleLabel">熱量</div>
             </div>
-            <select
-              className="aiSettingsPage__styleSelect"
-              value={responseStylePrefs.energy}
-              onChange={(e) =>
-                setResponseStylePrefs((prev) => ({
-                  ...prev,
-                  energy: normalizeStyleLevel(e.target.value),
-                }))
-              }
-            >
-              {STYLE_LEVEL_OPTIONS.map((opt) => (
-                <option key={`style-energy-${opt.value}`} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            {renderStyleDropdown(
+              "energy",
+              responseStylePrefs.energy,
+              [
+                { value: "high", label: "多め", description: "励ましや勢いをやや強める" },
+                { value: "default", label: "デフォルト" },
+                { value: "low", label: "少なめ", description: "落ち着いて簡潔に伝える" },
+              ],
+              (next) => setResponseStylePrefs((prev) => ({ ...prev, energy: next }))
+            )}
           </div>
 
           <div className="aiSettingsPage__styleRow">
-            <div>
-              <div className="aiSettingsPage__previewLabel">絵文字</div>
-              <p className="aiSettingsPage__hint">文中の絵文字量</p>
+            <div className="aiSettingsPage__styleCopy">
+              <div className="aiSettingsPage__styleLabel">絵文字</div>
             </div>
-            <select
-              className="aiSettingsPage__styleSelect"
-              value={responseStylePrefs.emoji}
-              onChange={(e) =>
-                setResponseStylePrefs((prev) => ({
-                  ...prev,
-                  emoji: normalizeStyleLevel(e.target.value),
-                }))
-              }
-            >
-              {STYLE_LEVEL_OPTIONS.map((opt) => (
-                <option key={`style-emoji-${opt.value}`} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            {renderStyleDropdown(
+              "emoji",
+              responseStylePrefs.emoji,
+              [
+                { value: "high", label: "多め", description: "表情を少し豊かにする" },
+                { value: "default", label: "デフォルト" },
+                { value: "low", label: "少なめ", description: "絵文字を控えて簡潔にする" },
+              ],
+              (next) => setResponseStylePrefs((prev) => ({ ...prev, emoji: next }))
+            )}
           </div>
         </div>
 
-        <div className="aiSettingsPage__previewLabel">カスタム指示</div>
+        <div className="aiSettingsPage__styleLabel aiSettingsPage__styleLabel--custom">カスタム指示</div>
         <div className="aiSettingsPage__textareaWrap">
           <textarea
             value={customInstructions}
@@ -570,16 +712,21 @@ export default function AiSettingsPage() {
         </div>
       </section>
 
-      <section className="card aiSettingsPage__card">
+      <section className="aiSettingsPage__section">
         <div className="aiSettingsPage__sectionHead">
-          <h2 className="aiSettingsPage__sectionTitle">改善したい項目</h2>
+          <div className="aiSettingsPage__sectionHeadMain">
+            <span className="aiSettingsPage__sectionIcon" aria-hidden="true">
+              {renderAiSettingsSectionIcon("focus")}
+            </span>
+            <div className="aiSettingsPage__sectionEyebrow">FOCUS</div>
+          </div>
           {selectedTags.length > 0 && (
             <button type="button" className="aiSettingsPage__ghostBtn" onClick={clearTags}>
               全解除
             </button>
           )}
         </div>
-        <p className="aiSettingsPage__hint">複数選択できます。</p>
+        <p className="aiSettingsPage__hint">AIに重点的に見てほしい改善項目を選べます。複数選択できます。</p>
         <div className="aiSettingsPage__tagsGrid">
           {IMPROVEMENT_TAG_OPTIONS.map((opt) => {
             const selected = selectedTags.includes(opt.key);
@@ -602,10 +749,16 @@ export default function AiSettingsPage() {
         </div>
       </section>
 
-      <section className="card aiSettingsPage__card">
+      <section className="aiSettingsPage__section">
         <div className="aiSettingsPage__sectionHead">
-          <h2 className="aiSettingsPage__sectionTitle">AIおすすめの参照期間</h2>
+          <div className="aiSettingsPage__sectionHeadMain">
+            <span className="aiSettingsPage__sectionIcon" aria-hidden="true">
+              {renderAiSettingsSectionIcon("range")}
+            </span>
+            <div className="aiSettingsPage__sectionEyebrow">RANGE</div>
+          </div>
         </div>
+        <p className="aiSettingsPage__hint">AIおすすめを作るときに、どのくらいの期間の記録を参照するかを設定できます。</p>
         <div className="aiSettingsPage__rangeOptions">
           {[ 14, 30, 90 ].map((days) => (
             <button

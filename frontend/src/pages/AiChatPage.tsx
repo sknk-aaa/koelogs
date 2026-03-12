@@ -12,11 +12,18 @@ import {
 import { fetchAiRecommendationByDate, fetchAiRecommendationHistory } from "../api/aiRecommendations";
 import type { AiChatMessage, AiChatThread } from "../types/aiChat";
 import { useAuth } from "../features/auth/useAuth";
+import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
+import AiRecommendationInfoContent from "../features/log/components/AiRecommendationInfoContent";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
+import AppSelect from "../components/AppSelect";
+import InfoModal from "../components/InfoModal";
 import TutorialModal from "../components/TutorialModal";
 import searchIconDark from "../assets/chat/search-dark.svg";
 import searchIconLight from "../assets/chat/search-light.svg";
-import premiumFlowChatAi from "../assets/premium/flow-chat-ai.svg";
+import aiChatLabelIcon from "../assets/premium/aichat-label-icon.svg";
+import aiChatPersonalIcon from "../assets/premium/aichat-personal-cyan.svg";
+import aiChatCommunityIcon from "../assets/premium/aichat-community-cyan.svg";
+import aiChatFreeIcon from "../assets/premium/aichat-free-cyan.svg";
 import "./AiChatPage.css";
 
 const QUICK_PROMPTS = [
@@ -29,15 +36,19 @@ const INITIAL_RECO_VISIBLE = 10;
 const RECO_VISIBLE_STEP = 10;
 const ASSISTANT_TYPING_INTERVAL_MS = 14;
 const ASSISTANT_TYPING_CHAR_STEP = 6;
-const NEW_THREAD_TITLE = "新しい会話";
 const AI_CHAT_FIRST_VISIT_SEEN_KEY_PREFIX = "koelogs:ai_chat_first_visit_seen:user_";
+const AI_CHAT_LAST_ACTIVE_THREAD_KEY_PREFIX = "koelogs:ai_chat_last_active_thread:user_";
 const MEMORY_SECTION_OPTIONS = ["課題", "強み", "成長過程", "避けたい練習/注意点"] as const;
+const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"] as const;
 type MemoryCandidatePromptInfo = { savedText: string; sectionLabel: string };
+type MessageTimelineItem =
+  | { kind: "divider"; key: string; label: string }
+  | { kind: "message"; key: string; message: AiChatMessage };
 
 function splitMemoryCandidatePrompt(text: string): { bodyText: string; promptInfo: MemoryCandidatePromptInfo | null } {
   const normalized = text.replace(/\r\n?/g, "\n");
   const detailedMatch = normalized.match(
-    /\n?保存候補を検出しました。\n保存内容：([^\n]+)\n保存先：AIが参照する長期プロフィール - ([^\n]+)\s*$/
+    /\n?保存候補を検出しました。\n保存内容：([^\n]+)\n保存先：MEMORY - ([^\n]+)\s*$/
   );
   if (detailedMatch) {
     const bodyText = normalized.slice(0, detailedMatch.index ?? normalized.length).trimEnd();
@@ -57,8 +68,84 @@ function splitMemoryCandidatePrompt(text: string): { bodyText: string; promptInf
   return { bodyText: text, promptInfo: null };
 }
 
+function readLastActiveThreadId(userId: number): number | null {
+  try {
+    const raw = window.localStorage.getItem(`${AI_CHAT_LAST_ACTIVE_THREAD_KEY_PREFIX}${userId}`);
+    if (raw == null) return null;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveLastActiveThreadId(userId: number, threadId: number | null) {
+  try {
+    const key = `${AI_CHAT_LAST_ACTIVE_THREAD_KEY_PREFIX}${userId}`;
+    if (threadId == null) {
+      window.localStorage.removeItem(key);
+      return;
+    }
+    window.localStorage.setItem(key, String(threadId));
+  } catch {
+    // noop
+  }
+}
+
 function recommendationThreadTitle(date: string): string {
-  return `${date} のおすすめに質問`;
+  return `${date} 週のおすすめに質問`;
+}
+
+function isWeeklyRecommendationSourceDate(value: string | null | undefined): boolean {
+  const d = normalizeLocalDate(value);
+  if (!d) return false;
+  return d.getDay() === 1;
+}
+
+function toLocalDateKey(value: string): string {
+  const d = normalizeLocalDate(value);
+  if (!d) return value.slice(0, 10);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatDividerLabelFromDateKey(dateKey: string): string {
+  const m = dateKey.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return dateKey;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return `${Number(m[2])}/${Number(m[3])}(${WEEKDAY_LABELS[d.getDay()]})`;
+}
+
+function buildMessageTimelineItems(messages: AiChatMessage[], showDateDivider: boolean): MessageTimelineItem[] {
+  if (!showDateDivider) {
+    return messages.map((message) => ({
+      kind: "message",
+      key: `msg-${message.id}`,
+      message,
+    }));
+  }
+
+  const out: MessageTimelineItem[] = [];
+  let prevDateKey: string | null = null;
+  for (const message of messages) {
+    const dateKey = toLocalDateKey(message.created_at);
+    if (dateKey !== prevDateKey) {
+      out.push({
+        kind: "divider",
+        key: `divider-${dateKey}-${message.id}`,
+        label: formatDividerLabelFromDateKey(dateKey),
+      });
+      prevDateKey = dateKey;
+    }
+    out.push({
+      kind: "message",
+      key: `msg-${message.id}`,
+      message,
+    });
+  }
+  return out;
 }
 
 function splitIntoSentences(text: string): string[] {
@@ -67,9 +154,16 @@ function splitIntoSentences(text: string): string[] {
   return chunks.map((chunk) => chunk.trimStart()).filter((chunk) => chunk.length > 0);
 }
 
-function renderBodyLine(line: string, key: string) {
+function renderBodyLine(
+  line: string,
+  key: string,
+  options?: { nextLine?: string; prevLine?: string }
+) {
   const trimmed = line.trim();
   if (!trimmed) return <div key={key} className="aiChatPage__msgSpacer" />;
+  if (/^(?:---+|＿{3,}|ー{3,})$/.test(trimmed)) {
+    return <div key={key} className="aiChatPage__msgDivider" aria-hidden="true" />;
+  }
 
   if (/^##\s+/.test(trimmed)) {
     return <p key={key} className="aiChatPage__msgHeading2">{trimmed.replace(/^##\s+/, "")}</p>;
@@ -84,6 +178,23 @@ function renderBodyLine(line: string, key: string) {
     return <p key={key} className="aiChatPage__msgListItem">{trimmed.replace(/^(?:-|\*)\s+/, "・")}</p>;
   }
   if (/^(?:[🧭🎯✅📈📝💡🔍📌🗂🫁🔼]|[0-9]+[.)]|[■◆●]|【.+】)/.test(trimmed)) {
+    return <p key={key} className="aiChatPage__msgHeading3">{trimmed}</p>;
+  }
+  if (
+    trimmed.length <= 32 &&
+    /[？?]$/.test(trimmed) &&
+    !/[。.!！]$/.test(trimmed) &&
+    options?.prevLine?.trim() === "" &&
+    (options.nextLine?.trim() ?? "") !== ""
+  ) {
+    return <p key={key} className="aiChatPage__msgHeading2">{trimmed}</p>;
+  }
+  if (
+    trimmed.length <= 22 &&
+    !/[。.!！?？]$/.test(trimmed) &&
+    options?.prevLine?.trim() === "" &&
+    (options.nextLine?.trim() ?? "") !== ""
+  ) {
     return <p key={key} className="aiChatPage__msgHeading3">{trimmed}</p>;
   }
   return <p key={key} className="aiChatPage__msgParagraph">{trimmed}</p>;
@@ -123,7 +234,12 @@ function renderChatMessageText(text: string, role: "user" | "assistant") {
           </div>
         </details>
       )}
-      {bodyLines.map((line, idx) => renderBodyLine(line, `line-${idx}`))}
+      {bodyLines.map((line, idx) =>
+        renderBodyLine(line, `line-${idx}`, {
+          prevLine: idx > 0 ? bodyLines[idx - 1] : "",
+          nextLine: idx < bodyLines.length - 1 ? bodyLines[idx + 1] : "",
+        })
+      )}
     </>
   );
 }
@@ -166,13 +282,20 @@ export default function AiChatPage() {
   const recommendationBootingRef = useRef(false);
   const initialLoadStartedRef = useRef(false);
   const isPremium = me?.plan_tier === "premium";
+  const sanitizeThreads = (rows: AiChatThread[]): AiChatThread[] =>
+    rows.filter(
+      (thread) => thread.source_kind !== "ai_recommendation" || isWeeklyRecommendationSourceDate(thread.source_date)
+    );
 
   const generalThreads = useMemo(
     () => threads.filter((thread) => thread.source_kind !== "ai_recommendation"),
     [threads]
   );
   const recommendationThreads = useMemo(
-    () => threads.filter((thread) => thread.source_kind === "ai_recommendation"),
+    () =>
+      threads.filter(
+        (thread) => thread.source_kind === "ai_recommendation" && isWeeklyRecommendationSourceDate(thread.source_date)
+      ),
     [threads]
   );
   const filteredRecommendationThreads = useMemo(() => {
@@ -202,6 +325,12 @@ export default function AiChatPage() {
     }
     return null;
   }, [messages]);
+  const firstAssistantMessageId = useMemo(() => {
+    for (let i = 0; i < messages.length; i += 1) {
+      if (messages[i].role === "assistant") return messages[i].id;
+    }
+    return null;
+  }, [messages]);
   const memoryCandidatePrompt = useMemo(() => {
     if (!latestAssistantMessage) return null;
     return splitMemoryCandidatePrompt(latestAssistantMessage.content).promptInfo;
@@ -210,6 +339,11 @@ export default function AiChatPage() {
     !isPremium &&
     isRecommendationThread &&
     (recommendationUserMessageCount >= 1 || recommendationLimitReached);
+  const isEmptyThread = !!activeThreadId && !threadLoading && messages.length === 0;
+  const messageTimelineItems = useMemo(
+    () => buildMessageTimelineItems(messages, isRecommendationThread),
+    [messages, isRecommendationThread]
+  );
 
   const isFirstVisit = useMemo(() => {
     if (!me) return false;
@@ -287,12 +421,13 @@ export default function AiChatPage() {
       setError(threadRes.errors.join("\n"));
       return;
     }
-    setThreads(threadRes.data);
+    const sanitizedThreads = sanitizeThreads(threadRes.data);
+    setThreads(sanitizedThreads);
 
     const nextActiveId =
       targetActiveId ??
       (targetActiveId === null ? null : activeThreadId) ??
-      threadRes.data[0]?.id ??
+      sanitizedThreads[0]?.id ??
       null;
 
     if (!nextActiveId) {
@@ -302,8 +437,8 @@ export default function AiChatPage() {
       return;
     }
 
-    const exists = threadRes.data.some((t) => t.id === nextActiveId);
-    setActiveThreadId(exists ? nextActiveId : (threadRes.data[0]?.id ?? null));
+    const exists = sanitizedThreads.some((t) => t.id === nextActiveId);
+    setActiveThreadId(exists ? nextActiveId : (sanitizedThreads[0]?.id ?? null));
   };
 
   const hydrateThread = async (threadId: number): Promise<boolean> => {
@@ -330,9 +465,10 @@ export default function AiChatPage() {
       setLoading(false);
       return;
     }
+    const sanitizedThreads = sanitizeThreads(threadRes.data);
 
     if (isFirstVisit) {
-      const latestRecoThread = threadRes.data
+      const latestRecoThread = sanitizedThreads
         .filter((thread) => thread.source_kind === "ai_recommendation")
         .sort((a, b) => {
           const aRef = a.source_date ?? a.created_at;
@@ -341,7 +477,7 @@ export default function AiChatPage() {
         })[0] ?? null;
 
       if (latestRecoThread) {
-        setThreads(threadRes.data);
+        setThreads(sanitizedThreads);
         setActiveThreadId(latestRecoThread.id);
         setFirstRecoGuideOpen(true);
         markFirstVisitSeen();
@@ -353,20 +489,20 @@ export default function AiChatPage() {
       if (!latestHistory.error && latestHistory.data.length > 0) {
         const latest = latestHistory.data[0];
         const recommendationRes = await fetchAiRecommendationByDate(
-          latest.generated_for_date,
+          latest.week_start_date,
           (latest.range_days === 30 || latest.range_days === 90 ? latest.range_days : 14) as 14 | 30 | 90
         );
         const created = await createAiChatThread({
-          title: recommendationThreadTitle(latest.generated_for_date),
+          title: recommendationThreadTitle(latest.week_start_date),
           seed_assistant_message:
             recommendationRes.data?.recommendation_text?.trim() ||
             latest.recommendation_text_preview?.trim() ||
             undefined,
           source_kind: "ai_recommendation",
-          source_date: latest.generated_for_date,
+          source_date: latest.week_start_date,
         });
         if (created.ok) {
-          setThreads([created.data, ...threadRes.data]);
+          setThreads([created.data, ...sanitizedThreads]);
           setActiveThreadId(created.data.id);
           setFirstRecoGuideOpen(true);
           markFirstVisitSeen();
@@ -376,67 +512,13 @@ export default function AiChatPage() {
       }
     }
 
-    const existingNewThread = threadRes.data.find(
-      (thread) => thread.source_kind !== "ai_recommendation" && thread.title === NEW_THREAD_TITLE
-    );
-    if (existingNewThread) {
-      setThreads(threadRes.data);
-      setActiveThreadId(existingNewThread.id);
-      setLoading(false);
-      return;
-    }
-
-    if (isPremium) {
-      const created = await createAiChatThread();
-      if (!created.ok) {
-        if (created.status === 402) {
-          openPremiumModal();
-        } else {
-          setError(created.errors.join("\n"));
-        }
-        setLoading(false);
-        return;
-      }
-
-      setThreads([created.data, ...threadRes.data]);
-      setActiveThreadId(created.data.id);
-      setLoading(false);
-      return;
-    }
-
-    if (threadRes.data.length === 0) {
-      const latestHistory = await fetchAiRecommendationHistory(1);
-      if (!latestHistory.error && latestHistory.data.length > 0) {
-        const latest = latestHistory.data[0];
-        const recommendationRes = await fetchAiRecommendationByDate(
-          latest.generated_for_date,
-          (latest.range_days === 30 || latest.range_days === 90 ? latest.range_days : 14) as 14 | 30 | 90
-        );
-        const created = await createAiChatThread({
-          title: recommendationThreadTitle(latest.generated_for_date),
-          seed_assistant_message:
-            recommendationRes.data?.recommendation_text?.trim() ||
-            latest.recommendation_text_preview?.trim() ||
-            undefined,
-          source_kind: "ai_recommendation",
-          source_date: latest.generated_for_date,
-        });
-        if (created.ok) {
-          setThreads([created.data]);
-          setActiveThreadId(created.data.id);
-          setLoading(false);
-          return;
-        }
-        if (created.status === 402) {
-          openPremiumModal();
-          setLoading(false);
-          return;
-        }
-      }
-    }
-
-    setThreads(threadRes.data);
-    setActiveThreadId(threadRes.data[0]?.id ?? null);
+    setThreads(sanitizedThreads);
+    const lastActiveThreadId = me ? readLastActiveThreadId(me.id) : null;
+    const restoredThreadId =
+      (lastActiveThreadId && sanitizedThreads.some((thread) => thread.id === lastActiveThreadId) ? lastActiveThreadId : null) ??
+      sanitizedThreads[0]?.id ??
+      null;
+    setActiveThreadId(restoredThreadId);
     setLoading(false);
   };
 
@@ -451,6 +533,12 @@ export default function AiChatPage() {
   useEffect(() => {
     setRecoVisibleCount(INITIAL_RECO_VISIBLE);
   }, [recommendationThreads.length]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!me) return;
+    saveLastActiveThreadId(me.id, activeThreadId);
+  }, [loading, me, activeThreadId]);
 
   useEffect(() => {
     if (navSeedHandledRef.current) return;
@@ -468,12 +556,13 @@ export default function AiChatPage() {
     recommendationBootingRef.current = true;
 
     void (async () => {
-      const recommendationDate = state.recommendationDate?.trim();
-      if (!recommendationDate) {
+      const rawRecommendationDate = state.recommendationDate?.trim();
+      if (!rawRecommendationDate) {
         navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
         recommendationBootingRef.current = false;
         return;
       }
+      const recommendationDate = toWeekStartISO(rawRecommendationDate);
 
       const seed = (state.seedMessage ?? "").trim();
       const recommendationText = (state.recommendationText ?? "").trim();
@@ -487,14 +576,15 @@ export default function AiChatPage() {
         recommendationBootingRef.current = false;
         return;
       }
+      const sanitizedThreads = sanitizeThreads(threadRes.data);
 
       let targetThread =
-        threadRes.data.find(
+        sanitizedThreads.find(
           (thread) =>
             thread.source_kind === "ai_recommendation" && thread.source_date === recommendationDate
         ) ?? null;
 
-      if (!targetThread && seed.length === 0) {
+      if (!targetThread && seed.length === 0 && recommendationText.length === 0) {
         navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
         recommendationBootingRef.current = false;
         return;
@@ -738,7 +828,7 @@ export default function AiChatPage() {
     const command = [
       "保存（訂正）",
       `保存内容：${text}`,
-      `保存先：AIが参照する長期プロフィール - ${memoryEditSection}`,
+      `保存先：MEMORY - ${memoryEditSection}`,
     ].join("\n");
     await sendMessageToThread(activeThreadId, command);
   };
@@ -773,6 +863,15 @@ export default function AiChatPage() {
   const onJumpToLatest = () => {
     shouldAutoScrollRef.current = true;
     setShowJumpToLatest(false);
+    const el = messagesScrollRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+      window.setTimeout(() => {
+        shouldAutoScrollRef.current = true;
+        setShowJumpToLatest(false);
+      }, 220);
+      return;
+    }
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   };
   const selectThread = (threadId: number) => {
@@ -877,7 +976,11 @@ export default function AiChatPage() {
                         aria-label="チャット操作"
                         onClick={() => setThreadMenuOpenId((prev) => (prev === thread.id ? null : thread.id))}
                       >
-                        <span className="aiChatPage__threadMenuDots" aria-hidden="true">•••</span>
+                        <span className="aiChatPage__threadMenuDots" aria-hidden="true">
+                          <span />
+                          <span />
+                          <span />
+                        </span>
                       </button>
 
                       {threadMenuOpenId === thread.id && (
@@ -927,7 +1030,11 @@ export default function AiChatPage() {
                               aria-label="チャット操作"
                               onClick={() => setThreadMenuOpenId((prev) => (prev === thread.id ? null : thread.id))}
                             >
-                              <span className="aiChatPage__threadMenuDots" aria-hidden="true">•••</span>
+                              <span className="aiChatPage__threadMenuDots" aria-hidden="true">
+                                <span />
+                                <span />
+                                <span />
+                              </span>
                             </button>
 
                             {threadMenuOpenId === thread.id && (
@@ -961,7 +1068,7 @@ export default function AiChatPage() {
           </div>
         </aside>
 
-        <section className="aiChatPage__chatPane" aria-label="チャット本文">
+        <section className={`aiChatPage__chatPane ${isEmptyThread ? "is-empty-thread" : ""}`} aria-label="チャット本文">
           {!activeThreadId ? (
             <div className={`aiChatPage__emptyStatePane ${loading ? "is-booting" : ""}`}>
               {loading ? (
@@ -1025,9 +1132,7 @@ export default function AiChatPage() {
                         </span>
                         <span className="aiChatPage__chatToolbarLabel">{isSidebarOpen ? "サイドバーを閉じる" : "サイドバーを開く"}</span>
                       </button>
-                    ) : (
-                      <span className="aiChatPage__chatHeaderLeftPlaceholder" aria-hidden="true" />
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="aiChatPage__chatThreadMeta">
@@ -1035,32 +1140,74 @@ export default function AiChatPage() {
                     {!isMobileViewport && <div className="aiChatPage__chatMeta">{activeThread?.model_name ?? "-"}</div>}
                   </div>
 
-                  <Link to="/log" className="aiChatPage__logLink">ログページへ</Link>
+                  {isRecommendationThread ? (
+                    <div className="aiChatPage__chatHeaderRight">
+                      <InfoModal
+                        title="AIおすすめのつくられかた"
+                        bodyClassName="logPage__aiInfoBody"
+                        triggerClassName="logPage__aiInfoBtn"
+                      >
+                        <AiRecommendationInfoContent />
+                      </InfoModal>
+                    </div>
+                  ) : null}
                 </div>
               </header>
 
-              <div className="aiChatPage__messagesScroll" ref={messagesScrollRef} onScroll={onMessagesScroll}>
+              <div
+                className={`aiChatPage__messagesScroll ${isEmptyThread ? "is-empty-thread" : ""}`}
+                ref={messagesScrollRef}
+                onScroll={onMessagesScroll}
+              >
                 <div className="aiChatPage__messagesInner">
                   {threadLoading ? (
                     <div className="aiChatPage__muted">読み込み中…</div>
                   ) : messages.length === 0 ? (
-                    <div className="aiChatPage__muted">質問を送ると会話が始まります。</div>
+                    <p className="aiChatPage__centerStartHint">声の悩みや練習内容を話してみましょう</p>
                   ) : (
-                    messages.map((message) => {
+                    messageTimelineItems.map((item) => {
+                      if (item.kind === "divider") {
+                        return (
+                          <div key={item.key} className="aiChatPage__dayDivider" role="separator" aria-label={item.label}>
+                            <span>{item.label}</span>
+                          </div>
+                        );
+                      }
+                      const { message } = item;
                       const messageText =
                         message.role === "assistant"
                           ? splitMemoryCandidatePrompt(message.content).bodyText
                           : message.content;
+                      const isRecommendationSeedMessage =
+                        isRecommendationThread &&
+                        message.role === "assistant" &&
+                        message.id === firstAssistantMessageId;
                       return (
                         <article
-                          key={message.id}
+                          key={item.key}
                           data-message-id={message.id}
-                          className={`aiChatPage__msgRow aiChatPage__msgRow--${message.role}`}
+                          className={`aiChatPage__msgRow aiChatPage__msgRow--${message.role} ${isRecommendationSeedMessage ? "aiChatPage__msgRow--recommendation" : ""}`.trim()}
                         >
-                          <div className="aiChatPage__msgBubble">
-                            <div className="aiChatPage__msgRole">{message.role === "user" ? "あなた" : "AIコーチ"}</div>
-                            <div className="aiChatPage__msgText">{renderChatMessageText(messageText, message.role)}</div>
-                          </div>
+                          {isRecommendationSeedMessage ? (
+                            <AiRecommendationCard
+                              title="今週のおすすめメニュー"
+                              meta={activeThread?.source_date ?? undefined}
+                              aiLoading={false}
+                              aiError={null}
+                              recommendationText={messageText}
+                              isSaved
+                              shownText={messageText}
+                              collapsible={false}
+                              expanded
+                              onToggleExpanded={() => {}}
+                              showFollowupButton={false}
+                            />
+                          ) : (
+                            <div className="aiChatPage__msgBubble">
+                              <div className="aiChatPage__msgRole">{message.role === "user" ? "あなた" : "AIコーチ"}</div>
+                              <div className="aiChatPage__msgText">{renderChatMessageText(messageText, message.role)}</div>
+                            </div>
+                          )}
                         </article>
                       );
                     })
@@ -1077,20 +1224,18 @@ export default function AiChatPage() {
                         <div className="aiChatPage__memoryEditBox">
                           <label className="aiChatPage__memoryEditLabel">
                             保存先
-                            <select
+                            <AppSelect
                               className="aiChatPage__memoryEditSelect"
+                              buttonClassName="aiChatPage__memoryEditSelectButton"
+                              menuClassName="aiChatPage__memoryEditSelectMenu"
                               value={memoryEditSection}
-                              onChange={(e) =>
-                                setMemoryEditSection(e.target.value as (typeof MEMORY_SECTION_OPTIONS)[number])
+                              onChange={(value) =>
+                                setMemoryEditSection(value as (typeof MEMORY_SECTION_OPTIONS)[number])
                               }
                               disabled={sending}
-                            >
-                              {MEMORY_SECTION_OPTIONS.map((section) => (
-                                <option key={section} value={section}>
-                                  {section}
-                                </option>
-                              ))}
-                            </select>
+                              options={MEMORY_SECTION_OPTIONS.map((section) => ({ value: section, label: section }))}
+                              ariaLabel="保存先"
+                            />
                           </label>
                           <label className="aiChatPage__memoryEditLabel">
                             保存内容
@@ -1108,7 +1253,7 @@ export default function AiChatPage() {
                         <>
                           <p className="aiChatPage__memoryActionsMeta">保存内容：{memoryCandidatePrompt.savedText}</p>
                           <p className="aiChatPage__memoryActionsMeta">
-                            保存先：AIが参照する長期プロフィール - {memoryCandidatePrompt.sectionLabel}
+                            保存先：MEMORY - {memoryCandidatePrompt.sectionLabel}
                           </p>
                         </>
                       )}
@@ -1181,7 +1326,7 @@ export default function AiChatPage() {
                     <div className="aiChatPage__textareaLock" role="status" aria-live="polite">
                       <span className="aiChatPage__textareaLockIcon" aria-hidden="true" />
                       <div className="aiChatPage__textareaLockBody">
-                        <div className="aiChatPage__textareaLockTitle">本日の無料質問は完了しました</div>
+                        <div className="aiChatPage__textareaLockTitle">この週の無料質問は完了しました</div>
                         <div className="aiChatPage__textareaLockText">プレミアムなら、このまま無制限で質問できます。</div>
                       </div>
                       <button type="button" className="aiChatPage__textareaLockCta" onClick={openPremiumModal}>
@@ -1211,8 +1356,12 @@ export default function AiChatPage() {
                     type="submit"
                     className="aiChatPage__sendBtn"
                     disabled={!activeThreadId || sending || draft.trim().length === 0 || isRecommendationFollowupLocked}
+                    aria-label={isRecommendationFollowupLocked ? "送信済み" : sending ? "送信中" : "送信"}
                   >
-                    {isRecommendationFollowupLocked ? "送信済み" : sending ? "送信中…" : "送信"}
+                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                      <path d="M4.5 11.9 19.2 5.6 15.2 18.4 11.3 13.9 4.5 11.9Z" />
+                      <path d="M11.4 13.9 19.1 5.8" />
+                    </svg>
                   </button>
                 </div>
               </form>
@@ -1230,31 +1379,27 @@ export default function AiChatPage() {
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
         variant="lp"
+        sectionLabel="AI CHAT"
+        sectionLabelIconSrc={aiChatLabelIcon}
         title="AIチャットを無制限で使う"
+        description="無料プランでは、おすすめへの質問は1つの今週おすすめにつき1回までです。"
+        featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
+        featureCards={[
+          { iconSrc: aiChatPersonalIcon, title: "PERSONAL", sub: "練習ログや測定データをもとに、あなた向けの回答を確認できます。" },
+          { iconSrc: aiChatCommunityIcon, title: "COMMUNITY", sub: "コミュニティ投稿の知見もふまえた、より広い視点の提案を受けられます。" },
+          { iconSrc: aiChatFreeIcon, title: "UNLIMITED", sub: "新しい会話を自由に作成しながら、改善したい内容を深掘りできます。" },
+        ]}
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");
         }}
-        description="無料プランでは、おすすめへの質問は1日1回までです。"
-        flowBackgroundImageSrc={premiumFlowChatAi}
-        flowBackgroundOpacity={0.24}
-        flowSteps={[
-          { title: "あなたの記録を根拠化", sub: "練習ログ・測定データをもとに回答", pill: "個人ログ" },
-          { title: "集合知を活用", sub: "Koelogs独自のコミュニティ投稿データも反映", pill: "コミュニティ知見" },
-          { title: "ボイトレ相談を自由に", sub: "自由に会話を作成して談可能", pill: "無制限" },
-        ]}
-        benefits={[
-          "おすすめへの質問を回数制限なしで継続",
-          "新しいチャットを自由に作成",
-          "改善したいポイントを深掘り相談",
-        ]}
-        ctaLabel="プレミアムを見る"
+        ctaLabel="プレミアムを試す"
       />
       <TutorialModal
         open={firstRecoGuideOpen}
         badge="AI GUIDE"
-        title="AIおすすめメニューの相談をしてみましょう"
-        paragraphs={["AIおすすめメニューで分からないことや不安な点があれば、質問してみましょう。"]}
+        title="今週のおすすめメニューの相談をしてみましょう"
+        paragraphs={["今週のおすすめメニューで分からないことや不安な点があれば、質問してみましょう。"]}
         primaryLabel="わかった"
         onPrimary={() => setFirstRecoGuideOpen(false)}
         onClose={() => setFirstRecoGuideOpen(false)}
@@ -1281,6 +1426,15 @@ function startOfWeek(d: Date): Date {
   const diff = (day + 6) % 7; // Monday start
   out.setDate(out.getDate() - diff);
   return out;
+}
+
+function toWeekStartISO(value: string): string {
+  const base = normalizeLocalDate(value) ?? new Date();
+  const week = startOfWeek(base);
+  const year = week.getFullYear();
+  const month = String(week.getMonth() + 1).padStart(2, "0");
+  const day = String(week.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function groupRecommendationThreads(threads: AiChatThread[]): Array<{ label: "今週" | "今月" | "過去"; items: AiChatThread[] }> {

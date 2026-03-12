@@ -34,13 +34,6 @@ module Api
           description: "トレーニング画面でどれか1つの測定を実行しましょう。",
           to: "/training",
           done: current_user.measurement_runs.exists?
-        },
-        {
-          key: "beginner_ai",
-          title: "AIおすすめを使ってみよう",
-          description: "日ログ画面でAI提案を1回生成してみましょう。",
-          to: "/log?mode=day&date=#{today.iso8601}&missionGuide=beginner_ai",
-          done: current_user.ai_recommendations.exists?
         }
       ]
 

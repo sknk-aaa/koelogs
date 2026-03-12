@@ -1,113 +1,134 @@
 .profilePage {
-  position: relative;
-  isolation: isolate;
-  overflow-x: hidden;
-}
-
-.profilePage__bg {
-  position: absolute;
-  top: -120px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100vw;
-  height: 320px;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 64%),
-    radial-gradient(420px 160px at 92% 0%, rgba(255, 255, 255, 0.58), transparent 68%);
-  filter: blur(8px);
+  display: grid;
+  gap: 24px;
 }
 
 .profilePage__hero {
-  border-radius: 18px;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(130deg, color-mix(in srgb, var(--accent) 40%, transparent), rgba(0, 0, 0, 0.08)) border-box;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
   display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.profilePage__kicker {
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  opacity: 0.62;
+  gap: 8px;
 }
 
 .profilePage__title {
-  margin: 2px 0 0;
-  font-size: 22px;
-  font-weight: 950;
-  letter-spacing: 0.2px;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--accent) 12%, #1e3444);
 }
 
 .profilePage__sub {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
-  opacity: 0.75;
+  color: #70828d;
 }
 
-.profilePage__card {
-  border-radius: 16px;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0.09)) border-box;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+.profilePage__section {
+  display: grid;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 6%, #edf2f7);
 }
 
-.profilePage__cardTitle {
-  font-size: 15px;
-  font-weight: 900;
-  margin-bottom: 12px;
+.profilePage__section:last-of-type {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
-.profilePage__row {
+.profilePage__section:first-of-type {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.profilePage__sectionHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.profilePage__sectionHeadMain {
+  display: inline-flex;
+  align-items: center;
   gap: 10px;
+}
+
+.profilePage__sectionIcon {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.profilePage__sectionIcon svg {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  stroke: currentColor;
+  stroke-width: var(--ui-section-icon-stroke-width);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.profilePage__sectionEyebrow {
+  font-size: var(--ui-section-eyebrow-size);
+  font-weight: 800;
+  letter-spacing: var(--ui-section-eyebrow-letter-spacing);
+  text-transform: uppercase;
+  color: var(--ui-section-eyebrow-color);
+}
+
+.profilePage__row,
+.profilePage__toggleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.profilePage__toggleRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.profilePage__toggleRow > :first-child {
+  min-width: 0;
 }
 
 .profilePage__k {
   font-size: 13px;
   font-weight: 800;
-  opacity: 0.75;
+  color: #425766;
+  line-height: 1.5;
 }
 
 .profilePage__v {
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
+  color: #2f4758;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.profilePage__hr {
-  height: 1px;
-  background: rgba(0, 0, 0, 0.06);
-  margin: 14px 0;
-}
-
 .profilePage__passwordAccordion {
-  margin-top: 10px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 8%, #e3eaf0);
+  border-radius: 14px;
+  background: transparent;
+  padding: 8px 12px;
 }
 
 .profilePage__passwordSummary {
   cursor: pointer;
   font-size: 13px;
   font-weight: 800;
-  color: color-mix(in srgb, var(--accent) 58%, #334);
+  color: #4f6775;
   list-style: none;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .profilePage__passwordSummary::-webkit-details-marker {
@@ -115,9 +136,9 @@
 }
 
 .profilePage__passwordBody {
-  margin-top: 10px;
+  margin-top: 12px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .profilePage__label {
@@ -127,70 +148,26 @@
 .profilePage__input {
   width: 100%;
   margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid #dbe4ea;
   outline: none;
   font-size: 14px;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.82);
+  color: #243f50;
+  background: #ffffff;
 }
 
 .profilePage__input:focus {
-  border-color: color-mix(in srgb, var(--accent) 44%, #999);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 34%, #dbe4ea);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .profilePage__hint {
   margin-top: 6px;
-  font-size: 12px;
-  opacity: 0.66;
-}
-
-.profilePage__toggleRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.profilePage__previewCard {
-  margin-top: 10px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.78);
-  padding: 10px;
-  display: grid;
-  gap: 6px;
-}
-
-.profilePage__previewLink {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  border: 1px solid color-mix(in srgb, var(--accent) 44%, #999);
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 800;
-  text-decoration: none;
-  color: color-mix(in srgb, var(--accent) 60%, #223);
-  background: color-mix(in srgb, var(--accent) 10%, #fff);
-}
-
-.profilePage__previewLink.is-disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.profilePage__switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #83939d;
 }
 
 .profilePage__avatarPreview {
@@ -198,16 +175,16 @@
 }
 
 .profilePage__avatarPreviewImg {
-  width: 58px;
-  height: 58px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  border: 1px solid var(--border);
+  border: 1px solid #dbe4ea;
   display: block;
   object-fit: cover;
 }
 
 .profilePage__avatarCustom {
-  margin-top: 10px;
+  margin-top: 8px;
   display: grid;
   gap: 8px;
 }
@@ -220,205 +197,198 @@
 }
 
 .profilePage__avatarFileBtn,
-.profilePage__avatarResetBtn {
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.86);
-  border-radius: 10px;
-  padding: 6px 10px;
+.profilePage__avatarResetBtn,
+.profilePage__previewLink,
+.profilePage__saveBtn--secondary {
+  border: 1px solid #dbe4ea;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 7px 12px;
   font-size: 12px;
   font-weight: 800;
+  color: #466070;
+  text-decoration: none;
   cursor: pointer;
+}
+
+.profilePage__avatarResetBtn--text {
+  border: 0;
+  background: transparent;
+  padding-inline: 2px;
+  color: #7a8c97;
 }
 
 .profilePage__avatarFileInput {
   display: none;
 }
 
-.profilePage__avatarGrid {
-  margin-top: 10px;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+.profilePage__switch {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-}
-
-.profilePage__avatarBtn {
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 12px;
-  padding: 6px;
-  cursor: pointer;
-}
-
-.profilePage__avatarBtn.is-active {
-  border-color: color-mix(in srgb, var(--accent) 48%, #999);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
-}
-
-.profilePage__avatarBtnImg {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  display: block;
-}
-
-.profilePage__contribution {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 10px;
-  align-items: start;
-  border: 1px solid #e4d4ab;
-  background: linear-gradient(135deg, #fffaf0 0%, #fff2d8 100%);
-  border-radius: 14px;
-  padding: 10px 12px;
-  box-shadow: 0 8px 18px rgba(137, 108, 36, 0.12);
-}
-
-.profilePage__awardIcon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid #ead8a8;
-}
-
-.profilePage__contributionValue {
-  font-weight: 900;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.profilePage__contributionCount {
-  display: inline-block;
-  margin: 0 2px;
-  font-size: 18px;
-  font-weight: 950;
-  color: #9a6500;
-  letter-spacing: 0.2px;
-}
-
-.profilePage__contributionHelp {
-  margin-top: 4px;
   font-size: 12px;
-  font-weight: 600;
-  opacity: 0.75;
-  line-height: 1.6;
+  font-weight: 800;
+  color: #607582;
+  flex: 0 0 auto;
+  margin-top: 6px;
+}
+
+.profilePage__previewCard {
+  display: grid;
+  gap: 6px;
+  padding-top: 14px;
+}
+
+.profilePage__previewLink.is-disabled {
+  opacity: 0.46;
+  pointer-events: none;
+}
+
+.profilePage__previewLink--text {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #5e7481;
 }
 
 .profilePage__saveBtn {
   width: 100%;
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--accent) 48%, #999);
-  background: color-mix(in srgb, var(--accent) 14%, #fff);
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, #dbe4ea);
+  background: color-mix(in srgb, var(--accent) 20%, #ffffff);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
-}
-
-.profilePage__saveBtn--secondary {
-  margin-top: 10px;
-  background: rgba(255, 255, 255, 0.9);
+  color: #244050;
 }
 
 .profilePage__saveBtn:disabled {
-  opacity: 0.5;
+  opacity: 0.42;
+  border-color: color-mix(in srgb, #dbe4ea 86%, transparent);
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  color: color-mix(in srgb, #244050 48%, transparent);
   cursor: not-allowed;
 }
 
+.profilePage__footer {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  padding-bottom: 76px;
+}
+
 .profilePage__note {
-  margin-top: 10px;
   font-size: 12px;
-  opacity: 0.72;
   line-height: 1.6;
+  color: #758792;
 }
-/* ===============================
-   ProfilePage: Dark mode overrides
-================================= */
+
+.profilePage__saveDock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  z-index: 15;
+  padding: 10px 16px 12px;
+  background: linear-gradient(to top, #ffffff 62%, rgba(255, 255, 255, 0));
+}
+
+.profilePage__saveDockInner {
+  width: min(100%, 720px);
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  .profilePage__row,
+  .profilePage__toggleRow {
+    display: grid;
+    gap: 8px;
+  }
+
+}
+
+:root[data-theme-mode="dark"] .profilePage__title {
+  color: color-mix(in srgb, var(--accent) 18%, #ffffff);
+}
+
 :root[data-theme-mode="dark"] .profilePage {
-  --profile-panel-bg: rgba(255, 255, 255, 0.07);
-  --profile-panel-border: rgba(255, 255, 255, 0.12);
-  --profile-text-1: #ffffff;
-  --profile-text-2: rgba(255, 255, 255, 0.88);
-  --profile-text-3: rgba(255, 255, 255, 0.72);
+  background: var(--bg);
 }
 
-/* カード境界/見出し/区切り */
-:root[data-theme-mode="dark"] .profilePage__hr {
-  background: rgba(255, 255, 255, 0.10);
+:root[data-theme-mode="dark"] .profilePage__section {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
-/* アコーディオン/説明カード/パネル系の白を消す */
+:root[data-theme-mode="dark"] .profilePage__sub,
+:root[data-theme-mode="dark"] .profilePage__hint,
+:root[data-theme-mode="dark"] .profilePage__note,
+:root[data-theme-mode="dark"] .profilePage__switch,
+:root[data-theme-mode="dark"] .profilePage__passwordSummary {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme-mode="dark"] .profilePage__k,
+:root[data-theme-mode="dark"] .profilePage__v {
+  color: #eef5ff;
+}
+
+:root[data-theme-mode="dark"] .profilePage__sectionEyebrow {
+  color: var(--ui-section-eyebrow-color);
+}
+
+:root[data-theme-mode="dark"] .profilePage__sectionIcon {
+  color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.84));
+}
+
 :root[data-theme-mode="dark"] .profilePage__passwordAccordion,
-:root[data-theme-mode="dark"] .profilePage__previewCard {
-  background: var(--profile-panel-bg);
-  border-color: var(--profile-panel-border);
-  color: var(--profile-text-2);
-  backdrop-filter: blur(6px);
+:root[data-theme-mode="dark"] .profilePage__input,
+:root[data-theme-mode="dark"] .profilePage__avatarPreviewImg,
+:root[data-theme-mode="dark"] .profilePage__avatarFileBtn,
+:root[data-theme-mode="dark"] .profilePage__avatarResetBtn,
+:root[data-theme-mode="dark"] .profilePage__previewLink,
+:root[data-theme-mode="dark"] .profilePage__saveBtn,
+:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary {
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-/* input */
-:root[data-theme-mode="dark"] .profilePage__input {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--profile-panel-border);
-  color: var(--profile-text-1);
+:root[data-theme-mode="dark"] .profilePage__passwordAccordion,
+:root[data-theme-mode="dark"] .profilePage__input,
+:root[data-theme-mode="dark"] .profilePage__avatarFileBtn,
+:root[data-theme-mode="dark"] .profilePage__avatarResetBtn,
+:root[data-theme-mode="dark"] .profilePage__previewLink,
+:root[data-theme-mode="dark"] .profilePage__saveBtn,
+:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary {
+  background: rgba(255, 255, 255, 0.04);
+  color: #eef5ff;
+}
+
+:root[data-theme-mode="dark"] .profilePage__avatarResetBtn--text,
+:root[data-theme-mode="dark"] .profilePage__previewLink--text {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 :root[data-theme-mode="dark"] .profilePage__input:focus {
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
 
-/* preview link（白ベースをやめる） */
-:root[data-theme-mode="dark"] .profilePage__previewLink {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
+:root[data-theme-mode="dark"] .profilePage__input::placeholder {
+  color: rgba(255, 255, 255, 0.48);
+}
+
+:root[data-theme-mode="dark"] .profilePage__saveBtn:disabled {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.44);
+}
+
+:root[data-theme-mode="dark"] .profilePage__saveDock {
+  background: linear-gradient(to top, rgba(11, 18, 24, 0.94) 62%, rgba(11, 18, 24, 0));
+}
+
+:root[data-theme-mode="dark"] .profilePage__saveDockInner .profilePage__saveBtn {
+  background: color-mix(in srgb, var(--accent) 22%, rgba(255, 255, 255, 0.05));
+  border-color: color-mix(in srgb, var(--accent) 42%, rgba(255, 255, 255, 0.18));
   color: #ffffff;
-}
-
-/* 画像ボタン群（白タイルをやめる） */
-:root[data-theme-mode="dark"] .profilePage__avatarFileBtn,
-:root[data-theme-mode="dark"] .profilePage__avatarResetBtn,
-:root[data-theme-mode="dark"] .profilePage__avatarBtn {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--profile-panel-border);
-  color: #ffffff;
-}
-
-:root[data-theme-mode="dark"] .profilePage__avatarBtn.is-active {
-  border-color: rgba(255, 255, 255, 0.24);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10);
-}
-
-/* AI貢献カード（ベージュ固定をやめてダーク統一） */
-:root[data-theme-mode="dark"] .profilePage__contribution {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-  color: var(--profile-text-2);
-  backdrop-filter: blur(6px);
-}
-
-:root[data-theme-mode="dark"] .profilePage__awardIcon {
-  background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(255, 255, 255, 0.14);
-}
-
-:root[data-theme-mode="dark"] .profilePage__contributionCount {
-  color: #ffffff; /* 金色を残したいならここをmixに変更してOK */
-}
-
-/* 保存ボタン（白/水色ベースをやめる） */
-:root[data-theme-mode="dark"] .profilePage__saveBtn,
-:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-}
-
-:root[data-theme-mode="dark"] .profilePage__saveBtn:hover,
-:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary:hover {
-  background: rgba(255, 255, 255, 0.16);
 }

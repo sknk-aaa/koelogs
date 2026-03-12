@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import GoogleSignInButton from "../components/GoogleSignInButton";
 import { fetchMe } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
 import {
@@ -9,11 +10,12 @@ import {
   markFirstLoginLandingSeen,
 } from "../features/missions/beginnerMissionGate";
 import { saveTutorialStage } from "../features/tutorial/tutorialFlow";
+import { isValidEmailFormat, normalizeEmail } from "../utils/email";
 
 import "./AuthPages.css";
 
 export default function SignupPage() {
-  const { signup } = useAuth();
+  const { loginWithGoogle, signup } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -28,23 +30,56 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      await signup(email, password, passwordConfirmation);
-      let destination = "/log";
-      const meAfterSignup = await fetchMe();
-      if (meAfterSignup && !hasSeenFirstLoginLanding(meAfterSignup.id)) {
-        const beginnerGate = await fetchBeginnerMissionGate();
-        markFirstLoginLandingSeen(meAfterSignup.id);
-        if (beginnerGate && !beginnerGate.completed) {
-          saveTutorialStage(meAfterSignup.id, "log_welcome");
-        }
+      const normalizedEmail = normalizeEmail(email);
+      if (!normalizedEmail) {
+        throw new Error("メールアドレスを入力してください。");
       }
-      navigate(destination, { replace: true });
+      if (!isValidEmailFormat(normalizedEmail)) {
+        throw new Error("メールアドレスの形式が正しくありません。");
+      }
+      if (!password) {
+        throw new Error("パスワードを入力してください。");
+      }
+      if (password !== passwordConfirmation) {
+        throw new Error("確認用パスワードが一致しません。");
+      }
+
+      const result = await signup(normalizedEmail, password, passwordConfirmation);
+      navigate("/login", {
+        replace: true,
+        state: {
+          notice: result.message,
+          email: normalizedEmail,
+        },
+      });
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError("登録に失敗しました");
       }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onGoogleCredential = async (credential: string) => {
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await loginWithGoogle(credential);
+      const meAfterLogin = await fetchMe();
+      if (meAfterLogin && !hasSeenFirstLoginLanding(meAfterLogin.id)) {
+        const beginnerGate = await fetchBeginnerMissionGate();
+        markFirstLoginLandingSeen(meAfterLogin.id);
+        if (beginnerGate && !beginnerGate.completed) {
+          saveTutorialStage(meAfterLogin.id, "log_welcome");
+        }
+      }
+      navigate("/log", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Googleログインに失敗しました");
     } finally {
       setSubmitting(false);
     }
@@ -71,6 +106,7 @@ export default function SignupPage() {
             <div className="authPage__field">
               <label className="authPage__label">Email</label>
               <input
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -106,7 +142,13 @@ export default function SignupPage() {
               {submitting ? "登録中..." : "新規登録"}
             </button>
 
-            <p className="authPage__support">登録後すぐにログ作成とトレーニング機能を利用できます。</p>
+            <GoogleSignInButton
+              text="signup_with"
+              onCredential={onGoogleCredential}
+              disabled={submitting}
+            />
+
+            <p className="authPage__support">メール登録では確認メールを送信します。Google を使う場合はそのままログインできます。</p>
           </form>
 
           <div className="authPage__link">

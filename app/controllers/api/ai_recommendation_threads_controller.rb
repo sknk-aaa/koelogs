@@ -23,13 +23,13 @@ module Api
     # POST /api/ai_recommendations/:id/thread/messages
     # body: { message: "..." }
     def create_message
-      unless @recommendation.generated_for_date == Date.current
-        return render json: { errors: [ "当日のおすすめのみ会話できます" ] }, status: :unprocessable_entity
+      unless current_week_recommendation?
+        return render json: { errors: [ "今週のおすすめのみ会話できます" ] }, status: :unprocessable_entity
       end
 
       thread = find_or_create_thread!
       unless can_post?(thread)
-        return render json: { errors: [ "会話上限に達しました（最大20件）" ] }, status: :unprocessable_entity
+        return render json: { errors: [ followup_limit_error_message ] }, status: :unprocessable_entity
       end
 
       message_text = params[:message].to_s.strip
@@ -46,6 +46,12 @@ module Api
       end
 
       user_message = thread.messages.create!(role: "user", content: message_text)
+      Ai::ChatMemoryCandidateRecorder.record_from_message!(
+        user: current_user,
+        thread: thread,
+        user_message: user_message,
+        source_kind: "ai_recommendation"
+      )
       response_text = Ai::RecommendationFollowupResponder.call(
         recommendation: @recommendation,
         context_snapshot: thread.context_snapshot,
@@ -99,10 +105,25 @@ module Api
     end
 
     def can_post?(thread)
-      return false unless @recommendation.generated_for_date == Date.current
+      return false unless current_week_recommendation?
+      if current_user.free_plan?
+        return true if thread.nil?
+
+        return thread.messages.where(role: "user").count.zero?
+      end
       return true if thread.nil?
 
       thread.messages.count < AiRecommendationThread::MAX_MESSAGES
+    end
+
+    def current_week_recommendation?
+      @recommendation.week_start_date == Date.current.beginning_of_week(:monday)
+    end
+
+    def followup_limit_error_message
+      return "1つの今週おすすめにつき、質問は1回までです" if current_user.free_plan?
+
+      "会話上限に達しました（最大20件）"
     end
 
     def remaining_messages_for(thread)

@@ -31,16 +31,7 @@
 .trackFilters__selectSurface {
   position: relative;
   min-width: 0;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
-  background: rgba(255, 255, 255, 0.94);
-  overflow: hidden;
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
-}
-
-.trackFilters__selectSurface.is-focused {
-  border-color: rgba(19, 34, 58, 0.32);
-  box-shadow: 0 8px 16px rgba(12, 28, 54, 0.08);
+  overflow: visible;
 }
 
 .trackFilters__selectSurface.is-disabled {
@@ -49,34 +40,21 @@
 
 .trackFilters__select {
   width: 100%;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  border: none;
-  background: transparent;
-  padding: 0 48px 0 14px;
+}
+
+.trackFilters__selectButton {
   min-height: 48px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: rgba(255, 255, 255, 0.94);
+  padding: 0 14px;
   font-size: 15px;
   font-weight: 700;
   color: rgba(8, 14, 26, 0.9);
-  cursor: pointer;
 }
 
-.trackFilters__select:focus {
-  outline: none;
-}
-
-.trackFilters__select:disabled {
-  cursor: not-allowed;
-}
-
-.trackFilters__selectChevron {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  opacity: 0.64;
+.trackFilters__selectMenu {
+  margin-top: 2px;
 }
 
 .trackFilters__grid3 {
@@ -134,4 +112,33 @@
   .trackFilters__rangeBtn {
     font-size: 12px;
   }
+}
+
+:root[data-theme-mode="dark"] .trackFilters__label {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme-mode="dark"] .trackFilters__selectButton {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .trackFilters__rangeBtn {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.78);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .trackFilters__rangeBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .trackFilters__rangeBtn.is-active {
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.04));
+  color: rgba(255, 255, 255, 0.96);
+  border-color: color-mix(in srgb, var(--accent) 46%, rgba(255, 255, 255, 0.18));
+  box-shadow: none;
 }

@@ -1,9 +1,10 @@
 // frontend/src/features/training/components/AudioPlayer.tsx
 import type { ScaleRange, ScaleType } from "../../../api/scaleTracks";
 import type { CSSProperties } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ScalePatternPreview, { scalePatternFromScaleType } from "./ScalePatternPreview";
 import SessionPlayerCard from "./SessionPlayerCard";
+import AppSelect from "../../../components/AppSelect";
 import "./AudioPlayer.css";
 
 type Props = {
@@ -52,6 +53,14 @@ function labelRangeType(r: ScaleRange) {
   return "高";
 }
 
+function labelRangeCompact(r: ScaleRange) {
+  if (r === "low") return "Low";
+  if (r === "mid") return "Mid";
+  return "High";
+}
+
+const SELECT_LABEL_GAP = "\u2002";
+
 function trainingRangeForType(r: ScaleRange) {
   if (r === "low") return { low: "E3", high: "E4" };
   if (r === "mid") return { low: "G3", high: "G4" };
@@ -79,8 +88,6 @@ export default function AudioPlayer({
   const [loop, setLoop] = useState<boolean>(() => !!loopEnabled);
   const [duration, setDuration] = useState<number>(0);
   const [current, setCurrent] = useState<number>(0);
-  const [scaleMenuOpen, setScaleMenuOpen] = useState(false);
-  const scaleMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -93,29 +100,6 @@ export default function AudioPlayer({
     if (!el) return;
     el.loop = loop;
   }, [audioRef, loop]);
-
-  useEffect(() => {
-    if (!scaleMenuOpen) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!scaleMenuRef.current) return;
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (!scaleMenuRef.current.contains(target)) setScaleMenuOpen(false);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setScaleMenuOpen(false);
-    };
-    window.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [scaleMenuOpen]);
-
-  useEffect(() => {
-    if (disabled) setScaleMenuOpen(false);
-  }, [disabled]);
 
   const progress = useMemo(() => {
     if (!duration || duration <= 0) return 0;
@@ -136,64 +120,26 @@ export default function AudioPlayer({
   return (
     <div className="audioPlayer">
       <div className="audioPlayer__settingsBar">
-        <div
-          className={`audioPlayer__scaleSelectWrap trainingPage__fileBtn${disabled ? " is-disabled" : ""}${scaleMenuOpen ? " is-open" : ""}`}
-          ref={scaleMenuRef}
-        >
-          <button
-            type="button"
-            className="audioPlayer__scaleTrigger"
-            disabled={disabled}
-            onClick={() => setScaleMenuOpen((v) => !v)}
-            aria-label="scale type"
-            aria-haspopup="listbox"
-            aria-expanded={scaleMenuOpen}
-          >
-            <span className="audioPlayer__settingsTriggerLabel">Scale:</span>
-            <span className="audioPlayer__scaleValue">{labelScaleCompact(scaleType)}</span>
-            <span className="audioPlayer__settingsTriggerCaret">▼</span>
-          </button>
-          {scaleMenuOpen && (
-            <div className="audioPlayer__scaleMenu" role="listbox" aria-label="scale options">
-              {scaleTypes.map((t) => {
-                const selectedScale = t === scaleType;
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    role="option"
-                    aria-selected={selectedScale}
-                    className={`audioPlayer__scaleOption${selectedScale ? " is-selected" : ""}`}
-                    onClick={() => {
-                      onChangeScaleType(t);
-                      setScaleMenuOpen(false);
-                    }}
-                  >
-                    {labelScaleCompact(t)}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-        <div className="audioPlayer__rangeInline" role="radiogroup" aria-label="音域タイプ">
-          {rangeTypes.map((r) => {
-            const active = rangeType === r;
-            return (
-              <button
-                key={r}
-                type="button"
-                disabled={disabled}
-                onClick={() => onChangeRangeType(r)}
-                className={`audioPlayer__rangeBtn trainingPage__measurementMiniBtn${active ? " is-active" : ""}`}
-                role="radio"
-                aria-checked={active}
-              >
-                {labelRangeType(r)}
-              </button>
-            );
-          })}
-        </div>
+        <AppSelect
+          value={scaleType}
+          disabled={disabled}
+          onChange={(value) => onChangeScaleType(value as ScaleType)}
+          rootClassName="audioPlayer__appSelectRoot"
+          buttonClassName="audioPlayer__appSelectButton"
+          menuClassName="audioPlayer__appSelectMenu"
+          ariaLabel="scale type"
+          options={scaleTypes.map((t) => ({ value: t, label: `Scale:${SELECT_LABEL_GAP}${labelScaleCompact(t)}` }))}
+        />
+        <AppSelect
+          value={rangeType}
+          disabled={disabled}
+          onChange={(value) => onChangeRangeType(value as ScaleRange)}
+          rootClassName="audioPlayer__appSelectRoot audioPlayer__appSelectRoot--range"
+          buttonClassName="audioPlayer__appSelectButton"
+          menuClassName="audioPlayer__appSelectMenu"
+          ariaLabel="range type"
+          options={rangeTypes.map((r) => ({ value: r, label: `Range:${SELECT_LABEL_GAP}${labelRangeCompact(r)}` }))}
+        />
       </div>
 
       <audio
@@ -228,9 +174,9 @@ export default function AudioPlayer({
             <ScalePatternPreview pattern={scalePatternFromScaleType(scaleType)} size="lg" active={isPlaying} />
           </div>
         }
-        title={undefined}
+        title={labelScaleCompact(scaleType)}
         subtitle={<span className="audioPlayer__rangeGuideInline">{labelRangeType(rangeType)}音域目安 {rangeGuide.low} 〜 {rangeGuide.high}</span>}
-        description={<span className="audioPlayer__timeInlineText">{fmt(current)} / {fmt(duration)}</span>}
+        description={undefined}
         beforeTransport={
           <div className="audioPlayer__seekRow">
             <span className="audioPlayer__time">{fmt(current)}</span>

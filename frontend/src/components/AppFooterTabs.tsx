@@ -3,22 +3,106 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { getLastLogPath } from "../features/log/logNavigation";
 import { useAuth } from "../features/auth/useAuth";
 import { fetchBeginnerMissionGate } from "../features/missions/beginnerMissionGate";
+import { useTheme } from "../features/theme/useTheme";
 import TutorialModal from "./TutorialModal";
-
-// 画像をimport（ViteならこれでOK）
-import logActive from "../assets/tabs/log_active.png";
-import logInactive from "../assets/tabs/log_inactive.png";
-import trainingActive from "../assets/tabs/training_active.png";
-import trainingInactive from "../assets/tabs/training_inactive.png";
-import insightsActive from "../assets/tabs/insights_active.png";
-import insightsInactive from "../assets/tabs/insights_inactive.png";
-import aiChatActive from "../assets/tabs/ai_chat_active.svg";
-import aiChatInactive from "../assets/tabs/ai_chat_inactive.svg";
-import communityActive from "../assets/tabs/community_active.svg";
-import communityInactive from "../assets/tabs/community_inactive.svg";
 
 type TabKey = "log" | "chat" | "training" | "community" | "insights";
 const BEGINNER_LAST_PENDING_KEY_PREFIX = "koelogs:beginner_last_pending:user_";
+
+function LogTabIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+      <path
+        d="M4 10.6L12 4l8 6.6V19a1 1 0 0 1-1 1h-5.4v-5.3a1 1 0 0 0-1-1h-1.2a1 1 0 0 0-1 1V20H5a1 1 0 0 1-1-1v-8.4Z"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ChatTabIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+      <path
+        d="M4.6 6.8a2 2 0 0 1 2-2h10.8a2 2 0 0 1 2 2v7.2a2 2 0 0 1-2 2H10l-3.4 2.8v-2.8H6.6a2 2 0 0 1-2-2V6.8Z"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9.2" cy="10.4" r="0.95" fill={active ? "rgba(255,255,255,0.92)" : "currentColor"} />
+      <circle cx="12" cy="10.4" r="0.95" fill={active ? "rgba(255,255,255,0.92)" : "currentColor"} />
+      <circle cx="14.8" cy="10.4" r="0.95" fill={active ? "rgba(255,255,255,0.92)" : "currentColor"} />
+    </svg>
+  );
+}
+
+function TrainingTabIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+      <rect
+        x="9.1"
+        y="4.2"
+        width="5.8"
+        height="10"
+        rx="2.9"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <path d="M7.2 11.6a4.8 4.8 0 0 0 9.6 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 16.5v3.3M9.4 19.8h5.2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CommunityTabIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+      <circle cx="9.2" cy="8.2" r="2.5" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" />
+      <path
+        d="M4.8 16.9c0-2.2 1.9-4 4.4-4s4.4 1.8 4.4 4"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <circle cx="16.3" cy="9.1" r="2" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M14 16.9c.1-1.8 1.5-3.2 3.4-3.2 1 0 1.9.4 2.5 1.1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function InsightsTabIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+      <path d="M4 18.8h16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <rect x="5.5" y="12.3" width="2.8" height="6.3" rx="0.9" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" />
+      <rect x="10.6" y="9.2" width="2.8" height="9.4" rx="0.9" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" />
+      <rect x="15.7" y="6.1" width="2.8" height="12.5" rx="0.9" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function LockedChatBadgeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+      <rect x="6.8" y="10.4" width="10.4" height="8" rx="2.4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M9.2 10.4V8.8a2.8 2.8 0 0 1 5.6 0v1.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 function readBeginnerLastPending(userId: number): number | null {
   try {
@@ -35,49 +119,44 @@ const BASE_TABS: {
   key: TabKey;
   label: string;
   to: string;
-  iconActive: string;
-  iconInactive: string;
+  renderIcon: (isActive: boolean) => ReturnType<typeof LogTabIcon>;
 }[] = [
   {
     key: "log",
     label: "ログ",
     to: "/log",
-    iconActive: logActive,
-    iconInactive: logInactive,
+    renderIcon: (isActive) => <LogTabIcon active={isActive} />,
   },
   {
     key: "chat",
     label: "AIチャット",
     to: "/chat",
-    iconActive: aiChatActive,
-    iconInactive: aiChatInactive,
+    renderIcon: (isActive) => <ChatTabIcon active={isActive} />,
   },
   {
     key: "training",
     label: "トレーニング",
     to: "/training",
-    iconActive: trainingActive,
-    iconInactive: trainingInactive,
+    renderIcon: (isActive) => <TrainingTabIcon active={isActive} />,
   },
   {
     key: "community",
     label: "コミュニティ",
     to: "/community",
-    iconActive: communityActive,
-    iconInactive: communityInactive,
+    renderIcon: (isActive) => <CommunityTabIcon active={isActive} />,
   },
   {
     key: "insights",
     label: "分析",
     to: "/insights",
-    iconActive: insightsActive,
-    iconInactive: insightsInactive,
+    renderIcon: (isActive) => <InsightsTabIcon active={isActive} />,
   },
 ];
 
 export default function AppFooterTabs() {
   const navigate = useNavigate();
   const { me } = useAuth();
+  const { resolvedMode } = useTheme();
   const [beginnerCompleted, setBeginnerCompleted] = useState<boolean>(false);
   const [chatLockedModalOpen, setChatLockedModalOpen] = useState(false);
   const logTabTo = getLastLogPath();
@@ -120,6 +199,7 @@ export default function AppFooterTabs() {
   }, [me?.id, me?.beginner_missions_completed]);
 
   const chatLocked = !!me && !beginnerCompleted;
+  const styles = useMemo(() => buildStyles(resolvedMode), [resolvedMode]);
   const tabs = useMemo(
     () =>
       BASE_TABS.map((tab) => {
@@ -151,16 +231,9 @@ export default function AppFooterTabs() {
           {({ isActive }) => (
             <>
               <div style={styles.iconWrap}>
-                <img
-                  src={isActive ? t.iconActive : t.iconInactive}
-                  alt=""
-                  aria-hidden="true"
-                  style={{
-                    ...styles.iconImg,
-                    ...(t.key === "chat" && chatLocked ? styles.iconImgLocked : null),
-                    ...(isActive ? styles.iconImgActive : null),
-                  }}
-                />
+                <span style={{ ...styles.iconSvgWrap, ...(t.key === "chat" && chatLocked ? styles.iconSvgLocked : null) }}>
+                  {t.renderIcon(isActive)}
+                </span>
                 {t.key === "chat" && chatLocked && (
                   <span
                     aria-hidden="true"
@@ -168,7 +241,7 @@ export default function AppFooterTabs() {
                       ...styles.lockBadge,
                     }}
                   >
-                    🔒
+                    <LockedChatBadgeIcon />
                   </span>
                 )}
               </div>
@@ -204,8 +277,17 @@ export default function AppFooterTabs() {
 
 const TAB_BAR_H = 58; // ベース高さ（画像っぽい。56〜60で調整可）
 
-const styles: Record<string, React.CSSProperties> = {
-  nav: {
+function buildStyles(mode: "light" | "dark"): Record<string, React.CSSProperties> {
+  const inactiveColor = mode === "dark" ? "rgba(222, 233, 252, 0.74)" : "#9a9aa0";
+  const activeColor = mode === "dark" ? "#60a5fa" : "var(--accent)";
+  const navBackground =
+    mode === "dark"
+      ? "rgba(13, 20, 38, 0.98)"
+      : "#ffffff";
+  const navBorder = mode === "dark" ? "1px solid rgba(129, 154, 209, 0.24)" : "1px solid #ececec";
+
+  return {
+    nav: {
     position: "fixed",
     left: 0,
     right: 0,
@@ -217,16 +299,16 @@ const styles: Record<string, React.CSSProperties> = {
     height: `calc(${TAB_BAR_H}px + env(safe-area-inset-bottom))`,
     paddingBottom: "env(safe-area-inset-bottom)",
 
-    background: "rgb(255, 255, 255)",
+    background: navBackground,
     backdropFilter: "blur(10px)",
-    borderTop: "1px solid rgba(0,0,0,0.06)",
+    borderTop: navBorder,
     display: "grid",
     gridTemplateColumns: "repeat(5, 1fr)",
   },
 
   tab: {
     textDecoration: "none",
-    color: "#8e8e93",
+    color: inactiveColor,
 
     // ✅ 高さいっぱいに広げる（tabの中心がズレない）
     height: "100%",
@@ -235,8 +317,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "center",
 
-    gap: 3,
-    paddingTop: 6,
+    gap: 4,
+    paddingTop: 4,
     fontWeight: 700,
     WebkitTapHighlightColor: "transparent",
   },
@@ -244,37 +326,41 @@ const styles: Record<string, React.CSSProperties> = {
     opacity: 0.86,
   },
 
-  tabActive: { color: "#ff3b45" },
+  tabActive: {
+    color: activeColor,
+    background: "transparent",
+  },
 
-  iconImg: {
+  iconSvgWrap: {
     width: 24,
     height: 24,
-    objectFit: "contain",
-    display: "block",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "inherit",
   },
   iconWrap: {
     position: "relative",
     width: 24,
     height: 24,
   },
-  iconImgLocked: {
+  iconSvgLocked: {
     filter: "grayscale(0.38)",
   },
   lockBadge: {
     position: "absolute",
-    right: -9,
-    top: -8,
-    width: 20,
-    height: 20,
+    right: -7,
+    top: -6,
+    width: 18,
+    height: 18,
     borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.9)",
-    backgroundColor: "#2f6fb7",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.24)",
-    color: "#ffffff",
-    fontSize: 13,
-    lineHeight: "20px",
-    textAlign: "center",
-    fontWeight: 900,
+    border: mode === "dark" ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(89, 117, 137, 0.18)",
+    backgroundColor: mode === "dark" ? "rgba(255,255,255,0.06)" : "#f6fafc",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+    color: mode === "dark" ? "rgba(230,238,252,0.82)" : "#7e919d",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   labelWrap: {
@@ -283,8 +369,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 1,
     lineHeight: 1.1,
   },
-  label: { fontSize: 11, whiteSpace: "nowrap" },
+  label: { fontSize: 11, whiteSpace: "nowrap", fontWeight: 700 },
   labelLocked: {
     color: "#75849b",
   },
-};
+  };
+}

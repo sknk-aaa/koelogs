@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   fetchMe,
   login as apiLogin,
+  loginWithGoogle as apiLoginWithGoogle,
   logout as apiLogout,
   signup as apiSignup,
   type Me,
@@ -31,14 +32,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await refresh();
   }, [refresh]);
 
+  const loginWithGoogle = useCallback(async (credential: string) => {
+    await apiLoginWithGoogle(credential);
+    await refresh();
+  }, [refresh]);
+
   const signup = useCallback(async (
     email: string,
     password: string,
     passwordConfirmation: string
   ) => {
-    await apiSignup(email, password, passwordConfirmation);
-    await refresh();
-  }, [refresh]);
+    return apiSignup(email, password, passwordConfirmation);
+  }, []);
 
   const logout = useCallback(async () => {
     await apiLogout();
@@ -46,8 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value: AuthState = useMemo(
-    () => ({ me, isLoading, refresh, login, signup, logout }),
-    [me, isLoading, refresh, login, signup, logout]
+    () => ({ me, isLoading, refresh, login, loginWithGoogle, signup, logout }),
+    [me, isLoading, refresh, login, loginWithGoogle, signup, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

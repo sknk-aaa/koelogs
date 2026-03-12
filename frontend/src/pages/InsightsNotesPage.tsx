@@ -11,7 +11,10 @@ import type { MeasurementPoint } from "../types/insights";
 import { useAuth } from "../features/auth/useAuth";
 import MetronomeLoader from "../components/MetronomeLoader";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
-import premiumPreviewInsights from "../assets/premium/preview-insights.svg";
+import insightsTrendCyan from "../assets/premium/insights-trend-cyan.svg";
+import insightsHistoryCyan from "../assets/premium/insights-history-cyan.svg";
+import insightsAnalysisCyan from "../assets/premium/insights-analysis-cyan.svg";
+import insightsLabelIcon from "../assets/premium/insights-label-icon.svg";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -34,6 +37,7 @@ type LatestMeasurements = {
 };
 
 const PERIODS = [7, 30, 90, 365] as const;
+const PREMIUM_PERIODS = [30, 90, 365] as const;
 const FREE_MINI_GRAPH_DAYS = 7;
 const FREE_HISTORY_LIMIT = 1;
 const METRIC_TABS = [
@@ -478,7 +482,6 @@ export default function InsightsNotesPage() {
   const { me, isLoading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
-  const [monthFilter, setMonthFilter] = useState<string>("all");
   const [metricTab, setMetricTab] = useState<MetricTabKey>(() => parseMetricTab(searchParams.get("metric")));
   const [rangeVoiceTab, setRangeVoiceTab] = useState<RangeVoiceTab>("total");
   const [state, setState] = useState<LoadState>({ kind: "loading" });
@@ -495,11 +498,19 @@ export default function InsightsNotesPage() {
   const guestMode = !authLoading && !me;
   const isPremium = me?.plan_tier === "premium";
   const isFreeLimited = !guestMode && !authLoading && !isPremium;
+  const visiblePeriods: readonly number[] = isFreeLimited ? [FREE_MINI_GRAPH_DAYS] : PREMIUM_PERIODS;
 
   useEffect(() => {
     if (!isFreeLimited) return;
     if (days !== FREE_MINI_GRAPH_DAYS) {
       setDays(FREE_MINI_GRAPH_DAYS);
+    }
+  }, [days, isFreeLimited]);
+
+  useEffect(() => {
+    if (isFreeLimited) return;
+    if (days === FREE_MINI_GRAPH_DAYS) {
+      setDays(PREMIUM_PERIODS[0]);
     }
   }, [days, isFreeLimited]);
 
@@ -559,52 +570,29 @@ export default function InsightsNotesPage() {
     setMetricTab((prev) => (prev === metric ? prev : metric));
   }, [searchParams]);
 
-  const availableMonths = useMemo(() => {
-    if (state.kind !== "ready") return [] as string[];
-    const sourceRuns =
-      metricTab === "range"
-        ? state.rangeRuns
-        : metricTab === "long_tone"
-          ? state.longToneRuns
-          : metricTab === "volume_stability"
-            ? state.volumeRuns
-            : state.pitchAccuracyRuns;
-    const months = new Set<string>();
-    sourceRuns.forEach((run) => {
-      months.add(run.recorded_at.slice(0, 7));
-    });
-    return Array.from(months).sort((a, b) => b.localeCompare(a));
-  }, [state, metricTab]);
-
-  useEffect(() => {
-    if (monthFilter === "all") return;
-    if (!availableMonths.includes(monthFilter)) {
-      // 期間トグル変更で選択月が範囲外になった場合は "すべて" に戻す。
-      setMonthFilter("all");
-    }
-  }, [monthFilter, availableMonths]);
-  const effectiveMonthFilter = isFreeLimited ? "all" : monthFilter;
-
   const monthFilteredRangeRuns = useMemo(() => {
     if (state.kind !== "ready") return [] as MeasurementRun[];
-    if (effectiveMonthFilter === "all") return state.rangeRuns;
-    return state.rangeRuns.filter((run) => run.recorded_at.slice(0, 7) === effectiveMonthFilter);
-  }, [state, effectiveMonthFilter]);
+    return pickDailyRepresentativeRuns(state.rangeRuns, (run) => asRangeResult(run.result)?.range_semitones ?? null, "max");
+  }, [state]);
   const monthFilteredLongToneRuns = useMemo(() => {
     if (state.kind !== "ready") return [] as MeasurementRun[];
-    if (effectiveMonthFilter === "all") return state.longToneRuns;
-    return state.longToneRuns.filter((run) => run.recorded_at.slice(0, 7) === effectiveMonthFilter);
-  }, [state, effectiveMonthFilter]);
+    return pickDailyRepresentativeRuns(state.longToneRuns, (run) => asLongToneResult(run.result)?.sustain_sec ?? null, "max");
+  }, [state]);
   const monthFilteredVolumeRuns = useMemo(() => {
     if (state.kind !== "ready") return [] as MeasurementRun[];
-    if (effectiveMonthFilter === "all") return state.volumeRuns;
-    return state.volumeRuns.filter((run) => run.recorded_at.slice(0, 7) === effectiveMonthFilter);
-  }, [state, effectiveMonthFilter]);
+    return pickDailyRepresentativeRuns(state.volumeRuns, (run) => asVolumeResult(run.result)?.loudness_range_pct ?? null, "max");
+  }, [state]);
   const monthFilteredPitchAccuracyRuns = useMemo(() => {
     if (state.kind !== "ready") return [] as MeasurementRun[];
-    if (effectiveMonthFilter === "all") return state.pitchAccuracyRuns;
-    return state.pitchAccuracyRuns.filter((run) => run.recorded_at.slice(0, 7) === effectiveMonthFilter);
-  }, [state, effectiveMonthFilter]);
+    return pickDailyRepresentativeRuns(
+      state.pitchAccuracyRuns,
+      (run) => {
+        const result = asPitchAccuracyResult(run.result);
+        return result?.avg_cents_error ?? result?.accuracy_score ?? null;
+      },
+      "min"
+    );
+  }, [state]);
   const displayedRangeRuns = useMemo(
     () => (isFreeLimited ? trimRunsToRecentDays(monthFilteredRangeRuns, FREE_MINI_GRAPH_DAYS) : monthFilteredRangeRuns),
     [isFreeLimited, monthFilteredRangeRuns]
@@ -684,32 +672,38 @@ export default function InsightsNotesPage() {
   }, [displayedRangeRuns]);
 
   const longTonePoints = useMemo(() => {
-    return displayedLongToneRuns.map((run) => {
-      const result = asLongToneResult(run.result);
-      return {
-        date: run.recorded_at.slice(0, 10),
-        value: result?.sustain_sec ?? null,
-      };
-    });
+    return displayedLongToneRuns
+      .map((run) => {
+        const result = asLongToneResult(run.result);
+        return {
+          date: run.recorded_at.slice(0, 10),
+          value: result?.sustain_sec ?? null,
+        };
+      })
+      .filter((point): point is MeasurementPoint & { value: number } => point.value != null);
   }, [displayedLongToneRuns]);
 
   const volumePoints = useMemo(() => {
-    return displayedVolumeRuns.map((run) => {
-      const result = asVolumeResult(run.result);
-      return {
-        date: run.recorded_at.slice(0, 10),
-        value: result?.loudness_range_pct ?? null,
-      };
-    });
+    return displayedVolumeRuns
+      .map((run) => {
+        const result = asVolumeResult(run.result);
+        return {
+          date: run.recorded_at.slice(0, 10),
+          value: result?.loudness_range_pct ?? null,
+        };
+      })
+      .filter((point): point is MeasurementPoint & { value: number } => point.value != null);
   }, [displayedVolumeRuns]);
   const pitchAccuracySemitonePoints = useMemo(() => {
-    return displayedPitchAccuracyRuns.map((run) => {
-      const result = asPitchAccuracyResult(run.result);
-      return {
-        date: run.recorded_at.slice(0, 10),
-        value: result?.avg_cents_error != null ? Math.max(0, result.avg_cents_error / 100) : null,
-      };
-    });
+    return displayedPitchAccuracyRuns
+      .map((run) => {
+        const result = asPitchAccuracyResult(run.result);
+        return {
+          date: run.recorded_at.slice(0, 10),
+          value: result?.avg_cents_error != null ? Math.max(0, result.avg_cents_error / 100) : null,
+        };
+      })
+      .filter((point): point is MeasurementPoint & { value: number } => point.value != null);
   }, [displayedPitchAccuracyRuns]);
 
   const rangeBandPoints =
@@ -746,6 +740,18 @@ export default function InsightsNotesPage() {
     if (monthFilteredLongToneRuns.length === 0) return null;
     return asLongToneResult(monthFilteredLongToneRuns[monthFilteredLongToneRuns.length - 1].result);
   }, [monthFilteredLongToneRuns]);
+  const representativeLatest = useMemo(() => {
+    const fallback =
+      state.kind === "ready"
+        ? state.latest
+        : { range: null, long_tone: null, volume_stability: null, pitch_accuracy: null };
+    return {
+      range: latestRunFrom(monthFilteredRangeRuns) ?? fallback.range,
+      long_tone: latestRunFrom(monthFilteredLongToneRuns) ?? fallback.long_tone,
+      volume_stability: latestRunFrom(monthFilteredVolumeRuns) ?? fallback.volume_stability,
+      pitch_accuracy: latestRunFrom(monthFilteredPitchAccuracyRuns) ?? fallback.pitch_accuracy,
+    };
+  }, [monthFilteredLongToneRuns, monthFilteredPitchAccuracyRuns, monthFilteredRangeRuns, monthFilteredVolumeRuns, state]);
   const explicitMetricMode = searchParams.has("metric");
   const metricLabel = METRIC_TABS.find((v) => v.key === metricTab)?.label ?? "音域";
   const rangeBestRun = useMemo(() => {
@@ -770,7 +776,7 @@ export default function InsightsNotesPage() {
 
   useEffect(() => {
     setBestMenuOpen(false);
-  }, [metricTab, days, monthFilter]);
+  }, [metricTab, days]);
 
   useEffect(() => {
     return () => {
@@ -857,14 +863,12 @@ export default function InsightsNotesPage() {
   };
 
   return (
-    <div className="page insightsPage">
+    <div className="page insightsPage insightsNotesPage">
       <div className="insightsPage__bg" aria-hidden="true" />
 
       <section className="card insightsHero">
         <div className="insightsHero__head">
           <div>
-            <div className="insightsHero__kicker">Insights</div>
-            <h1 className="insightsHero__title">測定の推移（詳細）</h1>
             <p className="insightsHero__sub">
               {explicitMetricMode ? `${metricLabel}の詳細データを表示しています。` : "音域・ロングトーン・音量安定性・音程精度を確認できます。"}
             </p>
@@ -875,48 +879,21 @@ export default function InsightsNotesPage() {
         </div>
 
         <div className="insightsControlsInline">
-          <div className="insightsSegment">
-            {PERIODS.map((p) => {
+          <div className="insightsSegment insightsTimePage__segment">
+            {visiblePeriods.map((p) => {
               const active = p === days;
               return (
                 <button
                   key={p}
                   type="button"
-                  onClick={() => {
-                    if (isFreeLimited && p !== days) {
-                      setPremiumModalOpen(true);
-                      return;
-                    }
-                    setDays(p);
-                  }}
-                  className={`insightsSegment__btn${active ? " is-active" : ""}${
-                    isFreeLimited && p !== FREE_MINI_GRAPH_DAYS ? " is-locked" : ""
-                  }`}
+                  onClick={() => setDays(p as (typeof PERIODS)[number])}
+                  className={`insightsSegment__btn${active ? " is-active" : ""}`}
                 >
-                  {p}日
+                  {p} DAYS
                 </button>
               );
             })}
           </div>
-          {!isFreeLimited && (
-            <label className="insightsMonthFilter">
-              <span>月</span>
-              <select
-                value={monthFilter}
-                onChange={(e) => {
-                  setMonthFilter(e.target.value);
-                }}
-                className="insightsSelect insightsSelect--month"
-              >
-                <option value="all">すべて</option>
-                {availableMonths.map((m) => (
-                  <option key={m} value={m}>
-                    {formatMonthLabel(m)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
         </div>
         {isFreeLimited && (
           <div className="insightsFreeMiniPill">無料プランは7日まで表示。期間拡張はプレミアムで解放されます。</div>
@@ -953,16 +930,13 @@ export default function InsightsNotesPage() {
             <>
               <section className="insightsCard">
                 <div className="insightsCard__head insightsCard__head--withMenu">
-                  <div className="insightsCard__title">
-                    {metricTab === "range"
-                      ? "音域（過去最高）"
-                      : metricTab === "long_tone"
-                        ? "ロングトーン（最高記録）"
-                        : metricTab === "volume_stability"
-                          ? "音量安定性（最高記録）"
-                          : metricTab === "pitch_accuracy"
-                            ? "音程精度（最高記録）"
-                            : `${metricLabel}（最新）`}
+                  <div className="insightsCard__headMain">
+                    <div className="insightsCard__eyebrowRow">
+                      <span className="insightsCard__eyebrowIcon" aria-hidden="true">
+                        <BestSectionIcon />
+                      </span>
+                      <div className="insightsCard__eyebrow">BEST</div>
+                    </div>
                   </div>
                   {!guestMode && excludableBestTarget && (
                     <div className="insightsBestMenu">
@@ -974,7 +948,9 @@ export default function InsightsNotesPage() {
                         aria-label="最高記録メニューを開く"
                         disabled={excludeBusy}
                       >
-                        ...
+                        <span className="insightsBestMenu__triggerIcon" aria-hidden="true">
+                          <EditPencilIcon />
+                        </span>
                       </button>
                       {bestMenuOpen && (
                         <div className="insightsBestMenu__panel" role="menu" aria-label="最高記録メニュー">
@@ -993,7 +969,7 @@ export default function InsightsNotesPage() {
                   )}
                 </div>
                 <LatestSingleMetricCard
-                  latest={state.latest}
+                  latest={representativeLatest}
                   metricTab={metricTab}
                   rangeBestRun={rangeBestRun}
                   longToneBest={longToneBest}
@@ -1006,7 +982,15 @@ export default function InsightsNotesPage() {
 
               <section className="insightsCard">
                 <div className="insightsCard__head">
-                  <div className="insightsCard__title">{metricLabel}の成長推移</div>
+                  <div className="insightsCard__headMain">
+                    <div className="insightsCard__eyebrowRow">
+                      <span className="insightsCard__eyebrowIcon" aria-hidden="true">
+                        <HistorySectionIcon />
+                      </span>
+                      <div className="insightsCard__eyebrow">HISTORY</div>
+                    </div>
+                    <div className="insightsMuted">{days}日分の測定履歴をグラフで確認できます。</div>
+                  </div>
                 </div>
                 {isFreeLimited && <div className="insightsGraphWindowHint">7日間のグラフを表示中</div>}
                 {metricTab === "range" ? (
@@ -1035,24 +1019,13 @@ export default function InsightsNotesPage() {
                       </button>
                     </div>
                     <RangeBandTrendChart points={rangeBandPoints} compact={isFreeLimited} />
-                    <MetricScoreHistoryList
-                      runs={monthFilteredRangeRuns}
-                      latestLabel={formatMetricValue(metricLatest, metricTab)}
-                      bestLabel={formatMetricValue(metricBest, metricTab)}
-                      valueExtractor={(run) => rangeTopMidiForTab(asRangeResult(run.result), rangeVoiceTab)}
-                      detailRenderer={(run) => formatRangeHistoryDetail(asRangeResult(run.result), rangeVoiceTab)}
-                      valueFormatter={(v) => midiToNote(Math.round(v))}
-                      deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}半音`}
-                      lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                      onRequestUnlock={() => setPremiumModalOpen(true)}
-                    />
                   </>
                 ) : metricTab === "long_tone" ? (
                   <LongToneTrendChart points={metricPoints} compact={isFreeLimited} />
                 ) : metricTab === "volume_stability" ? (
                   <ScoreTrendChart
                     points={metricPoints}
-                    color="#f0c419"
+                    color="#52c176"
                     unit="%"
                     tickFormatter={(v) => `${v.toFixed(0)}%`}
                     compact={isFreeLimited}
@@ -1068,7 +1041,7 @@ export default function InsightsNotesPage() {
                 ) : metricTab === "pitch_accuracy" ? (
                   <ScoreTrendChart
                     points={metricPoints}
-                    color="#2563eb"
+                    color="#eab83a"
                     unit="半音"
                     tickFormatter={(v) => `${v.toFixed(1)}半音`}
                     higherIsBetter={false}
@@ -1084,6 +1057,40 @@ export default function InsightsNotesPage() {
                 ) : (
                   <SimpleTrendChart points={metricPoints} compact={isFreeLimited} />
                 )}
+                {metricTab !== "range" && metricTab !== "long_tone" && metricTab !== "volume_stability" && metricTab !== "pitch_accuracy" && (
+                  <div className="insightsSummaryRow" style={{ marginTop: 10 }}>
+                    <div className="insightsBadge">最新: {formatMetricValue(metricLatest, metricTab)}</div>
+                    <div className="insightsBadge">最大: {formatMetricValue(metricBest, metricTab)}</div>
+                  </div>
+                )}
+              </section>
+
+              <section className="insightsCard">
+                <div className="insightsCard__head">
+                  <div className="insightsCard__headMain">
+                    <div className="insightsCard__eyebrowRow">
+                      <span className="insightsCard__eyebrowIcon" aria-hidden="true">
+                        <RecordsSectionIcon />
+                      </span>
+                      <div className="insightsCard__eyebrow">RECORDS</div>
+                    </div>
+                    <div className="insightsMuted insightsNotesPage__sectionNote">選択期間内の測定履歴を一覧で確認できます。</div>
+                  </div>
+                </div>
+                {metricTab === "range" && (
+                  <MetricScoreHistoryList
+                    runs={monthFilteredRangeRuns}
+                    latestLabel={formatMetricValue(metricLatest, metricTab)}
+                    bestLabel={formatMetricValue(metricBest, metricTab)}
+                    valueExtractor={(run) => rangeTopMidiForTab(asRangeResult(run.result), rangeVoiceTab)}
+                    detailRenderer={(run) => formatRangeHistoryDetail(asRangeResult(run.result), rangeVoiceTab)}
+                    valueFormatter={(v) => midiToNote(Math.round(v))}
+                    deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}半音`}
+                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                    onRequestUnlock={() => setPremiumModalOpen(true)}
+                    embedded
+                  />
+                )}
                 {metricTab === "long_tone" && (
                   <LongToneHistoryList
                     runs={monthFilteredLongToneRuns}
@@ -1091,6 +1098,7 @@ export default function InsightsNotesPage() {
                     bestLabel={formatMetricValue(metricBest, metricTab)}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
                     onRequestUnlock={() => setPremiumModalOpen(true)}
+                    embedded
                   />
                 )}
                 {metricTab === "volume_stability" && (
@@ -1110,6 +1118,7 @@ export default function InsightsNotesPage() {
                     deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
                     onRequestUnlock={() => setPremiumModalOpen(true)}
+                    embedded
                   />
                 )}
                 {metricTab === "pitch_accuracy" && (
@@ -1133,13 +1142,8 @@ export default function InsightsNotesPage() {
                     higherIsBetter={false}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
                     onRequestUnlock={() => setPremiumModalOpen(true)}
+                    embedded
                   />
-                )}
-                {metricTab !== "range" && metricTab !== "long_tone" && metricTab !== "volume_stability" && metricTab !== "pitch_accuracy" && (
-                  <div className="insightsSummaryRow" style={{ marginTop: 10 }}>
-                    <div className="insightsBadge">最新: {formatMetricValue(metricLatest, metricTab)}</div>
-                    <div className="insightsBadge">最大: {formatMetricValue(metricBest, metricTab)}</div>
-                  </div>
                 )}
               </section>
             </>
@@ -1147,14 +1151,34 @@ export default function InsightsNotesPage() {
             <>
               <section className="insightsCard">
                 <div className="insightsCard__head">
-                  <div className="insightsCard__title">最新値</div>
+                  <div className="insightsCard__headMain">
+                    <div className="insightsCard__eyebrowRow">
+                      <span className="insightsCard__eyebrowIcon" aria-hidden="true">
+                        <BestSectionIcon />
+                      </span>
+                      <div className="insightsCard__eyebrow">BEST</div>
+                    </div>
+                  </div>
                 </div>
-                <LatestSummaryCards latest={state.latest} rangeBestRun={rangeBestRun} longToneBest={longToneBest} longToneBestRun={longToneBestRun} />
+                <LatestSummaryCards
+                  latest={representativeLatest}
+                  rangeBestRun={rangeBestRun}
+                  longToneBest={longToneBest}
+                  longToneBestRun={longToneBestRun}
+                />
               </section>
 
               <section className="insightsCard">
                 <div className="insightsCard__head">
-                  <div className="insightsCard__title">成長推移</div>
+                  <div className="insightsCard__headMain">
+                    <div className="insightsCard__eyebrowRow">
+                      <span className="insightsCard__eyebrowIcon" aria-hidden="true">
+                        <HistorySectionIcon />
+                      </span>
+                      <div className="insightsCard__eyebrow">HISTORY</div>
+                    </div>
+                    <div className="insightsMuted">{days}日分の測定履歴をグラフで確認できます。</div>
+                  </div>
                 </div>
                 {isFreeLimited && <div className="insightsGraphWindowHint">7日間のグラフを表示中</div>}
                 <div className="insightsSegment" style={{ marginBottom: 10 }}>
@@ -1204,24 +1228,13 @@ export default function InsightsNotesPage() {
                       </button>
                     </div>
                     <RangeBandTrendChart points={rangeBandPoints} compact={isFreeLimited} />
-                    <MetricScoreHistoryList
-                      runs={monthFilteredRangeRuns}
-                      latestLabel={formatMetricValue(metricLatest, metricTab)}
-                      bestLabel={formatMetricValue(metricBest, metricTab)}
-                      valueExtractor={(run) => rangeTopMidiForTab(asRangeResult(run.result), rangeVoiceTab)}
-                      detailRenderer={(run) => formatRangeHistoryDetail(asRangeResult(run.result), rangeVoiceTab)}
-                      valueFormatter={(v) => midiToNote(Math.round(v))}
-                      deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}半音`}
-                      lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                      onRequestUnlock={() => setPremiumModalOpen(true)}
-                    />
                   </>
                 ) : metricTab === "long_tone" ? (
                   <LongToneTrendChart points={metricPoints} compact={isFreeLimited} />
                 ) : metricTab === "volume_stability" ? (
                   <ScoreTrendChart
                     points={metricPoints}
-                    color="#f0c419"
+                    color="#52c176"
                     unit="%"
                     tickFormatter={(v) => `${v.toFixed(0)}%`}
                     compact={isFreeLimited}
@@ -1237,7 +1250,7 @@ export default function InsightsNotesPage() {
                 ) : metricTab === "pitch_accuracy" ? (
                   <ScoreTrendChart
                     points={metricPoints}
-                    color="#2563eb"
+                    color="#eab83a"
                     unit="半音"
                     tickFormatter={(v) => `${v.toFixed(1)}半音`}
                     higherIsBetter={false}
@@ -1253,7 +1266,40 @@ export default function InsightsNotesPage() {
                 ) : (
                   <SimpleTrendChart points={metricPoints} compact={isFreeLimited} />
                 )}
+                {metricTab !== "range" && metricTab !== "long_tone" && metricTab !== "volume_stability" && metricTab !== "pitch_accuracy" && (
+                  <div className="insightsSummaryRow" style={{ marginTop: 10 }}>
+                    <div className="insightsBadge">最新: {formatMetricValue(metricLatest, metricTab)}</div>
+                    <div className="insightsBadge">最大: {formatMetricValue(metricBest, metricTab)}</div>
+                  </div>
+                )}
+              </section>
 
+              <section className="insightsCard">
+                <div className="insightsCard__head">
+                  <div className="insightsCard__headMain">
+                    <div className="insightsCard__eyebrowRow">
+                      <span className="insightsCard__eyebrowIcon" aria-hidden="true">
+                        <RecordsSectionIcon />
+                      </span>
+                      <div className="insightsCard__eyebrow">RECORDS</div>
+                    </div>
+                    <div className="insightsMuted insightsNotesPage__sectionNote">選択期間内の測定履歴を一覧で確認できます。</div>
+                  </div>
+                </div>
+                {metricTab === "range" && (
+                  <MetricScoreHistoryList
+                    runs={monthFilteredRangeRuns}
+                    latestLabel={formatMetricValue(metricLatest, metricTab)}
+                    bestLabel={formatMetricValue(metricBest, metricTab)}
+                    valueExtractor={(run) => rangeTopMidiForTab(asRangeResult(run.result), rangeVoiceTab)}
+                    detailRenderer={(run) => formatRangeHistoryDetail(asRangeResult(run.result), rangeVoiceTab)}
+                    valueFormatter={(v) => midiToNote(Math.round(v))}
+                    deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}半音`}
+                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
+                    onRequestUnlock={() => setPremiumModalOpen(true)}
+                    embedded
+                  />
+                )}
                 {metricTab === "long_tone" && (
                   <LongToneHistoryList
                     runs={monthFilteredLongToneRuns}
@@ -1261,6 +1307,7 @@ export default function InsightsNotesPage() {
                     bestLabel={formatMetricValue(metricBest, metricTab)}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
                     onRequestUnlock={() => setPremiumModalOpen(true)}
+                    embedded
                   />
                 )}
                 {metricTab === "volume_stability" && (
@@ -1280,6 +1327,7 @@ export default function InsightsNotesPage() {
                     deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
                     onRequestUnlock={() => setPremiumModalOpen(true)}
+                    embedded
                   />
                 )}
                 {metricTab === "pitch_accuracy" && (
@@ -1303,13 +1351,8 @@ export default function InsightsNotesPage() {
                     higherIsBetter={false}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
                     onRequestUnlock={() => setPremiumModalOpen(true)}
+                    embedded
                   />
-                )}
-                {metricTab !== "range" && metricTab !== "long_tone" && metricTab !== "volume_stability" && metricTab !== "pitch_accuracy" && (
-                  <div className="insightsSummaryRow" style={{ marginTop: 10 }}>
-                    <div className="insightsBadge">最新: {formatMetricValue(metricLatest, metricTab)}</div>
-                    <div className="insightsBadge">最大: {formatMetricValue(metricBest, metricTab)}</div>
-                  </div>
                 )}
               </section>
             </>
@@ -1320,22 +1363,66 @@ export default function InsightsNotesPage() {
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
         variant="lp"
-        previewImageSrc={premiumPreviewInsights}
-        previewImageAlt="分析詳細のプレビュー"
-        title="分析詳細をフル表示する"
+        tone="log"
+        sectionLabel="INSIGHTS"
+        sectionLabelIconSrc={insightsLabelIcon}
+        title="分析をもっと深く見る"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");
         }}
-        description="無料プランは7日グラフと一部履歴まで表示されます。"
-        flowSteps={[
-          { title: "全期間の推移を確認", sub: "30日 / 90日 / 365日 / 月で比較", pill: "全期間" },
-          { title: "履歴を深掘り", sub: "測定履歴を全表示して確認", pill: "全履歴" },
-          { title: "変化を判断", sub: "差分を見て改善の優先度を決定", pill: "分析強化" },
+        description="無料プランでは7日間のみ表示されます。"
+        featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
+        featureCards={[
+          { iconSrc: insightsTrendCyan, title: "TREND", sub: "30日・90日・365日ごとの推移を、グラフで確認できます。" },
+          { iconSrc: insightsHistoryCyan, title: "HISTORY", sub: "これまでの測定履歴を一覧で確認しながら、過去の記録を振り返れます。" },
+          { iconSrc: insightsAnalysisCyan, title: "ANALYSIS", sub: "数値の変化をもとに、前回比や成長の幅を確認できます。" },
         ]}
-        ctaLabel="プレミアムを見る"
+        ctaLabel="プレミアムを試す"
       />
     </div>
+  );
+}
+
+function BestSectionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+      <circle cx="12" cy="8.8" r="3.6" />
+      <path className="accent" d="m10.6 8.8 1 1 2-2.1" />
+      <path d="M9.1 12.1 7.8 18.6l4.2-2.3 4.2 2.3-1.3-6.5" />
+    </svg>
+  );
+}
+
+function HistorySectionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+      <path d="M5 18.5h14" />
+      <rect x="6.3" y="11.5" width="2.6" height="5" rx="1.1" />
+      <rect className="accent" x="10.7" y="8.3" width="2.6" height="8.2" rx="1.1" />
+      <rect x="15.1" y="5.8" width="2.6" height="10.7" rx="1.1" />
+    </svg>
+  );
+}
+
+function RecordsSectionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+      <rect x="5.5" y="4.5" width="13" height="15" rx="2.2" />
+      <path className="accent" d="M8.5 9h7" />
+      <path d="M8.5 12.5h7" />
+      <path d="M8.5 16h4.2" />
+    </svg>
+  );
+}
+
+function EditPencilIcon() {
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M4 20h4.2l9.9-9.9-4.2-4.2L4 15.8Z" />
+      <path d="m12.8 6.1 4.2 4.2" />
+      <path d="M4 20h16" />
+    </svg>
   );
 }
 
@@ -1351,6 +1438,37 @@ function trimRunsToRecentDays(runs: MeasurementRun[], days: number): Measurement
     const runMs = Date.parse(`${runDate}T00:00:00Z`);
     return Number.isFinite(runMs) && runMs >= cutoff;
   });
+}
+
+function pickDailyRepresentativeRuns(
+  runs: MeasurementRun[],
+  valueExtractor: (run: MeasurementRun) => number | null,
+  mode: "max" | "min"
+): MeasurementRun[] {
+  if (runs.length <= 1) return runs;
+  const byDate = new Map<string, { run: MeasurementRun; value: number | null }>();
+  runs.forEach((run) => {
+    const date = run.recorded_at.slice(0, 10);
+    const value = valueExtractor(run);
+    const current = byDate.get(date);
+    if (!current) {
+      byDate.set(date, { run, value });
+      return;
+    }
+    if (value == null) return;
+    if (current.value == null) {
+      byDate.set(date, { run, value });
+      return;
+    }
+    const isBetter = mode === "max" ? value > current.value : value < current.value;
+    const isSameButLater = value === current.value && run.recorded_at > current.run.recorded_at;
+    if (isBetter || isSameButLater) {
+      byDate.set(date, { run, value });
+    }
+  });
+  return Array.from(byDate.values())
+    .map(({ run }) => run)
+    .sort((a, b) => a.recorded_at.localeCompare(b.recorded_at));
 }
 
 function nextRunsAfterExcluding(runs: MeasurementRun[], runId: number): MeasurementRun[] {
@@ -1421,15 +1539,14 @@ function LatestSingleMetricCard({
 
   if (metricTab === "long_tone") {
     return (
-      <div className="insightsMeasureCard">
-        <LongToneDial
+      <>
+        <TopStyleLongToneCard
           seconds={longToneBestRun?.sec ?? longTone?.sustain_sec ?? null}
-          note={longToneBestRun?.note ?? longTone?.sustain_note ?? null}
           bestSeconds={longToneBest}
-          recordedAt={longToneBestRun?.run.recorded_at ?? null}
-          latestSeconds={longToneLatest?.sustain_sec ?? null}
+          note={longToneBestRun?.note ?? longTone?.sustain_note ?? null}
         />
-      </div>
+        {longToneBestRun?.run.recorded_at && <div className="insightsMuted insightsMuted--right">記録日: {longToneBestRun.run.recorded_at.slice(0, 10)}</div>}
+      </>
     );
   }
 
@@ -1445,8 +1562,8 @@ function LatestSingleMetricCard({
   if (metricTab === "volume_stability") {
     return (
       <>
-        <VolumeStabilityGaugeCard volume={volume} />
-        {volumeRecordedAt && <div className="insightsMuted">記録日: {volumeRecordedAt.slice(0, 10)}</div>}
+        <TopStyleVolumeCard volume={volume} />
+        {volumeRecordedAt && <div className="insightsMuted insightsMuted--right">記録日: {volumeRecordedAt.slice(0, 10)}</div>}
       </>
     );
   }
@@ -1557,19 +1674,76 @@ function LatestSummaryCards({
   );
 }
 
-function VolumeStabilityGaugeCard({ volume }: { volume: ReturnType<typeof asVolumeResult> | null }) {
+function TopStyleVolumeCard({ volume }: { volume: ReturnType<typeof asVolumeResult> | null }) {
   return (
     <div className="insightsGaugePanel">
-      <SimpleCircleGauge
-        label="許容幅内率（±3dB）"
-        value={volume?.loudness_range_pct ?? null}
-        unit="%"
-        progress={volume?.loudness_range_pct != null ? Math.max(0, Math.min(1, volume.loudness_range_pct / 100)) : 0}
-        color="#ffe06a"
-      />
-      <div className="insightsGaugeMeta">
-        <span>平均 {formatDb(volume?.avg_loudness_db ?? null)}</span>
-        <span>範囲 {volume?.loudness_range_db != null ? `${volume.loudness_range_db.toFixed(1)} dB` : "-"}</span>
+      <div className="insightsGaugeLead">
+        許容幅内率 (平均±3dB)
+      </div>
+      <div className="insightsGaugeRow">
+        <TopStyleGauge
+          value={volume?.loudness_range_pct ?? null}
+          unit="%"
+          progress={volume?.loudness_range_pct != null ? Math.max(0, Math.min(1, volume.loudness_range_pct / 100)) : 0}
+          tone="volume"
+        />
+        <div className="insightsGaugeMeta insightsGaugeMeta--side">
+          <span>平均 {formatDb(volume?.avg_loudness_db ?? null)}</span>
+          <span>範囲 {volume?.loudness_range_db != null ? `${volume.loudness_range_db.toFixed(1)} dB` : "-"}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TopStyleLongToneCard({
+  seconds,
+  bestSeconds,
+  note,
+}: {
+  seconds: number | null;
+  bestSeconds: number | null;
+  note: string | null;
+}) {
+  const progress = seconds != null ? Math.max(0, Math.min(1, seconds / 60)) : 0;
+  return (
+    <div className="insightsGaugePanel">
+      <div className="insightsGaugeRow">
+        <TopStyleGauge value={seconds} unit="sec" progress={progress} tone="longTone" />
+        <div className="insightsGaugeMeta insightsGaugeMeta--side">
+          <span>ベスト {bestSeconds != null ? `${bestSeconds.toFixed(1)}s` : "—"}</span>
+          <span>音程 {note ?? "-"}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TopStyleGauge({
+  value,
+  unit,
+  progress,
+  tone,
+}: {
+  value: number | null;
+  unit: string;
+  progress: number;
+  tone: "longTone" | "volume";
+}) {
+  const p = Math.max(0, Math.min(1, progress));
+  const valueLabel =
+    value != null ? (unit === "%" ? Math.round(value).toString() : value.toFixed(1)) : "-";
+  return (
+    <div className="insightsMiniRingWrap">
+      <div
+        className={`insightsMiniRing${tone === "volume" ? " insightsMiniRing--volume" : ""}`}
+        style={{ ["--ring-progress" as string]: String(p) }}
+        aria-hidden="true"
+      >
+        <span className="insightsMiniRing__label">
+          <strong>{valueLabel}</strong>
+          <small>{unit}</small>
+        </span>
       </div>
     </div>
   );
@@ -1615,52 +1789,6 @@ function PitchAccuracySummaryCard({ pitchAccuracy }: { pitchAccuracy: ReturnType
         <span>分析ノート数: {noteCount ?? "-"}</span>
         {score != null && <span>スコア {score.toFixed(1)}点</span>}
         <span>平均ズレ: {avgCents != null ? `${avgCents.toFixed(1)} cent` : "-"}</span>
-      </div>
-    </div>
-  );
-}
-
-function SimpleCircleGauge({
-  label,
-  value,
-  unit,
-  progress,
-  color,
-}: {
-  label: string;
-  value: number | null;
-  unit: string;
-  progress: number;
-  color: string;
-}) {
-  const p = Math.max(0, Math.min(1, progress));
-  const r = 66;
-  const c = 78;
-  const arc = 2 * Math.PI * r;
-  const offset = arc * (1 - p);
-  return (
-    <div className="insightsCircleGauge">
-      <div className="insightsCircleGauge__label">{label}</div>
-      <div className="insightsCircleGauge__wrap">
-        <svg viewBox="0 0 156 156" className="insightsCircleGauge__svg" aria-hidden="true">
-          <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(45, 102, 184, 0.24)" strokeWidth="12" />
-          <circle
-            cx={c}
-            cy={c}
-            r={r}
-            fill="none"
-            stroke={color}
-            strokeWidth="12"
-            strokeDasharray={arc}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            transform="rotate(-90 78 78)"
-          />
-        </svg>
-        <div className="insightsCircleGauge__center">
-          <div className="insightsCircleGauge__value">{value != null ? value.toFixed(1) : "-"}</div>
-          <div className="insightsCircleGauge__unit">{unit}</div>
-        </div>
       </div>
     </div>
   );
@@ -1849,9 +1977,7 @@ function SimpleTrendChart({
     const y = height - padBottom - ((p.value - min) / range) * (height - padTop - padBottom);
     d += d.length === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
   });
-  const xTicks = Array.from(
-    new Set(points.length <= 1 ? [0] : [0, Math.floor((points.length - 1) * 0.33), Math.floor((points.length - 1) * 0.66), points.length - 1])
-  );
+  const xTicks = buildAdaptiveXTicks(points.length);
 
   return (
     <div style={{ overflowX: "auto" }}>
@@ -1892,13 +2018,18 @@ function SimpleTrendChart({
 }
 
 function LongToneTrendChart({ points, compact = false }: { points: MeasurementPoint[]; compact?: boolean }) {
-  const width = compact ? Math.max(290, 100 + points.length * 32) : 760;
-  const height = 260;
-  const axisWidth = compact ? 34 : 40;
-  const padTop = 18;
-  const padBottom = 36;
-  const padLeft = 18;
-  const padRight = 18;
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number } | null>(null);
+  const width = compact ? Math.max(320, 40 + Math.max(0, points.length - 1) * 38) : Math.max(640, 56 + Math.max(0, points.length - 1) * 40);
+  const height = compact ? 340 : 380;
+  const axisWidth = compact ? 42 : 48;
+  const padTop = compact ? 22 : 24;
+  const padBottom = compact ? 52 : 56;
+  const padLeft = 0;
+  const padRight = compact ? 22 : 28;
   const values = points.map((p) => p.value).filter((v): v is number => v != null);
   const axis = buildAutoNumericAxis({
     values,
@@ -1938,14 +2069,49 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
       ? `${linePath} L ${plotted[plotted.length - 1].x} ${height - padBottom} L ${plotted[0].x} ${height - padBottom} Z`
       : "";
 
-  const xTicks = Array.from(
-    new Set(points.length <= 1 ? [0] : [0, Math.floor((points.length - 1) * 0.33), Math.floor((points.length - 1) * 0.66), points.length - 1])
-  );
+  const xTicks = buildAdaptiveXTicks(points.length);
   const xAxisY = height - padBottom;
+  const selectedPoint = plotted.find((p) => p.index === selectedIndex) ?? null;
+
+  useEffect(() => {
+    const updateTooltip = () => {
+      if (!selectedPoint || !frameRef.current || !scrollRef.current || !tooltipRef.current) {
+        setTooltipPos(null);
+        return;
+      }
+      const frameRect = frameRef.current.getBoundingClientRect();
+      const scrollRect = scrollRef.current.getBoundingClientRect();
+      const tipRect = tooltipRef.current.getBoundingClientRect();
+      const pointClientX = scrollRect.left + (selectedPoint.x - scrollRef.current.scrollLeft);
+      const pointClientY = scrollRect.top + selectedPoint.y;
+      const margin = 8;
+      const halfTipW = tipRect.width / 2;
+      const preferredLeft = pointClientX - frameRect.left;
+      const left = clamp(preferredLeft, margin + halfTipW, frameRect.width - margin - halfTipW);
+      const aboveTop = pointClientY - frameRect.top - tipRect.height - 10;
+      const belowTop = pointClientY - frameRect.top + 12;
+      const top =
+        aboveTop >= margin ? aboveTop : clamp(belowTop, margin, Math.max(margin, frameRect.height - tipRect.height - margin));
+      setTooltipPos({ left, top });
+    };
+
+    const raf = requestAnimationFrame(updateTooltip);
+    const scroller = scrollRef.current;
+    const onScroll = () => requestAnimationFrame(updateTooltip);
+    const onResize = () => requestAnimationFrame(updateTooltip);
+    scroller?.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      scroller?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [selectedPoint, width, height]);
 
   return (
     <div className="insightsFixedTrend">
-      <div className="insightsFixedTrend__frame">
+      <div className="insightsTrendScrollHint">左右にスクロールして大きく確認できます</div>
+      <div className="insightsFixedTrend__frame" ref={frameRef}>
         <div className="insightsFixedTrend__axis" style={{ width: `${axisWidth}px`, minWidth: `${axisWidth}px`, maxWidth: `${axisWidth}px` }}>
           <svg viewBox={`0 0 ${axisWidth} ${height}`} className="insightsFixedTrend__axisSvg" aria-hidden="true">
             <line x1={axisWidth - 1} y1={padTop} x2={axisWidth - 1} y2={xAxisY} stroke="var(--ins-range-axis-line, #9fc2ea)" />
@@ -1962,23 +2128,23 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
             })}
           </svg>
         </div>
-        <div className="insightsFixedTrend__scroll">
+        <div className="insightsFixedTrend__scroll" ref={scrollRef}>
           <div className="insightsFixedTrend__plotInner" style={{ minWidth: `${width}px` }}>
             <svg viewBox={`0 0 ${width} ${height}`} className="insightsFixedTrend__svg" style={{ width: `${width}px` }} aria-hidden="true">
               <defs>
                 <linearGradient id="longtoneGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.34} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.06} />
+                  <stop offset="5%" stopColor="#8866ff" stopOpacity={0.34} />
+                  <stop offset="95%" stopColor="#8866ff" stopOpacity={0.06} />
                 </linearGradient>
                 <filter id="longtoneDotShadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="1.8" floodColor="rgba(59,130,246,0.3)" />
+                  <feDropShadow dx="0" dy="0" stdDeviation="1.8" floodColor="rgba(136,102,255,0.3)" />
                 </filter>
               </defs>
 
               {yTicks.map((v) => {
                 const y = padTop + (1 - (v - min) / range) * plotH;
                 return (
-                  <line key={`lt-y-${v}`} x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(56,124,205,0.18)" strokeDasharray="3 3" />
+                  <line key={`lt-y-${v}`} x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(95, 112, 134, 0.16)" />
                 );
               })}
 
@@ -1987,7 +2153,7 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
                 const x = padLeft + step * idx;
                 return (
                   <g key={`lt-x-${idx}`}>
-                    <line x1={x} y1={xAxisY} x2={x} y2={xAxisY + 4} stroke="rgba(42,89,155,0.38)" />
+                    <line x1={x} y1={padTop} x2={x} y2={xAxisY} stroke="rgba(95, 112, 134, 0.14)" />
                     <text x={x} y={height - 8} textAnchor="middle" className="insightsFixedTrend__xLabel" style={{ fontSize: 11, opacity: 0.76 }}>
                       {p?.date ? p.date.slice(5) : ""}
                     </text>
@@ -1995,14 +2161,15 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
                 );
               })}
 
-              <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="rgba(40,79,130,0.36)" />
-              <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="rgba(40,79,130,0.36)" />
+              <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="rgba(95, 112, 134, 0.18)" />
+              <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="rgba(95, 112, 134, 0.18)" />
 
               {areaPath && <path d={areaPath} fill="url(#longtoneGradient)" />}
-              {linePath && <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+              {linePath && <path d={linePath} fill="none" stroke="#8866ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
 
               {plotted.map((p) => {
                 const isLatest = latestPoint != null && latestPoint.index === p.index;
+                const isSelected = selectedPoint != null && selectedPoint.index === p.index;
                 return (
                   <g key={`lt-dot-${p.index}`}>
                     {isLatest && (
@@ -2018,10 +2185,11 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
                     <circle
                       cx={p.x}
                       cy={p.y}
-                      r={isLatest ? 7.5 : 6}
+                      r={isSelected ? (isLatest ? 9 : 8) : isLatest ? 7.5 : 6}
                       fill="#fff"
-                      stroke="#2563eb"
-                      strokeWidth={2}
+                      stroke="#8866ff"
+                      strokeWidth={isSelected ? 3 : 2}
+                      onClick={() => setSelectedIndex((prev) => (prev === p.index ? null : p.index))}
                     />
                   </g>
                 );
@@ -2035,9 +2203,54 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
                   </text>
                 </g>
               )}
+
+              {selectedPoint && (
+                <line
+                  x1={selectedPoint.x}
+                  y1={padTop}
+                  x2={selectedPoint.x}
+                  y2={xAxisY}
+                  stroke="#8866ff"
+                  strokeWidth="1.6"
+                  strokeDasharray="4 4"
+                  opacity="0.7"
+                />
+              )}
+
+              {points.map((p, i) => {
+                const x = padLeft + step * i;
+                const left = i === 0 ? padLeft : x - step / 2;
+                const right = i === points.length - 1 ? width - padRight : x + step / 2;
+                return (
+                  <rect
+                    key={`lt-hit-${p.date}-${i}`}
+                    x={left}
+                    y={padTop}
+                    width={Math.max(18, right - left)}
+                    height={height - padTop - padBottom}
+                    fill="transparent"
+                    onClick={() => setSelectedIndex((prev) => (prev === i ? null : i))}
+                    onTouchStart={() => setSelectedIndex(i)}
+                  />
+                );
+              })}
             </svg>
           </div>
         </div>
+        {selectedPoint && (
+          <div
+            ref={tooltipRef}
+            className="insightsFixedTrend__tooltip"
+            style={
+              tooltipPos
+                ? { left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }
+                : { left: "-9999px", top: "-9999px" }
+            }
+          >
+            <div>{selectedPoint.date}</div>
+            <div>ロングトーン: {selectedPoint.value.toFixed(1)}秒</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2073,13 +2286,18 @@ function ScoreTrendChart({
   };
   compact?: boolean;
 }) {
-  const width = compact ? Math.max(290, 100 + points.length * 32) : 760;
-  const height = 260;
-  const axisWidth = compact ? 34 : 40;
-  const padTop = 18;
-  const padBottom = 36;
-  const padLeft = 18;
-  const padRight = 18;
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number } | null>(null);
+  const width = compact ? Math.max(320, 40 + Math.max(0, points.length - 1) * 38) : Math.max(640, 56 + Math.max(0, points.length - 1) * 40);
+  const height = compact ? 340 : 380;
+  const axisWidth = compact ? 42 : 48;
+  const padTop = compact ? 22 : 24;
+  const padBottom = compact ? 52 : 56;
+  const padLeft = 0;
+  const padRight = compact ? 22 : 28;
   const values = points.map((p) => p.value).filter((v): v is number => v != null);
   const computedAxis =
     autoScale != null
@@ -2127,6 +2345,7 @@ function ScoreTrendChart({
   const tickStep = computedAxis?.step ?? (yAxisTicks.length >= 2 ? Math.abs(yAxisTicks[1] - yAxisTicks[0]) : 1);
   const xAxisY = height - padBottom;
   const isSemitoneAxis = unit === "半音";
+  const selectedPoint = plotted.find((p) => p.index === selectedIndex) ?? null;
   const formatAxisTick = (value: number) => {
     if (tickFormatter) {
       const formatted = tickFormatter(value);
@@ -2136,9 +2355,45 @@ function ScoreTrendChart({
     return isSemitoneAxis ? `${rendered}` : `${rendered}${unit}`;
   };
 
+  useEffect(() => {
+    const updateTooltip = () => {
+      if (!selectedPoint || !frameRef.current || !scrollRef.current || !tooltipRef.current) {
+        setTooltipPos(null);
+        return;
+      }
+      const frameRect = frameRef.current.getBoundingClientRect();
+      const scrollRect = scrollRef.current.getBoundingClientRect();
+      const tipRect = tooltipRef.current.getBoundingClientRect();
+      const pointClientX = scrollRect.left + (selectedPoint.x - scrollRef.current.scrollLeft);
+      const pointClientY = scrollRect.top + selectedPoint.y;
+      const margin = 8;
+      const halfTipW = tipRect.width / 2;
+      const preferredLeft = pointClientX - frameRect.left;
+      const left = clamp(preferredLeft, margin + halfTipW, frameRect.width - margin - halfTipW);
+      const aboveTop = pointClientY - frameRect.top - tipRect.height - 10;
+      const belowTop = pointClientY - frameRect.top + 12;
+      const top =
+        aboveTop >= margin ? aboveTop : clamp(belowTop, margin, Math.max(margin, frameRect.height - tipRect.height - margin));
+      setTooltipPos({ left, top });
+    };
+
+    const raf = requestAnimationFrame(updateTooltip);
+    const scroller = scrollRef.current;
+    const onScroll = () => requestAnimationFrame(updateTooltip);
+    const onResize = () => requestAnimationFrame(updateTooltip);
+    scroller?.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      scroller?.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [selectedPoint, width, height]);
+
   return (
     <div className="insightsFixedTrend">
-      <div className="insightsFixedTrend__frame">
+      <div className="insightsTrendScrollHint">左右にスクロールして大きく確認できます</div>
+      <div className="insightsFixedTrend__frame" ref={frameRef}>
         <div className="insightsFixedTrend__axis" style={{ width: `${axisWidth}px`, minWidth: `${axisWidth}px`, maxWidth: `${axisWidth}px` }}>
           <svg viewBox={`0 0 ${axisWidth} ${height}`} className="insightsFixedTrend__axisSvg" aria-hidden="true">
             {isSemitoneAxis && (
@@ -2160,7 +2415,7 @@ function ScoreTrendChart({
             })}
           </svg>
         </div>
-        <div className="insightsFixedTrend__scroll">
+        <div className="insightsFixedTrend__scroll" ref={scrollRef}>
           <div className="insightsFixedTrend__plotInner" style={{ minWidth: `${width}px` }}>
             <svg viewBox={`0 0 ${width} ${height}`} className="insightsFixedTrend__svg" style={{ width: `${width}px` }} aria-hidden="true">
               <defs>
@@ -2173,7 +2428,7 @@ function ScoreTrendChart({
               {yAxisTicks.map((v) => {
                 const y = padTop + (1 - (v - domainMin) / range) * plotH;
                 return (
-                  <line key={`score-y-${v}`} x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(56,124,205,0.18)" strokeDasharray="3 3" />
+                  <line key={`score-y-${v}`} x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(95, 112, 134, 0.16)" />
                 );
               })}
 
@@ -2182,7 +2437,7 @@ function ScoreTrendChart({
                 const x = padLeft + step * idx;
                 return (
                   <g key={`score-x-${idx}`}>
-                    <line x1={x} y1={xAxisY} x2={x} y2={xAxisY + 4} stroke="rgba(42,89,155,0.38)" />
+                    <line x1={x} y1={padTop} x2={x} y2={xAxisY} stroke="rgba(95, 112, 134, 0.14)" />
                     <text x={x} y={height - 8} textAnchor="middle" className="insightsFixedTrend__xLabel" style={{ fontSize: 11, opacity: 0.76 }}>
                       {p?.date ? p.date.slice(5) : ""}
                     </text>
@@ -2190,23 +2445,25 @@ function ScoreTrendChart({
                 );
               })}
 
-              <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="rgba(40,79,130,0.36)" />
-              <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="rgba(40,79,130,0.36)" />
+              <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="rgba(95, 112, 134, 0.18)" />
+              <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="rgba(95, 112, 134, 0.18)" />
 
               {areaPath && <path d={areaPath} fill={`url(#scoreGradient-${color.replace("#", "")})`} />}
-              {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+              {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
 
               {plotted.map((p) => {
                 const isLatest = latestPoint != null && latestPoint.index === p.index;
+                const isSelected = selectedPoint != null && selectedPoint.index === p.index;
                 return (
                   <g key={`score-dot-${p.index}`}>
                     <circle
                       cx={p.x}
                       cy={p.y}
-                      r={isLatest ? 7.5 : 6}
+                      r={isSelected ? (isLatest ? 9 : 8) : isLatest ? 7.5 : 6}
                       fill="#fff"
                       stroke={color}
-                      strokeWidth={2}
+                      strokeWidth={isSelected ? 3 : 2}
+                      onClick={() => setSelectedIndex((prev) => (prev === p.index ? null : p.index))}
                     />
                   </g>
                 );
@@ -2220,9 +2477,54 @@ function ScoreTrendChart({
                   </text>
                 </g>
               )}
+
+              {selectedPoint && (
+                <line
+                  x1={selectedPoint.x}
+                  y1={padTop}
+                  x2={selectedPoint.x}
+                  y2={xAxisY}
+                  stroke={color}
+                  strokeWidth="1.6"
+                  strokeDasharray="4 4"
+                  opacity="0.7"
+                />
+              )}
+
+              {points.map((p, i) => {
+                const x = padLeft + step * i;
+                const left = i === 0 ? padLeft : x - step / 2;
+                const right = i === points.length - 1 ? width - padRight : x + step / 2;
+                return (
+                  <rect
+                    key={`score-hit-${p.date}-${i}`}
+                    x={left}
+                    y={padTop}
+                    width={Math.max(18, right - left)}
+                    height={height - padTop - padBottom}
+                    fill="transparent"
+                    onClick={() => setSelectedIndex((prev) => (prev === i ? null : i))}
+                    onTouchStart={() => setSelectedIndex(i)}
+                  />
+                );
+              })}
             </svg>
           </div>
         </div>
+        {selectedPoint && (
+          <div
+            ref={tooltipRef}
+            className="insightsFixedTrend__tooltip"
+            style={
+              tooltipPos
+                ? { left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }
+                : { left: "-9999px", top: "-9999px" }
+            }
+          >
+            <div>{selectedPoint.date}</div>
+            <div>{isSemitoneAxis ? `平均ズレ: ${selectedPoint.value.toFixed(2)}半音` : `結果: ${selectedPoint.value.toFixed(1)}${unit}`}</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2248,16 +2550,16 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
   const compactMode = compact || isMobile;
   const layout = compactMode
     ? {
-        height: 420,
-        padTop: 42,
-        padBottom: 62,
-        axisWidth: 34,
-        plotPadLeft: 16,
-        plotPadRight: 26,
-        plotEdgeInset: 16,
-        pxPerPoint: 34,
+        height: 500,
+        padTop: 44,
+        padBottom: 74,
+        axisWidth: 42,
+        plotPadLeft: 0,
+        plotPadRight: 30,
+        plotEdgeInset: 18,
+        pxPerPoint: 46,
         yTickMax: 6,
-        yTickMinGap: 34,
+        yTickMinGap: 42,
         bgTickMax: 6,
         lowDotR: 3.2,
         highDotR: 2.3,
@@ -2269,16 +2571,16 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
         bestFont: 7.1,
       }
     : {
-        height: 420,
-        padTop: 42,
-        padBottom: 64,
-        axisWidth: 44,
-        plotPadLeft: 16,
-        plotPadRight: 24,
+        height: 540,
+        padTop: 46,
+        padBottom: 78,
+        axisWidth: 52,
+        plotPadLeft: 0,
+        plotPadRight: 28,
         plotEdgeInset: 0,
-        pxPerPoint: 42,
-        yTickMax: 9,
-        yTickMinGap: 28,
+        pxPerPoint: 52,
+        yTickMax: 10,
+        yTickMinGap: 34,
         bgTickMax: 10,
         lowDotR: 3.4,
         highDotR: 2.6,
@@ -2290,7 +2592,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
         bestFont: 7.6,
       };
 
-  const minPlotWidth = compactMode ? 300 : 760;
+  const minPlotWidth = compactMode ? 340 : 680;
   const width = Math.max(
     minPlotWidth,
     layout.plotPadLeft + layout.plotPadRight + layout.plotEdgeInset * 2 + Math.max(0, points.length - 1) * layout.pxPerPoint
@@ -2307,12 +2609,12 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
   const allValues = [...lowValues, ...highValues];
   const minRaw = allValues.length ? Math.min(...allValues) : 48;
   const maxRaw = allValues.length ? Math.max(...allValues) : 60;
-  let min = Math.floor(minRaw) - 2;
-  let max = Math.ceil(maxRaw) + 2;
-  if (max - min < 14) {
+  let min = Math.floor(minRaw) - 6;
+  let max = Math.ceil(maxRaw) + 6;
+  if (max - min < 22) {
     const center = (max + min) / 2;
-    min = Math.floor(center - 7);
-    max = Math.ceil(center + 7);
+    min = Math.floor(center - 11);
+    max = Math.ceil(center + 11);
   }
   const range = Math.max(1, max - min);
   const plotLeft = padLeft + layout.plotEdgeInset;
@@ -2374,9 +2676,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
         ].join(" ")
       : "";
 
-  const xTicks = Array.from(
-    new Set(points.length <= 1 ? [0] : [0, Math.floor((points.length - 1) * 0.5), points.length - 1])
-  );
+  const xTicks = buildAdaptiveXTicks(points.length);
 
   const hovered = decorated.find((p) => p.index === hoveredIndex) ?? null;
   const xAxisY = height - padBottom;
@@ -2420,6 +2720,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
 
   return (
     <div className="insightsRangeTrend">
+      <div className="insightsTrendScrollHint">左右にスクロールして大きく確認できます</div>
       <div className="insightsRangeTrend__frame" ref={frameRef}>
         <div
           className="insightsRangeTrend__axis"
@@ -2446,10 +2747,6 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
           <div className="insightsRangeTrend__plotInner" style={{ minWidth: `${width}px` }}>
       <svg viewBox={`0 0 ${width} ${height}`} className="insightsRangeTrend__svg" style={{ width: `${width}px` }} aria-hidden="true">
         <defs>
-          <linearGradient id="rangeTrendBg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--ins-range-plot-bg-start, #f5f9ff)" />
-            <stop offset="100%" stopColor="var(--ins-range-plot-bg-end, #eaf2ff)" />
-          </linearGradient>
           <linearGradient id="rangeTrendBand" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--ins-range-band-start, #3b82f6)" stopOpacity={isMobile ? 0.24 : 0.32} />
             <stop offset="100%" stopColor="var(--ins-range-band-end, #3b82f6)" stopOpacity={isMobile ? 0.08 : 0.14} />
@@ -2460,7 +2757,14 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
           </linearGradient>
         </defs>
 
-        <rect x={padLeft} y={padTop} width={width - padLeft - padRight} height={height - padTop - padBottom} fill="url(#rangeTrendBg)" rx={12} />
+        <rect
+          x={padLeft}
+          y={padTop}
+          width={width - padLeft - padRight}
+          height={height - padTop - padBottom}
+          fill="var(--ins-range-plot-bg-start, #fff)"
+          rx={12}
+        />
         {buildSparseMidiTicks(min, max, layout.bgTickMax).map((midi) => {
           const yTop = yFromMidi(midi + 1);
           const yBottom = yFromMidi(midi);
@@ -2496,13 +2800,18 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
           );
         })}
 
-        <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="var(--ins-range-axis-line, #9fc2ea)" />
-        <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="var(--ins-range-axis-line, #9fc2ea)" />
+        {xTicks.map((idx) => {
+          const x = plotLeft + step * idx;
+          return <line key={`range-x-grid-${idx}`} x1={x} y1={padTop} x2={x} y2={xAxisY} stroke="rgba(95, 112, 134, 0.14)" />;
+        })}
+
+        <line x1={padLeft} y1={xAxisY} x2={width - padRight} y2={xAxisY} stroke="rgba(95, 112, 134, 0.18)" />
+        <line x1={padLeft} y1={padTop} x2={padLeft} y2={xAxisY} stroke="rgba(95, 112, 134, 0.18)" />
 
         {bandAreaPath && <path d={bandAreaPath} fill="url(#rangeTrendBand)" stroke="none" />}
 
-        {lowPath && <path d={lowPath} fill="none" stroke="var(--ins-range-low-line, #93c5fd)" strokeWidth="2" strokeDasharray="4 4" />}
-        {highPath && <path d={highPath} fill="none" stroke="url(#rangeTrendHigh)" strokeWidth="3.8" />}
+        {lowPath && <path d={lowPath} fill="none" stroke="var(--ins-range-low-line, #93c5fd)" strokeWidth="1.8" strokeDasharray="4 4" />}
+        {highPath && <path d={highPath} fill="none" stroke="url(#rangeTrendHigh)" strokeWidth="3" />}
 
         {hovered && <circle cx={hovered.x} cy={hovered.lowY} r={layout.lowDotR} fill="#60a5fa" stroke="#fff" strokeWidth="1.1" />}
         {decorated.map((p) => (
@@ -2515,6 +2824,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
             opacity={p.improvedFromPrev ? layout.highDotStrongOpacity : layout.highDotNormalOpacity}
             stroke="#fff"
             strokeWidth={p.improvedFromPrev ? 1.5 : 0.9}
+            onClick={() => setHoveredIndex((prev) => (prev === p.index ? null : p.index))}
           />
         ))}
 
@@ -2546,7 +2856,6 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
           const dateLabel = point?.date ? point.date.slice(5) : "";
           return (
             <g key={`range-x-${idx}`}>
-              <line x1={x} y1={xAxisY} x2={x} y2={xAxisY + 5} stroke="var(--ins-range-tick-line, #7ea8d8)" />
               <text x={x} y={height - 10} textAnchor="middle" className="insightsRangeTrend__xLabel">
                 {dateLabel}
               </text>
@@ -2582,6 +2891,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseMove={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex((prev) => (prev === i ? null : prev))}
+              onClick={() => setHoveredIndex((prev) => (prev === i ? null : i))}
               onTouchStart={() => setHoveredIndex(i)}
             />
           );
@@ -2602,12 +2912,22 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
                 : { left: "-9999px", top: "-9999px" }
             }
           >
-            <div>{hovered.date}</div>
-            <div>最低音: {midiToNote(hovered.low)}</div>
-            <div>最高音: {midiToNote(hovered.high)}</div>
-            <div>Range: {hovered.widthSemitone} semitones</div>
-            <div>
-              ΔTop: {hovered.deltaTop == null ? "-" : `${hovered.deltaTop > 0 ? "+" : ""}${hovered.deltaTop} semitone${Math.abs(hovered.deltaTop) === 1 ? "" : "s"}`}
+            <div className="insightsRangeTrend__tooltipDate">{hovered.date}</div>
+            <div className="insightsRangeTrend__tooltipRow">
+              <span>最高音</span>
+              <strong>{midiToNote(hovered.high)}</strong>
+            </div>
+            <div className="insightsRangeTrend__tooltipRow">
+              <span>最低音</span>
+              <strong>{midiToNote(hovered.low)}</strong>
+            </div>
+            <div className="insightsRangeTrend__tooltipRow">
+              <span>音域</span>
+              <strong>{(hovered.widthSemitone / 12).toFixed(1)} oct</strong>
+            </div>
+            <div className="insightsRangeTrend__tooltipRow">
+              <span>前回比</span>
+              <strong>{hovered.deltaTop == null ? "-" : `${hovered.deltaTop > 0 ? "+" : ""}${hovered.deltaTop}半音`}</strong>
             </div>
           </div>
         )}
@@ -2698,6 +3018,28 @@ function isBlackKey(pitchClass: number): boolean {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+function buildAdaptiveXTicks(pointCount: number): number[] {
+  if (pointCount <= 0) return [];
+  if (pointCount === 1) return [0];
+  if (pointCount <= 3) return [0, pointCount - 1];
+  if (pointCount <= 5) return [0, Math.floor((pointCount - 1) * 0.5), pointCount - 1];
+  if (pointCount <= 7) return [0, Math.floor((pointCount - 1) * 0.5), pointCount - 1];
+  if (pointCount <= 9) {
+    return Array.from(
+      new Set([0, Math.floor((pointCount - 1) * 0.33), Math.floor((pointCount - 1) * 0.66), pointCount - 1])
+    );
+  }
+  return Array.from(
+    new Set([
+      0,
+      Math.floor((pointCount - 1) * 0.25),
+      Math.floor((pointCount - 1) * 0.5),
+      Math.floor((pointCount - 1) * 0.75),
+      pointCount - 1,
+    ])
+  );
 }
 
 function buildAutoNumericAxis(params: {
@@ -2838,12 +3180,14 @@ function LongToneHistoryList({
   bestLabel,
   lockedFromIndex = null,
   onRequestUnlock,
+  embedded = false,
 }: {
   runs: MeasurementRun[];
   latestLabel: string;
   bestLabel: string;
   lockedFromIndex?: number | null;
   onRequestUnlock?: () => void;
+  embedded?: boolean;
 }) {
   const rows = runs
     .map((run) => {
@@ -2899,9 +3243,11 @@ function LongToneHistoryList({
 
   return (
     <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-      <div className="insightsCard__head">
-        <div className="insightsCard__title">測定履歴</div>
-      </div>
+      {!embedded && (
+        <div className="insightsCard__head">
+          <div className="insightsCard__title">測定履歴</div>
+        </div>
+      )}
       <div className="insightsHistoryMeta">
         <div className="insightsHistoryMeta__item">最新: {latestLabel}</div>
         <div className="insightsHistoryMeta__item">
@@ -3013,6 +3359,7 @@ function MetricScoreHistoryList({
   higherIsBetter = true,
   lockedFromIndex = null,
   onRequestUnlock,
+  embedded = false,
 }: {
   runs: MeasurementRun[];
   latestLabel: string;
@@ -3024,6 +3371,7 @@ function MetricScoreHistoryList({
   higherIsBetter?: boolean;
   lockedFromIndex?: number | null;
   onRequestUnlock?: () => void;
+  embedded?: boolean;
 }) {
   const rows = runs
     .map((run) => ({ run, score: valueExtractor(run), detail: detailRenderer(run) }))
@@ -3069,9 +3417,11 @@ function MetricScoreHistoryList({
 
   return (
     <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-      <div className="insightsCard__head">
-        <div className="insightsCard__title">測定履歴</div>
-      </div>
+      {!embedded && (
+        <div className="insightsCard__head">
+          <div className="insightsCard__title">測定履歴</div>
+        </div>
+      )}
       <div className="insightsHistoryMeta">
         <div className="insightsHistoryMeta__item">最新: {latestLabel}</div>
         <div className="insightsHistoryMeta__item">

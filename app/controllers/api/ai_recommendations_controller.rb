@@ -7,8 +7,12 @@ module Api
     # GET /api/ai_recommendations?date=YYYY-MM-DD
     def show
       date = parse_date!(params[:date])
+      week_start_date = week_start_for(date)
       range_days = normalize_range_days(params[:range_days])
-      rec = current_user.ai_recommendations.find_by(generated_for_date: date, range_days: range_days)
+      rec = current_user.ai_recommendations
+                        .where(week_start_date: week_start_date, range_days: range_days)
+                        .order(generated_for_date: :desc, created_at: :desc)
+                        .first
       render json: { data: rec ? serialize(rec) : nil }, status: :ok
     rescue ArgumentError => e
       render json: { error: e.message }, status: :bad_request
@@ -21,7 +25,7 @@ module Api
       limit = 100 if limit > 100
 
       rows = current_user.ai_recommendations
-                         .order(generated_for_date: :desc, created_at: :desc)
+                         .order(week_start_date: :desc, generated_for_date: :desc, created_at: :desc)
                          .limit(limit)
 
       render json: {
@@ -29,6 +33,7 @@ module Api
           {
             id: rec.id,
             generated_for_date: rec.generated_for_date.iso8601,
+            week_start_date: rec.week_start_date.iso8601,
             range_days: rec.range_days,
             recommendation_text_preview: rec.recommendation_text.to_s.gsub(/\s+/, " ").strip.slice(0, 90),
             created_at: rec.created_at.iso8601
@@ -41,10 +46,15 @@ module Api
     # body: { date: "YYYY-MM-DD", range_days: 14|30|90 }
     def create
       target_date = params[:date].present? ? parse_date!(params[:date]) : Date.current
+      week_start_date = week_start_for(target_date)
+      explicit_theme = normalize_theme_param(params[:today_theme])
+      theme_match = Ai::RecommendationThemeKeywordMatcher.match(explicit_theme)
+      community_enabled = theme_match[:community_enabled]
+      community_tag_keys = Array(theme_match[:matched_tags])
 
       range_days = normalize_range_days(params[:range_days])
 
-      existing = current_user.ai_recommendations.find_by(generated_for_date: target_date, range_days: range_days)
+      existing = find_existing_recommendation(user: current_user, target_date: target_date, range_days: range_days)
       return render json: { data: serialize(existing) }, status: :ok if existing
 
       include_today = true
@@ -56,15 +66,19 @@ module Api
                         .where(practiced_on: from..to)
                         .includes(:training_menus)
                         .order(:practiced_on)
-      trend_month_count = trend_month_count_for(range_days)
-      monthly_logs = monthly_logs_for(target_date: target_date, month_count: trend_month_count)
+      monthly_logs = MonthlyLog.none
       measurement_evidence = Ai::MeasurementEvidenceSummary.build(
         user: current_user,
         improvement_tags: current_user.ai_improvement_tags,
         goal_text: current_user.goal_text,
         logs: logs
       )
-      collective_effects = Ai::CollectiveEffectCache.fetch(window_days: 90, min_count: 3)
+      collective_effects =
+        if community_enabled
+          Ai::CollectiveEffectCache.fetch(window_days: 90, min_count: 3, target_tags: community_tag_keys)
+        else
+          { window_days: 90, min_count: 3, rows: [] }
+        end
 
       generator = Ai::RecommendationGenerator.new(
         user: current_user,
@@ -78,13 +92,21 @@ module Api
         measurement_evidence: measurement_evidence,
         selected_range_days: range_days,
         detail_window_days: detail_window_days,
-        collective_effects: collective_effects
+        collective_effects: collective_effects,
+        explicit_theme: explicit_theme,
+        community_enabled: community_enabled,
+        community_tag_keys: community_tag_keys
       )
       collective_summary = build_collective_summary(collective_effects)
       generation_context = build_generation_context(
         target_date: target_date,
+        week_start_date: week_start_date,
         range_days: range_days,
         detail_window_days: detail_window_days,
+        explicit_theme: explicit_theme,
+        community_enabled: community_enabled,
+        community_tag_keys: community_tag_keys,
+        theme_keyword_hits: Array(theme_match[:matched_keywords]),
         logs: logs,
         monthly_logs: monthly_logs,
         measurement_evidence: measurement_evidence,
@@ -93,6 +115,7 @@ module Api
 
       rec = current_user.ai_recommendations.new(
         generated_for_date: target_date,
+        week_start_date: week_start_date,
         range_days: range_days,
         recommendation_text: text,
         collective_summary: collective_summary,
@@ -113,12 +136,23 @@ module Api
         )
         render json: { data: serialize(rec), rewards: rewards }, status: :created
       else
+        conflict_rec = find_existing_recommendation(user: current_user, target_date: target_date, range_days: range_days)
+        return render json: { data: serialize(conflict_rec) }, status: :ok if conflict_rec
+
         render json: { errors: rec.errors.full_messages }, status: :unprocessable_entity
       end
     rescue ArgumentError => e
       render json: { error: e.message }, status: :bad_request
     rescue Ai::TokenUsageTracker::LimitExceededError => e
       render json: { error: e.message }, status: :unprocessable_entity
+    rescue ActiveRecord::RecordNotUnique
+      conflict_rec =
+        if defined?(target_date) && defined?(range_days)
+          find_existing_recommendation(user: current_user, target_date: target_date, range_days: range_days)
+        end
+      return render json: { data: serialize(conflict_rec) }, status: :ok if conflict_rec
+
+      render json: { error: "AI生成が重複しました。再度お試しください。" }, status: :unprocessable_entity
     rescue => e
       Rails.logger.error("[AI] #{e.class}: #{e.message}\n#{e.backtrace&.first(20)&.join("\n")}")
       render json: { error: "AI生成に失敗しました" }, status: :internal_server_error
@@ -141,6 +175,25 @@ module Api
       14
     end
 
+    def week_start_for(date)
+      date.to_date.beginning_of_week(:monday)
+    end
+
+    def normalize_theme_param(raw)
+      text = raw.to_s.gsub(/\s+/, " ").strip
+      return nil if text.blank?
+
+      text.slice(0, 120)
+    end
+
+    def find_existing_recommendation(user:, target_date:, range_days:)
+      week_start_date = week_start_for(target_date)
+      user.ai_recommendations
+          .where(generated_for_date: target_date, week_start_date: week_start_date, range_days: range_days)
+          .order(created_at: :desc)
+          .first
+    end
+
     def trend_month_count_for(range_days)
       return 1 if range_days == 30
       return 3 if range_days == 90
@@ -156,11 +209,16 @@ module Api
       current_user.monthly_logs.where(month_start: from_month..to_month).order(:month_start)
     end
 
-    def build_generation_context(target_date:, range_days:, detail_window_days:, logs:, monthly_logs:, measurement_evidence:, collective_summary:)
+    def build_generation_context(target_date:, week_start_date:, range_days:, detail_window_days:, explicit_theme:, community_enabled:, community_tag_keys:, theme_keyword_hits:, logs:, monthly_logs:, measurement_evidence:, collective_summary:)
       {
         target_date: target_date.iso8601,
+        week_start_date: week_start_date.iso8601,
         selected_range_days: range_days,
         detail_window_days: detail_window_days,
+        explicit_theme: explicit_theme,
+        community_enabled: community_enabled,
+        community_tag_keys: community_tag_keys,
+        theme_keyword_hits: theme_keyword_hits,
         detailed_logs: logs.map do |log|
           {
             practiced_on: log.practiced_on&.iso8601,
@@ -191,6 +249,7 @@ module Api
       {
         id: rec.id,
         generated_for_date: rec.generated_for_date.iso8601,
+        week_start_date: rec.week_start_date.iso8601,
         range_days: rec.range_days,
         recommendation_text: rec.recommendation_text,
         collective_summary: collective_summary_payload_for(rec.collective_summary),

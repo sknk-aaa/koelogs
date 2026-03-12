@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTheme } from "../features/theme/useTheme";
 
 export type DrawerItem = {
   label: string;
@@ -14,6 +15,13 @@ export type DrawerItem = {
 export type DrawerSection = {
   title: string;
   items: DrawerItem[];
+  icon?: React.ReactNode;
+};
+
+export type DrawerProfile = {
+  avatar?: React.ReactNode;
+  name: string;
+  planLabel?: string;
 };
 
 type Props = {
@@ -21,7 +29,9 @@ type Props = {
   onClose: () => void;
   headerTitle: string;
   headerSub?: string;
+  profile?: DrawerProfile;
   sections: DrawerSection[];
+  footerItem?: DrawerItem;
   activePath: string;
 };
 
@@ -32,9 +42,12 @@ export default function HamburgerDrawer({
   onClose,
   headerTitle,
   headerSub,
+  profile,
   sections,
+  footerItem,
   activePath,
 }: Props) {
+  const { resolvedMode } = useTheme();
   // close animationのためだけに残すフラグ
   const [mounted, setMounted] = useState(open);
   // 見た目（transform/opacity）用
@@ -116,10 +129,27 @@ export default function HamburgerDrawer({
     };
   }, [activePath]);
 
+  const drawerThemeVars = useMemo(
+    () =>
+      ({
+        "--drawerBackdrop":
+          resolvedMode === "dark" ? "rgba(4, 8, 16, 0.7)" : "rgba(0, 0, 0, 0.35)",
+        "--drawerSheet": resolvedMode === "dark" ? "#0c101b" : "#ffffff",
+        "--drawerBorder":
+          resolvedMode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)",
+        "--drawerCard": resolvedMode === "dark" ? "#141f33" : "#ffffff",
+        "--drawerText": resolvedMode === "dark" ? "#e6edf8" : "#111111",
+        "--muted":
+          resolvedMode === "dark" ? "rgba(231, 238, 251, 0.78)" : "rgba(16, 30, 48, 0.68)",
+        "--menuLine": resolvedMode === "dark" ? "#ffffff" : "rgba(0, 0, 0, 0.78)",
+      }) as React.CSSProperties,
+    [resolvedMode]
+  );
+
   if (!shouldRender) return null;
 
   return (
-    <div style={styles.root} role="dialog" aria-modal="true">
+    <div style={{ ...styles.root, ...drawerThemeVars }} role="dialog" aria-modal="true">
       <button
         type="button"
         aria-label="メニューを閉じる"
@@ -140,7 +170,7 @@ export default function HamburgerDrawer({
         }}
       >
         <div style={styles.sheetHeader}>
-          <div>
+          <div style={styles.headerCopy}>
             <div className="drawer__headerTitle" style={styles.sheetTitle}>
               {headerTitle}
             </div>
@@ -152,16 +182,30 @@ export default function HamburgerDrawer({
           </div>
 
           <button type="button" onClick={onClose} style={styles.closeBtn}>
-            ✕
+            <span style={{ ...styles.closeBar, ...styles.closeBarTop }} />
+            <span style={{ ...styles.closeBar, ...styles.closeBarMiddle }} />
+            <span style={{ ...styles.closeBar, ...styles.closeBarBottom }} />
           </button>
         </div>
 
         <div style={styles.content}>
+          {profile ? (
+            <div style={styles.profileBlock}>
+              <div style={styles.profileAvatar}>{profile.avatar}</div>
+              <div style={styles.profileText}>
+                <div style={styles.profileName}>{profile.name}</div>
+                {profile.planLabel ? <div style={styles.profilePlan}>{profile.planLabel}</div> : null}
+              </div>
+            </div>
+          ) : null}
           {sections.map((sec) => (
-            <section key={sec.title}>
-              <div className="drawer__sectionTitle">{sec.title}</div>
+            <section key={sec.title} style={styles.section}>
+              <div className="drawer__sectionTitle" style={styles.sectionTitleRow}>
+                {sec.icon ? <span style={styles.sectionIcon} aria-hidden="true">{sec.icon}</span> : null}
+                <span style={styles.sectionTitle}>{sec.title}</span>
+              </div>
 
-              <div className="drawer__group">
+              <div className="drawer__group" style={styles.group}>
                 {sec.items.map((it, index) => {
                   const active = isActive(it);
                   const className = [
@@ -187,6 +231,7 @@ export default function HamburgerDrawer({
                         ...styles.item,
                         ...(index > 0 ? styles.itemWithDivider : null),
                         ...(it.variant === "danger" ? styles.itemDanger : null),
+                        ...(it.variant === "danger" ? styles.itemDangerSpacing : null),
                         ...(it.disabled ? styles.itemDisabled : null),
                         ...(active ? styles.itemActive : null),
                       }}
@@ -201,12 +246,12 @@ export default function HamburgerDrawer({
                       </span>
 
                       {active ? (
-                        <span style={styles.activeDot} aria-hidden="true">
-                          ●
+                        <span style={styles.trailingSlot} aria-hidden="true">
+                          <span style={styles.activeMark} />
                         </span>
                       ) : (
-                        <span className="drawer__chevron" style={styles.chev}>
-                          ›
+                        <span className="drawer__chevron" style={styles.trailingSlot} aria-hidden="true">
+                          <span style={styles.chev}>→</span>
                         </span>
                       )}
                     </button>
@@ -215,11 +260,30 @@ export default function HamburgerDrawer({
               </div>
             </section>
             ))}
-          </div>
-
-        <div className="drawer__hint" style={styles.bottomHint}>
-          ESC または背景タップで閉じられます
         </div>
+
+        {footerItem ? (
+          <div style={styles.footerArea}>
+            <button
+              className="drawer__item drawer__item--danger"
+              type="button"
+              onClick={() => {
+                footerItem.onClick();
+                onClose();
+              }}
+              style={{
+                ...styles.item,
+                ...styles.footerItem,
+                ...(footerItem.variant === "danger" ? styles.itemDanger : null),
+                ...(footerItem.disabled ? styles.itemDisabled : null),
+              }}
+              disabled={footerItem.disabled}
+            >
+              <span style={{ ...styles.itemLabel, ...styles.footerItemLabel }}>{footerItem.label}</span>
+            </button>
+          </div>
+        ) : null}
+
       </aside>
     </div>
   );
@@ -248,71 +312,179 @@ const styles: Record<string, React.CSSProperties> = {
     width: "min(380px, 92vw)",
     display: "flex",
     flexDirection: "column",
-    backdropFilter: "blur(14px)",
-    boxShadow: "-10px 0 34px rgba(0,0,0,0.22)",
+    background: "var(--drawerSheet, #ffffff)",
+    boxShadow: "none",
     transition: `transform ${TRANSITION_MS}ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity ${TRANSITION_MS}ms ease`,
     willChange: "transform, opacity",
   },
   sheetHeader: {
-    padding: "14px 14px 10px",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.14)",
+    padding: "16px 16px 12px",
+    borderBottom: "1px solid var(--drawerBorder, rgba(18, 53, 58, 0.08))",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
   },
+  headerCopy: {
+    minWidth: 0,
+  },
   sheetTitle: {
-    fontSize: 15,
-    fontWeight: 900,
-    letterSpacing: 0.2,
-    color: "rgba(255, 255, 255, 0.95)",
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: "0.16em",
+    color: "var(--drawerText, #5f7480)",
   },
   sheetSub: {
     fontSize: 12,
     marginTop: 2,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: "var(--muted, #97a6b1)",
   },
   closeBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    border: "1px solid var(--border)",
-    background: "var(--surface)",
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    border: "0",
+    background: "transparent",
     cursor: "pointer",
-    fontSize: 16,
-    fontWeight: 800,
-    lineHeight: "40px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    padding: 0,
   },
-  content: { padding: 14, overflow: "auto" },
+  closeBar: {
+    display: "block",
+    width: 20,
+    height: 1.5,
+    borderRadius: 999,
+    background: "var(--menuLine)",
+    margin: 0,
+    transformOrigin: "center",
+  },
+  closeBarTop: {
+    transform: "translateY(5.5px) rotate(45deg)",
+  },
+  closeBarMiddle: {
+    opacity: 0,
+  },
+  closeBarBottom: {
+    transform: "translateY(-5.5px) rotate(-45deg)",
+  },
+  profileBlock: {
+    padding: "14px 16px 8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  profileAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: "50%",
+    overflow: "hidden",
+    flex: "0 0 auto",
+    background: "var(--drawerCard, #ffffff)",
+  },
+  profileText: {
+    minWidth: 0,
+    display: "grid",
+    gap: 4,
+  },
+  profileName: {
+    fontSize: 14,
+    fontWeight: 800,
+    color: "var(--drawerText, #244050)",
+    lineHeight: 1.3,
+  },
+  profilePlan: {
+    width: "fit-content",
+    minHeight: 24,
+    padding: "0 10px",
+    borderRadius: 999,
+    border: "1px solid var(--drawerBorder, rgba(18, 53, 58, 0.08))",
+    background: "color-mix(in srgb, var(--accent) 8%, var(--drawerCard, #ffffff))",
+    color: "var(--muted, #728592)",
+    fontSize: 11,
+    fontWeight: 800,
+    display: "inline-flex",
+    alignItems: "center",
+  },
+  content: { padding: "0 16px 20px", overflow: "auto", display: "grid", gap: 0 },
+  section: { display: "grid", gap: 6 },
+  sectionTitleRow: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 10,
+  },
+  sectionIcon: {
+    width: 20,
+    height: 20,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "color-mix(in srgb, var(--accent) 48%, var(--muted, #70839a))",
+    flex: "0 0 auto",
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: "0.14em",
+    color: "var(--muted, #738795)",
+  },
+  group: {
+    borderTop: "0",
+  },
   item: {
     width: "100%",
-    minHeight: 54,
+    minHeight: 58,
     textAlign: "left",
-    padding: "14px 14px",
+    padding: "15px 16px",
     cursor: "pointer",
-    border: "none",
-    background: "transparent",
+    borderRadius: 18,
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 10,
   },
   itemWithDivider: {
-    borderTop: "1px solid var(--drawerBorder)",
+    marginTop: 10,
   },
-  itemLabel: { fontSize: 14, fontWeight: 800 },
-  itemLabelActive: { fontWeight: 900 },
+  itemLabel: { fontSize: 14, fontWeight: 800, color: "var(--drawerText, #314a5a)" },
+  itemLabelActive: { fontWeight: 900, color: "var(--drawerText, #173e52)" },
   itemActive: {
-    boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.15) inset",
   },
-  activeDot: { fontSize: 10, opacity: 0.8, lineHeight: "1", marginLeft: 8 },
-  chev: { fontSize: 18, marginLeft: 8 },
-  itemDanger: { color: "rgba(255, 120, 120, 0.92)" },
+  trailingSlot: {
+    width: 18,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
+    flex: "0 0 auto",
+  },
+  activeMark: {
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    background: "color-mix(in srgb, var(--accent) 72%, #5aa6d0)",
+  },
+  chev: { fontSize: 16, lineHeight: 1, color: "var(--muted, #91a2ae)", transform: "translateY(-1px)" },
+  itemDanger: { color: "#866a6a" },
+  itemDangerSpacing: {
+    marginTop: 10,
+    borderTop: "1px solid var(--drawerBorder, rgba(18, 53, 58, 0.08))",
+  },
   itemDisabled: { opacity: 0.35, cursor: "not-allowed" },
-  bottomHint: {
-    padding: "10px 14px 14px",
-    fontSize: 11,
-    color: "rgba(255, 255, 255, 0.55)",
-    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+  footerArea: {
+    marginTop: "auto",
+    padding: "8px 16px 18px",
+    borderTop: "1px solid var(--drawerBorder, rgba(18, 53, 58, 0.08))",
+  },
+  footerItem: {
+    minHeight: 48,
+    padding: "12px 16px",
+  },
+  footerItemLabel: {
+    fontSize: 13,
   },
 };

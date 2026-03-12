@@ -30,7 +30,7 @@ export function loadTutorialStage(userId: number): TutorialStage | null {
   try {
     const raw = window.localStorage.getItem(stageKey(userId));
     if (!raw) return null;
-    if (raw === "mypage_measurement" || raw === "mypage_force_click_measurement") return "training_range_intro";
+    if (raw === "mypage_measurement") return "training_range_intro";
     return VALID_STAGES.includes(raw as TutorialStage) ? (raw as TutorialStage) : null;
   } catch {
     return null;

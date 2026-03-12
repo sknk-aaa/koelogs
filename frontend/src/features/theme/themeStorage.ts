@@ -1,6 +1,6 @@
 import type { ThemeKey } from "./themes";
 
-export type ThemeMode = "light" | "dark" | "system";
+export type ThemeMode = "light" | "dark";
 
 const THEME_KEY = "voice-app.theme";
 const MODE_KEY = "voice-app.themeMode";
@@ -25,7 +25,13 @@ export function saveThemeKey(key: ThemeKey) {
 export function loadThemeMode(): ThemeMode | null {
   try {
     const v = localStorage.getItem(MODE_KEY);
-    if (v === "light" || v === "dark" || v === "system") return v;
+    if (v === "light" || v === "dark") return v;
+    if (v === "system") {
+      if (typeof window !== "undefined") {
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      return "light";
+    }
     return null;
   } catch {
     return null;

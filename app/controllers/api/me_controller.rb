@@ -55,11 +55,6 @@ module Api
       render json: { error: e.record.errors.full_messages }, status: :unprocessable_entity
     end
 
-    def recalculate_ai_profile
-      AiUserProfileRefreshJob.perform_later(current_user.id, true)
-      render json: { ok: true }, status: :accepted
-    end
-
     private
 
     def serialize_me(user)

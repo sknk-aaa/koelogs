@@ -14,7 +14,7 @@ type CompareRow = {
 };
 
 const BENEFITS: Benefit[] = [
-  { icon: "trend", title: "停滞を見抜く", sub: "成長の止まりどころを自動で可視化" },
+  { icon: "trend", title: "分析を深く見る", sub: "長期推移や履歴をまとめて確認" },
   { icon: "ai", title: "AIを無制限で深掘り", sub: "おすすめを何度でも相談できる" },
   { icon: "compare", title: "全期間で伸びを比較", sub: "30/90/365日で変化が追える" },
   { icon: "replay", title: "録音で精度を上げる", sub: "音源と重ねて聞き直せる" },
@@ -24,10 +24,10 @@ const BENEFITS: Benefit[] = [
 
 const COMPARE_ROWS: CompareRow[] = [
   { feature: "AI無制限相談", free: "1回/日" },
-  { feature: "30/90/365日比較", free: "7日のみ" },
-  { feature: "全履歴表示", free: "最新1件" },
+  { feature: "推移グラフの開放", free: "7日のみ" },
+  { feature: "測定履歴の閲覧", free: "最新1件" },
   { feature: "録音重ね再生", free: "—" },
-  { feature: "録音を保存（WAV）", free: "—" },
+  { feature: "録音を保存", free: "—" },
   { feature: "CSV出力", free: "—" },
   { feature: "今後追加される新機能", free: "—" },
 ];
@@ -241,7 +241,7 @@ export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimary
             aria-label="3か月プランを選択"
             onClick={() => handlePlanAction("quarterly")}
           >
-            <div className="premiumPlanPage__planBadge">おすすめ</div>
+            <div className="premiumPlanPage__planBadge">10%OFF</div>
             <div className="premiumPlanPage__planHead">3か月</div>
             <div className="premiumPlanPage__planPrice">
               ¥2,640

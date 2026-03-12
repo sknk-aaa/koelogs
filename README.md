@@ -19,23 +19,29 @@
   - 期間（最新/30日/90日）と指標フィルタ（すべて/音域/ロングトーン/音量安定性/音程精度）を選択
   - 日次サマリーCSVと測定履歴CSVをダウンロード
 - AIおすすめ（`/log`）
+  - 週単位（`月曜〜日曜`）で表示・取得
+  - 生成は手動ボタン押下時のみ（同日同条件は再生成しない）
   - 参照期間 `14 / 30 / 90` 日を選択して生成
   - 詳細ログは常に直近14日、30/90では月ログ（1か月/3か月）を追加参照
-  - 集合知（コミュニティ投稿）は補助根拠として利用
+  - テーマ語一致時のみ集合知（コミュニティ投稿）を利用し、非一致時はWebのみで探索
+    - 一致語: `音域 / 音程 / 換声点 / 息切れ / 音量 / 力み / 声の抜け / ロングトーン`
+  - Web参照は常時ON
   - 集合知集計は `Rails.cache` でキャッシュ（6時間）
+  - テーマ入力時は、そのテーマを方針の先頭行に固定（AIが別テーマを再決定しない）
 - AI設定（`/settings/ai`）
   - 回答スタイル（カスタム指示 + 選択式: style/tone, 温かみ, 熱量, 絵文字）
   - 改善したい項目（`ai_improvement_tags`）
   - AIが参照する長期プロフィール（声に関して: 強み/課題/成長過程/避けたい練習・注意点）
   - AIおすすめ参照期間（14 / 30 / 90）
 - AIおすすめへのフォローアップ会話
-  - 当日おすすめに対する質問・調整会話
+  - 今週おすすめに対する質問・調整会話
   - 1スレッド最大20メッセージ、履歴は保持
 - AIチャット（`/chat`）
   - 汎用のトレーニング相談チャット
   - 通常会話と「AIおすすめへの質問」スレッドを同一UIで管理
   - 外部知識（Web検索）とKoelogs内データ（ログ/長期プロフィール/おすすめ履歴）を併用
   - チャット由来の保存候補（保存/訂正/スキップ）を表示し、確定時に長期プロフィールへ保存
+  - AIおすすめスレッドでは、質問日の切り替わりごとに日付区切り線を表示
 - コミュニティ（`/community`）
   - 投稿 / お気に入り / ランキング / 公開プロフィール
 
@@ -96,7 +102,9 @@ npm --prefix frontend install
 ```env
 GEMINI_API_KEY=your_gemini_api_key
 VITE_API_BASE_URL=http://localhost:3000
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
 FRONTEND_ORIGIN=http://localhost:5173
+GOOGLE_CLIENT_ID=your_google_client_id
 
 MAIL_FROM=no-reply@example.com
 MAILER_HOST=localhost
@@ -155,7 +163,7 @@ npm --prefix frontend run dev
   - `GET /api/insights`
 - AIおすすめ
   - `GET /api/ai_recommendations?date=YYYY-MM-DD&range_days=14|30|90`
-  - `POST /api/ai_recommendations`（`date`, `range_days`）
+  - `POST /api/ai_recommendations`（`date`, `range_days`, `today_theme?`）
   - `GET /api/ai_recommendations/:id/thread`
   - `POST /api/ai_recommendations/:id/thread/messages`
 - AIチャット
@@ -189,15 +197,24 @@ npm --prefix frontend run dev
   - `range_days=14`: 日次ログ14日（詳細）
   - `range_days=30`: 日次ログ14日 + 月ログ1か月（傾向）
   - `range_days=90`: 日次ログ14日 + 月ログ3か月（傾向）
-- 同日生成の保存単位
-  - `user_id + generated_for_date + range_days` で一意
+- 保存/取得単位
+  - 週キー: `week_start_date`（月曜開始）
+  - 同日同条件は `user_id + generated_for_date + range_days` で一意
+  - `GET` は指定日の属する週の最新1件を返す
 - 根拠の優先順位
   - 1) `ai_custom_instructions`
   - 2) `goal_text`
   - 3) `ai_improvement_tags`
-  - 4) 直近ログ + 集合知
+  - 4) 直近ログ + 根拠探索（コミュニティ条件一致時 + Web）
+- コミュニティ参照条件（テーマ連動）
+  - `today_theme` に次の語が含まれる場合のみコミュニティON
+    - `音域 / 音程 / 換声点 / 息切れ / 音量 / 力み / 声の抜け / ロングトーン`
+  - 非一致（または未入力）はコミュニティOFF（Webのみ）
+- Web/コミュニティ比重判定
+  - 判定軸: `目標タグ × 同一メニュー(canonical_key)` 件数
+  - `top_menu_count < 5` で Web強度 `high`、それ以外 `light`
 - 集合知キャッシュ
-  - キー: `collective_effects:v1:window=<days>:min=<count>`
+  - キー: `collective_effects:v1:window=<days>:min=<count>:tags=<...>`
   - TTL: 6時間
   - 例外時はキャッシュをバイパスして集計（生成継続）
 - 録音測定データ参照
@@ -205,11 +222,16 @@ npm --prefix frontend run dev
   - 指標ごとに直近最大10件を集計し、latest / avg_last_5 / delta_vs_prev_5 / count を構築
 - 出力
   - プレーンテキスト（Markdown禁止）
-  - `1) 今日の方針 / 2) 今の状態 / 3) おすすめメニュー / 4) 補足`
+  - `1) 今週の方針 / 2) 今の状態 / 3) 今週のおすすめメニュー / 4) 補足`
+  - `today_theme` 指定時は「1) 今週の方針」の先頭行にその文を固定
+  - `3) 今週のおすすめメニュー` は各項目3行
+    - `メニュー名｜時間`
+    - `狙い`
+    - `根拠: Web / コミュニティ / 両方`（Webソースがある場合はサイト名を併記）
 
 ## フォローアップ会話仕様（現行）
 
-- 当日おすすめのみ会話可能
+- 今週おすすめのみ会話可能
 - 1スレッド最大20メッセージ
 - 会話コンテキストは直近6往復（12メッセージ）を投入
 - 保持データ
@@ -263,6 +285,12 @@ npm --prefix frontend run dev
   - 「保存」確定時にAI正規化（1文・事実追加禁止）し、失敗時はルール整形へフォールバック
   - 重複チェック（完全一致 + 類似）後に長期プロフィールへ追記
 
+## 無料プラン制限（AIおすすめ質問）
+
+- 無料ユーザーは `source_kind=ai_recommendation` スレッドで
+  - **1つの今週おすすめにつき1回**まで質問可能
+- プレミアムは回数無制限
+
 ## 主要テーブル（抜粋）
 
 - `users`
@@ -277,7 +305,7 @@ npm --prefix frontend run dev
 - `ai_user_profiles`, `ai_profile_memory_candidates`
 - `community_posts`, `community_post_favorites`
 - `ai_recommendations`
-  - `generated_for_date`, `range_days`, `recommendation_text`
+  - `generated_for_date`, `week_start_date`, `range_days`, `recommendation_text`
   - `collective_summary`, `generation_context`
   - `generator_model_name`, `generator_prompt_version`
 - `ai_recommendation_threads`, `ai_recommendation_messages`
@@ -294,7 +322,7 @@ npm --prefix frontend run build
 ## ドキュメント
 
 - AI全体まとめ: `docs/AI_SYSTEM_OVERVIEW_2026-03-01.md`
-- 最新実装仕様: `docs/CURRENT_IMPLEMENTATION_SPEC_2026-02-28.md`
+- 最新実装仕様: `docs/CURRENT_IMPLEMENTATION_SPEC_2026-03-05.md`
 - 集合知/AIおすすめ: `docs/COLLECTIVE_INTELLIGENCE_AI_RECOMMENDATIONS.md`
 - 測定・月ログ再設計: `docs/MEASUREMENT_MONTHLY_LOG_REDESIGN_SPEC.md`
 - パスワード再設定/SMTP: `docs/PASSWORD_RESET_SMTP_IMPLEMENTATION.md`

@@ -2,46 +2,1430 @@
   width: 100%;
   position: relative;
   isolation: isolate;
+  background: #ffffff;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  --accent: #14c6d8;
+  --log-brand-text: #09363d;
+  --log-brand-muted: #5f7480;
+  --ui-section-eyebrow-muted-base: var(--log-brand-muted);
+  --log-card-border: #e8ecf3;
+  --log-card-shadow: 0 4px 14px rgba(9, 54, 61, 0.06);
+  --log-neutral-surface: #ffffff;
+}
+
+.page.logPage {
+  padding-top: 0;
+  background: var(--log-neutral-surface);
 }
 
 body.logPage--comparisonModalOpen nav[aria-label="mode tabs"] {
   display: none !important;
 }
 
-.logPage::before {
-  content: "";
-  position: absolute;
-  inset: -40px -20px auto;
-  height: 260px;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(540px 180px at 10% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 65%),
-    radial-gradient(460px 160px at 90% 0%, rgba(255, 255, 255, 0.16), transparent 70%);
-  filter: blur(8px);
+body:has(.page.logPage) {
+  background: var(--log-neutral-surface);
 }
 
-.logPage::after {
+.logPage__dateRail {
+  margin-bottom: 8px;
+  padding: 4px 0 4px;
+  position: relative;
+  background: var(--log-neutral-surface);
+}
+
+.logPage__weekRail {
+  width: 100%;
+}
+
+.logPage__weekStrip {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  padding: 2px 0 6px;
+  background: transparent;
+}
+
+.logPage__weekStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.logPage__weekDay {
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+  border: 3px solid #d8d8d8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--log-brand-text);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  position: relative;
+  flex: 1 0 48px;
+  align-content: center;
+  gap: 2px;
+  padding: 5px 0 4px;
+}
+
+.logPage__weekDay:active {
+  transform: scale(0.96);
+}
+
+.logPage__weekDay.is-selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.logPage__weekDay.is-selected .logPage__weekDayNumber,
+.logPage__weekDay.is-selected .logPage__weekDayLabel {
+  color: #ffffff;
+}
+
+.logPage__weekDay.is-selected .logPage__weekDayNumber {
+  font-weight: 800;
+}
+
+.logPage__weekDay.is-today:not(.is-selected) {
+  border-color: color-mix(in srgb, var(--accent) 52%, #d8d8d8);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, #ffffff);
+}
+
+.logPage__weekDay::after {
+  display: none;
+}
+
+.logPage__weekDayLabel {
+  order: 2;
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1;
+  color: color-mix(in srgb, var(--log-brand-text) 58%, #ffffff);
+}
+
+.logPage__weekDayNumber {
+  order: 1;
+  font-size: 1.18rem;
+  font-weight: 500;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  color: color-mix(in srgb, var(--log-brand-text) 70%, #ffffff);
+}
+
+.logPage__dayBoard {
+  display: grid;
+  gap: 14px;
+}
+
+.logPage__sectionBlock {
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__sectionBlock:has(.logPage__summaryCard--combined) {
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.logPage__sectionBlock--goal {
+  gap: 0;
+}
+
+.logPage__sectionLabel {
+  font-size: var(--ui-section-eyebrow-size);
+  font-weight: 800;
+  letter-spacing: var(--ui-section-eyebrow-letter-spacing);
+  color: var(--ui-section-eyebrow-color);
+}
+
+.logPage__sectionLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logPage__sectionLabelIcon {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+  flex: 0 0 auto;
+}
+
+.logPage__sectionLabelIcon svg {
+  width: var(--ui-section-icon-size);
+  height: var(--ui-section-icon-size);
+  stroke: currentColor;
+  stroke-width: var(--ui-section-icon-stroke-width);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__sectionLabelIcon svg .accent {
+  stroke: color-mix(in srgb, var(--accent) 62%, #70839a);
+}
+
+.logPage__sectionLabelIcon svg .accent-fill {
+  fill: color-mix(in srgb, var(--accent) 62%, #70839a);
+  stroke: none;
+}
+
+.logPage__sectionLabelIcon.is-goal {
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+}
+
+.logPage__sectionLabelIcon.is-measure {
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+}
+
+.logPage__sectionLabelIcon.is-practice {
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+}
+
+.logPage__sectionLabelIcon.is-menus {
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+}
+
+.logPage__sectionLabelIcon.is-note {
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+}
+
+.logPage__contentSection {
+  margin: 2px -16px 0;
+}
+
+.logPage__contentSection--white {
+  margin-top: 0;
+}
+
+.logPage__contentWave {
+  display: block;
+  height: 24px;
+  color: color-mix(in srgb, var(--accent) 4%, #ffffff);
+}
+
+.logPage__contentWave--white {
+  color: var(--log-neutral-surface);
+}
+
+.logPage__contentWave--measure {
+  color: var(--ui-section-wave-fill);
+}
+
+.logPage__contentWave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.logPage__contentInner {
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+  padding: 2px 16px 0;
+  display: grid;
+  gap: 18px;
+}
+
+.logPage__contentInner--measure {
+  background: var(--ui-measure-section-bg);
+}
+
+.logPage__contentInner--white {
+  background: var(--log-neutral-surface);
+  padding-bottom: calc(0px + env(safe-area-inset-bottom));
+}
+
+.logPage__aiWeekAction {
+  margin-top: -8px;
+  margin-bottom: 8px;
+  padding: 10px 16px 12px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 10%, var(--log-card-border));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  display: grid;
+  gap: 12px;
+}
+
+.logPage__aiWeekAction.has-beginner-guide {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 8px;
+}
+
+.logPage__aiWeekActionTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.logPage__aiWeekActionMain {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  flex: 1 1 auto;
+}
+
+.logPage__aiWeekActionTitle {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: color-mix(in srgb, var(--accent) 64%, #09363d);
+}
+
+.logPage__aiWeekActionIcon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #70839a;
+  flex: 0 0 auto;
+}
+
+.logPage__aiWeekActionIcon svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__aiWeekActionIcon svg .accent {
+  fill: #43a5f5;
+  stroke: none;
+}
+
+.logPage__aiWeekActionSubtext {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--log-brand-muted);
+}
+
+.logPage__aiWeekActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.logPage__aiWeekActionLink {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ui-accent-strong);
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.logPage__aiWeekActionLink:hover {
+  opacity: 0.8;
+}
+
+.logPage__aiWeekActionLock {
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8798a5;
+  background: color-mix(in srgb, var(--accent) 5%, #f6fafc);
+}
+
+.logPage__aiWeekActionBtn {
+  min-height: 34px;
+  padding-inline: 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--log-card-border));
+  color: color-mix(in srgb, var(--accent) 44%, #09363d);
+  box-shadow: none;
+  white-space: nowrap;
+  font-weight: 900;
+}
+
+.logPage__aiWeekActionBtn.logPage__btn {
+  height: 34px;
+  border-radius: 999px;
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--log-card-border));
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 44%, #09363d);
+  box-shadow: none;
+}
+
+.logPage__aiWeekActionBtn.uiButton,
+.logPage__aiWeekActionBtn.logPage__btn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--log-card-border));
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 44%, #09363d);
+}
+
+.logPage__aiWeekActionBtn.logPage__btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--log-card-border));
+  background: color-mix(in srgb, var(--accent) 14%, #ffffff);
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .logPage__aiWeekAction {
+    padding: 12px 16px;
+  }
+
+  .logPage__aiWeekActionRow {
+    justify-content: flex-end;
+  }
+}
+
+.logPage__metricCard {
+  min-width: 0;
+  min-height: 144px;
+  padding: 14px 12px 12px;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: none;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.logPage__metricCard.is-accent {
+  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 28%, rgba(9, 54, 61, 0.12));
+}
+
+.logPage__durationCard {
+  width: 100%;
+  min-width: 0;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.logPage__durationCard::before {
   content: "";
+  position: absolute;
+  right: -4px;
+  top: -8px;
+  width: 168px;
+  height: 168px;
+  border-radius: 999px;
+  background: url("/icons/clock.svg") no-repeat center;
+  background-size: 104px 104px;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.logPage__durationCard > * {
+  position: relative;
+  z-index: 1;
+}
+
+.logPage__durationTop {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.logPage__durationSummary {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.logPage__durationCard:active {
+  transform: scale(0.985);
+}
+
+.logPage__srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.logPage__daySummaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.logPage__summaryCard {
+  min-width: 0;
+  min-height: 86px;
+  padding: 8px 16px;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: none;
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__summaryCard--time {
+  background: #ffffff;
+}
+
+.logPage__summaryCard--streak {
+  background: #fff3eb;
+  border-color: #efd7c8;
+}
+
+.logPage__summaryCard--combined {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+}
+
+.logPage__summaryCardArtwork {
+  position: absolute;
+  right: -72px;
+  bottom: -76px;
+  width: 212px;
+  height: 212px;
+  color: rgba(9, 54, 61, 0.06);
+  pointer-events: none;
+}
+
+.logPage__summaryCard--time .logPage__summaryCardArtwork {
+  color: rgba(20, 198, 216, 0.06);
+}
+
+.logPage__summaryCard--streak .logPage__summaryCardArtwork {
+  color: rgba(197, 118, 56, 0.08);
+}
+
+.logPage__summaryCardArtwork svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__summaryCardLabel,
+.logPage__summaryCardValueBlock,
+.logPage__summaryCardRing,
+.logPage__summaryCardRingValue,
+.logPage__summaryCardTop,
+.logPage__summaryCardMainRow,
+.logPage__summaryCardFooter,
+.logPage__summaryCardSubMeta,
+.logPage__summaryCardEditor,
+.logPage__summaryCardSubtext,
+.logPage__summaryCardError {
+  position: relative;
+  z-index: 1;
+}
+
+.logPage__summaryCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.logPage__summaryCardLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.logPage__summaryCardValueBlock {
+  display: grid;
+  justify-items: center;
+  min-width: 128px;
+}
+
+.logPage__summaryCardRing {
+  position: relative;
+  --ring-progress: 0;
+  width: 112px;
+  height: 112px;
+  border-radius: 999px;
+  background: conic-gradient(#14c6d8 calc(var(--ring-progress) * 1turn), rgba(20, 198, 216, 0.14) 0);
+  display: grid;
+  place-items: center;
+}
+
+.logPage__summaryCardRing::before {
+  content: "";
+  width: 86px;
+  height: 86px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.94);
+  grid-area: 1 / 1;
+}
+
+.logPage__summaryCardRingValue {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 1px;
+  color: #1d1d54;
+}
+
+.logPage__summaryCardRingValue span {
+  font-size: 38px;
+  line-height: 0.95;
+  font-weight: 900;
+  color: #0f766e;
+}
+
+.logPage__summaryCardRingValue small {
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 800;
+  color: #506a7d;
+  text-transform: lowercase;
+}
+
+.logPage__summaryCardMainRow {
+  display: grid;
+  grid-template-columns: 128px minmax(108px, auto);
+  align-items: center;
+  justify-content: center;
+  column-gap: 24px;
+  padding: 0 24px 0 28px;
+  margin-top: -4px;
+}
+
+.logPage__summaryCardSubMeta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+  width: 100%;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.logPage__summaryCardSubMetaLabel {
+  font-weight: 600;
+  color: #7f8d9b;
+  white-space: nowrap;
+}
+
+.logPage__summaryCardSubMetaValue {
+  font-weight: 600;
+  color: #415664;
+  white-space: nowrap;
+}
+
+.logPage__summaryCardFooter {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+}
+
+.logPage__summaryCardMetaList,
+.logPage__summaryCardMetaColumn {
+  min-width: 118px;
+  display: grid;
+  gap: 3px;
+  align-content: center;
+  justify-self: start;
+}
+
+.logPage__summaryCardAction,
+.logPage__todayMenusEditBtn,
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  min-width: 38px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--log-brand-text);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logPage__summaryCardAction:disabled,
+.logPage__todayMenusEditBtn:disabled,
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.logPage__durationModal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.logPage__durationModalBackdrop {
   position: absolute;
   inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.33;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 26px 26px;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), transparent 55%);
+  border: 0;
+  background: rgba(9, 54, 61, 0.2);
 }
 
-.logPage__stack {
+.logPage__durationModalPanel {
+  position: relative;
+  width: min(100%, 360px);
+  border: 1px solid var(--log-card-border);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(9, 54, 61, 0.16);
+  padding: 18px;
   display: grid;
   gap: 16px;
 }
 
+.logPage__durationModalHeader {
+}
+
+.logPage__durationModalEyebrow {
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--accent) 20%, var(--log-brand-muted));
+}
+
+.logPage__durationModalTitle {
+  font-size: 1.2rem;
+  color: var(--log-brand-text);
+}
+
+.logPage__durationModalClose {
+  padding: 0 10px;
+  min-height: 34px;
+  font-size: 0.94rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logPage__durationModalClose.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
+.logPage__durationModalBody {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logPage__durationModalInputWrap {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(95, 116, 128, 0.18);
+  background: #fbfdff;
+}
+
+.logPage__durationModalInput {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--log-brand-text);
+  outline: none;
+}
+
+.logPage__durationModalInput::placeholder {
+  color: var(--log-brand-text);
+  opacity: 0.35;
+}
+
+.logPage__durationModalUnit {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #6b7e89;
+}
+
+.logPage__durationModalSave {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 0.96rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logPage__durationModalSave.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
+.logPage__durationModalSave:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.logPage__durationModalError {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #c2410c;
+}
+
+.logPage__measurementGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.logPage__metricCard:active {
+  transform: scale(0.985);
+}
+
+.logPage__metricBody {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+  height: 100%;
+}
+
+.logPage__metricCard .logPage__metricBody {
+  padding-top: 0;
+}
+
+.logPage__durationMain {
+  display: grid;
+  gap: 4px;
+}
+
+.logPage__durationMeta {
+  font-size: 0.83rem;
+  line-height: 1.4;
+  color: rgba(9, 54, 61, 0.72);
+}
+
+.logPage__durationMenus {
+  display: grid;
+  gap: 12px;
+}
+
+.logPage__durationMenusLabel {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(9, 54, 61, 0.5);
+}
+
+.logPage__todayMenusTitle {
+  font-size: 1.08rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--log-brand-text);
+}
+
+.logPage__metricIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: rgba(20, 198, 216, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #7b73e8;
+  flex: 0 0 auto;
+}
+
+.logPage__metricIcon svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__metricEyebrow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: rgba(40, 41, 91, 0.38);
+}
+
+.logPage__metricTitle {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #304854;
+}
+
+.logPage__metricTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3px;
+  margin-bottom: 2px;
+  width: 100%;
+}
+
+.logPage__metricCard--range .logPage__metricTitleRow,
+.logPage__metricCard--pitch_accuracy .logPage__metricTitleRow {
+  margin-bottom: 2px;
+}
+
+.logPage__metricTitleIcon {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #8794a3;
+  flex: 0 0 auto;
+}
+
+.logPage__metricTitleIcon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__metricTitleIcon--range {
+  color: #4f8eff;
+}
+
+.logPage__metricTitleIcon--long_tone {
+  color: #8866ff;
+}
+
+.logPage__metricTitleIcon--volume_stability {
+  color: #52c176;
+}
+
+.logPage__metricTitleIcon--pitch_accuracy {
+  color: #eab83a;
+}
+
+.logPage__metricValue {
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--log-brand-text);
+  justify-self: center;
+}
+
+.logPage__metricCard--pitch_accuracy .logPage__metricValue {
+  color: #465966;
+  font-size: 18px;
+  margin-top: 8px;
+}
+
+.logPage__metricMeta {
+  font-size: 13px;
+  line-height: 1.35;
+  color: #64748b;
+  justify-self: center;
+}
+
+.logPage__rangeSummary {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.logPage__rangePrimary {
+  font-size: 18px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: #6f85b5;
+}
+
+.logPage__rangeNotes {
+  width: auto;
+  display: grid;
+  grid-template-columns: auto 52px auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-inline: auto;
+}
+
+.logPage__rangeNote {
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 700;
+  color: #3265d6;
+  text-align: center;
+  justify-self: center;
+}
+
+.logPage__rangeDivider {
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #4f8eff 26%, #d9e4f7);
+}
+
+.logPage__metricMeta--inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.logPage__metricMetaDivider {
+  color: #a8b5c2;
+}
+
+.logPage__metricViz {
+  margin-top: 4px;
+  width: 100%;
+}
+
+.logPage__metricCard--pitch_accuracy .logPage__metricViz {
+  margin-top: 8px;
+}
+
+.logPage__metricCard--long_tone .logPage__metricViz,
+.logPage__metricCard--volume_stability .logPage__metricViz {
+  display: grid;
+  justify-items: center;
+}
+
+.logPage__metricCard--long_tone .logPage__metricMeta,
+.logPage__metricCard--volume_stability .logPage__metricMeta {
+  text-align: center;
+  justify-self: center;
+}
+
+.logPage__miniRing {
+  --ring-progress: 0;
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  background:
+    conic-gradient(#7a4dff calc(var(--ring-progress) * 1turn), rgba(122, 77, 255, 0.16) 0);
+  display: grid;
+  place-items: center;
+}
+
+.logPage__miniRing::before {
+  content: "";
+  width: 62px;
+  height: 62px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.92);
+  grid-area: 1 / 1;
+}
+
+.logPage__miniRingLabel {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  color: #5a36d6;
+}
+
+.logPage__miniRingLabel strong {
+  font-size: 1.25rem;
+  line-height: 0.95;
+  font-weight: 900;
+}
+
+.logPage__miniRingLabel small {
+  font-size: 0.72rem;
+  line-height: 1;
+  font-weight: 800;
+  text-transform: lowercase;
+}
+
+.logPage__miniRing--volume {
+  background:
+    conic-gradient(#32b965 calc(var(--ring-progress) * 1turn), rgba(50, 185, 101, 0.16) 0);
+}
+
+.logPage__miniRing--volume .logPage__miniRingLabel {
+  color: #228a49;
+}
+
+.logPage__miniRing--volume .logPage__miniRingLabel strong {
+  font-size: 1.45rem;
+}
+
+.logPage__pitchBar {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.logPage__pitchBar > span.is-good {
+  background: #4db57d;
+}
+
+.logPage__pitchBar > span.is-mid {
+  background: #d9b24f;
+}
+
+.logPage__pitchBar > span.is-bad {
+  background: #d97a72;
+}
+
+.logPage__pitchBar > i {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid #b39239;
+  transform: translate(-50%, -50%);
+  box-shadow: none;
+}
+
+.logPage__pitchCaption {
+  font-size: 12px;
+  line-height: 1.2;
+  color: #90a0ad;
+  justify-self: center;
+}
+
+.logPage__metricAside {
+  margin-top: auto;
+}
+
+.logPage__metricAside--duration {
+  align-self: end;
+}
+
+.logPage__metricAction {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #7b73e8;
+}
+
+.logPage__memoCard {
+  padding: 20px;
+  border: none;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: none;
+  display: grid;
+  gap: 12px;
+}
+
+.logPage__daySectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.logPage__noteHeadMain {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.logPage__noteIcon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 46%, #5f7480);
+  flex: 0 0 auto;
+}
+
+.logPage__noteIcon svg {
+  width: 28px;
+  height: 28px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__noteIcon--menu {
+  color: color-mix(in srgb, var(--accent) 42%, #5f7480);
+}
+
+.logPage__daySectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--log-brand-text);
+}
+
+.logPage__daySectionEyebrow {
+  margin-bottom: 4px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--log-brand-muted);
+}
+
+.logPage__noteSubtext {
+  margin-top: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.logPage__metricEmpty {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: rgba(40, 41, 91, 0.58);
+}
+
+.logPage__menuChipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.logPage__menuChip {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--menu-chip-color) 36%, rgba(18, 53, 58, 0.08));
+  background: color-mix(in srgb, var(--menu-chip-color) 8%, #ffffff);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #34346d;
+  max-width: 100%;
+}
+
+.logPage__todayMenusCard {
+  padding: 18px 20px;
+  border: none;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: none;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__todayMenusEditBtn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  background: #ffffff;
+  color: var(--log-brand-text);
+}
+
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  background: #ffffff;
+  color: var(--log-brand-text);
+}
+
+.logPage__actionIconOnly {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+}
+
+.logPage__actionIconOnly svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__todayMenuList {
+  display: grid;
+  gap: 6px;
+}
+
+.logPage__todayMenuItem {
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--menu-chip-color) 7%, #ffffff);
+  color: var(--log-brand-text);
+}
+
+.logPage__todayMenuItemDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--menu-chip-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--menu-chip-color) 14%, transparent);
+  flex: 0 0 auto;
+}
+
+.logPage__todayMenuItemName {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--log-brand-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logPage__dayMemoInput {
+  width: 100%;
+  min-height: 104px;
+  resize: vertical;
+  border: none;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+  padding: 14px 16px;
+  font: inherit;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.logPage__dayMemoInput::placeholder {
+  color: rgba(40, 41, 91, 0.38);
+}
+
+.logPage__stack {
+  display: grid;
+  gap: 18px;
+}
+
 .logPage__stack > .logAi.logPage__card {
   margin-top: 24px;
+}
+
+@media (max-width: 640px) {
+  .logPage__dateRail {
+    margin-inline: -4px;
+    padding-inline: 4px;
+  }
+
+  .logPage__weekRail {
+    width: 100%;
+  }
+
+  .logPage__weekStrip {
+    gap: 6px;
+  }
+
+  .logPage__weekDay {
+    min-width: 46px;
+    width: 46px;
+    height: 46px;
+    flex-basis: 46px;
+    padding: 5px 0 4px;
+  }
+
+  .logPage__weekDayNumber {
+    font-size: 1.12rem;
+  }
+
+  .logPage__weekDayLabel {
+    font-size: 0.62rem;
+  }
+
+  .logPage__metricCard {
+    padding: 10px;
+    border-radius: 24px;
+    min-height: 156px;
+  }
+
+  .logPage__metricIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+  }
 }
 
 .logPage__modeSwitch {
@@ -236,7 +1620,7 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .logPage__beginnerGuide {
-  margin-bottom: 10px;
+  margin: 10px 0 18px;
   display: grid;
   gap: 8px;
 }
@@ -244,22 +1628,22 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logPage__missionModalOverlay {
   position: fixed;
   inset: 0;
-  z-index: 150;
-  background: rgba(8, 13, 24, 0.52);
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.38);
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: 14px;
 }
 
 .logPage__missionModalCard {
-  width: min(620px, 100%);
-  max-height: min(82vh, 760px);
+  width: min(680px, 100%);
+  max-height: min(80vh, 760px);
   overflow: auto;
-  border-radius: 20px;
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
-  background: color-mix(in srgb, #ffffff 95%, var(--card));
-  box-shadow: 0 22px 52px rgba(8, 17, 33, 0.2);
-  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 8%, #e4ebf1);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 12px 28px rgba(9, 54, 61, 0.08);
+  padding: 14px;
   display: grid;
   gap: 12px;
 }
@@ -269,137 +1653,226 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  margin-bottom: 12px;
+}
+
+.logPage__missionModalHeadMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .logPage__missionModalTitle {
-  font-size: 20px;
-  font-weight: 950;
-  color: var(--text);
+  font-size: var(--ui-section-eyebrow-size);
+  font-weight: 800;
+  letter-spacing: var(--ui-section-eyebrow-letter-spacing);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 20%, #5f7480);
 }
 
 .logPage__missionModalClose {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
-  background: color-mix(in srgb, var(--surface) 95%, var(--card));
-  color: var(--text);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #718492;
+  font-size: 12px;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
 
+.logPage__missionGroupHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logPage__missionGroupTitleRow,
+.logPage__missionSubgroupLabelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.logPage__missionGroupIcon {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 48%, #70839a);
+  flex: 0 0 auto;
+  transform: translateY(1px);
+}
+
+.logPage__missionGroupIcon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__missionGroupIcon svg .accent {
+  stroke: var(--accent);
+}
+
+.logPage__missionGroupTitle {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8798a5;
+}
+
 .logPage__missionModalStatus {
-  justify-self: start;
   min-height: 24px;
-  padding: 0 10px;
+  padding: 0 8px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-  color: color-mix(in srgb, var(--accent) 72%, var(--text));
-  font-size: 12px;
-  font-weight: 900;
+  border: 0;
+  background: rgba(245, 158, 11, 0.12);
+  color: #9b7a39;
+  font-size: 11px;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
 }
 
-.logPage__missionGuideCard {
+.logPage__missionGuideCard.beginnerMissionGuide__card {
   width: 100%;
-  border-radius: 18px;
-  border: 1px solid #d7dee8;
-  background: #ffffff;
-  box-shadow: 0 8px 18px rgba(31, 64, 122, 0.08);
-  padding: 14px 14px 12px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, #dce6eb);
+  background: transparent;
+  box-shadow: none;
+  padding: 11px 13px 9px;
   display: grid;
-  gap: 10px;
+  gap: 5px;
   text-align: left;
   cursor: pointer;
 }
 
-.logPage__missionGuideTitle {
-  font-size: 18px;
+.logPage__missionGuideCard .beginnerMissionGuide__title {
+  font-size: 16px;
   font-weight: 950;
-  color: #4b5567;
+  color: #3a5160;
   line-height: 1.35;
 }
 
-.logPage__missionGuideMetaRow {
+.logPage__missionGuideCard .beginnerMissionGuide__description {
+  color: #70828d;
+  margin-bottom: -1px;
+}
+
+.logPage__missionGuideCard .beginnerMissionGuide__metaRow {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.logPage__missionGuideLabel {
-  font-size: 12px;
-  font-weight: 700;
-  color: #5e6d86;
+.logPage__missionGuideCard .beginnerMissionGuide__label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #68808c;
 }
 
-.logPage__missionGuideCount {
+.logPage__missionGuideCard .beginnerMissionGuide__count {
   margin-left: auto;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
-  color: #2cb2c9;
+  color: color-mix(in srgb, var(--accent) 64%, #4f6a78);
 }
 
-.logPage__missionGuideArrow {
-  font-size: 34px;
+.logPage__missionGuideCard .beginnerMissionGuide__arrow {
+  font-size: 30px;
   line-height: 0.6;
-  color: #b9c4d7;
+  color: #bcc8d3;
 }
 
-.logPage__missionGuideProgressTrack {
-  height: 16px;
+.logPage__missionGuideCard .beginnerMissionGuide__progressTrack {
+  height: 9px;
   border-radius: 999px;
   overflow: hidden;
-  background: #dce4ef;
+  background: color-mix(in srgb, var(--accent) 6%, #e7edf1);
   display: block;
+  margin-top: -1px;
 }
 
-.logPage__missionGuideProgressFill {
+.logPage__missionGuideCard .beginnerMissionGuide__progressFill {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #42c7da, #2da6cb);
+  background: color-mix(in srgb, var(--accent) 24%, #9ccfd8);
 }
 
 .logPage__beginnerGuideList {
   display: grid;
-  gap: 6px;
+  gap: 12px;
+}
+
+.logPage__beginnerGuideLabelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 4px 4px;
+}
+
+.logPage__beginnerGuideLabelIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 48%, #70839a);
+  flex: 0 0 auto;
+}
+
+.logPage__beginnerGuideLabelIcon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__beginnerGuideLabelIcon svg .accent {
+  stroke: var(--accent);
+}
+
+.logPage__beginnerGuideLabelText {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8798a5;
 }
 
 .logPage__beginnerGuideItem {
-  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
+  border: 0;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--surface) 88%, var(--card));
-  padding: 7px 8px;
+  background: rgba(255, 255, 255, 0.46);
+  padding: 12px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
+.logPage__beginnerGuideItem.is-done {
+  opacity: 0.82;
+}
+
 .logPage__beginnerGuideItemMain {
   min-width: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-}
-
-.logPage__beginnerGuideItemIcon {
-  font-size: 12px;
-  font-weight: 900;
-  color: color-mix(in srgb, var(--accent) 72%, var(--text));
-  line-height: 1.2;
-  margin-top: 1px;
-}
-
-.logPage__beginnerGuideItemText {
-  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .logPage__beginnerGuideItemTitle {
@@ -409,17 +1882,10 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   line-height: 1.4;
 }
 
-.logPage__beginnerGuideItemDesc {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--log-text-3);
-  line-height: 1.5;
-}
-
 .logPage__beginnerGuideItemAction {
   flex: 0 0 auto;
-  min-height: 26px;
-  padding: 0 9px;
+  min-height: 30px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
@@ -427,6 +1893,24 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   text-decoration: none;
   font-size: 11px;
   font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logPage__missionSubgroupLabelRow {
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+.logPage__missionDonePill {
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(22, 163, 74, 0.1);
+  color: #4d8062;
+  font-size: 11px;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
 }
@@ -590,12 +2074,15 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: color-mix(in srgb, var(--surface) 84%, var(--card));
-  color: var(--log-text-2);
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
+}
+
+.logPage__compareModalClose.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__compareModalBody {
@@ -692,8 +2179,8 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   display: grid;
   grid-template-columns: auto minmax(240px, 320px) auto;
   align-items: end;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .logPage__weekHeader {
@@ -701,7 +2188,7 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   grid-template-columns: auto 1fr;
   align-items: end;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .logPage__weekHeaderLeft {
@@ -721,8 +2208,8 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logPage__weekLabel {
   min-height: 36px;
   border-radius: 11px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: none;
+  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
   padding: 0 12px;
   display: inline-flex;
   align-items: center;
@@ -764,6 +2251,21 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   font-weight: 900;
 }
 
+.logPage__monthRatioBar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  overflow: hidden;
+}
+
+.logPage__monthRatioBarFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 78%, #38bdf8), var(--accent));
+}
+
 .logPage__monthMemo {
   width: 100%;
   min-height: 122px;
@@ -789,6 +2291,14 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 :root[data-theme-mode="dark"] .logPage__monthRowTop {
   color: var(--text);
+}
+
+:root[data-theme-mode="dark"] .logPage__monthRatioBar {
+  background: color-mix(in srgb, rgba(255, 255, 255, 0.12) 46%, #0f1e32 54%);
+}
+
+:root[data-theme-mode="dark"] .logPage__monthRatioBarFill {
+  background: linear-gradient(90deg, #5ec7ff, #5b8dff);
 }
 
 :root[data-theme-mode="dark"] .logPage__monthMemo {
@@ -826,20 +2336,24 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logPage__btn {
   height: 42px;
   padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 900;
+  min-width: 84px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, filter 160ms ease;
-  box-shadow: 0 6px 16px rgba(6, 10, 20, 0.35);
+  transition: transform 120ms ease, background-color 160ms ease, color 160ms ease, opacity 160ms ease;
+  box-shadow: none;
+}
+
+.logPage__btn.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__btn:hover {
-  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  background: color-mix(in srgb, var(--accent) 12%, #ffffff);
 }
 
 .logPage__btn:active {
@@ -852,41 +2366,61 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   box-shadow: none;
 }
 
+.logPage__btn.logPage__summaryCardAction,
+.logPage__btn.logPage__todayMenusEditBtn,
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn.uiButton {
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  min-width: 38px;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.logPage__btn.logPage__summaryCardAction.uiButton,
+.logPage__btn.logPage__todayMenusEditBtn.uiButton,
+.logPage__memoCard > .logPage__daySectionHead > .logPage__btn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  background: #ffffff;
+  color: color-mix(in srgb, var(--accent) 44%, var(--log-brand-text));
+}
+
 .logPage__btn--subtle {
-  border-color: var(--border);
-  background: var(--surface);
+  background: #f7fafc;
   box-shadow: none;
 }
 
+.logPage__btn--subtle.uiButton {
+  background: inherit;
+}
+
 .logPage__btn--subtle:hover {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
-  box-shadow: 0 8px 20px rgba(6, 10, 20, 0.35);
+  background: color-mix(in srgb, var(--accent) 6%, #f7fafc);
 }
 
 .logPage__btn--softAccent {
-  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
-  background: color-mix(in srgb, var(--accent) 18%, var(--surface-strong));
+  background: color-mix(in srgb, var(--accent) 12%, #ffffff);
+}
+
+.logPage__btn--softAccent.uiButton {
+  background: inherit;
 }
 
 .logPage__btn--softAccent:hover {
-  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
+  background: color-mix(in srgb, var(--accent) 16%, #ffffff);
 }
 
 .logPage__btn--cta {
   height: 46px;
-  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent) 86%, #0b1220),
-    color-mix(in srgb, var(--accent) 70%, #0b1220)
-  );
-  color: #eef6ff;
-  box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 30%, transparent);
+  background: var(--accent);
+  color: #eefcff;
+  box-shadow: none;
 }
 
 .logPage__btn--cta:hover {
-  filter: saturate(1.08) brightness(1.03);
-  box-shadow: 0 18px 34px color-mix(in srgb, var(--accent) 36%, transparent);
+  background: color-mix(in srgb, var(--accent) 92%, #000000);
 }
 
 .logPage__cardHead {
@@ -1029,6 +2563,10 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   font-weight: 950;
   letter-spacing: -0.6px;
   line-height: 1;
+}
+
+.logPage__mini--time .logPage__kpiNumber {
+  color: #233f56;
 }
 
 .logPage__kpiUnit {
@@ -1391,10 +2929,14 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   color: rgba(255, 255, 255, 0.74);
 }
 
-:root[data-theme-mode="dark"] .logPage__missionGuideCard {
+:root[data-theme-mode="dark"] .logPage__missionGuideCard.beginnerMissionGuide__card {
   border-color: rgba(255, 255, 255, 0.24);
-  background: #172033;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.36);
+  background: transparent;
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .logPage__beginnerGuideLabelText {
+  color: rgba(219, 231, 255, 0.72);
 }
 
 :root[data-theme-mode="dark"] .logPage__missionModalOverlay {
@@ -1423,24 +2965,28 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   color: #cfe7ff;
 }
 
-:root[data-theme-mode="dark"] .logPage__missionGuideTitle {
+:root[data-theme-mode="dark"] .logPage__missionGuideCard .beginnerMissionGuide__title {
   color: #e5edff;
 }
 
-:root[data-theme-mode="dark"] .logPage__missionGuideLabel {
+:root[data-theme-mode="dark"] .logPage__missionGuideCard .beginnerMissionGuide__label {
   color: rgba(219, 231, 255, 0.82);
 }
 
-:root[data-theme-mode="dark"] .logPage__missionGuideCount {
+:root[data-theme-mode="dark"] .logPage__missionGuideCard .beginnerMissionGuide__count {
   color: #7dd3fc;
 }
 
-:root[data-theme-mode="dark"] .logPage__missionGuideArrow {
+:root[data-theme-mode="dark"] .logPage__missionGuideCard .beginnerMissionGuide__arrow {
   color: rgba(203, 213, 225, 0.78);
 }
 
-:root[data-theme-mode="dark"] .logPage__missionGuideProgressTrack {
-  background: rgba(148, 163, 184, 0.28);
+:root[data-theme-mode="dark"] .logPage__missionGuideCard .beginnerMissionGuide__progressTrack {
+  background: rgba(148, 163, 184, 0.34);
+}
+
+:root[data-theme-mode="dark"] .logPage__missionGuideCard .beginnerMissionGuide__progressFill {
+  background: color-mix(in srgb, var(--accent) 48%, #8fd0da);
 }
 
 :root[data-theme-mode="dark"] .logPage__beginnerGuideItem {
@@ -1599,6 +3145,194 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 :root[data-theme-mode="dark"] .logPage__measurementCounts,
 :root[data-theme-mode="dark"] .logPage__measurementNote {
   color: rgba(255, 255, 255, 0.74);
+}
+
+:root[data-theme-mode="dark"] .logPage__weekDay {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__weekDayNumber,
+:root[data-theme-mode="dark"] .logPage__weekDayLabel {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme-mode="dark"] .logPage__dateRail,
+:root[data-theme-mode="dark"] .logPage__weekRail {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage,
+:root[data-theme-mode="dark"] .page.logPage,
+:root[data-theme-mode="dark"] body:has(.page.logPage),
+:root[data-theme-mode="dark"] .logPage__dayBoard,
+:root[data-theme-mode="dark"] .logPage__aiWeekAction {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__dateRail {
+  margin-inline: -16px;
+  padding-inline: 16px;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekStrip {
+  background: transparent;
+}
+
+:root[data-theme-mode="dark"] .logPage__weekDay.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 54%, rgba(255, 255, 255, 0.22));
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .logPage__weekDay.is-selected .logPage__weekDayNumber,
+:root[data-theme-mode="dark"] .logPage__weekDay.is-selected .logPage__weekDayLabel {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .logPage__contentWave--white {
+  color: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__contentInner--white {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__sectionLabel {
+  color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.82));
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekAction {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionTitle {
+  color: color-mix(in srgb, var(--accent) 48%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionSubtext {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionIcon {
+  color: color-mix(in srgb, var(--accent) 40%, #dffbff);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionIcon svg .accent {
+  fill: color-mix(in srgb, var(--accent) 74%, #8aefff);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionLink {
+  color: var(--accent);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionLink:hover {
+  color: color-mix(in srgb, var(--accent) 82%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCard,
+:root[data-theme-mode="dark"] .logPage__durationModalPanel {
+  background: var(--card);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__durationModalBackdrop {
+  background: rgba(4, 10, 20, 0.68);
+}
+
+:root[data-theme-mode="dark"] .logPage__todayMenusCard,
+:root[data-theme-mode="dark"] .logPage__memoCard {
+  background: transparent;
+  border-color: transparent;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardAction,
+:root[data-theme-mode="dark"] .logPage__todayMenusEditBtn,
+:root[data-theme-mode="dark"] .logPage__memoCard > .logPage__daySectionHead > .logPage__btn,
+:root[data-theme-mode="dark"] .logPage__btn.logPage__summaryCardAction.uiButton,
+:root[data-theme-mode="dark"] .logPage__btn.logPage__todayMenusEditBtn.uiButton,
+:root[data-theme-mode="dark"] .logPage__memoCard > .logPage__daySectionHead > .logPage__btn.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 64%, rgba(255, 255, 255, 0.24));
+  background: color-mix(in srgb, var(--surface) 92%, rgba(255, 255, 255, 0.04));
+  color: color-mix(in srgb, var(--accent) 34%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardLabel,
+:root[data-theme-mode="dark"] .logPage__summaryCardSubMetaLabel,
+:root[data-theme-mode="dark"] .logPage__noteSubtext,
+:root[data-theme-mode="dark"] .logPage__metricEmpty,
+:root[data-theme-mode="dark"] .logPage__dayMemoInput::placeholder,
+:root[data-theme-mode="dark"] .logPage__durationModalEyebrow,
+:root[data-theme-mode="dark"] .logPage__durationModalInput::placeholder,
+:root[data-theme-mode="dark"] .logPage__durationModalUnit {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardSubMetaValue,
+:root[data-theme-mode="dark"] .logPage__todayMenuItemName,
+:root[data-theme-mode="dark"] .logPage__durationModalTitle,
+:root[data-theme-mode="dark"] .logPage__todayMenusTitle,
+:root[data-theme-mode="dark"] .logPage__daySectionTitle {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardRing::before,
+:root[data-theme-mode="dark"] .logPage__miniRing::before {
+  background: color-mix(in srgb, var(--surfaceStrong) 92%, rgba(255, 255, 255, 0.06));
+}
+
+:root[data-theme-mode="dark"] .logPage__durationModalInputWrap {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--surface) 90%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .logPage__durationModalInput {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__durationModalClose.uiButton {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardRingValue,
+:root[data-theme-mode="dark"] .logPage__summaryCardRingValue span,
+:root[data-theme-mode="dark"] .logPage__miniRingLabel,
+:root[data-theme-mode="dark"] .logPage__miniRingLabel strong,
+:root[data-theme-mode="dark"] .logPage__rangePrimary,
+:root[data-theme-mode="dark"] .logPage__rangeNote,
+:root[data-theme-mode="dark"] .logPage__metricTitle,
+:root[data-theme-mode="dark"] .logPage__metricValue {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__summaryCardRingValue small,
+:root[data-theme-mode="dark"] .logPage__metricMeta,
+:root[data-theme-mode="dark"] .logPage__pitchCaption,
+:root[data-theme-mode="dark"] .logPage__rangePrimary {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme-mode="dark"] .logPage__todayMenuItem,
+:root[data-theme-mode="dark"] .logPage__dayMemoInput,
+:root[data-theme-mode="dark"] .logPage__notePreview {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .logPage__notePreview.is-placeholder {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+:root[data-theme-mode="dark"] .logPage__dayMemoInput {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .logPage__metricCard {
+  background: var(--card);
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .logPage__sectionTitle--comparison {
@@ -1786,6 +3520,13 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   gap: 6px;
 }
 
+.logPage__comparisonActionCard.uiPanel,
+.logPage__comparisonReasonCard.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
 .logPage__comparisonReasonList,
 .logPage__comparisonActionList {
   margin: 0;
@@ -1826,9 +3567,16 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.06em;
-  color: color-mix(in srgb, var(--accent) 84%, var(--text));
-  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.logPage__comparisonActionBadge.uiCompareChip {
+  color: inherit;
+  border-color: inherit;
+  background: inherit;
+  min-height: 20px;
+  padding: 0 8px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
 }
 
 .logPage__comparisonActionTitleRow {
@@ -1910,6 +3658,12 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   padding: 10px;
   display: grid;
   gap: 4px;
+}
+
+.logPage__comparisonIntensity.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__comparisonBlockTitle {
@@ -2038,6 +3792,12 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
   background: color-mix(in srgb, var(--surface) 86%, var(--card));
+}
+
+.logPage__comparisonBucket.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .logPage__comparisonBucket.is-improved {
@@ -2341,10 +4101,12 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .logPage__aiCtaBtn {
   min-height: 40px;
+  flex: 1 1 240px;
 }
 
 .logPage__aiCtaBtn.is-guided {
@@ -2357,6 +4119,110 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .logPage__aiCtaHint {
   margin: 0;
+}
+
+.logPage__aiThemeToggle {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6c8390;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.logPage__aiThemeToggle.logPage__btn {
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6c8390;
+}
+
+.logPage__aiThemeToggle.uiButton,
+.logPage__aiThemeToggle.logPage__btn.uiButton {
+  border: 0;
+  background: transparent;
+  color: #6c8390;
+}
+
+.logPage__aiThemeToggle.logPage__btn:hover {
+  background: transparent;
+  color: color-mix(in srgb, var(--accent) 26%, #5f7480);
+}
+
+.logPage__aiThemeToggle.is-guided {
+  position: relative;
+  z-index: 970;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.24);
+}
+
+.logPage__aiThemeInputWrap {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.logPage__aiWeekAction.is-theme-open .logPage__aiThemeInputWrap {
+  margin-top: -2px;
+}
+
+.logPage__aiThemeInputWrap.is-guided {
+  position: relative;
+  z-index: 970;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 10px 20px rgba(59, 130, 246, 0.2);
+}
+
+.logPage__aiThemeInputLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--accent) 40%, var(--text));
+}
+
+.logPage__aiThemeInput {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.logPage__aiThemeInput::placeholder {
+  color: var(--muted);
+}
+
+.logPage__aiThemeInput:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.logPage__aiThemeHint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.logPage__aiThemeGuideActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.logPage__aiThemeSkipBtn {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
 }
 
 .logPage__aiInfoBtn {
@@ -2494,19 +4360,9 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   --log-ai-state-accent: color-mix(in srgb, var(--accent) 24%, #10b981);
   --log-ai-menu-accent: color-mix(in srgb, var(--accent) 58%, #3b82f6);
   --log-ai-question-accent: color-mix(in srgb, var(--accent) 22%, #f97316);
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: color-mix(in srgb, var(--accent) 10%, var(--card));
-  box-shadow: var(--shadow-md);
-}
-
-.logAi::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(700px 220px at 0% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 56%),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: none;
+  background: #ffffff;
+  box-shadow: none;
 }
 
 .logAi > * {
@@ -2519,9 +4375,8 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   justify-content: space-between;
   gap: 12px;
   padding: 13px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(253, 254, 255, 0.966);
-  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #edf1f5;
+  background: #ffffff;
 }
 
 .logAi__title {
@@ -2574,14 +4429,15 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .logAi__content {
   padding: 14px;
+  min-width: 0;
 }
 
 .logAi__rangeSection {
   margin-bottom: 12px;
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
-  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  border: none;
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
 }
 
 .logAi__rangeLabel {
@@ -2622,54 +4478,89 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .logAi__text {
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   line-height: 1.8;
   font-size: 13px;
 }
 
 .logAi__structured {
   display: grid;
-  gap: 24px;
+  gap: 0;
+  min-width: 0;
 }
 
 .logAiSection {
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--card) 94%, #ffffff);
-  padding: 14px;
-}
-
-.logAiSection--theme {
   border: 0;
   border-radius: 0;
   background: transparent;
   padding: 0;
+  box-shadow: none;
+  min-width: 0;
+}
+
+.logAiSection + .logAiSection {
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
+}
+
+.logAiSection--theme {
+  padding-top: 2px;
 }
 
 .logAiSection--state {
-  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 24%, var(--border));
-  border-left: 2px solid color-mix(in srgb, var(--log-ai-state-accent) 55%, var(--border));
   background: transparent;
 }
 
 .logAiSection--menu {
-  border-left: 4px solid var(--log-ai-menu-accent);
-  border-color: color-mix(in srgb, var(--log-ai-menu-accent) 34%, var(--border));
-  background: color-mix(in srgb, var(--log-ai-menu-accent) 10%, var(--surface));
+  background: transparent;
 }
 
 .logAiSection--note {
-  border-left: 4px solid #8b5cf6;
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.04));
+  background: transparent;
 }
 
 .logAiSection__title {
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
   font-weight: 900;
   margin-bottom: 8px;
 }
 
+.logAiSection__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, var(--surface));
+  background: color-mix(in srgb, var(--surface) 72%, var(--card));
+}
+
+.logAiSection__icon svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.logAiSection__icon--theme {
+  color: var(--ui-section-icon-color);
+}
+
+.logAiSection__icon--state {
+  color: color-mix(in srgb, var(--log-ai-state-accent) 72%, var(--text));
+}
+
+.logAiSection__icon--menu {
+  color: color-mix(in srgb, var(--log-ai-menu-accent) 78%, var(--text));
+}
+
 .logAiSection--theme .logAiSection__title {
-  color: color-mix(in srgb, var(--log-ai-theme-accent) 62%, var(--text));
+  color: var(--ui-section-eyebrow-color);
   margin-bottom: 6px;
 }
 
@@ -2689,22 +4580,74 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logAiSection__body p {
   margin: 0;
   white-space: pre-wrap;
-  line-height: 2.05;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.9;
   font-size: 13px;
 }
 
 .logAiStateList {
   display: grid;
-  gap: 10px;
+  gap: 0;
+  position: relative;
+  isolation: isolate;
+}
+
+.logAiStateList::before {
+  content: none;
 }
 
 .logAiStateItem {
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 18%, var(--border));
-  background: color-mix(in srgb, var(--log-ai-state-accent) 4%, var(--surface));
-  padding: 10px 11px;
-  line-height: 1.95;
+  padding: 10px 2px;
+  line-height: 1.78;
   font-size: 13px;
+}
+
+.logAiStateItem__head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 9px;
+  position: relative;
+  z-index: 1;
+}
+
+.logAiStateItem__dot {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--log-ai-state-accent) 46%, var(--border));
+  background: color-mix(in srgb, var(--card) 98%, #ffffff);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--card) 96%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, #ffffff 42%, transparent);
+  position: relative;
+  z-index: 2;
+}
+
+.logAiStateItem__dot::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--log-ai-state-accent) 78%, var(--surface));
+}
+
+.logAiStateItem__main {
+  display: grid;
+  gap: 4px;
+}
+
+.logAiStateItem__label {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--log-ai-state-accent) 62%, var(--text));
+}
+
+.logAiStateItem__summary {
+  line-height: 1.62;
 }
 
 .logAiState__actions {
@@ -2738,25 +4681,28 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .logAiTheme {
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
-  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
-  padding: 10px 11px;
+  border: 0;
+  background: transparent;
+  padding: 0;
   font-size: 14px;
-  line-height: 1.9;
+  line-height: 1.74;
   font-weight: 900;
 }
 
 .logAiMenus {
   display: grid;
-  gap: 10px;
+  gap: 0;
 }
 
 .logAiMenuRow {
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--surface) 78%, var(--card));
-  padding: 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 2px;
+}
+
+.logAiMenuRow + .logAiMenuRow {
+  border-top: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
 }
 
 .logAiMenuRow__top {
@@ -2764,23 +4710,55 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  margin-top: 4px;
 }
 
 .logAiMenuRow__name {
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 950;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .logAiMenuRow__time {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
-  color: color-mix(in srgb, var(--accent) 74%, var(--text));
+  border-radius: 999px;
+  border: none;
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  padding: 3px 9px;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--accent) 86%, var(--text));
 }
 
 .logAiMenuRow__desc {
   margin-top: 6px;
-  line-height: 1.95;
+  line-height: 1.72;
   font-size: 13px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.logAiMenuRow__label {
+  display: inline-block;
+  margin-right: 2px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 74%, var(--text));
+}
+
+.logAiMenuRow__evidence {
+  margin-top: 7px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .logAiToken--metric {
@@ -2842,7 +4820,7 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logAiQuestion__title {
   font-size: 12px;
   font-weight: 900;
-  color: color-mix(in srgb, var(--log-ai-question-accent) 60%, var(--text));
+  color: color-mix(in srgb, var(--log-ai-question-accent) 72%, var(--text));
 }
 
 .logAiQuestion__row {
@@ -3169,8 +5147,8 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .logAiSection {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: transparent;
+  background: transparent;
 }
 
 :root[data-theme-mode="dark"] .logAiSection--theme {
@@ -3180,38 +5158,59 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .logAiSection--state {
-  border-color: rgba(52, 211, 153, 0.32);
-  border-left-color: rgba(52, 211, 153, 0.58);
   background: transparent;
 }
 
 :root[data-theme-mode="dark"] .logAiSection--menu {
-  border-left-color: #60a5fa;
-  border-color: rgba(96, 165, 250, 0.36);
-  background: rgba(59, 130, 246, 0.1);
+  background: transparent;
 }
 
 :root[data-theme-mode="dark"] .logAiSection--note {
-  border-left-color: #a78bfa;
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.2), rgba(18, 24, 42, 0.7));
+  background: transparent;
 }
 
-:root[data-theme-mode="dark"] .logAiStateItem,
-:root[data-theme-mode="dark"] .logAiMenuRow {
-  border-color: rgba(255, 255, 255, 0.18);
+:root[data-theme-mode="dark"] .logAiSection + .logAiSection {
+  border-top-color: rgba(255, 255, 255, 0.12);
 }
 
-:root[data-theme-mode="dark"] .logAiStateItem {
-  background: rgba(255, 255, 255, 0.07);
+:root[data-theme-mode="dark"] .logAiStateItem + .logAiStateItem,
+:root[data-theme-mode="dark"] .logAiMenuRow + .logAiMenuRow {
+  border-top-color: rgba(255, 255, 255, 0.12);
 }
 
-:root[data-theme-mode="dark"] .logAiMenuRow {
-  background: rgba(255, 255, 255, 0.05);
+:root[data-theme-mode="dark"] .logAiStateItem__dot {
+  border-color: rgba(147, 197, 253, 0.56);
+  background: rgba(15, 23, 42, 0.98);
+  box-shadow:
+    0 0 0 4px rgba(15, 23, 42, 0.94),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logAiStateItem__dot::before {
+  background: rgba(96, 165, 250, 0.86);
+}
+
+:root[data-theme-mode="dark"] .logAiStateList::before {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logAiStateItem__label {
+  color: rgba(110, 231, 183, 0.94);
 }
 
 :root[data-theme-mode="dark"] .logAiTheme {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.07);
+  border: 0;
+  background: transparent;
+}
+
+:root[data-theme-mode="dark"] .logAiMenuRow__time {
+  background: rgba(59, 130, 246, 0.3);
+  color: rgba(228, 240, 255, 0.98);
+}
+
+:root[data-theme-mode="dark"] .logAiMenuRow__evidence {
+  color: rgba(180, 223, 255, 0.96);
+  background: rgba(59, 130, 246, 0.18);
 }
 
 :root[data-theme-mode="dark"] .logAiState__toggle {
@@ -3414,20 +5413,28 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   }
 
   .logAiSection {
-    border-radius: 10px;
-    padding: 9px;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .logAiSection + .logAiSection {
+    margin-top: 24px;
+    padding-top: 16px;
   }
 
   .logAiSection__title {
-    font-size: 13px;
+    font-size: 15px;
     margin-bottom: 6px;
   }
 
   .logAiSection__body p,
   .logAiStateItem,
-  .logAiMenuRow__name,
   .logAiMenuRow__desc {
     font-size: 12px;
+  }
+  
+  .logAiMenuRow__name {
+    font-size: 15px;
   }
 
   .logAi__collective {
@@ -3538,6 +5545,32 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   background: rgba(255, 255, 255, 0.08);
 }
 
+:root[data-theme-mode="dark"] .logPage__aiThemeToggle,
+:root[data-theme-mode="dark"] .logPage__aiThemeToggle.logPage__btn {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiThemeToggle.logPage__btn:hover {
+  color: color-mix(in srgb, var(--accent) 42%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionLock {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionBtn,
+:root[data-theme-mode="dark"] .logPage__aiWeekActionBtn.logPage__btn {
+  border-color: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.14));
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.04));
+  color: color-mix(in srgb, var(--accent) 42%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiWeekActionBtn.logPage__btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 46%, rgba(255, 255, 255, 0.18));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.04));
+}
+
 :root[data-theme-mode="dark"] .logPage__aiSettingsLink {
   border-color: rgba(255, 255, 255, 0.26);
   background: rgba(255, 255, 255, 0.12);
@@ -3559,9 +5592,16 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   color: rgba(255, 255, 255, 0.8);
 }
 
+:root[data-theme-mode="dark"] .logPage__aiInfoBody {
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
 :root[data-theme-mode="dark"] .logPage__aiInfoBlock {
   border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 :root[data-theme-mode="dark"] .logPage__aiInfoBlock--primary {
@@ -3591,31 +5631,26 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .goalBar {
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 6px;
+  margin-bottom: 6px;
   display: grid;
-  gap: 8px;
-  padding: 11px 12px;
-  border-radius: 14px;
-  border: 1px solid transparent;
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
+  gap: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--log-card-border));
+  background: #ffffff;
+  box-shadow: none;
   color: var(--cardText, var(--text));
   position: relative;
   overflow: hidden;
 }
 
 .goalBar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.86) 52%, rgba(255, 255, 255, 0.72) 100%),
-    url("../assets/log/goal-hero-light.svg");
-  background-size: auto, cover;
-  background-position: 0 0, right center;
-  opacity: 0.94;
-  pointer-events: none;
+  display: none;
+}
+
+.goalBar::after {
+  display: none;
 }
 
 .goalBar > * {
@@ -3828,7 +5863,17 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
+}
+
+.goalBar__row--compact {
+  align-items: center;
+}
+
+.goalBar__compactMain {
+  min-width: 0;
+  flex: 1 1 auto;
+  padding-right: 8px;
 }
 
 .goalBar.is-guided {
@@ -3854,10 +5899,29 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .goalBar__label {
   font: inherit;
-  font-size: 13px;
+  font-size: 0.72rem;
   font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   line-height: 1.5;
-  color: var(--cardText, var(--text));
+  color: #7a8a95;
+}
+
+.goalBar__compactText {
+  min-width: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: var(--log-brand-text);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.goalBar__compactText.is-placeholder {
+  color: var(--log-brand-muted);
 }
 
 .goalBar__row--end {
@@ -3865,34 +5929,89 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .goalBar__text {
-  font-size: 13px;
-  font-weight: 900;
-  line-height: 1.5;
+  margin-top: 2px;
+  max-width: calc(100% - 96px);
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: var(--log-brand-text);
 }
 
 .goalBar__hint {
-  font-size: 12px;
+  max-width: calc(100% - 96px);
+  font-size: 0.92rem;
   font-weight: 800;
   line-height: 1.5;
-  opacity: 0.72;
+  color: color-mix(in srgb, var(--log-brand-text) 62%, #ffffff);
 }
 
 .goalBar__btn {
-  height: 32px;
-  padding: 0 12px;
+  height: 26px;
+  padding: 0 8px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: var(--surface);
-  font-size: 12px;
-  font-weight: 900;
-  color: var(--cardText, var(--text));
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--log-card-border));
+  background: transparent;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #5f7480;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
+  box-shadow: none;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.logPage__noteActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logPage__noteActions .logPage__btn {
+  height: 36px;
+  min-width: 72px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
+}
+
+.logPage__noteActions .logPage__btn:hover {
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+}
+
+.logPage__noteActions .logPage__btn--softAccent {
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  color: #294452;
+}
+
+.logPage__noteActions .logPage__btn--softAccent:hover {
+  background: color-mix(in srgb, var(--accent) 10%, #ffffff);
+}
+
+.logPage__notePreview {
+  width: 100%;
+  min-height: 64px;
+  border: none;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+  padding: 14px 16px;
+  font: inherit;
+  color: var(--log-brand-text);
+  line-height: 1.55;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.logPage__notePreview.is-placeholder {
+  color: rgba(9, 54, 61, 0.42);
 }
 
 .goalBar__btn:hover {
-  background: var(--surface-strong);
-  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 14%, #dbe3ec);
+  transform: none;
 }
 
 .goalBar__btn:disabled {
@@ -3901,9 +6020,10 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 .goalBar__btn--primary {
-  background: color-mix(in srgb, var(--accent) 70%, #0b1220);
-  color: #eef6ff;
-  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+  background: #14c6d8;
+  color: #f8feff;
+  border-color: transparent;
+  box-shadow: 0 12px 24px rgba(20, 198, 216, 0.22);
 }
 
 .goalBar__btn--primary:hover {
@@ -3912,23 +6032,23 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .goalBar__edit {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .goalBar__count {
   font-size: 12px;
-  font-weight: 900;
-  opacity: 0.62;
+  font-weight: 800;
+  color: rgba(15, 49, 54, 0.62);
 }
 
 .goalBar__input {
-  height: 40px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: var(--card);
+  height: 46px;
+  border-radius: 18px;
+  border: 1px solid rgba(9, 54, 61, 0.12);
+  background: #ffffff;
   color: var(--text);
-  padding: 0 12px;
-  font-size: 13px;
+  padding: 0 14px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -4178,7 +6298,12 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   }
 
   .logAiSection {
-    padding: 10px;
+    padding: 0;
+  }
+
+  .logAiSection + .logAiSection {
+    margin-top: 22px;
+    padding-top: 14px;
   }
 
   .logAi__collective {
@@ -4483,7 +6608,125 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   mask-image: url("/icons/flame.svg");
 }
 
+.logMonthSheet {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+}
+
+.logMonthSheet__backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.logMonthSheet__panel {
+  position: absolute;
+  top: 78px;
+  right: 12px;
+  left: 12px;
+  bottom: auto;
+  max-width: 420px;
+  margin: 0 auto;
+  border-radius: 24px;
+  padding: 14px 14px 18px;
+}
+
+.logMonthSheet__grabber {
+  display: none;
+}
+
+.logMonthSheet__head {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.logMonthSheet__title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111111;
+}
+
+.logMonthSheet__nav,
+.logMonthSheet__today {
+  height: 38px;
+  border-radius: 999px;
+  color: #111111;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.logMonthSheet__nav {
+  width: 38px;
+  justify-self: center;
+}
+
+.logMonthSheet__weekdays,
+.logMonthSheet__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.logMonthSheet__weekdays {
+  margin-bottom: 8px;
+}
+
+.logMonthSheet__weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(17, 17, 17, 0.45);
+}
+
+.logMonthSheet__day {
+  height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #111111;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.logMonthSheet__day.is-dimmed {
+  color: rgba(17, 17, 17, 0.26);
+}
+
+.logMonthSheet__day.is-today {
+  background: rgba(17, 17, 17, 0.05);
+}
+
+.logMonthSheet__day.is-selected {
+  background: color-mix(in srgb, var(--accent) 86%, #111111 14%);
+  color: #ffffff;
+}
+
+.logMonthSheet__footer {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.logMonthSheet__today {
+  padding: 0 14px;
+}
+
+.logMonthSheet__today--subtle {
+}
+
 @media (max-width: 560px) {
+  .logMonthSheet__panel {
+    top: 68px;
+    right: 10px;
+    left: 10px;
+    padding: 12px 12px 16px;
+  }
+
   .logPage__beginnerMissionItem {
     align-items: flex-start;
     flex-direction: column;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { fetchTrainingLogByDate } from "../api/trainingLogs";
+import { fetchTrainingLogByDate, upsertTrainingLog } from "../api/trainingLogs";
 import { fetchMonthlyLog, fetchMonthlyLogComparison, upsertMonthlyLog } from "../api/monthlyLogs";
 import { createAiRecommendation, fetchAiRecommendationByDate } from "../api/aiRecommendations";
 import { fetchInsights } from "../api/insights";
@@ -10,27 +10,34 @@ import type { AiRecommendation } from "../types/aiRecommendation";
 import type { MonthlyLogComparisonData, MonthlyLogData } from "../types/monthlyLog";
 import type { SaveRewards } from "../types/gamification";
 import type { MissionItem } from "../types/missions";
+import { fetchLatestMeasurements, type MeasurementRun } from "../api/measurements";
 import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import { emitGamificationRewards } from "../features/gamification/rewardBus";
 import { improvementTagToneClass } from "../features/improvementTags/improvementTags";
 
+import MonthCalendarSheet from "../features/log/components/MonthCalendarSheet";
+import {
+  BeginnerMissionGuideCard,
+  BeginnerMissionModal,
+  renderMissionGroupIcon,
+} from "../features/missions/components/BeginnerMissionGuide";
+import TodayMenuModal from "../features/log/components/TodayMenuModal";
 import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
 import ProcessingOverlay from "../components/ProcessingOverlay";
 
 import "./LogPage.css";
 
-import LogHeader from "../features/log/components/LogHeader";
-import SummaryCard from "../features/log/components/SummaryCard";
-import AiRecommendationCard from "../features/log/components/AiRecommendationCard";
 import { setLastLogPath } from "../features/log/logNavigation";
 import TutorialModal from "../components/TutorialModal";
 import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
 import handPointerImage from "../assets/tutorial/pointer.png";
+import coachLabelIcon from "../assets/premium/coach-label-icon.svg";
+import coachTrackIcon from "../assets/premium/coach-track-cyan.svg";
+import coachStallIcon from "../assets/premium/coach-stall-cyan.svg";
+import coachMenuIcon from "../assets/premium/coach-menu-cyan.svg";
 
-import { fetchMe, updateMeGoalText, type Me } from "../api/auth";
 import ColoredTag from "../components/ColoredTag";
-import InfoModal from "../components/InfoModal";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
 
 function pad(v: number): string {
@@ -39,6 +46,31 @@ function pad(v: number): string {
 
 function toISODate(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function weekStartISO(value: string): string {
+  const date = parseISODate(value);
+  const base = date ?? new Date();
+  const out = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+  const day = out.getDay();
+  const diff = (day + 6) % 7; // Monday start
+  out.setDate(out.getDate() - diff);
+  return toISODate(out);
+}
+
+function monthDatesISO(value: string): string[] {
+  const date = parseISODate(value);
+  const base = date ?? new Date();
+  const year = base.getFullYear();
+  const month = base.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  return Array.from({ length: daysInMonth }, (_, index) => toISODate(new Date(year, month, index + 1)));
+}
+
+function addDaysISO(value: string, diff: number): string {
+  const date = parseISODate(value) ?? new Date();
+  const next = new Date(date.getFullYear(), date.getMonth(), date.getDate() + diff);
+  return toISODate(next);
 }
 
 function todayISO(): string {
@@ -58,23 +90,15 @@ function parseISODate(value: string): Date | null {
   return out;
 }
 
-function monthStartISO(month: string): string {
-  const m = month.match(/^(\d{4})-(\d{2})$/);
-  if (!m) return `${todayISO().slice(0, 7)}-01`;
-  return `${m[1]}-${m[2]}-01`;
-}
-
-function addMonths(month: string, diff: number): string {
-  const base = monthStartISO(month);
-  const d = parseISODate(base) ?? new Date();
-  d.setMonth(d.getMonth() + diff);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
-}
-
 function monthLabel(month: string): string {
   const m = month.match(/^(\d{4})-(\d{2})$/);
   if (!m) return month;
   return `${m[1]}年${m[2]}月`;
+}
+
+function isInteractiveTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return !!target.closest("button, a, input, textarea, select, label");
 }
 
 function minutesToHoursText(minutes: number): string {
@@ -132,6 +156,95 @@ function movementArrow(value: number | null | undefined): string {
   return "→";
 }
 
+function asRangeResult(result: MeasurementRun["result"] | undefined) {
+  if (!result || typeof result !== "object") return null;
+  if (!("range_semitones" in result)) return null;
+  return result;
+}
+
+function asLongToneResult(result: MeasurementRun["result"] | undefined) {
+  if (!result || typeof result !== "object") return null;
+  if (!("sustain_sec" in result)) return null;
+  return result;
+}
+
+function asPitchAccuracyResult(result: MeasurementRun["result"] | undefined) {
+  if (!result || typeof result !== "object") return null;
+  if (!("accuracy_score" in result)) return null;
+  return result;
+}
+
+function formatRecordedAtLabel(recordedAt: string | null | undefined): string {
+  if (!recordedAt) return "未測定";
+  const d = new Date(recordedAt);
+  if (Number.isNaN(d.getTime())) return "未測定";
+  return `${d.getMonth() + 1}/${d.getDate()} 更新`;
+}
+
+function weekdayShortJa(isoDate: string): string {
+  const date = parseISODate(isoDate) ?? new Date();
+  return ["日", "月", "火", "水", "木", "金", "土"][date.getDay()] ?? "";
+}
+
+function renderMetricTitleIcon(kind: "range" | "long_tone" | "volume_stability" | "pitch_accuracy"): React.ReactNode {
+  if (kind === "range") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M12 4.2v15.6" />
+        <path d="M12 4.2 8.4 7.8" />
+        <path d="M12 4.2 15.6 7.8" />
+        <path d="M12 19.8 8.4 16.2" />
+        <path d="M12 19.8 15.6 16.2" />
+        <path d="M6.2 12h11.6" />
+      </svg>
+    );
+  }
+  if (kind === "long_tone") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="9" cy="12" r="5.5" />
+        <path d="M9 9v3.6l2.4 1.6" />
+        <path d="M16 12h4.5" />
+        <path d="M18.4 9.8v4.4" />
+      </svg>
+    );
+  }
+  if (kind === "volume_stability") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M4 14.5V9.5h3.6l3.2-2.7v10.4l-3.2-2.7Z" />
+        <path d="M15 9.3a4.6 4.6 0 0 1 0 5.4" />
+        <path d="M17.8 7.2a7.2 7.2 0 0 1 0 9.6" />
+        <rect x="4.2" y="18.2" width="2.2" height="1.8" rx="0.9" fill="currentColor" stroke="none" />
+        <rect x="7.6" y="17.2" width="2.2" height="2.8" rx="0.9" fill="currentColor" stroke="none" />
+        <rect x="11" y="16.1" width="2.2" height="3.9" rx="0.9" fill="currentColor" stroke="none" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <rect x="8.2" y="4.3" width="5.6" height="9.3" rx="2.8" />
+      <path d="M5.8 10.8v.6a5.7 5.7 0 0 0 11.4 0v-.6" />
+      <path d="M12 17.1v3.2" />
+      <path d="M8.8 20.3h6.4" />
+      <path d="M17.9 8.2h2" />
+      <path d="M17.9 11.1h2.9" />
+      <path d="M17.9 14h2" />
+    </svg>
+  );
+}
+
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(1, value));
+}
+
+function asVolumeResult(result: MeasurementRun["result"] | undefined) {
+  if (!result || typeof result !== "object") return null;
+  if (!("loudness_range_pct" in result)) return null;
+  return result;
+}
+
 function renderActionIcon(index: number): React.ReactNode {
   const icons = [
     <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
@@ -150,6 +263,74 @@ function renderActionIcon(index: number): React.ReactNode {
     </svg>,
   ];
   return icons[index % icons.length];
+}
+
+function renderSectionIcon(kind: "goal" | "measure" | "practice" | "today_menus" | "note"): React.ReactNode {
+  if (kind === "goal") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="12" cy="12" r="7.5" />
+        <circle cx="12" cy="12" r="4.5" />
+        <circle className="accent-fill" cx="12" cy="12" r="1.7" />
+        <path className="accent" d="m14.7 9.3 4-4" />
+        <path className="accent" d="M18.7 5.3H16" />
+        <path className="accent" d="M18.7 5.3V8" />
+      </svg>
+    );
+  }
+  if (kind === "measure") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M4 5v14h11" />
+        <path d="m7 14 3-3 2.5 2.5 4-5" />
+        <circle className="accent" cx="18" cy="16" r="3.2" />
+        <path className="accent" d="m20.3 18.3 2 2" />
+      </svg>
+    );
+  }
+  if (kind === "practice") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="11.5" cy="12.2" r="7.2" />
+        <path d="M11.5 8.4v4.2l2.8 1.8" />
+        <path className="accent" d="M18.3 4.8v3.1" />
+        <path className="accent" d="M16.8 6.35h3" />
+      </svg>
+    );
+  }
+  if (kind === "today_menus") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <rect x="4.5" y="5" width="3" height="3" rx="0.8" />
+        <path className="accent" d="m5.2 6.4.9.9 1.6-1.8" />
+        <path d="M10 6.5h9" />
+        <rect x="4.5" y="10.5" width="3" height="3" rx="0.8" />
+        <path className="accent" d="m5.2 11.9.9.9 1.6-1.8" />
+        <path d="M10 12h9" />
+        <rect x="4.5" y="16" width="3" height="3" rx="0.8" />
+        <path className="accent" d="m5.2 17.4.9.9 1.6-1.8" />
+        <path d="M10 17.5h9" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M7 4h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+      <path d="M14 4v6h6" />
+      <path className="accent" d="M9 14h6" />
+      <path className="accent" d="M9 18h5" />
+    </svg>
+  );
+}
+
+function renderEditPencilIcon(): React.ReactNode {
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M4 20h4.2l9.9-9.9-4.2-4.2L4 15.8Z" />
+      <path d="m12.8 6.1 4.2 4.2" />
+      <path d="M4 20h16" />
+    </svg>
+  );
 }
 
 type PracticeStatus = "improved" | "declined" | "stable" | "new";
@@ -206,9 +387,9 @@ function measurementTagKey(item: MeasurementChangeItem): string {
   if (item.key === "long_tone_sustain_sec") return "long_tone_sustain";
   if (item.key === "pitch_error_semitones") return "pitch_accuracy";
   if (item.key === "volume_stability_pct") return "volume_stability";
-  if (item.key === "chest_top_note") return "high_note_ease";
-  if (item.key === "falsetto_top_note") return "passaggio_smoothness";
-  return "resonance_clarity";
+  if (item.key === "chest_top_note") return "chest_voice_strength";
+  if (item.key === "falsetto_top_note") return "falsetto_strength";
+  return "mixed_voice_stability";
 }
 
 function classifyMeasurementDirection(item: MeasurementChangeItem): DiagnosticBucketKey | null {
@@ -309,95 +490,82 @@ function buildComparisonDiagnosis(data: MonthlyLogComparisonData): ComparisonDia
   };
 }
 
-const AI_PREVIEW_CHARS = 100;
-const GOAL_MAX = 50;
 const BEGINNER_COMPLETE_MODAL_SEEN_KEY_PREFIX = "koelogs:beginner_complete_modal_seen:user_";
 const BEGINNER_LAST_PENDING_KEY_PREFIX = "koelogs:beginner_last_pending:user_";
 const BEGINNER_COMPLETED_ONCE_KEY_PREFIX = "koelogs:beginner_completed_once:user_";
 
-type LogMode = "day" | "month";
 type LogPageNavState = { gamificationToast?: SaveRewards | null } | null;
-
-function shouldCollapseText(text: string, previewChars: number) {
-  return text.trim().length > previewChars;
-}
-
-function previewText(text: string, previewChars: number) {
-  const t = text.trim();
-  if (t.length <= previewChars) return t;
-  return t.slice(0, previewChars) + "…";
-}
-
-function monthlyTrendNote(rangeDays: 14 | 30 | 90): string {
-  if (rangeDays === 30) return "傾向=直近1か月の月ログ";
-  if (rangeDays === 90) return "傾向=直近3か月の月ログ";
-  return "傾向=月ログ参照なし";
-}
-
-function aiReferenceMeta(rangeDays: 14 | 30 | 90): string {
-  return `詳細=直近14日 / ${monthlyTrendNote(rangeDays)}`;
-}
-
-function normalizeAiRangeDays(value: number | null | undefined): 14 | 30 | 90 {
-  if (value === 30) return 30;
-  if (value === 90) return 90;
-  return 14;
-}
-
-function isWithinFirst7Days(createdAt?: string | null): boolean {
-  if (!createdAt) return false;
-  const created = new Date(createdAt);
-  if (Number.isNaN(created.getTime())) return false;
-  const elapsedMs = Date.now() - created.getTime();
-  if (elapsedMs < 0) return false;
-  return elapsedMs < 7 * 24 * 60 * 60 * 1000;
-}
 
 export default function LogPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
   const today = useMemo(() => todayISO(), []);
-  const rawMode = params.get("mode");
-  const selectedDate = useMemo(() => params.get("date") || today, [params, today]);
+  const selectedDate = useMemo(
+    () => params.get("date") || today,
+    [params, today]
+  );
   const selectedMonth = useMemo(
     () => params.get("month") || selectedDate.slice(0, 7),
     [params, selectedDate]
   );
-  const monthKey = useMemo(() => selectedMonth, [selectedMonth]);
   const { settings } = useSettings();
   const { me: authMe, isLoading: authLoading } = useAuth();
   const guestMode = !authLoading && !authMe;
 
-  const mode: LogMode = guestMode ? "day" : rawMode === "month" ? "month" : "day";
-  const isDayMode = mode === "day";
-  const isMonthMode = mode === "month";
-  const currentLogPath = isMonthMode
-    ? `/log?mode=month&month=${encodeURIComponent(selectedMonth)}`
-    : `/log?mode=day&date=${encodeURIComponent(selectedDate)}`;
-
+  const isDayMode = true;
+  const isMonthMode = false;
+  const currentLogPath = `/log?date=${encodeURIComponent(selectedDate)}`;
+  const weekDates = useMemo(() => monthDatesISO(selectedDate), [selectedDate]);
   const isToday = selectedDate === today;
   const missionGuide = params.get("missionGuide");
   const forceGuideDailyLog = missionGuide === "beginner_daily_log" && isDayMode && isToday && !guestMode;
   const aiCustomDoneParam = params.get("aiCustomDone");
   const shouldRunAiMissionGuide = missionGuide === "beginner_ai" && isDayMode && !guestMode;
-  const currentMonth = useMemo(() => today.slice(0, 7), [today]);
-  const canGoNextMonth = selectedMonth < currentMonth;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<TrainingLog | null>(null);
+  const [dayNotesDraft, setDayNotesDraft] = useState("");
+  const [dayNotesSaving, setDayNotesSaving] = useState(false);
+  const [dayNotesError, setDayNotesError] = useState<string | null>(null);
+  const [dayNotesEditing, setDayNotesEditing] = useState(false);
+  const [durationDraft, setDurationDraft] = useState("");
+  const [durationSaving, setDurationSaving] = useState(false);
+  const [durationError, setDurationError] = useState<string | null>(null);
+  const [durationModalOpen, setDurationModalOpen] = useState(false);
   const [currentStreakDays, setCurrentStreakDays] = useState<number | null>(null);
   const [longestStreakDays, setLongestStreakDays] = useState<number | null>(null);
+  const [latestMeasurements, setLatestMeasurements] = useState<{
+    range: MeasurementRun | null;
+    long_tone: MeasurementRun | null;
+    volume_stability: MeasurementRun | null;
+    pitch_accuracy: MeasurementRun | null;
+  }>({
+    range: null,
+    long_tone: null,
+    volume_stability: null,
+    pitch_accuracy: null,
+  });
   const [saveToast, setSaveToast] = useState<SaveRewards | null>(null);
   const [tutorialWelcomeOpen, setTutorialWelcomeOpen] = useState(false);
   const [beginnerCompletionModalStep, setBeginnerCompletionModalStep] = useState<"congrats" | "unlocked" | null>(null);
-  const [aiMissionGuideStep, setAiMissionGuideStep] = useState<"intro" | "references" | "customization" | "pointer" | null>(null);
+  const [aiMissionGuideStep, setAiMissionGuideStep] = useState<
+    "intro" | "references" | "customization" | "theme_toggle" | "theme_input" | "pointer" | null
+  >(null);
   const aiCtaCardRef = useRef<HTMLElement | null>(null);
   const aiGenerateBtnRef = useRef<HTMLButtonElement | null>(null);
+  const aiThemeToggleBtnRef = useRef<HTMLButtonElement | null>(null);
+  const aiThemeInputRef = useRef<HTMLInputElement | null>(null);
   const [aiGenerateGuidePos, setAiGenerateGuidePos] = useState<{ left: number; top: number } | null>(null);
+  const forceGuideAiThemeToggle = aiMissionGuideStep === "theme_toggle";
+  const forceGuideAiThemeInput = aiMissionGuideStep === "theme_input";
   const forceGuideAiGenerate = aiMissionGuideStep === "pointer";
-  const goalGuideRowRef = useRef<HTMLDivElement | null>(null);
+  const forceGuideAiFlow = forceGuideAiThemeToggle || forceGuideAiThemeInput || forceGuideAiGenerate;
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressTriggeredRef = useRef(false);
+  const weekStripRef = useRef<HTMLDivElement | null>(null);
 
   const [monthLoading, setMonthLoading] = useState(false);
   const [monthError, setMonthError] = useState<string | null>(null);
@@ -414,13 +582,6 @@ export default function LogPage() {
   const [beginnerMissionModalOpen, setBeginnerMissionModalOpen] = useState(false);
   const [beginnerCompletedOnce, setBeginnerCompletedOnce] = useState(false);
 
-  // ===== Me / Goal =====
-  const [me, setMe] = useState<Me | null>(null);
-  const [goalEditing, setGoalEditing] = useState(false);
-  const [goalDraft, setGoalDraft] = useState("");
-  const [goalError, setGoalError] = useState<string | null>(null);
-  const [goalSaving, setGoalSaving] = useState(false);
-
   const openComparisonModal = () => {
     if (authMe?.plan_tier !== "premium") {
       setPremiumModalOpen(true);
@@ -430,81 +591,15 @@ export default function LogPage() {
   };
   const isComparisonPremiumUnlocked = authMe?.plan_tier === "premium";
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const m = await fetchMe();
-        if (cancelled) return;
-        setMe(m);
-        setGoalDraft(m?.goal_text ?? "");
-      } catch {
-        if (cancelled) return;
-        setMe(null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const openGoalEdit = () => {
-    setGoalError(null);
-    setGoalDraft(me?.goal_text ?? "");
-    setGoalEditing(true);
-  };
-
-  const cancelGoalEdit = () => {
-    setGoalError(null);
-    setGoalDraft(me?.goal_text ?? "");
-    setGoalEditing(false);
-  };
-
-  const saveGoal = async () => {
-    if (!me) return;
-    if (goalSaving) return;
-
-    const v = goalDraft.trim();
-    if (v.length > GOAL_MAX) {
-      setGoalError(`50文字以内で入力してください（現在 ${v.length} 文字）`);
-      return;
-    }
-
-    setGoalSaving(true);
-    setGoalError(null);
-
-    try {
-      const updated = await updateMeGoalText(v);
-      setMe(updated);
-      setGoalEditing(false);
-      const missionsRes = await fetchMissions();
-      if (!missionsRes.error && missionsRes.data) {
-        setBeginnerMissions(missionsRes.data.beginner ?? []);
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "保存できませんでした";
-      setGoalError(msg);
-    } finally {
-      setGoalSaving(false);
-    }
-  };
-
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiRec, setAiRec] = useState<AiRecommendation | null>(null);
+  const [aiThemeOpen, setAiThemeOpen] = useState(false);
+  const [aiThemeDraft, setAiThemeDraft] = useState("");
 
   const [monthModalOpen, setMonthModalOpen] = useState(false);
-
-  const [aiExpandedByKey, setAiExpandedByKey] = useState<Record<string, boolean>>({});
-  const aiKey = isDayMode ? `day:${selectedDate}` : `month:${selectedMonth}`;
-  const aiExpanded = !!aiExpandedByKey[aiKey];
-  const setAiExpanded = (v: boolean | ((prev: boolean) => boolean)) => {
-    setAiExpandedByKey((prev) => {
-      const cur = !!prev[aiKey];
-      const nextVal = typeof v === "function" ? (v as (p: boolean) => boolean)(cur) : v;
-      return { ...prev, [aiKey]: nextVal };
-    });
-  };
+  const [todayMenuModalOpen, setTodayMenuModalOpen] = useState(false);
+  const [monthlyLogsModalOpen, setMonthlyLogsModalOpen] = useState(false);
 
   // Daily log fetch
   useEffect(() => {
@@ -541,7 +636,7 @@ export default function LogPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!authMe || !isMonthMode) {
+      if (!authMe) {
         setMonthLoading(false);
         setMonthError(null);
         setMonthData(null);
@@ -568,7 +663,7 @@ export default function LogPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedMonth, authMe, isMonthMode]);
+  }, [selectedMonth, authMe]);
 
   // Monthly comparison fetch
   useEffect(() => {
@@ -621,6 +716,37 @@ export default function LogPage() {
       setLongestStreakDays(res.data?.streaks.longest_days ?? null);
     })();
 
+    return () => {
+      cancelled = true;
+    };
+  }, [authMe]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!authMe) {
+        setLatestMeasurements({
+          range: null,
+          long_tone: null,
+          volume_stability: null,
+          pitch_accuracy: null,
+        });
+        return;
+      }
+      try {
+        const data = await fetchLatestMeasurements();
+        if (cancelled) return;
+        setLatestMeasurements(data);
+      } catch {
+        if (cancelled) return;
+        setLatestMeasurements({
+          range: null,
+          long_tone: null,
+          volume_stability: null,
+          pitch_accuracy: null,
+        });
+      }
+    })();
     return () => {
       cancelled = true;
     };
@@ -716,12 +842,17 @@ export default function LogPage() {
   }, [shouldRunAiMissionGuide]);
 
   useEffect(() => {
-    if (!forceGuideAiGenerate) {
+    if (!forceGuideAiFlow) {
       setAiGenerateGuidePos(null);
       return;
     }
     aiCtaCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    const target = aiGenerateBtnRef.current;
+    const target =
+      aiMissionGuideStep === "theme_toggle"
+        ? aiThemeToggleBtnRef.current
+        : aiMissionGuideStep === "theme_input"
+          ? aiThemeInputRef.current
+          : aiGenerateBtnRef.current;
     if (!target) return;
     const update = () => {
       const rect = target.getBoundingClientRect();
@@ -737,10 +868,16 @@ export default function LogPage() {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [forceGuideAiGenerate]);
+  }, [aiMissionGuideStep, forceGuideAiFlow, aiThemeOpen]);
 
   useEffect(() => {
-    if (!forceGuideDailyLog && !forceGuideAiGenerate) {
+    if (aiMissionGuideStep !== "theme_input") return;
+    if (aiThemeOpen) return;
+    setAiMissionGuideStep("theme_toggle");
+  }, [aiMissionGuideStep, aiThemeOpen]);
+
+  useEffect(() => {
+    if (!forceGuideDailyLog && !forceGuideAiFlow) {
       delete document.body.dataset.logMissionGuideLockFooter;
       return;
     }
@@ -748,26 +885,96 @@ export default function LogPage() {
     return () => {
       delete document.body.dataset.logMissionGuideLockFooter;
     };
-  }, [forceGuideAiGenerate, forceGuideDailyLog]);
+  }, [forceGuideAiFlow, forceGuideDailyLog]);
+
+  useEffect(() => {
+    const strip = weekStripRef.current;
+    if (!strip) return;
+    const todayButton = strip.querySelector<HTMLButtonElement>(`button[aria-label="${today}"]`);
+    if (!todayButton) return;
+
+    window.requestAnimationFrame(() => {
+      const targetLeft = Math.max(
+        0,
+        todayButton.offsetLeft - (strip.clientWidth - todayButton.clientWidth) / 2
+      );
+      strip.scrollTo({ left: targetLeft, behavior: "auto" });
+    });
+  }, [today, selectedMonth]);
 
   const clearMissionGuideQuery = () => {
     setParams((prev) => {
       const next = new URLSearchParams(prev);
       next.delete("missionGuide");
       next.delete("aiCustomDone");
+      next.delete("mode");
+      next.delete("month");
       return next;
     });
   };
 
   const onChangeDate = (next: string) => {
-    setParams({ mode: "day", date: next });
+    setParams((prev) => {
+      const search = new URLSearchParams(prev);
+      search.set("date", next);
+      search.delete("mode");
+      search.delete("month");
+      return search;
+    });
   };
 
   const goLogin = () => {
-    const fromPath = isDayMode
-      ? `/log?mode=day&date=${encodeURIComponent(selectedDate)}`
-      : `/log?mode=month&month=${encodeURIComponent(selectedMonth)}`;
-    navigate(`/login`, { state: { fromPath } });
+    navigate("/login", { state: { fromPath: currentLogPath } });
+  };
+
+  const goPrevDate = () => onChangeDate(addDaysISO(selectedDate, -1));
+  const goNextDate = () => onChangeDate(addDaysISO(selectedDate, 1));
+
+  const onPageTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (monthModalOpen || isInteractiveTarget(event.target)) return;
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    swipeStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const onPageTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = swipeStartRef.current;
+    swipeStartRef.current = null;
+    if (!start || monthModalOpen || isInteractiveTarget(event.target)) return;
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    const diffX = touch.clientX - start.x;
+    const diffY = touch.clientY - start.y;
+    if (Math.abs(diffY) > 44 || Math.abs(diffX) < 56) return;
+    if (diffX < 0) goNextDate();
+    if (diffX > 0) goPrevDate();
+  };
+
+  const clearWeekLongPress = () => {
+    if (longPressTimerRef.current != null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const onWeekTouchStart = () => {
+    longPressTriggeredRef.current = false;
+    clearWeekLongPress();
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      setMonthModalOpen(true);
+    }, 420);
+  };
+
+  const onWeekTouchMove = () => {
+    clearWeekLongPress();
+  };
+
+  const onWeekTouchEnd = () => {
+    window.setTimeout(() => {
+      longPressTriggeredRef.current = false;
+    }, 0);
+    clearWeekLongPress();
   };
 
   const scrollToGuestPreview = () => {
@@ -776,13 +983,22 @@ export default function LogPage() {
     el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const goNew = () => {
+  const openTodayMenuModal = () => {
     if (!authMe) {
       goLogin();
       return;
     }
-    const suffix = forceGuideDailyLog ? "&missionGuide=beginner_daily_log" : "";
-    navigate(`/log/new?date=${encodeURIComponent(selectedDate)}${suffix}`);
+    setTodayMenuModalOpen(true);
+  };
+
+  const openDurationModal = () => {
+    if (!authMe) {
+      goLogin();
+      return;
+    }
+    setDurationDraft(log?.duration_min != null ? String(log.duration_min) : "");
+    setDurationError(null);
+    setDurationModalOpen(true);
   };
 
   const onSaveMonthlyLog = async (payload: { notes: string | null }) => {
@@ -816,8 +1032,12 @@ export default function LogPage() {
       goLogin();
       return;
     }
+    if (!aiFeaturesUnlocked) {
+      navigate("/mypage");
+      return;
+    }
     if (aiLoading) return;
-    if (forceGuideAiGenerate) {
+    if (forceGuideAiFlow) {
       setAiMissionGuideStep(null);
       clearMissionGuideQuery();
     }
@@ -828,6 +1048,7 @@ export default function LogPage() {
     const res = await createAiRecommendation({
       range_days: settings.aiRangeDays,
       date: selectedDate,
+      today_theme: aiThemeDraft.trim() || undefined,
     });
 
     if (!res.ok) {
@@ -839,21 +1060,29 @@ export default function LogPage() {
     setAiRec(res.data);
     emitGamificationRewards(res.rewards);
     setAiLoading(false);
-    setAiExpanded(true);
     const missionsRes = await fetchMissions();
     if (!missionsRes.error && missionsRes.data) {
       setBeginnerMissions(missionsRes.data.beginner ?? []);
     }
+    navigate("/chat", {
+      state: {
+        source: "ai_recommendation",
+        seedMessage: "",
+        recommendationDate: res.data.week_start_date || selectedDate,
+        recommendationText: res.data.recommendation_text,
+      },
+    });
   };
 
   const openAiChat = (initialMessage?: string) => {
-    if (!authMe || !effectiveAiRec || guestMode) return;
+    if (!authMe || !effectiveAiRec || guestMode || !aiFeaturesUnlocked) return;
     const seed = initialMessage?.trim() ?? "";
+    const recommendationDate = effectiveAiRec.week_start_date || selectedDate;
     navigate("/chat", {
       state: {
         source: "ai_recommendation",
         seedMessage: seed,
-        recommendationDate: selectedDate,
+        recommendationDate,
         recommendationText: effectiveAiRec.recommendation_text,
       },
     });
@@ -873,6 +1102,7 @@ export default function LogPage() {
   const previewAiRec: AiRecommendation = {
     id: -1,
     generated_for_date: selectedDate,
+    week_start_date: weekStartISO(selectedDate),
     range_days: 14,
     recommendation_text:
       "今日はウォームアップを10分入れてから、ミックス練習を中心に。後半はテンポを落として音程の安定を優先しましょう。",
@@ -909,20 +1139,40 @@ export default function LogPage() {
     },
     created_at: new Date().toISOString(),
   };
+  const previewMeasurements = {
+    range: {
+      id: -1,
+      measurement_type: "range" as const,
+      include_in_insights: true,
+      recorded_at: "2026-03-01T08:00:00+09:00",
+      created_at: "2026-03-01T08:00:00+09:00",
+      result: { lowest_note: "A#2", highest_note: "F5", chest_top_note: "C5", falsetto_top_note: "F5", range_semitones: 30, range_octaves: 2.5 },
+    },
+    long_tone: {
+      id: -2,
+      measurement_type: "long_tone" as const,
+      include_in_insights: true,
+      recorded_at: "2026-03-01T08:00:00+09:00",
+      created_at: "2026-03-01T08:00:00+09:00",
+      result: { sustain_sec: 12.8, sustain_note: "B3" },
+    },
+    volume_stability: null,
+    pitch_accuracy: {
+      id: -3,
+      measurement_type: "pitch_accuracy" as const,
+      include_in_insights: true,
+      recorded_at: "2026-03-01T08:00:00+09:00",
+      created_at: "2026-03-01T08:00:00+09:00",
+      result: { avg_cents_error: 22.4, accuracy_score: 77.6, note_count: 96 },
+    },
+  };
 
   const effectiveLog = guestMode ? previewLog : log;
+  const effectiveLatestMeasurements = guestMode ? previewMeasurements : latestMeasurements;
   const effectiveAiRec = guestMode ? previewAiRec : aiRec;
-  const aiMeta = aiReferenceMeta(normalizeAiRangeDays(effectiveAiRec?.range_days ?? settings.aiRangeDays));
-  const currentAiText = effectiveAiRec?.recommendation_text ?? null;
-  const showAiArea = isDayMode && (guestMode || !!effectiveAiRec || aiLoading || !!aiError);
-  const showAiButton = isDayMode && isToday && !aiLoading && !effectiveAiRec && !aiError;
+  const showAiLauncher = isDayMode;
 
   const menuItems = effectiveLog?.menus ?? [];
-
-  const aiTextRaw = currentAiText ?? "";
-  const aiCollapsible = aiTextRaw ? shouldCollapseText(aiTextRaw, AI_PREVIEW_CHARS) : false;
-  const aiShownText =
-    aiTextRaw && !aiExpanded && aiCollapsible ? previewText(aiTextRaw, AI_PREVIEW_CHARS) : aiTextRaw;
 
   const emptyHint = isToday
     ? "最初は1項目だけでもOKです。入力した分だけ反映されます。"
@@ -937,10 +1187,6 @@ export default function LogPage() {
     [monthComparisonData]
   );
 
-  const goalText = me?.goal_text ?? null;
-  const isWithinInitial7Days = isWithinFirst7Days(me?.created_at);
-  const forceGuideGoalSetting =
-    !!me && missionGuide === "beginner_goal" && isDayMode && !guestMode && !goalText && !goalEditing;
   const pendingBeginnerMissions = useMemo(
     () => beginnerMissions.filter((mission) => !mission.done),
     [beginnerMissions]
@@ -948,14 +1194,34 @@ export default function LogPage() {
   const beginnerTotalCount = beginnerMissions.length;
   const beginnerPendingCount = pendingBeginnerMissions.length;
   const beginnerDoneCount = Math.max(0, beginnerTotalCount - beginnerPendingCount);
+  const doneBeginnerMissions = useMemo(
+    () => beginnerMissions.filter((mission) => mission.done),
+    [beginnerMissions]
+  );
   const beginnerProgressPercent =
     beginnerTotalCount > 0 ? Math.round((beginnerDoneCount / beginnerTotalCount) * 100) : 0;
   const hasPendingBeginnerMissions = !beginnerCompletedOnce && beginnerPendingCount > 0;
+  const aiFeaturesUnlocked =
+    guestMode ||
+    beginnerCompletedOnce ||
+    authMe?.beginner_missions_completed === true ||
+    (beginnerTotalCount > 0 && beginnerPendingCount === 0);
   const beginnerAiCustomizationDone = useMemo(() => {
     if (aiCustomDoneParam === "1") return true;
     if (aiCustomDoneParam === "0") return false;
     return beginnerMissions.find((mission) => mission.key === "beginner_ai_customization")?.done === true;
   }, [aiCustomDoneParam, beginnerMissions]);
+
+  useEffect(() => {
+    setDayNotesDraft(effectiveLog?.notes ?? "");
+    setDayNotesEditing(false);
+    setDayNotesError(null);
+  }, [effectiveLog?.id, effectiveLog?.notes, selectedDate]);
+
+  useEffect(() => {
+    setDurationDraft(effectiveLog?.duration_min != null ? String(effectiveLog.duration_min) : "");
+    setDurationError(null);
+  }, [effectiveLog?.id, effectiveLog?.duration_min, selectedDate]);
 
   useEffect(() => {
     if (!authMe) {
@@ -1030,14 +1296,6 @@ export default function LogPage() {
   }, [beginnerCompletedOnce]);
 
   useEffect(() => {
-    if (!forceGuideGoalSetting) return;
-    const id = window.setTimeout(() => {
-      goalGuideRowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 120);
-    return () => window.clearTimeout(id);
-  }, [forceGuideGoalSetting]);
-
-  useEffect(() => {
     const shouldHideFooterTabs = isMonthMode && isComparisonModalOpen;
     document.body.classList.toggle("logPage--comparisonModalOpen", shouldHideFooterTabs);
     return () => {
@@ -1045,10 +1303,6 @@ export default function LogPage() {
     };
   }, [isMonthMode, isComparisonModalOpen]);
 
-  const aiCreateButtonText =
-    !guestMode && isWithinInitial7Days
-      ? "今日のおすすめをAIに作成してもらう"
-      : "AI提案を作成";
   const toastLines = useMemo(() => {
     if (!saveToast) return [] as string[];
     const lines: string[] = [];
@@ -1060,83 +1314,359 @@ export default function LogPage() {
     return lines;
   }, [saveToast]);
 
+  const rangeResult = asRangeResult(effectiveLatestMeasurements.range?.result);
+  const longToneResult = asLongToneResult(effectiveLatestMeasurements.long_tone?.result);
+  const volumeResult = asVolumeResult(effectiveLatestMeasurements.volume_stability?.result);
+  const pitchAccuracyResult = asPitchAccuracyResult(effectiveLatestMeasurements.pitch_accuracy?.result);
+  const longToneProgress = clamp01((longToneResult?.sustain_sec ?? 0) / 30);
+  const volumeProgress = clamp01((volumeResult?.loudness_range_pct ?? 0) / 100);
+  const pitchErrorSemitones =
+    pitchAccuracyResult?.avg_cents_error != null ? Math.abs(pitchAccuracyResult.avg_cents_error) / 100 : null;
+  const pitchProgress = clamp01(pitchErrorSemitones ?? 0);
+  const displayDuration = effectiveLog?.duration_min ?? null;
+  const practiceProgress = clamp01((displayDuration ?? 0) / 180);
+  const practiceMetaItems = [
+    { key: "streak", label: "連続日数", value: `${currentStreakDays ?? 0}日` },
+    { key: "menus", label: "今日のメニュー", value: `${menuItems.length}件` },
+  ] as const;
+  const dayCards = [
+    {
+      key: "range",
+      title: "音域",
+      value:
+        rangeResult?.lowest_note && rangeResult?.highest_note
+          ? `${rangeResult.lowest_note} - ${rangeResult.highest_note}`
+          : "未測定",
+      meta:
+        rangeResult?.range_octaves != null
+          ? `${rangeResult.range_octaves.toFixed(1)}オクターブ`
+          : formatRecordedAtLabel(effectiveLatestMeasurements.range?.recorded_at),
+      tone: "default",
+      onClick: () => navigate("/training?measurement=range&measureStep=select"),
+    },
+    {
+      key: "long_tone",
+      title: "ロングトーン",
+      value: longToneResult?.sustain_sec != null ? `${longToneResult.sustain_sec.toFixed(1)}秒` : "未測定",
+      meta:
+        longToneResult?.sustain_note
+          ? `音程 ${longToneResult.sustain_note}`
+          : formatRecordedAtLabel(effectiveLatestMeasurements.long_tone?.recorded_at),
+      tone: "default",
+      onClick: () => navigate("/training?measurement=long_tone&measureStep=select"),
+    },
+    {
+      key: "volume_stability",
+      title: "音量安定性",
+      value: volumeResult?.loudness_range_pct != null ? `${volumeResult.loudness_range_pct.toFixed(1)}%` : "未測定",
+      meta:
+        volumeResult?.avg_loudness_db != null
+          ? `平均 ${volumeResult.avg_loudness_db.toFixed(1)} dB`
+          : formatRecordedAtLabel(effectiveLatestMeasurements.volume_stability?.recorded_at),
+      tone: "default",
+      onClick: () => navigate("/training?measurement=volume_stability&measureStep=select"),
+    },
+    {
+      key: "pitch_accuracy",
+      title: "音程精度",
+      value: pitchErrorSemitones != null ? `${pitchErrorSemitones.toFixed(2)}半音` : "未測定",
+      meta: null,
+      tone: "default",
+      onClick: () => navigate("/training?measurement=pitch_accuracy&measureStep=select"),
+    },
+  ] as const;
+  const measurementCardOrder = ["range", "pitch_accuracy", "long_tone", "volume_stability"] as const;
+  const measurementCards = measurementCardOrder
+    .map((key) => dayCards.find((card) => card.key === key))
+    .filter((card): card is (typeof dayCards)[number] => card != null);
+
+  const onSaveDayNotes = async () => {
+    if (!authMe) {
+      goLogin();
+      return;
+    }
+    if (dayNotesSaving) return;
+    setDayNotesSaving(true);
+    setDayNotesError(null);
+    const result = await upsertTrainingLog({
+      practiced_on: selectedDate,
+      duration_min: log?.duration_min ?? null,
+      menu_ids: log?.menu_ids ?? log?.menus?.map((item) => item.id) ?? [],
+      notes: dayNotesDraft.trim() || null,
+    });
+    if (!result.ok) {
+      setDayNotesError(result.errors.join("\n"));
+      setDayNotesSaving(false);
+      return;
+    }
+    setLog(result.data);
+    emitGamificationRewards(result.rewards);
+    setDayNotesSaving(false);
+    setDayNotesEditing(false);
+  };
+
+  const onSaveDuration = async () => {
+    if (!authMe) {
+      goLogin();
+      return;
+    }
+    if (durationSaving) return;
+
+    const raw = durationDraft.trim();
+    const parsed = raw === "" ? null : Number.parseInt(raw, 10);
+    if (raw !== "" && (parsed == null || !Number.isFinite(parsed) || parsed < 0)) {
+      setDurationError("0以上の分数で入力してください");
+      return;
+    }
+
+    setDurationSaving(true);
+    setDurationError(null);
+
+    const result = await upsertTrainingLog({
+      practiced_on: selectedDate,
+      duration_min: parsed,
+      menu_ids: log?.menu_ids ?? log?.menus?.map((item) => item.id) ?? [],
+      notes: dayNotesDraft.trim() || null,
+    });
+
+    if (!result.ok) {
+      setDurationError(result.errors.join("\n"));
+      setDurationSaving(false);
+      return;
+    }
+
+    setLog(result.data);
+    emitGamificationRewards(result.rewards);
+    setDurationSaving(false);
+    setDurationModalOpen(false);
+  };
+
   useEffect(() => {
     setLastLogPath(currentLogPath);
   }, [currentLogPath]);
 
+  useEffect(() => {
+    const onOpenMonthlyLogs = () => {
+      if (guestMode) return;
+      setMonthlyLogsModalOpen(true);
+    };
+    window.addEventListener("koelog:open-monthly-logs", onOpenMonthlyLogs);
+    return () => window.removeEventListener("koelog:open-monthly-logs", onOpenMonthlyLogs);
+  }, [guestMode]);
+
   return (
-    <div className="page logPage">
+    <div className="page logPage" onTouchStart={onPageTouchStart} onTouchEnd={onPageTouchEnd}>
       <ProcessingOverlay
         open={aiLoading}
         title="生成中..."
-        description="今日のおすすめを作成しています"
+        description="今週のおすすめを作成しています"
       />
-      {!!authMe && (
-        <div className="logPage__modeSwitch">
-          <button
-            type="button"
-            className={`logPage__modeBtn ${isDayMode ? "is-active" : ""}`}
-            onClick={() => setParams({ mode: "day", date: selectedDate })}
-          >
-            日ログ
-          </button>
-          <button
-            type="button"
-            className={`logPage__modeBtn ${isMonthMode ? "is-active" : ""}`}
-            onClick={() => setParams({ mode: "month", month: selectedMonth })}
-          >
-            月ログ
-          </button>
+      <section
+        className="logPage__dateRail"
+        onTouchStart={onWeekTouchStart}
+        onTouchMove={onWeekTouchMove}
+        onTouchEnd={onWeekTouchEnd}
+      >
+        <div className="logPage__weekRail">
+          <div ref={weekStripRef} className="logPage__weekStrip" role="group" aria-label="週カレンダー">
+            {weekDates.map((date) => {
+              const isSelected = date === selectedDate;
+              const isTodayDate = date === today;
+              return (
+                <button
+                  key={date}
+                  type="button"
+                  className={`logPage__weekDay ${isSelected ? "is-selected" : ""} ${isTodayDate ? "is-today" : ""}`}
+                  onClick={() => {
+                    if (longPressTriggeredRef.current) return;
+                    onChangeDate(date);
+                  }}
+                  aria-pressed={isSelected}
+                  aria-label={date}
+                >
+                  <span className="logPage__weekDayNumber">{Number(date.slice(8, 10))}</span>
+                  <span className="logPage__weekDayLabel">{isTodayDate ? "今日" : weekdayShortJa(date)}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
+      </section>
+
+      <MonthCalendarSheet
+        open={monthModalOpen}
+        month={selectedDate.slice(0, 7)}
+        selectedDate={selectedDate}
+        onClose={() => setMonthModalOpen(false)}
+        onSelectDate={(date) => {
+          setMonthModalOpen(false);
+          onChangeDate(date);
+        }}
+      />
+
+      {!guestMode && (
+        <TodayMenuModal
+          open={todayMenuModalOpen}
+          initialSelectedIds={log?.menu_ids ?? log?.menus?.map((item) => item.id) ?? []}
+          onClose={() => setTodayMenuModalOpen(false)}
+          onSave={async (menuIds) => {
+            const result = await upsertTrainingLog({
+              practiced_on: selectedDate,
+              duration_min: log?.duration_min ?? null,
+              menu_ids: menuIds,
+              notes: dayNotesDraft.trim() || null,
+            });
+            if (!result.ok) {
+              throw new Error(result.errors.join("\n"));
+            }
+            setLog(result.data);
+            emitGamificationRewards(result.rewards);
+          }}
+        />
       )}
 
-      {isDayMode ? (
-        <LogHeader
-          date={selectedDate}
-          onChangeDate={onChangeDate}
-        />
-      ) : (
-        <div className="logPage__weekHeader">
-          <div className="logPage__weekHeaderLeft">
-            <div className="logPage__title">月ログ</div>
-            <div className="logPage__muted">月の振り返りを記録</div>
-          </div>
-
-          <div className="logPage__weekNav">
-            <button
-              type="button"
-              className="logPage__btn logPage__weekNavBtn"
-              onClick={() => setParams({ mode: "month", month: addMonths(selectedMonth, -1) })}
-            >
-              前の月
-            </button>
-            <div className="logPage__weekLabel">{monthLabel(selectedMonth)}</div>
-            <button
-              type="button"
-              className="logPage__btn logPage__weekNavBtn"
-              onClick={() => setParams({ mode: "month", month: addMonths(selectedMonth, 1) })}
-              disabled={!canGoNextMonth}
-            >
-              次の月
-            </button>
-            {selectedMonth !== currentMonth && (
+      {durationModalOpen ? (
+        <div className="logPage__durationModal" role="dialog" aria-modal="true" aria-labelledby="duration-modal-title">
+          <button
+            type="button"
+            className="logPage__durationModalBackdrop uiModalBackdrop"
+            aria-label="練習時間入力を閉じる"
+            onClick={() => {
+              setDurationModalOpen(false);
+              setDurationError(null);
+            }}
+          />
+          <div className="logPage__durationModalPanel uiModalPanel">
+            <div className="logPage__durationModalHeader uiModalHeader">
+              <div>
+                <div className="logPage__durationModalEyebrow uiModalEyebrow">PRACTICE</div>
+                <h2 id="duration-modal-title" className="logPage__durationModalTitle uiModalTitle">練習時間を記録</h2>
+              </div>
               <button
                 type="button"
-                className="logPage__btn logPage__weekNowBtn"
-                onClick={() => setParams({ mode: "month", month: currentMonth })}
+                className="logPage__durationModalClose uiButton uiButton--secondary"
+                onClick={() => {
+                  setDurationModalOpen(false);
+                  setDurationError(null);
+                }}
               >
-                今月へ
+                キャンセル
               </button>
-            )}
-            <button
-              type="button"
-              className="logPage__btn logPage__monthBtn"
-              onClick={() => setMonthModalOpen(true)}
-            >
-              月のログ一覧
-            </button>
+            </div>
+            <div className="logPage__durationModalBody">
+              <label className="logPage__durationModalInputWrap uiInputShell">
+                <span className="logPage__srOnly">練習時間を分で入力</span>
+                <input
+                  className="logPage__durationModalInput uiInput"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  value={durationDraft}
+                  onChange={(event) => setDurationDraft(event.target.value)}
+                  placeholder="0"
+                />
+                <span className="logPage__durationModalUnit">分</span>
+              </label>
+              <button
+                type="button"
+                className="logPage__durationModalSave uiButton uiButton--primary"
+                onClick={() => void onSaveDuration()}
+                disabled={durationSaving}
+              >
+                {durationSaving ? "保存中…" : "保存"}
+              </button>
+            </div>
+            {durationError ? <div className="logPage__durationModalError">{durationError}</div> : null}
           </div>
         </div>
+      ) : null}
+
+      {!guestMode && (
+        <MonthlyLogsModal
+          open={monthlyLogsModalOpen}
+          month={selectedDate.slice(0, 7)}
+          onClose={() => setMonthlyLogsModalOpen(false)}
+          onSelectDate={(date) => {
+            setMonthlyLogsModalOpen(false);
+            onChangeDate(date);
+          }}
+        />
+      )}
+
+      {showAiLauncher && (
+        <section ref={aiCtaCardRef} className="logPage__aiWeekAction">
+          <div className="logPage__aiWeekActionTop">
+            <div className="logPage__aiWeekActionMain">
+              <div className="logPage__aiWeekActionTitle">
+                <span className="logPage__aiWeekActionIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                    <path d="M12 3.8 13.1 7l3.2 1.1-3.2 1.1L12 12.4l-1.1-3.2L7.7 8.1 10.9 7 12 3.8Z" />
+                    <path className="accent" d="M18 11.5 18.7 13.4 20.6 14.1 18.7 14.8 18 16.7 17.3 14.8 15.4 14.1 17.3 13.4 18 11.5Z" />
+                    <path d="M7.1 13.6 7.7 15.1 9.2 15.7 7.7 16.3 7.1 17.8 6.5 16.3 5 15.7 6.5 15.1 7.1 13.6Z" />
+                  </svg>
+                </span>
+                <span>今週のAIおすすめ</span>
+              </div>
+              <div className="logPage__aiWeekActionSubtext">
+                {!aiFeaturesUnlocked && !guestMode
+                  ? "ビギナーミッション完了で解放されます"
+                  : !effectiveAiRec || guestMode
+                  ? "記録・目標・測定結果をもとに、今週の練習メニューを提案します"
+                  : "今週の提案を確認できます"}
+              </div>
+            </div>
+            <div className="logPage__aiWeekActionRow">
+              {!aiFeaturesUnlocked && !guestMode ? (
+                <span className="logPage__aiWeekActionLock">LOCKED</span>
+              ) : effectiveAiRec && !guestMode ? (
+                <button type="button" className="logPage__aiWeekActionLink" onClick={() => openAiChat()}>
+                  <span>提案を見る</span>
+                  <span aria-hidden="true">→</span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    ref={aiThemeToggleBtnRef}
+                    type="button"
+                    className={`logPage__btn logPage__aiThemeToggle uiButton uiButton--secondary ${forceGuideAiThemeToggle ? "is-guided" : ""}`.trim()}
+                    onClick={() => setAiThemeOpen((current) => !current)}
+                    aria-expanded={aiThemeOpen}
+                  >
+                    {aiThemeOpen ? "テーマ入力を閉じる" : "テーマを指定"}
+                  </button>
+                  <button
+                    ref={aiGenerateBtnRef}
+                    type="button"
+                    className={`logPage__btn logPage__aiWeekActionBtn uiButton uiButton--primary ${forceGuideAiGenerate ? "is-guided" : ""}`.trim()}
+                    onClick={onAskAi}
+                    disabled={aiLoading}
+                  >
+                    {guestMode ? "ログインして生成" : aiLoading ? "生成中…" : "AIおすすめを生成"}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          {(aiFeaturesUnlocked || guestMode) && (!effectiveAiRec || guestMode) && aiThemeOpen ? (
+            <div className={`logPage__aiThemeInputWrap ${forceGuideAiThemeInput ? "is-guided" : ""}`.trim()}>
+              <label className="logPage__aiThemeInputLabel" htmlFor="log-ai-theme-input">
+                今週のテーマ
+              </label>
+              <input
+                ref={aiThemeInputRef}
+                id="log-ai-theme-input"
+                className="logPage__aiThemeInput"
+                type="text"
+                value={aiThemeDraft}
+                onChange={(event) => setAiThemeDraft(event.target.value)}
+                placeholder="例：高音で喉を締めない"
+                maxLength={40}
+              />
+            </div>
+          ) : null}
+          {aiError && !guestMode && <div className="logPage__error">生成に失敗しました: {aiError}</div>}
+        </section>
       )}
 
       {!!authMe && isMonthMode && (
@@ -1175,83 +1705,50 @@ export default function LogPage() {
 
       {!!authMe && isDayMode && hasPendingBeginnerMissions && (
         <section className="logPage__beginnerGuide" aria-label="ビギナーミッション">
-          <button
-            type="button"
+          <div className="logPage__beginnerGuideLabelRow">
+            <span className="logPage__beginnerGuideLabelIcon" aria-hidden="true">
+              {renderMissionGroupIcon("beginner")}
+            </span>
+            <span className="logPage__beginnerGuideLabelText">BEGINNER</span>
+          </div>
+          <BeginnerMissionGuideCard
             className="logPage__missionGuideCard"
             onClick={() => setBeginnerMissionModalOpen(true)}
-            aria-haspopup="dialog"
-            aria-expanded={beginnerMissionModalOpen}
-          >
-            <div className="logPage__missionGuideTitle">ミッションをクリアしよう</div>
-            <div className="logPage__missionGuideMetaRow">
-              <span className="logPage__missionGuideLabel">ビギナーミッション</span>
-              <span className="logPage__missionGuideCount">
-                {beginnerDoneCount} / {beginnerTotalCount}
-              </span>
-              <span className="logPage__missionGuideArrow" aria-hidden="true">
-                ›
-              </span>
-            </div>
-            <span className="logPage__missionGuideProgressTrack" aria-hidden="true">
-              <span
-                className="logPage__missionGuideProgressFill"
-                style={{ width: `${beginnerProgressPercent}%` }}
-              />
-            </span>
-          </button>
+            expanded={beginnerMissionModalOpen}
+            doneCount={beginnerDoneCount}
+            totalCount={beginnerTotalCount}
+            progressPercent={beginnerProgressPercent}
+            title="ビギナーミッションをクリアしよう"
+            label={null}
+            description="基本機能を順番に体験できます"
+          />
         </section>
       )}
 
-      {beginnerMissionModalOpen && (
-        <div
-          className="logPage__missionModalOverlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="ビギナーミッション"
-          onClick={() => setBeginnerMissionModalOpen(false)}
-        >
-          <section className="card logPage__missionModalCard" onClick={(event) => event.stopPropagation()}>
-            <div className="logPage__missionModalHead">
-              <div className="logPage__missionModalTitle">ビギナーミッション</div>
-              <button
-                type="button"
-                className="logPage__missionModalClose"
-                onClick={() => setBeginnerMissionModalOpen(false)}
-                aria-label="閉じる"
-              >
-                ×
-              </button>
-            </div>
-            <div className="logPage__missionModalStatus">残り {pendingBeginnerMissions.length} 件</div>
-            <div className="logPage__beginnerGuideList">
-              {pendingBeginnerMissions.map((mission) => (
-                <article key={mission.key} className="logPage__beginnerGuideItem">
-                  <div className="logPage__beginnerGuideItemMain">
-                    <span className="logPage__beginnerGuideItemIcon" aria-hidden="true">
-                      ○
-                    </span>
-                    <div className="logPage__beginnerGuideItemText">
-                      <div className="logPage__beginnerGuideItemTitle">{mission.title}</div>
-                      <div className="logPage__beginnerGuideItemDesc">{mission.description}</div>
-                    </div>
-                  </div>
-                  <Link
-                    to={
-                      mission.key === "beginner_ai"
-                        ? `${mission.to}${mission.to.includes("?") ? "&" : "?"}aiCustomDone=${beginnerAiCustomizationDone ? "1" : "0"}`
-                        : mission.to
-                    }
-                    className="logPage__beginnerGuideItemAction"
-                    onClick={() => setBeginnerMissionModalOpen(false)}
-                  >
-                    開く
-                  </Link>
-                </article>
-              ))}
-            </div>
-          </section>
-        </div>
-      )}
+      <BeginnerMissionModal
+        open={beginnerMissionModalOpen}
+        onClose={() => setBeginnerMissionModalOpen(false)}
+        ariaLabel="ビギナーミッション"
+        pendingMissions={pendingBeginnerMissions}
+        doneMissions={doneBeginnerMissions}
+        pendingStatusLabel={`残り ${pendingBeginnerMissions.length} 件`}
+        overlayClassName="logPage__missionModalOverlay"
+        cardClassName="logPage__missionModalCard"
+        cardBodyClassName="logPage__beginnerGuideList"
+        renderPendingAction={(mission) => (
+          <Link
+            to={
+              mission.key === "beginner_ai"
+                ? `${mission.to}${mission.to.includes("?") ? "&" : "?"}aiCustomDone=${beginnerAiCustomizationDone ? "1" : "0"}`
+                : mission.to
+            }
+            className="logPage__beginnerGuideItemAction"
+            onClick={() => setBeginnerMissionModalOpen(false)}
+          >
+            挑戦する
+          </Link>
+        )}
+      />
 
       <TutorialModal
         open={tutorialWelcomeOpen}
@@ -1275,7 +1772,10 @@ export default function LogPage() {
         open={aiMissionGuideStep === "intro"}
         badge="MISSION"
         title="AIおすすめについて"
-        paragraphs={["このアプリでは、今日のおすすめトレーニング内容をAIが提案してくれます。"]}
+        paragraphs={[
+          "このアプリでは、今週のおすすめトレーニング内容をAIが提案してくれます。",
+          "流れはシンプルです。必要ならテーマを入力して、そのままAIおすすめを生成します。",
+        ]}
         primaryLabel="次へ"
         onPrimary={() => setAiMissionGuideStep("references")}
         onClose={() => {}}
@@ -1290,11 +1790,12 @@ export default function LogPage() {
           "・ユーザーのAIカスタム指示",
           "・ログで記録したデータ",
           "・測定データ",
+          "・（任意）今週のテーマ",
         ]}
         primaryLabel={beginnerAiCustomizationDone ? "AIおすすめを生成する" : "次へ"}
         onPrimary={() => {
           if (beginnerAiCustomizationDone) {
-            setAiMissionGuideStep("pointer");
+            setAiMissionGuideStep("theme_toggle");
             return;
           }
           setAiMissionGuideStep("customization");
@@ -1329,15 +1830,15 @@ export default function LogPage() {
       <TutorialModal
         open={beginnerCompletionModalStep === "unlocked"}
         badge="UNLOCKED"
-        title="AIチャット機能が解放されました"
+        title="AIおすすめとAIチャットが解放されました"
         paragraphs={[
-          "ここでは、自由な会話の作成やAIおすすめに対しての質問が可能になります。",
+          "ログページでAIおすすめを生成でき、AIチャットでも自由な相談やおすすめへの質問ができるようになります。",
         ]}
         primaryLabel="さっそく使ってみる"
         secondaryLabel="あとで"
         onPrimary={() => {
           setBeginnerCompletionModalStep(null);
-          navigate("/chat");
+          navigate("/log");
         }}
         onSecondary={() => setBeginnerCompletionModalStep(null)}
         onClose={() => setBeginnerCompletionModalStep(null)}
@@ -1351,13 +1852,10 @@ export default function LogPage() {
         </section>
       )}
 
-      {(forceGuideDailyLog || forceGuideAiGenerate || forceGuideGoalSetting) && (
+      {(forceGuideDailyLog || forceGuideAiFlow) && (
         <>
-          <div
-            className={`logPage__guideOverlay ${forceGuideGoalSetting ? "is-goal" : ""}`.trim()}
-            aria-hidden="true"
-          />
-          {forceGuideAiGenerate && aiGenerateGuidePos && (
+          <div className="logPage__guideOverlay" aria-hidden="true" />
+          {forceGuideAiFlow && aiGenerateGuidePos && (
             <div
               className="logPage__guideHand"
               style={{ left: `${aiGenerateGuidePos.left}px`, top: `${aiGenerateGuidePos.top}px` }}
@@ -1371,90 +1869,6 @@ export default function LogPage() {
         </>
       )}
 
-      {!!me && isDayMode && (
-        <div className={`goalBar ${forceGuideGoalSetting ? "is-guided" : ""}`.trim()}>
-          {!goalEditing ? (
-            goalText ? (
-              <div className="goalBar__view">
-                <div className="goalBar__row">
-                  <div className="goalBar__label">今月の目標</div>
-                  <button className="goalBar__btn" type="button" onClick={openGoalEdit}>
-                    編集
-                  </button>
-                </div>
-                <div className="goalBar__text">「{goalText}」</div>
-              </div>
-            ) : (
-              <div className="goalBar__view">
-                <div
-                  ref={forceGuideGoalSetting ? goalGuideRowRef : undefined}
-                  className={`goalBar__row ${forceGuideGoalSetting ? "is-guided" : ""}`.trim()}
-                >
-                  <div className="goalBar__label">
-                    {isWithinInitial7Days
-                      ? "目標を設定する（最大50文字・AIおすすめに反映）"
-                      : "目標を設定する（最大50文字・AIおすすめに反映）"}
-                  </div>
-                  <button className="goalBar__btn" type="button" onClick={openGoalEdit}>
-                    設定する
-                  </button>
-                </div>
-              </div>
-            )
-          ) : (
-            <div className="goalBar__edit">
-              <div className="goalBar__row">
-                <div className="goalBar__label">目標を編集（最大50文字）</div>
-                <div className="goalBar__count">
-                  {goalDraft.trim().length}/{GOAL_MAX}
-                </div>
-              </div>
-
-              <input
-                className="goalBar__input"
-                value={goalDraft}
-                type="text"
-                placeholder="例：ミックスボイスを安定させる"
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setGoalDraft(next);
-                  const len = next.trim().length;
-                  if (len > GOAL_MAX) setGoalError(`50文字以内で入力してください（現在 ${len} 文字）`);
-                  else setGoalError(null);
-                }}
-              />
-
-              {goalError && <div className="goalBar__error">{goalError}</div>}
-
-              <div className="goalBar__actions">
-                <button
-                  className="goalBar__btn goalBar__btn--primary"
-                  type="button"
-                  onClick={saveGoal}
-                  disabled={goalSaving}
-                >
-                  保存
-                </button>
-                <button className="goalBar__btn" type="button" onClick={cancelGoalEdit} disabled={goalSaving}>
-                  キャンセル
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {isMonthMode && (
-        <MonthlyLogsModal
-          open={monthModalOpen}
-          month={monthKey}
-          onClose={() => setMonthModalOpen(false)}
-          onSelectDate={(d) => {
-            setParams({ mode: "day", date: d });
-          }}
-        />
-      )}
-
       {isMonthMode && isComparisonModalOpen && (
         <div className="logPage__compareModalOverlay" role="presentation" onClick={() => setIsComparisonModalOpen(false)}>
           <section
@@ -1466,7 +1880,7 @@ export default function LogPage() {
           >
             <div className="logPage__compareModalHead">
               <div className="logPage__compareModalTitle">先月との比較</div>
-              <button type="button" className="logPage__compareModalClose" onClick={() => setIsComparisonModalOpen(false)}>
+              <button type="button" className="logPage__compareModalClose uiButton uiButton--secondary" onClick={() => setIsComparisonModalOpen(false)}>
                 閉じる
               </button>
             </div>
@@ -1477,7 +1891,7 @@ export default function LogPage() {
             )}
             {!monthComparisonLoading && !monthComparisonError && monthComparisonData && (
               <div className="logPage__compareModalBody">
-                <section className="logPage__comparisonIntensity">
+                <section className="logPage__comparisonIntensity uiPanel">
                   <div className="logPage__comparisonBlockTitle">📈 練習強度（一日あたりの練習時間）</div>
                   <div className="logPage__comparisonIntensityCurrent">今月 {formatMinutesPerDay(monthComparisonData.practice_time.current)}</div>
                   <div className="logPage__comparisonCardMeta">
@@ -1517,7 +1931,7 @@ export default function LogPage() {
                       ).map((bucket) => {
                         const items = comparisonDiagnosis?.buckets[bucket.key] ?? [];
                         return (
-                          <section key={`bucket-${bucket.key}`} className={`logPage__comparisonBucket is-${bucket.key}`}>
+                          <section key={`bucket-${bucket.key}`} className={`logPage__comparisonBucket uiPanel is-${bucket.key}`}>
                             <div className="logPage__comparisonBucketHead static">
                               <span className="logPage__comparisonBucketTitle">{bucket.label}（{items.length}）</span>
                               <div className="logPage__comparisonBucketSummary">
@@ -1571,9 +1985,9 @@ export default function LogPage() {
                   )}
                 </section>
 
-                <section className="logPage__comparisonActionCard">
+                <section className="logPage__comparisonActionCard uiPanel uiPanel--tinted">
                   <div className="logPage__comparisonActionHead">
-                    <span className="logPage__comparisonActionBadge">AI COACH</span>
+                    <span className="logPage__comparisonActionBadge uiCompareChip">AI COACH</span>
                     <div className="logPage__comparisonActionTitleRow">
                       <span className="logPage__comparisonActionTitleIcon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" focusable="false">
@@ -1612,26 +2026,18 @@ export default function LogPage() {
       <PremiumUpsellModal
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
-        previewMode="screenshot"
         variant="lp"
-        kicker="PREMIUM"
+        sectionLabel="COACH"
+        sectionLabelIconSrc={coachLabelIcon}
         title="今月、ちゃんと伸びていますか？"
-        description="やった気の1ヶ月で終わらせない。"
-        growthTitle="今月の成長（実例）"
-        growthItems={[
-          { label: "音程精度", before: "88.2%", after: "91.4%", delta: "↑ +3.2%", tone: "up" },
-          { label: "裏声最高音", before: "B4", after: "C#5", delta: "↑ +2半音", tone: "up" },
-          { label: "ロングトーン", before: "24.1s", after: "14.7s", delta: "↓ -9.4s", tone: "down" },
+        description="無料プランでは比較機能は利用できません。"
+        featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
+        featureCards={[
+          { iconSrc: coachTrackIcon, title: "TRACK", sub: "月単位の変化を見ながら、今どこが伸びているかを確認できます。" },
+          { iconSrc: coachStallIcon, title: "STALL", sub: "停滞しやすいポイントを見つけて、優先して見直す項目を整理できます。" },
+          { iconSrc: coachMenuIcon, title: "ACTION", sub: "比較結果をもとに、次に意識したい練習の方向を考えやすくなります。" },
         ]}
-        flowTitle="成長の仕組み"
-        flowSteps={[
-          { title: "停滞を検出", sub: "裏声最高音の推移を解析", pill: "停滞あり" },
-          { title: "要因を特定", sub: "ログと測定データを横断分析", pill: "要因解析" },
-          { title: "最適なトレーニングを提示", sub: "今月の優先項目を決定", pill: "メニュー提案" },
-        ]}
-        note="比較だけで終わらせず、理由に基づいた改善アクションまでサポートします。"
-        noteVariant="default"
-        ctaLabel="プレミアムを見る"
+        ctaLabel="プレミアムを試す"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");
@@ -1644,10 +2050,10 @@ export default function LogPage() {
             <div className="logPage__guestHeroTitle">声の状態を記録すると、今日の練習がすぐ決まる</div>
             <div className="logPage__guestHeroText">まずはサンプルで使い方を30秒で確認できます</div>
             <div className="logPage__guestHeroActions">
-              <button className="logPage__btn logPage__btn--subtle" onClick={scrollToGuestPreview}>
+              <button className="logPage__btn logPage__btn--subtle uiButton uiButton--secondary" onClick={scrollToGuestPreview}>
                 サンプルを見る
               </button>
-              <button className="logPage__btn logPage__btn--softAccent" onClick={goLogin}>
+              <button className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary" onClick={goLogin}>
                 ログインして始める
               </button>
             </div>
@@ -1670,13 +2076,13 @@ export default function LogPage() {
 
               <article className="logPage__guestPreviewCard">
                 <div className="logPage__guestPreviewCardTitle">次にやることが決まる</div>
-                <div className="logPage__guestPreviewCardValue">今日のおすすめ</div>
+                <div className="logPage__guestPreviewCardValue">今週のおすすめ</div>
                 <div className="logPage__guestPreviewCardText">目標と記録からAIが提案</div>
               </article>
             </div>
 
             <div className="logPage__guestReCtaText">ここまでの流れをあなたのデータで始める</div>
-            <button className="logPage__btn logPage__btn--softAccent" onClick={goLogin}>
+            <button className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary" onClick={goLogin}>
               ログインして始める
             </button>
           </section>
@@ -1685,24 +2091,280 @@ export default function LogPage() {
 
       <div className="logPage__stack">
         {isDayMode ? (
-          <SummaryCard
-            loading={guestMode ? false : loading}
-            error={guestMode ? null : error}
-            log={effectiveLog}
-            menuItems={menuItems}
-            emptyHint={emptyHint}
-            sampleMode={guestMode}
-            recordLabel={
-              guestMode
-                ? "ログインして記録する"
-                : isToday
-                  ? "今日のトレーニングを記録"
-                  : "この日のトレーニングを記録"
-            }
-            onClickRecord={goNew}
-            currentStreakDays={guestMode ? 3 : currentStreakDays}
-            recordButtonClassName={forceGuideDailyLog ? "is-guided" : undefined}
-          />
+          <>
+            <section className="logPage__dayBoard">
+              {!guestMode && loading && <div className="logPage__muted">読み込み中…</div>}
+              {!guestMode && error && <div className="logPage__error">取得に失敗しました: {error}</div>}
+              <div className="logPage__sectionBlock">
+                <div className="logPage__sectionLabelRow">
+                  <span className="logPage__sectionLabelIcon is-practice" aria-hidden="true">
+                    {renderSectionIcon("practice")}
+                  </span>
+                  <div className="logPage__sectionLabel">PRACTICE</div>
+                </div>
+                <div className="logPage__daySummaryGrid">
+                  <section className="logPage__summaryCard logPage__summaryCard--time logPage__summaryCard--combined">
+                    <div className="logPage__summaryCardArtwork" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                        <circle cx="12" cy="12" r="8.2" />
+                        <path d="M12 7.9v4.7l3.1 2" />
+                      </svg>
+                    </div>
+                    <div className="logPage__summaryCardTop">
+                      <div className="logPage__summaryCardLabel">今日の練習時間</div>
+                      <button type="button" className="logPage__summaryCardAction uiButton uiButton--secondary uiIconButton" onClick={openDurationModal}>
+                        <span className="logPage__actionIconOnly" aria-hidden="true">
+                          {renderEditPencilIcon()}
+                        </span>
+                        <span className="logPage__srOnly">記録</span>
+                      </button>
+                    </div>
+                    <div className="logPage__summaryCardMainRow">
+                      <div className="logPage__summaryCardValueBlock">
+                        <div
+                          className="logPage__summaryCardRing"
+                          aria-hidden="true"
+                          style={{ ["--ring-progress" as string]: String(practiceProgress) }}
+                        >
+                          <div className="logPage__summaryCardRingValue">
+                            <span>{displayDuration ?? "--"}</span>
+                            <small>min</small>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="logPage__summaryCardMetaColumn">
+                        {practiceMetaItems.map((item) => (
+                          <div key={item.key} className="logPage__summaryCardSubMeta">
+                            <span className="logPage__summaryCardSubMetaLabel">{item.label}</span>
+                            <span className="logPage__summaryCardSubMetaValue">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+              <div className="logPage__contentSection">
+                <div className="logPage__contentWave logPage__contentWave--measure" aria-hidden="true">
+                  <svg viewBox="0 0 100 16" preserveAspectRatio="none">
+                    <path d="M0 16V8C18 8 22 2 38 2C56 2 64 10 82 10C91 10 96 8 100 6V16Z" fill="currentColor" />
+                  </svg>
+                </div>
+                <div className="logPage__contentInner logPage__contentInner--measure">
+                  <div className="logPage__sectionBlock">
+                    <div className="logPage__sectionLabelRow">
+                      <span className="logPage__sectionLabelIcon is-measure" aria-hidden="true">
+                        {renderSectionIcon("measure")}
+                      </span>
+                      <div className="logPage__sectionLabel">MEASURE</div>
+                    </div>
+                    <div className="logPage__measurementGrid">
+                      {measurementCards.map((card) => (
+                        <button
+                          key={card.key}
+                          type="button"
+                          className={`logPage__metricCard logPage__metricCard--${card.key}`}
+                          onClick={card.onClick}
+                        >
+                          {(() => {
+                            const metaText = "meta" in card ? card.meta : null;
+                            return (
+                              <>
+                                <div className="logPage__metricBody">
+                                  <div className="logPage__metricTitleRow">
+                                    <span className={`logPage__metricTitleIcon logPage__metricTitleIcon--${card.key}`} aria-hidden="true">
+                                      {renderMetricTitleIcon(card.key)}
+                                    </span>
+                                    <div className="logPage__metricTitle">{card.title}</div>
+                                  </div>
+                                  {card.key === "range" ? (
+                                    <div className="logPage__rangeSummary">
+                                      <div className="logPage__rangePrimary">
+                                        {rangeResult?.range_octaves != null ? `${rangeResult.range_octaves.toFixed(1)} oct` : "未測定"}
+                                      </div>
+                                      <div className="logPage__rangeNotes">
+                                        <span className="logPage__rangeNote">{rangeResult?.lowest_note ?? "--"}</span>
+                                        <span className="logPage__rangeDivider" aria-hidden="true" />
+                                        <span className="logPage__rangeNote">{rangeResult?.highest_note ?? "--"}</span>
+                                      </div>
+                                    </div>
+                                  ) : card.key === "long_tone" || card.key === "volume_stability" ? null : (
+                                    <>
+                                      <div className="logPage__metricValue">{card.value}</div>
+                                      {metaText ? <div className="logPage__metricMeta">{metaText}</div> : null}
+                                    </>
+                                  )}
+                                  {card.key === "long_tone" && (
+                                    <>
+                                      <div className="logPage__metricViz logPage__metricViz--ring" aria-hidden="true">
+                                        <div
+                                          className="logPage__miniRing"
+                                          style={{ ["--ring-progress" as string]: String(longToneProgress) }}
+                                        >
+                                          <span className="logPage__miniRingLabel">
+                                            <strong>{longToneResult?.sustain_sec != null ? longToneResult.sustain_sec.toFixed(1) : "--"}</strong>
+                                            <small>sec</small>
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                  {card.key === "volume_stability" && (
+                                    <>
+                                      <div className="logPage__metricViz logPage__metricViz--ring" aria-hidden="true">
+                                        <div
+                                          className="logPage__miniRing logPage__miniRing--volume"
+                                          style={{ ["--ring-progress" as string]: String(volumeProgress) }}
+                                        >
+                                          <span className="logPage__miniRingLabel">
+                                            <strong>{volumeResult?.loudness_range_pct != null ? Math.round(volumeResult.loudness_range_pct).toString() : "--"}</strong>
+                                            <small>%</small>
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                  {card.key === "pitch_accuracy" && (
+                                    <>
+                                      <div className="logPage__metricViz logPage__metricViz--pitch" aria-hidden="true">
+                                        <div className="logPage__pitchBar">
+                                          <span className="is-good" />
+                                          <span className="is-mid" />
+                                          <span className="is-bad" />
+                                          <i style={{ left: `${pitchProgress * 100}%` }} />
+                                        </div>
+                                      </div>
+                                      <div className="logPage__pitchCaption">0 - 1半音</div>
+                                    </>
+                                  )}
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="logPage__contentSection logPage__contentSection--white">
+                    <div className="logPage__contentWave logPage__contentWave--white" aria-hidden="true">
+                      <svg viewBox="0 0 100 16" preserveAspectRatio="none">
+                        <path d="M0 16V8C18 8 22 2 38 2C56 2 64 10 82 10C91 10 96 8 100 6V16Z" fill="currentColor" />
+                      </svg>
+                    </div>
+                    <div className="logPage__contentInner logPage__contentInner--white">
+                      <div className="logPage__sectionBlock">
+                        <div className="logPage__sectionLabelRow">
+                          <span className="logPage__sectionLabelIcon is-menus" aria-hidden="true">
+                            {renderSectionIcon("today_menus")}
+                          </span>
+                          <div className="logPage__sectionLabel">TODAY MENUS</div>
+                        </div>
+                        <section className="logPage__todayMenusCard">
+                          <div className="logPage__daySectionHead">
+                            <div className="logPage__noteSubtext">今日実施したトレーニングメニューを記録します</div>
+                            <button
+                              type="button"
+                              className="logPage__btn logPage__summaryCardAction logPage__todayMenusEditBtn uiButton uiButton--secondary uiIconButton"
+                              onClick={openTodayMenuModal}
+                            >
+                              <span className="logPage__actionIconOnly" aria-hidden="true">
+                                {renderEditPencilIcon()}
+                              </span>
+                              <span className="logPage__srOnly">{guestMode ? "記録" : "編集"}</span>
+                            </button>
+                          </div>
+                          {menuItems.length ? (
+                            <div className="logPage__todayMenuList" role="list">
+                              {menuItems.map((m) => (
+                                <div
+                                  key={m.id}
+                                  className="logPage__todayMenuItem"
+                                  style={{ ["--menu-chip-color" as string]: m.color ?? "#9BDDE5" }}
+                                  title={m.archived ? "このメニューは現在アーカイブされています" : undefined}
+                                  role="listitem"
+                                >
+                                  <span className="logPage__todayMenuItemDot" aria-hidden="true" />
+                                  <span className="logPage__todayMenuItemName">{m.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="logPage__metricEmpty">{emptyHint}</div>
+                          )}
+                        </section>
+                      </div>
+                      <div className="logPage__sectionBlock">
+                        <div className="logPage__sectionLabelRow">
+                          <span className="logPage__sectionLabelIcon is-note" aria-hidden="true">
+                            {renderSectionIcon("note")}
+                          </span>
+                          <div className="logPage__sectionLabel">NOTE</div>
+                        </div>
+                      <section className="logPage__memoCard">
+                        <div className="logPage__daySectionHead">
+                          <div className="logPage__noteSubtext">その日の気づきや、うまくいった感覚を残します</div>
+                          {dayNotesEditing ? (
+                            <div className="logPage__noteActions">
+                              <button
+                                type="button"
+                                className="logPage__btn uiButton uiButton--secondary"
+                                onClick={() => {
+                                  setDayNotesDraft(effectiveLog?.notes ?? "");
+                                  setDayNotesEditing(false);
+                                  setDayNotesError(null);
+                                }}
+                                disabled={dayNotesSaving}
+                              >
+                                キャンセル
+                              </button>
+                              <button
+                                type="button"
+                                className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary"
+                                onClick={() => void onSaveDayNotes()}
+                                disabled={dayNotesSaving}
+                              >
+                                {guestMode ? "ログインして保存" : dayNotesSaving ? "保存中…" : "保存"}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="logPage__btn logPage__summaryCardAction uiButton uiButton--secondary uiIconButton"
+                              onClick={() => setDayNotesEditing(true)}
+                            >
+                              <span className="logPage__actionIconOnly" aria-hidden="true">
+                                {renderEditPencilIcon()}
+                              </span>
+                              <span className="logPage__srOnly">{dayNotesDraft.trim() ? "編集" : "記入"}</span>
+                            </button>
+                          )}
+                        </div>
+                        {dayNotesEditing ? (
+                          <textarea
+                            className="logPage__dayMemoInput"
+                            value={dayNotesDraft}
+                            onChange={(e) => setDayNotesDraft(e.target.value)}
+                            placeholder="その日の気づきや、うまくいった感覚を書いておく"
+                            rows={5}
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            className={`logPage__notePreview ${dayNotesDraft.trim() ? "" : "is-placeholder"}`.trim()}
+                            onClick={() => setDayNotesEditing(true)}
+                          >
+                            {dayNotesDraft.trim() || "その日の気づきや、うまくいった感覚を書いておく"}
+                          </button>
+                        )}
+                        {dayNotesError && <div className="logPage__error">{dayNotesError}</div>}
+                      </section>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </>
         ) : (
           <section className="card logPage__card">
             <div className="logPage__cardHead">
@@ -1752,14 +2414,25 @@ export default function LogPage() {
                       {monthMenuCounts.map((entry) => (
                         <div key={`month-menu-count-${entry.menu_id}`} className="logPage__monthRow">
                           <div className="logPage__monthRowTop">
-                          <ColoredTag
-                            text={entry.name}
-                            color={entry.color ?? "#E5E7EB"}
-                            style={{ color: "var(--log-month-tag-text, inherit)" }}
-                          />
+                            <ColoredTag
+                              text={entry.name}
+                              color={entry.color ?? "#E5E7EB"}
+                              style={{ color: "var(--log-month-tag-text, inherit)" }}
+                            />
                             <span>
                               {entry.count}回（{toPercentText(entry.count, monthTotalMenuCount)}）
                             </span>
+                          </div>
+                          <div className="logPage__monthRatioBar" aria-hidden="true">
+                            <span
+                              className="logPage__monthRatioBarFill"
+                              style={{
+                                width: `${Math.max(
+                                  4,
+                                  monthTotalMenuCount > 0 ? (entry.count / monthTotalMenuCount) * 100 : 0
+                                )}%`,
+                              }}
+                            />
                           </div>
                         </div>
                       ))}
@@ -1779,7 +2452,7 @@ export default function LogPage() {
                   <div className="logPage__actions">
                     <button
                       type="button"
-                      className="logPage__btn"
+                      className="logPage__btn uiButton uiButton--primary"
                       onClick={() => void onSaveMonthlyLog({ notes: monthNotesDraft.trim() || null })}
                       disabled={monthSaveLoading}
                     >
@@ -1793,100 +2466,6 @@ export default function LogPage() {
           </section>
         )}
 
-        {showAiArea && (
-          <AiRecommendationCard
-            title="今日のおすすめメニュー"
-            meta={aiMeta}
-            aiLoading={aiLoading}
-            aiError={guestMode && isDayMode ? null : aiError}
-            recommendationText={currentAiText}
-            isSaved={!!effectiveAiRec}
-            sampleMode={guestMode && isDayMode}
-            shownText={aiShownText}
-            collapsible={aiCollapsible}
-            expanded={aiExpanded}
-            onToggleExpanded={() => setAiExpanded((v) => !v)}
-            collectiveSummary={effectiveAiRec?.collective_summary}
-            showFollowupButton={!guestMode && !!effectiveAiRec && (beginnerCompletedOnce || beginnerPendingCount === 0)}
-            onOpenFollowup={(message) => void openAiChat(message)}
-          />
-        )}
-      </div>
-
-      <div className="logPage__actions">
-        {(showAiButton || (guestMode && isDayMode)) && (
-          <section ref={aiCtaCardRef} className="logAi logPage__card logPage__aiCtaCard logAi--empty">
-            <div className="logAi__header">
-              <div>
-                <div className="logAi__title">AIトレーニング提案</div>
-                <div className="logAi__meta">目標と直近ログから、今日のおすすめを作成</div>
-              </div>
-              <div className="logAi__headerRight">
-                {(guestMode && isDayMode) && <div className="logAi__pill logAi__pill--sample">ゲスト</div>}
-                {!guestMode && (
-                  <Link to="/settings/ai" className="logPage__aiSettingsLink">
-                    AIカスタム指示
-                  </Link>
-                )}
-                <InfoModal
-                  title="おすすめは何をもとに作られますか？"
-                  bodyClassName="logPage__aiInfoBody"
-                  triggerClassName="logPage__aiInfoBtn"
-                >
-                  <div className="logPage__aiInfoLead">目標・直近の記録・AI設定をもとに、今日の練習プランを生成します。</div>
-                  <div className="logPage__aiInfoBlocks">
-                    <section className="logPage__aiInfoBlock logPage__aiInfoBlock--primary">
-                      <div className="logPage__aiInfoBlockTitle">
-                        <span className="logPage__aiInfoIcon" aria-hidden="true">🎯</span>
-                        <span>主に使う</span>
-                      </div>
-                      <div className="logPage__aiInfoBlockText">
-                        詳細ログは直近14日を参照します。参照期間（14/30/90）はAIカスタム指示ページで設定でき、30/90では月ログ傾向も補助で参照します。
-                      </div>
-                    </section>
-                    <section className="logPage__aiInfoBlock">
-                      <div className="logPage__aiInfoBlockTitle">
-                        <span className="logPage__aiInfoIcon" aria-hidden="true">💡</span>
-                        <span>補助</span>
-                      </div>
-                      <div className="logPage__aiInfoBlockText">
-                        AIカスタム指示（回答スタイル）・改善したい項目・長期プロフィール・コミュニティ集合知を補助根拠として使います。
-                      </div>
-                    </section>
-                    <section className="logPage__aiInfoBlock logPage__aiInfoBlock--save">
-                      <div className="logPage__aiInfoBlockTitle">
-                        <span className="logPage__aiInfoIcon" aria-hidden="true">🧠</span>
-                        <span>保存</span>
-                      </div>
-                      <div className="logPage__aiInfoBlockText">
-                        生成結果は日付ごとに保存され、AIチャットから質問・調整できます。
-                      </div>
-                    </section>
-                  </div>
-                </InfoModal>
-              </div>
-            </div>
-
-            <div className="logAi__content">
-              <div className="logPage__aiCtaActions">
-                <button
-                  ref={aiGenerateBtnRef}
-                  onClick={onAskAi}
-                  className={`logPage__btn logPage__aiCtaBtn ${forceGuideAiGenerate ? "is-guided" : ""}`.trim()}
-                >
-                  {guestMode && isDayMode
-                    ? "ログインしてAI提案を作成"
-                    : aiCreateButtonText}
-                </button>
-              </div>
-              {guestMode && isDayMode && (
-                <div className="logAi__text logAi__text--muted logPage__aiCtaHint">
-                  ログイン後は、目標と記録を使って提案します。
-                </div>
-              )}
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );

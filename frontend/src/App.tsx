@@ -11,7 +11,6 @@ import LogNewPage from "./pages/LogNewPage";
 import TrainingPage from "./pages/TrainingPage";
 import InsightsPage from "./pages/InsightsPage";
 import InsightsTimePage from "./pages/InsightsTimePage";
-import InsightsMenusPage from "./pages/InsightsMenusPage";
 import InsightsNotesPage from "./pages/InsightsNotesPage";
 
 import LoginPage from "./pages/LoginPage";
@@ -24,6 +23,7 @@ import AiChatPage from "./pages/AiChatPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityProfilePage from "./pages/CommunityProfilePage";
 import CommunityRankingPage from "./pages/CommunityRankingPage";
+import LandingPage from "./pages/LandingPage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
 import HelpContactPage from "./pages/HelpContactPage";
@@ -37,6 +37,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/log" replace />} />
 
           {/* 公開ページ（レイアウト外） */}
+          <Route path="/lp" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
 
@@ -47,7 +48,6 @@ export default function App() {
             <Route path="/training" element={<TrainingPage />} />
             <Route path="/insights" element={<InsightsPage />} />
             <Route path="/insights/time" element={<InsightsTimePage />} />
-            <Route path="/insights/menus" element={<InsightsMenusPage />} />
             <Route path="/insights/notes" element={<InsightsNotesPage />} />
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/community/rankings" element={<CommunityRankingPage />} />

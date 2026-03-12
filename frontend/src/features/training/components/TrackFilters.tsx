@@ -1,6 +1,6 @@
 // frontend/src/features/training/components/TrackFilters.tsx
-import { useState } from "react";
 import type { ScaleRange, ScaleType } from "../../../api/scaleTracks";
+import AppSelect from "../../../components/AppSelect";
 import "./TrackFilters.css";
 
 type Props = {
@@ -36,8 +36,6 @@ export default function TrackFilters({
   onChangeScaleType,
   onChangeRangeType,
 }: Props) {
-  const [selectFocused, setSelectFocused] = useState(false);
-
   return (
     <div className="trackFilters">
       {/* スケール：プルダウン */}
@@ -48,29 +46,18 @@ export default function TrackFilters({
 
         <div className="trackFilters__selectWrap">
           <div
-            className={`trackFilters__selectSurface${selectFocused ? " is-focused" : ""}${
-              disabled ? " is-disabled" : ""
-            }`}
+            className={`trackFilters__selectSurface${disabled ? " is-disabled" : ""}`}
           >
-            <select
+            <AppSelect
               value={scaleType}
               disabled={disabled}
-              onChange={(e) => onChangeScaleType(e.target.value as ScaleType)}
-              onFocus={() => setSelectFocused(true)}
-              onBlur={() => setSelectFocused(false)}
+              onChange={(value) => onChangeScaleType(value as ScaleType)}
               className="trackFilters__select"
-              aria-label="scale type"
-            >
-              {scaleTypes.map((t) => (
-                <option key={t} value={t}>
-                  {labelScale(t)}
-                </option>
-              ))}
-            </select>
-
-            <div className="trackFilters__selectChevron" aria-hidden="true">
-              <ChevronDown />
-            </div>
+              buttonClassName="trackFilters__selectButton"
+              menuClassName="trackFilters__selectMenu"
+              ariaLabel="scale type"
+              options={scaleTypes.map((t) => ({ value: t, label: labelScale(t) }))}
+            />
           </div>
         </div>
       </div>
@@ -100,20 +87,5 @@ export default function TrackFilters({
         </div>
       </div>
     </div>
-  );
-}
-
-function ChevronDown() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24">
-      <path
-        d="M6 9l6 6 6-6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

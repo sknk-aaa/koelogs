@@ -2,8 +2,8 @@
 
 module Ai
   class GeneralChatResponder
-    SYSTEM_PROMPT_VERSION = "general-chat-v1"
-    USER_PROMPT_VERSION = "general-chat-v1"
+    SYSTEM_PROMPT_VERSION = "general-chat-v2"
+    USER_PROMPT_VERSION = "general-chat-v2"
     MAX_RESPONSE_CHARS = 2000
 
     class << self
@@ -21,7 +21,7 @@ module Ai
 
     def call
       latest_text = latest_user_message
-      history_decision = decide_history_requirement(latest_text)
+      history_decision = forced_history_decision(latest_text) || decide_history_requirement(latest_text)
       term_entry = Ai::TermDictionary.lookup(latest_text)
       decision = Ai::WebSearchDecision.decide(
         query: latest_text,
@@ -103,7 +103,16 @@ module Ai
         - 構造化スタイル設定:
           #{Ai::ResponseStylePreferences.summary_text(user.ai_response_style_prefs).lines.map { |line| "  #{line}" }.join}
         #{Ai::ResponseStylePreferences.prompt_rules(user.ai_response_style_prefs).map { |line| "  #{line}" }.join("\n")}
-        - まず質問意図を短く要約し、次に実行しやすい提案を2〜4点で出す。
+        - まず結論を短く答え、その後に必要な理由や次の一手を補う。
+        - ユーザーが深掘りを求めていない限り、必要以上に話を広げない。
+        - 単純な質問や確認には、簡潔で分かりやすく答える。
+        - ただし、短すぎて説明不足にならないようにする。
+        - 同じ内容の言い換え、長い前置き、過剰な補足は避ける。
+        - 追質問（例: もっと詳しく、じゃあ具体的には、他には）には、前置きや言い換えを挟まず本題から答える。
+        - ユーザーの質問内容を長く言い換えて繰り返さない。
+        - 「もちろんです」「一緒に見ていきましょう」などの導入は多用しない。
+        - 直前の話題が明確な場合は、その話題名を不必要に繰り返さずに説明へ入る。
+        - 詳しい理由や比較、手順が必要なときだけ、説明を少し広げる。
         - 常に敬意ある口調で回答する。侮辱・高圧・断罪表現（例: お前、怠け、無能 など）を使わない。
         - 医療診断・治療の断定はしない。危険な内容は拒否して安全な代替案を示す。
         - 練習メニュー提案は、ユーザーが「メニュー」「練習方法」「次に何をするか」を求めた時だけ行う。
@@ -128,6 +137,7 @@ module Ai
       lines << latest_user_message.presence || "(なし)"
       lines << "回答モード:"
       lines << (allow_practice_plan? ? "- 練習提案を含めてよい" : "- 用語/概念の説明を優先し、練習提案はしない")
+      lines << (simple_question?(latest_user_message) ? "- 単純質問なので、簡潔だが説明不足にならない回答にする" : "- 必要に応じて理由と次の一手を補ってよい")
       lines << ""
       lines << "ユーザー情報:"
       lines << "- call_name: #{user_call_name}"
@@ -148,7 +158,6 @@ module Ai
       lines.concat(recent_recommendations_summary)
       lines << ""
       lines << "会話スレッド:"
-      lines << "- title: #{thread.title}"
       lines << "- project: #{thread.project&.name || '(未分類)'}"
       lines << ""
       if history_messages.present?
@@ -178,6 +187,25 @@ module Ai
       lines << "- その後に用途・注意点を簡潔に説明する"
       lines << "- 必要なら参考情報を末尾に付ける"
       lines.join("\n")
+    end
+
+    def simple_question?(text)
+      normalized = text.to_s.gsub(/\s+/, " ").strip
+      return false if normalized.blank?
+      return false if normalized.length >= 70
+
+      deep_keywords = %w[
+        なぜ 理由 詳しく 具体的 比較 違い 手順 メニュー 練習方法 プラン 計画
+        改善 原因 分析 診断 根拠 どう組む どう進め
+      ]
+      return false if deep_keywords.any? { |keyword| normalized.include?(keyword) }
+
+      simple_keywords = %w[
+        とは って何 どういう意味 どっち どちら 一言 簡単に 短く だけ 教えて
+        いい 悪い 必要 いる ある
+      ]
+
+      normalized.end_with?("？", "?", "か") || simple_keywords.any? { |keyword| normalized.include?(keyword) }
     end
 
     def build_focus_repair_system_text
@@ -256,8 +284,10 @@ module Ai
         {"requires_history":true|false,"history_window":0|3|6,"reason":"短い理由"}
         ルール:
         - 最新質問だけで十分なら requires_history=false, history_window=0
-        - 「それ/前回/続き/比較」など履歴参照が必要なら true
-        - 不明な場合は false を優先
+        - 直前の発話を見ないと意味が確定しない省略質問・追質問なら true
+        - 「もっと詳しく」「具体的に」「他には」「それで」「じゃあ」など、対象が省略されている質問は true 寄り
+        - 比較・言い換え・続き・掘り下げ依頼で、直前文脈がないと答えにくい場合も true
+        - 不明な場合は false ではなく、直前文脈がないと誤解しやすいなら true を優先
       SYS
     end
 
@@ -294,6 +324,30 @@ module Ai
 
       take_count = history_window.to_i * 2
       candidates.last(take_count)
+    end
+
+    def forced_history_decision(latest_text)
+      normalized = latest_text.to_s.gsub(/\s+/, " ").strip
+      return nil if normalized.blank?
+      return nil if normalized.length > 40
+
+      followup_phrases = [
+        "もっと詳しく", "詳しく", "具体的に", "もう少し詳しく", "くわしく",
+        "他には", "他だと", "たとえば", "例えば", "つまり", "要するに",
+        "それで", "じゃあ", "では", "続き", "補足", "一言で", "簡単にいうと",
+        "どういうこと", "どういうこと？", "どういうことですか", "なんで", "なぜ",
+        "どっち", "どちら", "比較すると", "逆に", "その場合", "この場合"
+      ]
+
+      ambiguous_followup =
+        followup_phrases.any? { |phrase| normalized.include?(phrase) } ||
+        normalized.match?(/\A(?:それ|これ|その|この|前の|さっきの|今の)(?:について)?\z/) ||
+        normalized.match?(/\A(?:もっと|もう少し).+\z/) ||
+        normalized.match?(/\A.+(?:して|すると)?[?？]\z/)
+
+      return nil unless ambiguous_followup
+
+      { requires_history: true, history_window: 3, reason: "forced_followup_phrase" }
     end
 
     def allow_practice_plan?

@@ -471,7 +471,7 @@ export default function LogNewPage() {
           <section className="logNew__aiPromptCard">
             <div className="logNew__aiPromptTitle">AIおすすめを生成しますか？</div>
             <div className="logNew__aiPromptText">
-              保存した記録をもとに、今日のおすすめメニューを提案します。
+              保存した記録をもとに、今週のおすすめメニューを提案します。
             </div>
             {aiPromptError && <div className="logNew__aiPromptError">{aiPromptError}</div>}
             <div className="logNew__aiPromptActions">

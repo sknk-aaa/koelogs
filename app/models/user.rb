@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   PASSWORD_RESET_TOKEN_TTL = 30.minutes
   PASSWORD_RESET_REQUEST_INTERVAL = 1.minute
+  EMAIL_VERIFICATION_TOKEN_TTL = 24.hours
+  EMAIL_VERIFICATION_REQUEST_INTERVAL = 1.minute
 
   AVATAR_ICON_VALUES = %w[
     note_blue
@@ -33,7 +35,9 @@ class User < ApplicationRecord
   has_many :xp_events, dependent: :destroy
   has_many :user_badges, dependent: :destroy
 
-  validates :email, presence: true, uniqueness: true
+  before_validation :normalize_email
+  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :google_sub, uniqueness: true, allow_nil: true
 
   # 表示名は任意。空白は nil として扱う
   before_validation :normalize_display_name
@@ -74,6 +78,43 @@ class User < ApplicationRecord
     password_reset_sent_at.nil? || password_reset_sent_at < PASSWORD_RESET_REQUEST_INTERVAL.ago
   end
 
+  def email_verified?
+    email_verified_at.present?
+  end
+
+  def can_send_email_verification_email?
+    email_verification_sent_at.nil? || email_verification_sent_at < EMAIL_VERIFICATION_REQUEST_INTERVAL.ago
+  end
+
+  def generate_email_verification_token!
+    token = SecureRandom.urlsafe_base64(32)
+    update!(
+      email_verification_token_digest: digest_email_verification_token(token),
+      email_verification_sent_at: Time.current
+    )
+    token
+  end
+
+  def email_verification_token_valid?(token)
+    return false if token.blank? || email_verification_token_digest.blank? || email_verification_sent_at.blank?
+    return false if email_verification_sent_at < EMAIL_VERIFICATION_TOKEN_TTL.ago
+
+    ActiveSupport::SecurityUtils.secure_compare(
+      email_verification_token_digest,
+      digest_email_verification_token(token)
+    )
+  rescue ArgumentError
+    false
+  end
+
+  def verify_email!
+    update!(
+      email_verified_at: Time.current,
+      email_verification_token_digest: nil,
+      email_verification_sent_at: nil
+    )
+  end
+
   def generate_password_reset_token!
     token = SecureRandom.urlsafe_base64(32)
     update!(
@@ -97,8 +138,16 @@ class User < ApplicationRecord
 
   private
 
+  def digest_email_verification_token(token)
+    Digest::SHA256.hexdigest(token.to_s)
+  end
+
   def digest_password_reset_token(token)
     Digest::SHA256.hexdigest(token.to_s)
+  end
+
+  def normalize_email
+    self.email = email.to_s.strip.downcase
   end
 
   def normalize_display_name

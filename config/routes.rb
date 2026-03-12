@@ -54,7 +54,10 @@ Rails.application.routes.draw do
     # auth
     post "auth/signup", to: "auth#signup"
     post "auth/login", to: "auth#login"
+    post "auth/google", to: "auth#google_login"
     post "auth/logout", to: "auth#logout"
+    post "auth/email_verification_requests", to: "auth#email_verification_request"
+    post "auth/email_verifications", to: "auth#email_verification"
     post "auth/password_reset_requests", to: "auth#password_reset_request"
     post "auth/password_resets", to: "auth#password_reset"
 

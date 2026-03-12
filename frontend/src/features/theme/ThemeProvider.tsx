@@ -19,7 +19,7 @@ const FIXED_LIGHT_VARS = {
   "--surface-strong": "#ffffff",
   "--pageText": "#0f1d2e",
   "--cardText": "#0f1d2e",
-  "--headerTitleText": "#16384a",
+  "--headerTitleText": "#1f4e6d",
   "--headerBg": "#ffffff",
   "--headerBorder": "rgba(0, 0, 0, 0.06)",
   "--drawerBackdrop": "rgba(0, 0, 0, 0.35)",

@@ -1,5 +1,13 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
+type ApiError = Error & { code?: string };
+
+function toApiError(message: string, code?: string): ApiError {
+  const error = new Error(message) as ApiError;
+  error.code = code;
+  return error;
+}
+
 export type AiLongTermProfileCustomItem = {
   title: string;
   content: string;
@@ -58,6 +66,12 @@ export type Me = {
   billing_cycle?: "monthly" | "yearly" | null;
   ai_contribution_count: number;
   created_at: string;
+};
+
+export type SignupResult = {
+  ok: true;
+  email_verification_required: boolean;
+  message: string;
 };
 
 export async function fetchMe(): Promise<Me | null> {
@@ -191,7 +205,7 @@ export async function signup(
   email: string,
   password: string,
   passwordConfirmation: string
-): Promise<void> {
+): Promise<SignupResult> {
   const res = await fetch(`${API_BASE}/api/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -206,8 +220,10 @@ export async function signup(
   const json = await res.json().catch(() => null);
   if (!res.ok) {
     const msg = json?.error ?? `signup failed: ${res.status}`;
-    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
+    throw toApiError(Array.isArray(msg) ? msg.join(", ") : msg, json?.code);
   }
+
+  return json as SignupResult;
 }
 
 export async function login(email: string, password: string): Promise<void> {
@@ -221,7 +237,22 @@ export async function login(email: string, password: string): Promise<void> {
   const json = await res.json().catch(() => null);
   if (!res.ok) {
     const msg = json?.error ?? `login failed: ${res.status}`;
-    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
+    throw toApiError(Array.isArray(msg) ? msg.join(", ") : msg, json?.code);
+  }
+}
+
+export async function loginWithGoogle(credential: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/auth/google`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ credential }),
+  });
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg = json?.error ?? `google login failed: ${res.status}`;
+    throw toApiError(Array.isArray(msg) ? msg.join(", ") : msg, json?.code);
   }
 }
 
@@ -246,8 +277,42 @@ export async function requestPasswordReset(email: string): Promise<void> {
   const json = await res.json().catch(() => null);
   if (!res.ok) {
     const msg = json?.error ?? `password_reset_request failed: ${res.status}`;
-    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
+    throw toApiError(Array.isArray(msg) ? msg.join(", ") : msg, json?.code);
   }
+}
+
+export async function requestEmailVerification(email: string): Promise<string> {
+  const res = await fetch(`${API_BASE}/api/auth/email_verification_requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email }),
+  });
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg = json?.error ?? `email_verification_request failed: ${res.status}`;
+    throw toApiError(Array.isArray(msg) ? msg.join(", ") : msg, json?.code);
+  }
+
+  return typeof json?.message === "string" ? json.message : "対象のアカウントがある場合は、確認メールを送信しました。";
+}
+
+export async function verifyEmail(token: string): Promise<string> {
+  const res = await fetch(`${API_BASE}/api/auth/email_verifications`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ token }),
+  });
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg = json?.error ?? `email_verification failed: ${res.status}`;
+    throw toApiError(Array.isArray(msg) ? msg.join(", ") : msg, json?.code);
+  }
+
+  return typeof json?.message === "string" ? json.message : "メールアドレス確認が完了しました。ログインしてください。";
 }
 
 export async function resetPassword(
@@ -269,6 +334,6 @@ export async function resetPassword(
   const json = await res.json().catch(() => null);
   if (!res.ok) {
     const msg = json?.error ?? `password_reset failed: ${res.status}`;
-    throw new Error(Array.isArray(msg) ? msg.join(", ") : msg);
+    throw toApiError(Array.isArray(msg) ? msg.join(", ") : msg, json?.code);
   }
 }

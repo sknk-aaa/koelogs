@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { submitHelpContact, type ContactCategory } from "../api/helpContact";
 import { useAuth } from "../features/auth/useAuth";
 import AppSelect from "../components/AppSelect";
+import { isValidEmailFormat, normalizeEmail } from "../utils/email";
 import "./HelpPages.css";
 
 const SUBJECT_MAX = 80;
@@ -39,8 +40,14 @@ export default function HelpContactPage() {
     setError("");
     setSuccess("");
 
-    if (!email.trim()) {
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!normalizedEmail) {
       setError("メールアドレスを入力してください。");
+      return;
+    }
+    if (!isValidEmailFormat(normalizedEmail)) {
+      setError("メールアドレスの形式が正しくありません。");
       return;
     }
     if (!subject.trim()) {
@@ -56,7 +63,7 @@ export default function HelpContactPage() {
     try {
       await submitHelpContact({
         category,
-        email: email.trim(),
+        email: normalizedEmail,
         subject: subject.trim(),
         message: message.trim(),
       });

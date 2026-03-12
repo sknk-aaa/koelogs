@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_07_143000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -346,7 +346,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_143000) do
     t.datetime "created_at", null: false
     t.string "display_name"
     t.string "email", null: false
+    t.datetime "email_verification_sent_at"
+    t.string "email_verification_token_digest"
+    t.datetime "email_verified_at"
     t.string "goal_text", limit: 50
+    t.string "google_sub"
     t.string "password_digest", null: false
     t.datetime "password_reset_sent_at"
     t.string "password_reset_token_digest"
@@ -358,6 +362,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_143000) do
     t.index ["avatar_icon"], name: "index_users_on_avatar_icon"
     t.index ["display_name"], name: "index_users_on_display_name"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["email_verification_token_digest"], name: "index_users_on_email_verification_token_digest", unique: true
+    t.index ["email_verified_at"], name: "index_users_on_email_verified_at"
+    t.index ["google_sub"], name: "index_users_on_google_sub", unique: true
     t.index ["password_reset_token_digest"], name: "index_users_on_password_reset_token_digest", unique: true
     t.index ["plan_tier"], name: "index_users_on_plan_tier"
   end

@@ -102,7 +102,9 @@ npm --prefix frontend install
 ```env
 GEMINI_API_KEY=your_gemini_api_key
 VITE_API_BASE_URL=http://localhost:3000
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
 FRONTEND_ORIGIN=http://localhost:5173
+GOOGLE_CLIENT_ID=your_google_client_id
 
 MAIL_FROM=no-reply@example.com
 MAILER_HOST=localhost

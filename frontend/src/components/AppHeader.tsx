@@ -337,7 +337,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: "transparent",
     padding: "6px 10px",
     borderRadius: 12,
-    color: "var(--pageText, var(--text))",
+    color: "var(--headerTitleText, var(--pageText, var(--text)))",
     cursor: "pointer",
     pointerEvents: "auto",
   },
@@ -345,7 +345,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 18,
     fontWeight: 800,
     letterSpacing: "-0.02em",
-    color: "var(--pageText, var(--text))",
+    color: "var(--headerTitleText, var(--pageText, var(--text)))",
     whiteSpace: "nowrap",
   },
   logTitleChevron: {

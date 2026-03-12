@@ -1,0 +1,96 @@
+import { useEffect, useRef, useState } from "react";
+
+const GOOGLE_IDENTITY_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+
+type GoogleSignInButtonProps = {
+  text: "signin_with" | "signup_with";
+  onCredential: (credential: string) => Promise<void> | void;
+  disabled?: boolean;
+};
+
+function loadGoogleIdentityScript(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (window.google?.accounts?.id) return Promise.resolve();
+
+  const existing = document.querySelector<HTMLScriptElement>('script[data-google-identity="true"]');
+  if (existing) {
+    return new Promise((resolve, reject) => {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", () => reject(new Error("Google Identity script failed")), { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = GOOGLE_IDENTITY_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    script.dataset.googleIdentity = "true";
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Google Identity script failed"));
+    document.head.appendChild(script);
+  });
+}
+
+export default function GoogleSignInButton({ text, onCredential, disabled = false }: GoogleSignInButtonProps) {
+  const clientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "").trim();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const callbackRef = useRef(onCredential);
+  const [isReady, setIsReady] = useState(false);
+
+  callbackRef.current = onCredential;
+
+  useEffect(() => {
+    if (!clientId) return;
+    let cancelled = false;
+
+    loadGoogleIdentityScript()
+      .then(() => {
+        if (!cancelled) setIsReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setIsReady(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [clientId]);
+
+  useEffect(() => {
+    if (!clientId || !isReady || !containerRef.current || !window.google?.accounts?.id) return;
+
+    const container = containerRef.current;
+    container.innerHTML = "";
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        if (!response.credential || disabled) return;
+        await callbackRef.current(response.credential);
+      },
+    });
+
+    window.google.accounts.id.renderButton(container, {
+      theme: "outline",
+      size: "large",
+      text,
+      shape: "pill",
+      width: Math.max(Math.floor(container.clientWidth), 280),
+      logo_alignment: "left",
+    });
+  }, [clientId, disabled, isReady, text]);
+
+  if (!clientId) return null;
+
+  return (
+    <div className="authPage__googleAuth">
+      <div className="authPage__divider" aria-hidden="true">
+        <span>または</span>
+      </div>
+      <div className="authPage__googleButtonHost" aria-disabled={disabled}>
+        <div ref={containerRef} className="authPage__googleButton" />
+      </div>
+    </div>
+  );
+}

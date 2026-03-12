@@ -14,12 +14,24 @@ type FlowStep = {
   sub: string;
   pill?: string;
 };
+type FeatureCard = {
+  iconSrc: string;
+  iconAlt?: string;
+  title: string;
+  sub: string;
+};
 
 type Props = {
   open: boolean;
   kicker?: string;
+  sectionLabel?: string;
+  sectionLabelIconSrc?: string;
   title?: string;
   description?: string;
+  heroEyebrow?: string;
+  heroTitle?: string;
+  heroBody?: string;
+  heroChips?: string[];
   valueLine?: string;
   note?: string;
   noteVariant?: "default" | "quote";
@@ -34,6 +46,8 @@ type Props = {
   statsLines?: string[];
   flowTitle?: string;
   flowSteps?: FlowStep[];
+  featureCardsTitle?: string;
+  featureCards?: FeatureCard[];
   flowBackgroundImageSrc?: string;
   flowBackgroundOpacity?: number;
   previewImageSrc?: string;
@@ -41,6 +55,7 @@ type Props = {
   previewCaption?: string;
   previewMode?: "default" | "screenshot";
   variant?: "default" | "lp";
+  tone?: "default" | "log";
   ctaLabel?: string;
   onClose: () => void;
   onCta?: () => void;
@@ -49,8 +64,14 @@ type Props = {
 export default function PremiumUpsellModal({
   open,
   kicker = "PREMIUM",
+  sectionLabel,
+  sectionLabelIconSrc,
   title = "プレミアムプランで解放されます",
   description = "この機能はプレミアムプランで利用できます。",
+  heroEyebrow,
+  heroTitle,
+  heroBody,
+  heroChips,
   valueLine,
   note,
   noteVariant = "default",
@@ -65,6 +86,8 @@ export default function PremiumUpsellModal({
   statsLines,
   flowTitle,
   flowSteps,
+  featureCardsTitle,
+  featureCards,
   flowBackgroundImageSrc,
   flowBackgroundOpacity,
   previewImageSrc,
@@ -72,6 +95,7 @@ export default function PremiumUpsellModal({
   previewCaption,
   previewMode = "default",
   variant = "default",
+  tone = "default",
   ctaLabel = "プランを見る",
   onClose,
   onCta,
@@ -101,7 +125,7 @@ export default function PremiumUpsellModal({
   return (
     <div className="premiumModal__overlay uiModalBackdrop" role="presentation" onClick={onClose}>
       <section
-        className={`premiumModal__card uiModalPanel ${variant === "lp" ? "is-lp" : ""}${ambientArtSrc ? " premiumModal__card--ambient" : ""}`}
+        className={`premiumModal__card uiModalPanel ${variant === "lp" ? "is-lp" : ""}${ambientArtSrc ? " premiumModal__card--ambient" : ""}${tone === "log" ? " is-logTone" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-label="プレミアムプランの案内"
@@ -114,9 +138,39 @@ export default function PremiumUpsellModal({
             {!!previewCaption && <div className="premiumModal__previewCaption">{previewCaption}</div>}
           </div>
         )}
-        <div className="premiumModal__kicker">{kicker}</div>
+        <div className="premiumModal__headerMeta">
+          <div className="premiumModal__kicker">{kicker}</div>
+          {!!sectionLabel && (
+            <div className="premiumModal__sectionLabel">
+              {!!sectionLabelIconSrc && (
+                <span
+                  className="premiumModal__sectionLabelIcon"
+                  aria-hidden="true"
+                  style={{ "--premium-section-icon": `url("${sectionLabelIconSrc}")` } as CSSProperties}
+                />
+              )}
+              <span>{sectionLabel}</span>
+            </div>
+          )}
+        </div>
         <div className="premiumModal__title">{title}</div>
         <div className="premiumModal__desc">{description}</div>
+        {(variant === "lp" && (heroEyebrow || heroTitle || heroBody || heroChips?.length)) && (
+          <section className="premiumModal__lpHero" aria-label="Premiumでできること">
+            {!!heroEyebrow && <div className="premiumModal__lpHeroEyebrow">{heroEyebrow}</div>}
+            {!!heroTitle && <div className="premiumModal__lpHeroTitle">{heroTitle}</div>}
+            {!!heroBody && <div className="premiumModal__lpHeroBody">{heroBody}</div>}
+            {!!heroChips?.length && (
+              <div className="premiumModal__lpHeroChips">
+                {heroChips.slice(0, 3).map((chip) => (
+                  <span key={chip} className="premiumModal__lpHeroChip">
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
         {!!valueLine && <div className="premiumModal__valueLine">{valueLine}</div>}
         {(variant === "lp" && (growthTitle || (growthItems && growthItems.length > 0))) && (
           <section className="premiumModal__lpSection">
@@ -153,7 +207,27 @@ export default function PremiumUpsellModal({
             )}
           </section>
         )}
-        {(variant === "lp" && flowSteps?.length) && (
+        {(variant === "lp" && featureCards?.length) && (
+          <section className="premiumModal__lpSection premiumModal__lpSection--cards">
+            {!!featureCardsTitle && <div className="premiumModal__lpSectionTitle">{featureCardsTitle}</div>}
+            <div className="premiumModal__featureCards" aria-label="Premiumで見えること">
+              {featureCards.slice(0, 3).map((card) => (
+                <article key={`${card.title}-${card.sub}`} className="premiumModal__featureCard">
+                  <div className="premiumModal__featureCardBody">
+                    <div className="premiumModal__featureCardHead">
+                      <div className="premiumModal__featureCardIcon" aria-hidden="true">
+                        <img src={card.iconSrc} alt={card.iconAlt ?? ""} className="premiumModal__featureCardIconImg" />
+                      </div>
+                      <div className="premiumModal__featureCardTitle">{card.title}</div>
+                    </div>
+                    <div className="premiumModal__featureCardSub">{card.sub}</div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+        {(variant === "lp" && !featureCards?.length && flowSteps?.length) && (
           <section
             className={`premiumModal__lpSection premiumModal__lpSection--features${!flowTitle ? " premiumModal__lpSection--noTitle" : ""}`}
             style={flowSectionStyle}

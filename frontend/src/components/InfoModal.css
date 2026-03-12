@@ -243,21 +243,14 @@
 }
 
 .infoModal__body li {
-  position: relative;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
-  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
-  padding: 10px 12px 10px 30px;
+  position: static;
+  border: none;
+  background: transparent;
+  padding: 0;
 }
 
 .infoModal__body li::before {
-  content: "•";
-  position: absolute;
-  left: 12px;
-  top: 10px;
-  font-size: 16px;
-  line-height: 1;
-  color: color-mix(in srgb, var(--accent) 62%, var(--text));
+  content: none;
 }
 
 @media (max-width: 520px) {
@@ -297,8 +290,7 @@
 }
 
 :root[data-theme-mode="dark"] .infoModal__body li {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
 }
 
 :root[data-theme-mode="dark"] .infoModal__lead {

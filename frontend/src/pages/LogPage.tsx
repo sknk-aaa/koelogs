@@ -32,6 +32,10 @@ import { setLastLogPath } from "../features/log/logNavigation";
 import TutorialModal from "../components/TutorialModal";
 import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
 import handPointerImage from "../assets/tutorial/pointer.png";
+import coachLabelIcon from "../assets/premium/coach-label-icon.svg";
+import coachTrackIcon from "../assets/premium/coach-track-cyan.svg";
+import coachStallIcon from "../assets/premium/coach-stall-cyan.svg";
+import coachMenuIcon from "../assets/premium/coach-menu-cyan.svg";
 
 import ColoredTag from "../components/ColoredTag";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
@@ -2022,26 +2026,18 @@ export default function LogPage() {
       <PremiumUpsellModal
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
-        previewMode="screenshot"
         variant="lp"
-        kicker="PREMIUM"
+        sectionLabel="COACH"
+        sectionLabelIconSrc={coachLabelIcon}
         title="今月、ちゃんと伸びていますか？"
-        description="やった気の1ヶ月で終わらせない。"
-        growthTitle="今月の成長（実例）"
-        growthItems={[
-          { label: "音程精度", before: "88.2%", after: "91.4%", delta: "↑ +3.2%", tone: "up" },
-          { label: "裏声最高音", before: "B4", after: "C#5", delta: "↑ +2半音", tone: "up" },
-          { label: "ロングトーン", before: "24.1s", after: "14.7s", delta: "↓ -9.4s", tone: "down" },
+        description="無料プランでは比較機能は利用できません。"
+        featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
+        featureCards={[
+          { iconSrc: coachTrackIcon, title: "TRACK", sub: "月単位の変化を見ながら、今どこが伸びているかを確認できます。" },
+          { iconSrc: coachStallIcon, title: "STALL", sub: "停滞しやすいポイントを見つけて、優先して見直す項目を整理できます。" },
+          { iconSrc: coachMenuIcon, title: "ACTION", sub: "比較結果をもとに、次に意識したい練習の方向を考えやすくなります。" },
         ]}
-        flowTitle="成長の仕組み"
-        flowSteps={[
-          { title: "停滞を検出", sub: "裏声最高音の推移を解析", pill: "停滞あり" },
-          { title: "要因を特定", sub: "ログと測定データを横断分析", pill: "要因解析" },
-          { title: "最適なトレーニングを提示", sub: "今月の優先項目を決定", pill: "メニュー提案" },
-        ]}
-        note="比較だけで終わらせず、理由に基づいた改善アクションまでサポートします。"
-        noteVariant="default"
-        ctaLabel="プレミアムを見る"
+        ctaLabel="プレミアムを試す"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");

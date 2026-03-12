@@ -11,7 +11,10 @@ import type { MeasurementPoint } from "../types/insights";
 import { useAuth } from "../features/auth/useAuth";
 import MetronomeLoader from "../components/MetronomeLoader";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
-import premiumPreviewInsights from "../assets/premium/preview-insights.svg";
+import insightsTrendCyan from "../assets/premium/insights-trend-cyan.svg";
+import insightsHistoryCyan from "../assets/premium/insights-history-cyan.svg";
+import insightsAnalysisCyan from "../assets/premium/insights-analysis-cyan.svg";
+import insightsLabelIcon from "../assets/premium/insights-label-icon.svg";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -1360,20 +1363,22 @@ export default function InsightsNotesPage() {
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
         variant="lp"
-        previewImageSrc={premiumPreviewInsights}
-        previewImageAlt="分析詳細のプレビュー"
-        title="分析詳細をフル表示する"
+        tone="log"
+        sectionLabel="INSIGHTS"
+        sectionLabelIconSrc={insightsLabelIcon}
+        title="分析をもっと深く見る"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");
         }}
-        description="無料プランは7日グラフと一部履歴まで表示されます。"
-        flowSteps={[
-          { title: "全期間の推移を確認", sub: "30日 / 90日 / 365日 / 月で比較", pill: "全期間" },
-          { title: "履歴を深掘り", sub: "測定履歴を全表示して確認", pill: "全履歴" },
-          { title: "変化を判断", sub: "差分を見て改善の優先度を決定", pill: "分析強化" },
+        description="無料プランでは7日間のみ表示されます。"
+        featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
+        featureCards={[
+          { iconSrc: insightsTrendCyan, title: "TREND", sub: "30日・90日・365日ごとの推移を、グラフで確認できます。" },
+          { iconSrc: insightsHistoryCyan, title: "HISTORY", sub: "これまでの測定履歴を一覧で確認しながら、過去の記録を振り返れます。" },
+          { iconSrc: insightsAnalysisCyan, title: "ANALYSIS", sub: "数値の変化をもとに、前回比や成長の幅を確認できます。" },
         ]}
-        ctaLabel="プレミアムを見る"
+        ctaLabel="プレミアムを試す"
       />
     </div>
   );

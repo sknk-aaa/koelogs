@@ -9,6 +9,8 @@ type Props = {
   triggerClassName?: string;
   bodyClassName?: string;
   closeLabel?: string;
+  triggerContent?: ReactNode;
+  triggerAriaLabel?: string;
 };
 
 export default function InfoModal({
@@ -17,6 +19,8 @@ export default function InfoModal({
   triggerClassName,
   bodyClassName,
   closeLabel = "閉じる",
+  triggerContent,
+  triggerAriaLabel,
 }: Props) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
@@ -73,14 +77,16 @@ export default function InfoModal({
         type="button"
         className={triggerClassName ? `infoModal__trigger ${triggerClassName}` : "infoModal__trigger"}
         onClick={() => setOpen(true)}
-        aria-label={`${title}の説明を開く`}
+        aria-label={triggerAriaLabel ?? `${title}の説明を開く`}
       >
-        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-          <circle cx="12" cy="12" r="8.5" />
-          <text x="12" y="12.45" className="infoModal__triggerText" textAnchor="middle" dominantBaseline="middle">
-            i
-          </text>
-        </svg>
+        {triggerContent ?? (
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5" />
+            <text x="12" y="12.45" className="infoModal__triggerText" textAnchor="middle" dominantBaseline="middle">
+              i
+            </text>
+          </svg>
+        )}
       </button>
       {modal}
     </>

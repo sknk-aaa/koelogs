@@ -18,7 +18,10 @@ import PremiumUpsellModal from "../components/PremiumUpsellModal";
 import TutorialModal from "../components/TutorialModal";
 import MeasurementTypeIcon from "../components/MeasurementTypeIcon";
 import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
-import premiumAmbientReplayUi from "../assets/premium/ambient-replay-ui.svg";
+import replayLabelIcon from "../assets/premium/replay-label-icon.svg";
+import replayOverlayIcon from "../assets/premium/replay-overlay-cyan.svg";
+import replaySaveIcon from "../assets/premium/replay-save-cyan.svg";
+import replayReviewIcon from "../assets/premium/replay-review-cyan.svg";
 
 import "./TrainingPage.css";
 
@@ -2273,17 +2276,17 @@ export default function TrainingPage() {
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
         variant="lp"
+        sectionLabel="REPLAY"
+        sectionLabelIconSrc={replayLabelIcon}
         title="録音リプレイ機能を解放する"
         description="無料プランでは録音の重ね再生と音声ダウンロードは利用できません。"
-        benefits={[
-          "音源＋自分の声を重ねて再生",
-          "録音音声をWAVで保存",
-          "そのまま聞き直して復習",
+        featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
+        featureCards={[
+          { iconSrc: replayOverlayIcon, title: "OVERLAY", sub: "音源と自分の録音を重ねて再生し、差分をその場で確認できます。" },
+          { iconSrc: replaySaveIcon, title: "SAVE", sub: "録音した音声をWAVで保存して、あとから聞き直せます。" },
+          { iconSrc: replayReviewIcon, title: "REVIEW", sub: "聞き直しながら、次に見直したいポイントを整理できます。" },
         ]}
-        benefitsPanel
-        ambientArtSrc={premiumAmbientReplayUi}
-        ambientArtOpacity={0.17}
-        ctaLabel="プレミアムを見る"
+        ctaLabel="プレミアムを試す"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");

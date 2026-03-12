@@ -13,7 +13,10 @@ import { useAuth } from "../features/auth/useAuth";
 import ExportCsvDialog, { type CsvExportPeriod, type CsvMetricFilter } from "../features/insights/components/ExportCsvDialog";
 import InsightsCardHeader from "../features/insights/components/InsightsCardHeader";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
-import premiumFlowCsvExport from "../assets/premium/flow-csv-export.svg";
+import csvLabelIcon from "../assets/premium/csv-label-icon.svg";
+import csvPeriodIcon from "../assets/premium/csv-period-cyan.svg";
+import csvMetricIcon from "../assets/premium/csv-metric-cyan.svg";
+import csvExportIcon from "../assets/premium/csv-export-cyan.svg";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -603,16 +606,17 @@ export default function InsightsPage() {
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
         variant="lp"
+        sectionLabel="CSV EXPORT"
+        sectionLabelIconSrc={csvLabelIcon}
         title="CSV出力を解放する"
         description="無料プランではCSV出力は利用できません。"
-        flowBackgroundImageSrc={premiumFlowCsvExport}
-        flowBackgroundOpacity={0.24}
-        flowSteps={[
-          { title: "期間を選択", sub: "最新 / 30日 / 90日", pill: "期間指定" },
-          { title: "指標を絞り込み", sub: "必要な測定のみ抽出", pill: "指標選択" },
-          { title: "CSVで保存", sub: "分析結果をそのまま出力", pill: "出力" },
+        featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
+        featureCards={[
+          { iconSrc: csvPeriodIcon, title: "PERIOD", sub: "最新・30日・90日など、必要な期間を選んで出力できます。" },
+          { iconSrc: csvMetricIcon, title: "METRIC", sub: "音域やロングトーンなど、見たい指標だけを絞って確認できます。" },
+          { iconSrc: csvExportIcon, title: "EXPORT", sub: "分析結果をCSVとして保存し、あとから整理や見返しに使えます。" },
         ]}
-        ctaLabel="プレミアムを見る"
+        ctaLabel="プレミアムを試す"
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");

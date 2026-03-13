@@ -1752,13 +1752,15 @@ export default function LogPage() {
 
       <TutorialModal
         open={tutorialWelcomeOpen}
-        badge="WELCOME"
-        title="はじめまして、Koelogsへようこそ！"
+        variant="welcome"
+        badge="KOELOGS START"
+        title="声の変化が、ちゃんと残る場所へ。"
         paragraphs={[
-          "このアプリは、あなたの「練習記録」と「測定データ」をもとに、AIが次の練習メニューを提案するボイストレーニング支援アプリです。",
-          "まずは基本の流れを体験してみましょう。",
+          <>
+            Koelogs は、練習をただ頑張るだけで終わらせず、<strong>記録</strong>・<strong>測定</strong>・<strong>次の練習</strong>をひとつにつなげるためのアプリです。
+          </>,
         ]}
-        primaryLabel="ビギナーミッションをはじめる"
+        primaryLabel="Koelogsをはじめる"
         onPrimary={() => {
           if (!authMe) return;
           saveTutorialStage(authMe.id, "mypage_intro");
@@ -1766,7 +1768,56 @@ export default function LogPage() {
           navigate("/mypage");
         }}
         onClose={() => {}}
-      />
+      >
+        <div className="tutorialModal__welcomeTop">
+          <div className="tutorialModal__welcomeScene" aria-hidden="true">
+            <div className="tutorialModal__welcomeSceneBadge tutorialModal__welcomeSceneBadge--log">LOG</div>
+            <div className="tutorialModal__welcomeSceneBadge tutorialModal__welcomeSceneBadge--ai">AI</div>
+            <div className="tutorialModal__welcomeSceneSheet">
+              <div className="tutorialModal__welcomeSceneDots">
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="tutorialModal__welcomeSceneLineGroup tutorialModal__welcomeSceneLineGroup--wide">
+                <span />
+                <span />
+              </div>
+              <div className="tutorialModal__welcomeSceneWave">
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="tutorialModal__welcomeSceneLineGroup tutorialModal__welcomeSceneLineGroup--split">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+          <div className="tutorialModal__welcomeAside">
+            <div className="tutorialModal__welcomeAsideLabel">FIRST LOOP</div>
+            <div className="tutorialModal__welcomeAsideTitle">記録して、測って、次を決める。</div>
+          </div>
+        </div>
+        <div className="tutorialModal__welcomeRail" aria-hidden="true">
+          <div className="tutorialModal__welcomeRailStep">
+            <div className="tutorialModal__welcomeRailIndex">01</div>
+            <div className="tutorialModal__welcomeRailCopy">今日の練習を記録する</div>
+          </div>
+          <div className="tutorialModal__welcomeRailStep">
+            <div className="tutorialModal__welcomeRailIndex">02</div>
+            <div className="tutorialModal__welcomeRailCopy">測定で声の変化を残す</div>
+          </div>
+          <div className="tutorialModal__welcomeRailStep">
+            <div className="tutorialModal__welcomeRailIndex">03</div>
+            <div className="tutorialModal__welcomeRailCopy">AIに次の練習を提案してもらう</div>
+          </div>
+        </div>
+      </TutorialModal>
 
       <TutorialModal
         open={aiMissionGuideStep === "intro"}

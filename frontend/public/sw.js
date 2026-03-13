@@ -1,7 +1,7 @@
-const CACHE_VERSION = "koelogs-v2";
+const CACHE_VERSION = "koelogs-v3";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
-const SHELL_URLS = ["/", "/log", "/manifest.webmanifest", "/Koelog-icon.png", "/koelog-app-icon.svg"];
+const SHELL_URLS = ["/", "/log", "/manifest.webmanifest", "/Koelogs-icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

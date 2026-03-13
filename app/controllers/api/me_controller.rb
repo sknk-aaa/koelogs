@@ -83,6 +83,10 @@ module Api
         beginner_missions_completed: beginner_missions_completed?(user),
         plan_tier: user.plan_tier,
         billing_cycle: user.billing_cycle,
+        premium_access_active: user.premium_access_active?,
+        stripe_subscription_status: user.stripe_subscription_status,
+        stripe_current_period_end: user.stripe_current_period_end&.iso8601,
+        stripe_cancel_at_period_end: user.stripe_cancel_at_period_end,
         ai_contribution_count: user.ai_contribution_events.distinct.count(:ai_recommendation_id),
         created_at: user.created_at&.iso8601
       }

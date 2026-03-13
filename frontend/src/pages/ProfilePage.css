@@ -199,7 +199,8 @@
 .profilePage__avatarFileBtn,
 .profilePage__avatarResetBtn,
 .profilePage__previewLink,
-.profilePage__saveBtn--secondary {
+.profilePage__saveBtn--secondary,
+.profilePage__planAction {
   border: 1px solid #dbe4ea;
   background: #ffffff;
   border-radius: 999px;
@@ -209,6 +210,10 @@
   color: #466070;
   text-decoration: none;
   cursor: pointer;
+}
+
+.profilePage__planAction {
+  width: fit-content;
 }
 
 .profilePage__avatarResetBtn--text {
@@ -349,7 +354,8 @@
 :root[data-theme-mode="dark"] .profilePage__avatarResetBtn,
 :root[data-theme-mode="dark"] .profilePage__previewLink,
 :root[data-theme-mode="dark"] .profilePage__saveBtn,
-:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary {
+:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary,
+:root[data-theme-mode="dark"] .profilePage__planAction {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -359,7 +365,8 @@
 :root[data-theme-mode="dark"] .profilePage__avatarResetBtn,
 :root[data-theme-mode="dark"] .profilePage__previewLink,
 :root[data-theme-mode="dark"] .profilePage__saveBtn,
-:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary {
+:root[data-theme-mode="dark"] .profilePage__saveBtn--secondary,
+:root[data-theme-mode="dark"] .profilePage__planAction {
   background: rgba(255, 255, 255, 0.04);
   color: #eef5ff;
 }

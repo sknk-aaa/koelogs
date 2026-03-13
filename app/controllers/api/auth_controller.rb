@@ -27,6 +27,12 @@ module Api
     def login
       email = params[:email].to_s.strip.downcase
       user = User.find_by(email: email)
+      if user&.login_locked?
+        return render json: {
+          error: "ログイン失敗が続いています。60分後に再度お試しください。"
+        }, status: :too_many_requests
+      end
+
       if user&.authenticate(params[:password])
         unless user.email_verified?
           return render json: {
@@ -35,10 +41,18 @@ module Api
           }, status: :forbidden
         end
 
+        user.reset_login_failures!
         session[:user_id] = user.id
         render json: { ok: true }, status: :ok
       else
-        render json: { error: "invalid email or password" }, status: :unauthorized
+        attempts = user&.register_failed_login!
+        if attempts && attempts >= User::LOGIN_LOCK_THRESHOLD
+          render json: {
+            error: "ログイン失敗が続いたため、60分間ログインを制限しました。しばらく待ってから再度お試しください。"
+          }, status: :unauthorized
+        else
+          render json: { error: "invalid email or password" }, status: :unauthorized
+        end
       end
     end
 

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "koelogs-v1";
+const CACHE_VERSION = "koelogs-v2";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_URLS = ["/", "/log", "/manifest.webmanifest", "/Koelog-icon.png", "/koelog-app-icon.svg"];
@@ -58,8 +58,27 @@ self.addEventListener("fetch", (event) => {
 
   if (!isStaticAsset) return;
 
+  const isBuildAsset =
+    url.pathname.startsWith("/assets/") || url.pathname.endsWith(".css") || url.pathname.endsWith(".js");
+
   event.respondWith(
-    caches.match(request).then(async (cached) => {
+    (async () => {
+      if (isBuildAsset) {
+        try {
+          const response = await fetch(request, { cache: "no-store" });
+          if (response.ok) {
+            const cache = await caches.open(ASSET_CACHE);
+            await cache.put(request, response.clone());
+          }
+          return response;
+        } catch (error) {
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          throw error;
+        }
+      }
+
+      const cached = await caches.match(request);
       if (cached) return cached;
 
       const response = await fetch(request);
@@ -68,6 +87,6 @@ self.addEventListener("fetch", (event) => {
         await cache.put(request, response.clone());
       }
       return response;
-    })
+    })()
   );
 });

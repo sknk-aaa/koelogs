@@ -63,7 +63,11 @@ export type Me = {
   ranking_participation_enabled: boolean;
   beginner_missions_completed?: boolean;
   plan_tier?: "free" | "premium";
-  billing_cycle?: "monthly" | "yearly" | null;
+  billing_cycle?: "monthly" | "quarterly" | null;
+  premium_access_active?: boolean;
+  stripe_subscription_status?: string | null;
+  stripe_current_period_end?: string | null;
+  stripe_cancel_at_period_end?: boolean;
   ai_contribution_count: number;
   created_at: string;
 };

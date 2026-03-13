@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_13_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -349,8 +349,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
     t.datetime "email_verification_sent_at"
     t.string "email_verification_token_digest"
     t.datetime "email_verified_at"
+    t.integer "failed_login_attempts", default: 0, null: false
     t.string "goal_text", limit: 50
     t.string "google_sub"
+    t.datetime "login_locked_until"
     t.string "password_digest", null: false
     t.datetime "password_reset_sent_at"
     t.string "password_reset_token_digest"
@@ -358,6 +360,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
     t.boolean "public_goal_enabled", default: false, null: false
     t.boolean "public_profile_enabled", default: false, null: false
     t.boolean "ranking_participation_enabled", default: false, null: false
+    t.boolean "stripe_cancel_at_period_end", default: false, null: false
+    t.datetime "stripe_current_period_end"
+    t.string "stripe_customer_id"
+    t.string "stripe_subscription_id"
+    t.string "stripe_subscription_status"
     t.datetime "updated_at", null: false
     t.index ["avatar_icon"], name: "index_users_on_avatar_icon"
     t.index ["display_name"], name: "index_users_on_display_name"
@@ -367,6 +374,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
     t.index ["google_sub"], name: "index_users_on_google_sub", unique: true
     t.index ["password_reset_token_digest"], name: "index_users_on_password_reset_token_digest", unique: true
     t.index ["plan_tier"], name: "index_users_on_plan_tier"
+    t.index ["stripe_customer_id"], name: "index_users_on_stripe_customer_id", unique: true
+    t.index ["stripe_subscription_id"], name: "index_users_on_stripe_subscription_id", unique: true
   end
 
   create_table "xp_events", force: :cascade do |t|

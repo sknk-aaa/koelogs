@@ -19,7 +19,7 @@ if (window.location.hostname === "127.0.0.1") {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    void navigator.serviceWorker.register("/sw.js").catch((error: unknown) => {
+    void navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch((error: unknown) => {
       console.warn("Service worker registration failed", error);
     });
   });

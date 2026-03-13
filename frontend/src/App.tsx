@@ -27,6 +27,7 @@ import LandingPage from "./pages/LandingPage";
 import HelpGuidePage from "./pages/HelpGuidePage";
 import HelpAboutPage from "./pages/HelpAboutPage";
 import HelpContactPage from "./pages/HelpContactPage";
+import PlanPage from "./pages/PlanPage";
 import PremiumPlanPage from "./pages/PremiumPlanPage";
 
 export default function App() {
@@ -59,6 +60,7 @@ export default function App() {
               <Route path="/log/new" element={<LogNewPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/settings/ai" element={<AiSettingsPage />} />
+              <Route path="/plan" element={<PlanPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/mypage" element={<MyPage />} />
               <Route element={<RequireBeginnerMissionsCompleted />}>

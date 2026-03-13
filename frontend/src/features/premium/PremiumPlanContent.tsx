@@ -32,13 +32,14 @@ const COMPARE_ROWS: CompareRow[] = [
   { feature: "今後追加される新機能", free: "—" },
 ];
 
-type BillingCycle = "monthly" | "quarterly";
+export type BillingCycle = "monthly" | "quarterly";
 
 type Props = {
   mode?: "page" | "modal";
   onDismiss?: () => void;
-  onPrimaryAction?: () => void;
-  onSelectPlan?: (cycle: BillingCycle) => void;
+  onPrimaryAction?: (cycle: BillingCycle) => void;
+  ctaLabel?: string;
+  ctaDisabled?: boolean;
 };
 
 function renderBenefitIcon(kind: Benefit["icon"]): ReactNode {
@@ -110,16 +111,17 @@ function renderBenefitIcon(kind: Benefit["icon"]): ReactNode {
   return null;
 }
 
-export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimaryAction, onSelectPlan }: Props) {
+export default function PremiumPlanContent({
+  mode = "page",
+  onDismiss,
+  onPrimaryAction,
+  ctaLabel = "プレミアムを開始",
+  ctaDisabled = false,
+}: Props) {
   const [selectedCycle, setSelectedCycle] = useState<BillingCycle>("quarterly");
 
-  const handlePlanAction = (cycle: BillingCycle) => {
+  const handleSelectCycle = (cycle: BillingCycle) => {
     setSelectedCycle(cycle);
-    if (onSelectPlan) {
-      onSelectPlan(cycle);
-      return;
-    }
-    onPrimaryAction?.();
   };
 
   return (
@@ -225,7 +227,7 @@ export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimary
             type="button"
             className={`premiumPlanPage__planCard${selectedCycle === "monthly" ? " is-selected" : ""}`}
             aria-label="1か月プランを選択"
-            onClick={() => handlePlanAction("monthly")}
+            onClick={() => handleSelectCycle("monthly")}
           >
             <div className="premiumPlanPage__planHead">1か月</div>
             <div className="premiumPlanPage__planPrice">
@@ -239,22 +241,27 @@ export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimary
             type="button"
             className={`premiumPlanPage__planCard premiumPlanPage__planCard--highlight${selectedCycle === "quarterly" ? " is-selected" : ""}`}
             aria-label="3か月プランを選択"
-            onClick={() => handlePlanAction("quarterly")}
+            onClick={() => handleSelectCycle("quarterly")}
           >
-            <div className="premiumPlanPage__planBadge">10%OFF</div>
+            <div className="premiumPlanPage__planBadge">15%OFF</div>
             <div className="premiumPlanPage__planHead">3か月</div>
             <div className="premiumPlanPage__planPrice">
-              ¥2,640
+              ¥2,499
               <span>/3か月</span>
             </div>
-            <div className="premiumPlanPage__planSub">実質 ¥880/月</div>
+            <div className="premiumPlanPage__planSub">実質 ¥833/月</div>
             <div className="premiumPlanPage__planFoot">継続して試すならこちら</div>
           </button>
         </div>
 
         <div className="premiumPlanPage__actions">
-          <button type="button" className="premiumPlanPage__cta" onClick={() => handlePlanAction(selectedCycle)}>
-            プレミアムを開始
+          <button
+            type="button"
+            className="premiumPlanPage__cta"
+            disabled={ctaDisabled}
+            onClick={() => onPrimaryAction?.(selectedCycle)}
+          >
+            {ctaLabel}
           </button>
           {!!onDismiss && (
             <button type="button" className="premiumPlanPage__secondary" onClick={onDismiss}>

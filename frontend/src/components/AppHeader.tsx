@@ -30,6 +30,7 @@ function headerTitleForPath(pathname: string): string {
   if (pathname.startsWith("/community")) return "COMMUNITY";
   if (pathname.startsWith("/settings/ai")) return "AI SETTINGS";
   if (pathname.startsWith("/settings")) return "SETTINGS";
+  if (pathname.startsWith("/plan")) return "PLAN";
   if (pathname.startsWith("/profile")) return "ACCOUNT";
   if (pathname.startsWith("/mypage")) return "MY PAGE";
   if (pathname.startsWith("/help/guide")) return "GUIDE";
@@ -170,6 +171,12 @@ export default function AppHeader() {
               to: "/profile",
               match: "exact",
               onClick: () => navigate("/profile"),
+            },
+            {
+              label: me.plan_tier === "premium" ? "プラン管理" : "プレミアムプラン",
+              onClick: () => navigate(me.plan_tier === "premium" ? "/plan" : "/premium"),
+              to: me.plan_tier === "premium" ? "/plan" : "/premium",
+              match: "exact",
             },
           ],
         },

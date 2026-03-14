@@ -26,6 +26,11 @@
   --va-glow-red: none;
 }
 
+.page.trainingPage {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 :root[data-theme-mode="dark"] .trainingPage {
   --va-bg: var(--bgMid);
   --va-panel: var(--card);
@@ -297,7 +302,6 @@
 .trainingPage__measurementPane {
   min-height: 0;
 }
-
 .trainingPage__measurementLayout.is-desktop.is-balanced {
   align-items: stretch;
 }
@@ -348,6 +352,11 @@
   background: var(--card);
 }
 
+.trainingPage__measurementPane--select {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .trainingPage__measurementStep--manage::before {
   background: none;
 }
@@ -390,6 +399,30 @@
   border-bottom: 1px dashed color-mix(in srgb, var(--border) 82%, transparent);
 }
 
+.trainingPage__measurementStepChip {
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 52%, #27444c);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.trainingPage__measurementStepChip--inline {
+  flex: 0 0 auto;
+}
+
+.trainingPage__measurementTitleLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .trainingPage__measurementStepHead.is-badge-less {
   gap: 0;
 }
@@ -401,6 +434,7 @@
 
 .trainingPage__measurementStepHeadText {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .trainingPage__measurementStepBadge {
@@ -546,10 +580,15 @@
   background: transparent;
   padding: 12px 14px;
   min-height: 96px;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .trainingPage__measurementPresetItemBtn {
   appearance: none;
+  display: block;
+  width: 100%;
   text-align: left;
   cursor: pointer;
   transition: transform 100ms ease, background-color 120ms ease;
@@ -584,10 +623,9 @@
 }
 
 .trainingPage__measurementPresetItemHead {
-  display: flex;
+  display: block;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  padding-right: 72px;
 }
 
 .trainingPage__measurementPresetBody {
@@ -605,11 +643,22 @@
 }
 
 .trainingPage__measurementSelectedBadge {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  min-width: 56px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 4px 8px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 800;
-  flex: 0 0 auto;
+}
+
+.trainingPage__measurementSelectedBadge.is-hidden {
+  visibility: hidden;
 }
 
 .trainingPage__measurementSelectedBadge.uiStatusPill {
@@ -620,17 +669,40 @@
 }
 
 .trainingPage__measurementPresetName {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 5px;
   font-size: 14px;
   font-weight: 900;
+  width: 100%;
   min-width: 0;
 }
 
+.trainingPage__measurementPresetRadio {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid #b7c9d8;
+  background: #ffffff;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.trainingPage__measurementPresetRadio.is-selected {
+  border-color: #2cc3dd;
+}
+
+.trainingPage__measurementPresetRadio.is-selected::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  background: #2cc3dd;
+}
+
 .trainingPage__measurementPresetNameIcon {
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -654,10 +726,11 @@
 }
 
 .trainingPage__measurementPresetNameIcon svg {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
+  display: block;
   stroke: currentColor;
-  stroke-width: 1.9;
+  stroke-width: 1.8;
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -765,13 +838,15 @@
 
 .trainingPage__measurementPlayerTransport {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 52px;
-  gap: 10px;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  gap: 12px;
   align-items: center;
 }
 
 .trainingPage__transportBtn {
+  width: 44px;
   height: 38px;
+  min-width: 44px;
   border-radius: 999px;
   font-size: 14px;
   font-weight: 900;
@@ -799,6 +874,27 @@
 
 .trainingPage__transportBtn:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+}
+
+.trainingPage__recordPrimaryInline {
+  gap: 8px;
+}
+
+.trainingPage__recordButtonIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f3548;
+  flex: 0 0 auto;
+  transform: translateY(1px);
+}
+
+.trainingPage__recordButtonIcon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .trainingPage__measurementStatusBadge {
@@ -986,8 +1082,12 @@
   width: 100%;
   min-height: 40px;
   border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 14px;
   font-weight: 950;
+  line-height: 1;
   box-shadow: none;
 }
 
@@ -995,6 +1095,10 @@
   background: inherit;
   color: inherit;
   border-color: inherit;
+}
+
+.trainingPage__saveBtn.trainingPage__playerPrimary--solo {
+  grid-column: 1 / -1;
 }
 
 .trainingPage__saveBtn.trainingPage__recordPrimaryInline:not(.is-recording):not(:disabled) {
@@ -1299,16 +1403,17 @@
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: rgba(9, 23, 31, 0.24);
+  background: rgba(9, 23, 31, 0.18);
   backdrop-filter: blur(2px);
   display: grid;
   place-items: center;
-  padding: 4px;
+  padding: 40px;
 }
 
 .trainingPage__recordCard {
-  width: min(1180px, 100%);
-  max-width: 920px;
+  width: min(1180px, calc(100vw - 80px));
+  max-width: 1120px;
+  max-height: calc(100dvh - 80px);
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
   background: rgba(255, 255, 255, 0.98);
@@ -1317,6 +1422,7 @@
   grid-template-rows: auto auto;
   gap: 4px;
   box-shadow: 0 10px 28px rgba(9, 54, 61, 0.08);
+  overflow: auto;
 }
 
 .trainingPage__recordCard--monitor {
@@ -1790,8 +1896,29 @@
 }
 
 @media (max-width: 640px) {
+  .trainingPage__measureInner {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .trainingPage__measurementPane--select {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .trainingPage__measurementStep--manage {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
   .trainingPage__measurementPresetItem {
     min-height: 92px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .trainingPage__measurementPresetBody {

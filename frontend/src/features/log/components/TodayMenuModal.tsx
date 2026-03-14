@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { createTrainingMenu, fetchTrainingMenus, updateTrainingMenu } from "../../../api/trainingMenus";
 import type { TrainingMenu } from "../../../types/trainingMenu";
 import "./TodayMenuModal.css";
@@ -11,16 +12,14 @@ type Props = {
 };
 
 const MENU_COLOR_PALETTE: { name: string; color: string }[] = [
-  { name: "Sky", color: "#E0F2FE" },
-  { name: "Mint", color: "#D1FAE5" },
-  { name: "Lime", color: "#ECFCCB" },
-  { name: "Yellow", color: "#FEF9C3" },
-  { name: "Orange", color: "#FFEDD5" },
-  { name: "Red", color: "#FFE4E6" },
-  { name: "Pink", color: "#FCE7F3" },
-  { name: "Purple", color: "#EDE9FE" },
-  { name: "Gray", color: "#E5E7EB" },
-  { name: "Blue", color: "#DBEAFE" },
+  { name: "Sky", color: "#8FD2F4" },
+  { name: "Mint", color: "#86DBBF" },
+  { name: "Lime", color: "#B5DD82" },
+  { name: "Canary", color: "#EDD16E" },
+  { name: "Coral", color: "#EC9C81" },
+  { name: "Lavender", color: "#B3A3EA" },
+  { name: "Rose", color: "#E39AC3" },
+  { name: "Slate", color: "#B8C4CF" },
 ];
 
 function hexToRgb(hex: string) {
@@ -165,7 +164,9 @@ export default function TodayMenuModal({ open, initialSelectedIds, onClose, onSa
     }
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div className="todayMenuModal" role="dialog" aria-modal="true" aria-label="今日のメニューを編集">
       <button type="button" className="todayMenuModal__backdrop uiModalBackdrop" aria-label="閉じる" onClick={onClose} />
       <section className="todayMenuModal__panel uiModalPanel">
@@ -179,86 +180,88 @@ export default function TodayMenuModal({ open, initialSelectedIds, onClose, onSa
           </button>
         </div>
 
-        <div className="todayMenuModal__composer">
-          <input
-            value={menuToAdd}
-            onChange={(event) => setMenuToAdd(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter") return;
-              event.preventDefault();
-              void addMenu();
-            }}
-            placeholder="メニュー名を入力"
-            className="todayMenuModal__input uiInput uiInputShell"
-          />
-          <div className="todayMenuModal__palette">
-            {MENU_COLOR_PALETTE.map((palette) => {
-              const active = palette.color === menuColorToAdd;
+        <div className="todayMenuModal__body">
+          <div className="todayMenuModal__composer">
+            <input
+              value={menuToAdd}
+              onChange={(event) => setMenuToAdd(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter") return;
+                event.preventDefault();
+                void addMenu();
+              }}
+              placeholder="メニュー名を入力"
+              className="todayMenuModal__input uiInput uiInputShell"
+            />
+            <div className="todayMenuModal__palette">
+              {MENU_COLOR_PALETTE.map((palette) => {
+                const active = palette.color === menuColorToAdd;
+                return (
+                  <button
+                    key={palette.color}
+                    type="button"
+                    className={`todayMenuModal__swatch uiSwatch ${active ? "is-active" : ""}`}
+                    style={{
+                      ["--swatch-color" as string]: palette.color,
+                      ["--swatch-display-color" as string]: toDarkSwatchColor(palette.color),
+                    }}
+                    aria-label={palette.name}
+                    onClick={() => setMenuColorToAdd(palette.color)}
+                  />
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              className={`todayMenuModal__addBtn uiButton uiButton--secondary ${canAddMenu ? "is-ready" : ""}`.trim()}
+              onClick={() => void addMenu()}
+              disabled={!canAddMenu}
+            >
+              追加
+            </button>
+          </div>
+
+          {loading ? <div className="todayMenuModal__muted">読み込み中…</div> : null}
+          {error ? <div className="todayMenuModal__error">{error}</div> : null}
+
+          <div className="todayMenuModal__list">
+            {menuCatalog.map((menu) => {
+              const checked = selectedMenuIds.has(menu.id);
               return (
-                <button
-                  key={palette.color}
-                  type="button"
-                  className={`todayMenuModal__swatch uiSwatch ${active ? "is-active" : ""}`}
-                  style={{
-                    ["--swatch-color" as string]: palette.color,
-                    ["--swatch-display-color" as string]: toDarkSwatchColor(palette.color),
+                <div
+                  key={menu.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => toggleMenu(menu.id)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" && event.key !== " ") return;
+                    event.preventDefault();
+                    toggleMenu(menu.id);
                   }}
-                  aria-label={palette.name}
-                  onClick={() => setMenuColorToAdd(palette.color)}
-                />
+                  className={`todayMenuModal__item uiSelectRow ${checked ? "is-selected" : ""}`}
+                >
+                  <span className="todayMenuModal__check uiCheckDot" aria-hidden="true">
+                    {checked ? "✓" : ""}
+                  </span>
+                  <span className="todayMenuModal__tag" style={{ ["--menu-color" as string]: menu.color }}>
+                    <span className="todayMenuModal__tagDot" aria-hidden="true" />
+                    <span>{menu.name}</span>
+                  </span>
+                  <button
+                    type="button"
+                    className="todayMenuModal__remove"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void removeMenu(menu);
+                    }}
+                  >
+                    削除
+                  </button>
+                </div>
               );
             })}
+            {!loading && menuCatalog.length === 0 ? <div className="todayMenuModal__muted">メニューがありません。</div> : null}
           </div>
-          <button
-            type="button"
-            className={`todayMenuModal__addBtn uiButton uiButton--secondary ${canAddMenu ? "is-ready" : ""}`.trim()}
-            onClick={() => void addMenu()}
-            disabled={!canAddMenu}
-          >
-            追加
-          </button>
-        </div>
-
-        {loading ? <div className="todayMenuModal__muted">読み込み中…</div> : null}
-        {error ? <div className="todayMenuModal__error">{error}</div> : null}
-
-        <div className="todayMenuModal__list">
-          {menuCatalog.map((menu) => {
-            const checked = selectedMenuIds.has(menu.id);
-            return (
-              <div
-                key={menu.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => toggleMenu(menu.id)}
-                onKeyDown={(event) => {
-                  if (event.key !== "Enter" && event.key !== " ") return;
-                  event.preventDefault();
-                  toggleMenu(menu.id);
-                }}
-                className={`todayMenuModal__item uiSelectRow ${checked ? "is-selected" : ""}`}
-              >
-                <span className="todayMenuModal__check uiCheckDot" aria-hidden="true">
-                  {checked ? "✓" : ""}
-                </span>
-                <span className="todayMenuModal__tag" style={{ ["--menu-color" as string]: menu.color }}>
-                  <span className="todayMenuModal__tagDot" aria-hidden="true" />
-                  <span>{menu.name}</span>
-                </span>
-                <button
-                  type="button"
-                  className="todayMenuModal__remove"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    void removeMenu(menu);
-                  }}
-                >
-                  削除
-                </button>
-              </div>
-            );
-          })}
-          {!loading && menuCatalog.length === 0 ? <div className="todayMenuModal__muted">メニューがありません。</div> : null}
         </div>
 
         <div className="todayMenuModal__footer uiModalFooter">
@@ -270,6 +273,7 @@ export default function TodayMenuModal({ open, initialSelectedIds, onClose, onSa
           </button>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

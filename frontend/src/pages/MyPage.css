@@ -1,5 +1,7 @@
 .myPage.page {
   padding-bottom: 0;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 .myPage {
@@ -7,6 +9,7 @@
   display: grid;
   gap: 26px;
   overflow-x: hidden;
+  padding-top: 10px;
 }
 
 .myPage__hero {

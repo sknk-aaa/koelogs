@@ -34,6 +34,49 @@
   padding-bottom: calc(64px + env(safe-area-inset-bottom) + 12px);
 }
 
+@media (min-width: 861px) {
+  .pageContainer {
+    --page-max-width: 1080px;
+    --page-inline-padding: 24px;
+  }
+
+  .pageContainer > .page {
+    width: 100%;
+    max-width: min(var(--page-max-width), calc(100vw - (var(--page-inline-padding) * 2)));
+    margin-inline: auto;
+  }
+
+  .pageContainer:has(.page.logPage),
+  .pageContainer:has(.page.trainingPage),
+  .pageContainer:has(.page.communityPage),
+  .pageContainer:has(.page.aiChatPage) {
+    --page-max-width: 1280px;
+  }
+
+  .pageContainer:has(.page.insightsPage) {
+    --page-max-width: 1360px;
+  }
+
+  .pageContainer:has(.page.settingsPage),
+  .pageContainer:has(.page.aiSettingsPage),
+  .pageContainer:has(.page.profilePage),
+  .pageContainer:has(.page.myPage),
+  .pageContainer:has(.page.planPage) {
+    --page-max-width: 1080px;
+  }
+
+  .pageContainer:has(.page.helpPage),
+  .pageContainer:has(.page.logNew) {
+    --page-max-width: 920px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .pageContainer {
+    --page-inline-padding: 32px;
+  }
+}
+
 :root[data-theme-mode="dark"] .pageContainer {
   background: var(--bg);
   --ui-section-soft-bg: color-mix(in srgb, var(--accent) 8%, var(--surfaceStrong));

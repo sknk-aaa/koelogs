@@ -1,7 +1,12 @@
+.aiSettingsPage.page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
 .aiSettingsPage {
   display: grid;
   gap: 26px;
-  padding-bottom: calc(188px + env(safe-area-inset-bottom));
+  padding-bottom: calc(132px + env(safe-area-inset-bottom));
   background: #ffffff;
   color: #09363d;
 }
@@ -55,7 +60,7 @@
 }
 
 .aiSettingsPage__section:last-of-type {
-  padding-bottom: calc(188px + env(safe-area-inset-bottom));
+  padding-bottom: calc(132px + env(safe-area-inset-bottom));
 }
 
 .aiSettingsPage__sectionHead {
@@ -773,7 +778,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(58px + env(safe-area-inset-bottom));
+  bottom: 0;
   z-index: 70;
   padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
   background: color-mix(in srgb, var(--surface) 88%, transparent);

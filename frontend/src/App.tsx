@@ -11,7 +11,7 @@ import LogNewPage from "./pages/LogNewPage";
 import TrainingPage from "./pages/TrainingPage";
 import InsightsPage from "./pages/InsightsPage";
 import InsightsTimePage from "./pages/InsightsTimePage";
-import InsightsNotesPage from "./pages/InsightsNotesPage";
+import LogNotesPage from "./pages/LogNotesPage";
 
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -49,7 +49,8 @@ export default function App() {
             <Route path="/training" element={<TrainingPage />} />
             <Route path="/insights" element={<InsightsPage />} />
             <Route path="/insights/time" element={<InsightsTimePage />} />
-            <Route path="/insights/notes" element={<InsightsNotesPage />} />
+            <Route path="/log/notes" element={<LogNotesPage />} />
+            <Route path="/insights/notes" element={<Navigate to="/log/notes" replace />} />
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/community/rankings" element={<CommunityRankingPage />} />
             <Route path="/community/profile/:userId" element={<CommunityProfilePage />} />

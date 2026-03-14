@@ -5,16 +5,16 @@
   background: #ffffff;
   padding-bottom: calc(88px + env(safe-area-inset-bottom));
   --accent: #14c6d8;
-  --log-brand-text: #09363d;
-  --log-brand-muted: #5f7480;
+  --log-brand-text: #18384d;
+  --log-brand-muted: #627788;
   --ui-section-eyebrow-muted-base: var(--log-brand-muted);
-  --log-card-border: #e8ecf3;
+  --log-card-border: #dce4ee;
   --log-card-shadow: 0 4px 14px rgba(9, 54, 61, 0.06);
   --log-neutral-surface: #ffffff;
 }
 
 .page.logPage {
-  padding-top: 0;
+  padding-top: 10px;
   background: var(--log-neutral-surface);
 }
 
@@ -31,6 +31,396 @@ body:has(.page.logPage) {
   padding: 4px 0 4px;
   position: relative;
   background: var(--log-neutral-surface);
+}
+
+.logPage__desktopSidebar {
+  display: none;
+}
+
+.logPage__desktopAi {
+  display: none;
+}
+
+.logPage__desktopAiTop {
+  display: none;
+}
+
+.logPage__mobileAi {
+  display: block;
+}
+
+.logPage__calendarCard {
+  border: 1px solid #dce4ee;
+  border-radius: 16px;
+  background: #fff;
+  padding: 18px 18px 16px;
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.logPage__calendarHead {
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__calendarHeadTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.logPage__calendarEyebrow {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: color-mix(in srgb, var(--accent) 48%, #5c7288);
+}
+
+.logPage__calendarMonthLink {
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.logPage__calendarMonthRow {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 8px;
+}
+
+.logPage__calendarMonthValue {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--log-brand-text);
+}
+
+.logPage__calendarMonthNav {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
+  border-radius: 12px;
+}
+
+.logPage__calendarWeekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.logPage__calendarWeekdayLabel {
+  text-align: center;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #7a8ea1;
+}
+
+.logPage__calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.logPage__calendarSpacer {
+  min-height: 52px;
+}
+
+.logPage__calendarDay {
+  min-height: 52px;
+  border: 1px solid #dbe4ed;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--log-brand-text);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  padding: 6px 3px 5px;
+  box-shadow: none;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.logPage__calendarDay.is-light {
+  background: #ffffff;
+  border-color: #dbe4ed;
+}
+
+.logPage__calendarDay.is-active {
+  background: #ffffff;
+  border-color: #dbe4ed;
+}
+
+.logPage__calendarDay:hover {
+  border-color: color-mix(in srgb, var(--accent) 38%, #dbe4ed);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.logPage__calendarDay.is-selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  box-shadow: none;
+}
+
+.logPage__calendarDay.is-today:not(.is-selected) {
+  border-color: color-mix(in srgb, var(--accent) 44%, #dbe4ed);
+}
+
+.logPage__calendarDayNumber {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.logPage__calendarDayDots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.logPage__calendarDayDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #d4dbe2;
+}
+
+.logPage__calendarDayDot.is-filled {
+  background: color-mix(in srgb, var(--accent) 84%, #4b7284);
+}
+
+.logPage__calendarSummary {
+  margin-top: 16px;
+  padding: 16px 2px 2px;
+  border-top: 1px solid #e7edf2;
+  display: grid;
+  gap: 12px;
+}
+
+.logPage__calendarSummaryHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.logPage__calendarSummaryHeadIcon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #3c9fb3;
+  flex: 0 0 auto;
+}
+
+.logPage__calendarSummaryHeadIcon svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__calendarSummaryHeadIcon svg .accent {
+  stroke: #66c9df;
+}
+
+.logPage__calendarSummaryEyebrow {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: #0f4c74;
+}
+
+.logPage__calendarSummaryStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.logPage__calendarSummaryStat {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 76px;
+  padding: 12px 13px;
+  border-radius: 16px;
+  border: 1px solid #dfe7ef;
+  background: #f8fbfd;
+}
+
+.logPage__calendarSummaryStat.is-days {
+  border-color: #dbe9f4;
+  background: #f3f8fc;
+}
+
+.logPage__calendarSummaryStat.is-time {
+  border-color: #dce9e2;
+  background: #f3fbf6;
+}
+
+.logPage__calendarSummaryStatIcon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4f87a0;
+  flex: 0 0 auto;
+}
+
+.logPage__calendarSummaryStat.is-time .logPage__calendarSummaryStatIcon {
+  color: #57916f;
+}
+
+.logPage__calendarSummaryStatIcon svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__calendarSummaryStatIcon svg .accent {
+  stroke: color-mix(in srgb, currentColor 72%, #9bdde5);
+}
+
+.logPage__calendarSummaryStatBody {
+  display: grid;
+  gap: 5px;
+}
+
+.logPage__calendarSummaryLabel {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #7b909f;
+}
+
+.logPage__calendarSummaryValue {
+  font-size: 1.45rem;
+  font-weight: 950;
+  line-height: 1;
+  color: var(--log-brand-text);
+}
+
+.logPage__calendarSummaryValue small {
+  margin-left: 4px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #6f8595;
+}
+
+.logPage__calendarSummaryMenus {
+  display: grid;
+  gap: 8px;
+}
+
+.logPage__calendarSummaryMenusLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #718696;
+}
+
+.logPage__calendarSummaryMenusIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6d8798;
+  flex: 0 0 auto;
+}
+
+.logPage__calendarSummaryMenusIcon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__calendarSummaryMenusIcon svg .accent {
+  stroke: color-mix(in srgb, var(--accent) 72%, currentColor);
+}
+
+.logPage__calendarSummaryMenuTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.logPage__calendarSummaryMenuTag {
+  --calendar-menu-color: #9BDDE5;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 10px 0 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--calendar-menu-color) 58%, rgba(18, 53, 58, 0.14));
+  background: color-mix(in srgb, var(--calendar-menu-color) 26%, #ffffff);
+  color: var(--log-brand-text);
+  font-size: 0.74rem;
+  font-weight: 850;
+  line-height: 1;
+  gap: 8px;
+}
+
+.logPage__calendarSummaryMenuDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--calendar-menu-color, #9BDDE5);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--calendar-menu-color) 24%, transparent);
+  flex: 0 0 8px;
+}
+
+.logPage__calendarSummaryMenuName {
+  line-height: 1;
+}
+
+.logPage__calendarSummaryMenuCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: color-mix(in srgb, var(--log-brand-text) 74%, #5f7480);
+  font-size: 0.64rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.logPage__calendarSummaryMenuCount strong {
+  line-height: 1;
+  font-size: 0.78rem;
+  font-weight: 950;
+  color: var(--log-brand-text);
+}
+
+.logPage__calendarSummaryEmpty {
+  font-size: 0.76rem;
+  color: #7a8ea1;
 }
 
 .logPage__weekRail {
@@ -143,7 +533,7 @@ body:has(.page.logPage) {
   font-size: var(--ui-section-eyebrow-size);
   font-weight: 800;
   letter-spacing: var(--ui-section-eyebrow-letter-spacing);
-  color: var(--ui-section-eyebrow-color);
+  color: color-mix(in srgb, var(--accent) 14%, var(--log-brand-text));
 }
 
 .logPage__sectionLabelRow {
@@ -245,36 +635,904 @@ body:has(.page.logPage) {
   padding-bottom: calc(0px + env(safe-area-inset-bottom));
 }
 
-.logPage__aiWeekAction {
-  margin-top: -8px;
-  margin-bottom: 8px;
-  padding: 10px 16px 12px;
-  border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 10%, var(--log-card-border));
-  border-radius: 0;
+.logPage__sectionBlock--training {
+  gap: 12px;
+}
+
+.logPage__trainingCard {
+  border: none;
+  border-radius: 12px;
   background: transparent;
-  box-shadow: none;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__trainingEmbedded {
+  padding: 0;
+  background: transparent;
+}
+
+.logPage__trainingEmbedded .trainingPage {
+  background: transparent;
+}
+
+.logPage__trainingEmbedded .trainingPage__embeddedStack {
   display: grid;
   gap: 12px;
 }
 
-.logPage__aiWeekAction.has-beginner-guide {
-  border-bottom: 0;
+.logPage__trainingEmbedded .trainingPage__panel--embedded {
+  padding: 0;
+  gap: 0;
+}
+
+.logPage__trainingEmbedded .trainingPage__panel,
+.logPage__trainingEmbedded .trainingPage__measureInner,
+.logPage__trainingEmbedded .trainingPage__measurementPanel {
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+}
+
+.logPage__trainingEmbedded .trainingPage__panel--embedded > .trainingPage__panelHead,
+.logPage__trainingEmbedded .trainingPage__measurementPanel > .trainingPage__panelHead {
+  display: none;
+}
+
+.logPage__trainingEmbedded .trainingPage__studioCard--embedded,
+.logPage__trainingEmbedded .trainingPage__studioCard {
+  padding: 0;
+  gap: 0;
+  background: transparent;
+}
+
+.logPage__trainingEmbedded .trainingPage__measureSection--embedded {
+  margin: 0;
+  padding: 0;
+}
+
+.logPage__trainingEmbedded .trainingPage__measureSection--embedded::after {
+  display: none;
+}
+
+.logPage__trainingEmbedded .trainingPage__measureInner {
+  padding: 0;
+  background: transparent;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementPanel {
+  gap: 14px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementLayout {
+  gap: 14px;
+  align-items: start;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementLayout.is-desktop {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  width: 100%;
+}
+
+.logPage__trainingEmbedded .trainingPage__studioCard,
+.logPage__trainingEmbedded .trainingPage__measurementStep {
+  border-radius: 16px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep {
+  padding: 14px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementPane {
+  min-width: 0;
+  width: auto;
+  justify-self: stretch;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementPane--select {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep.trainingPage__measurementStep--manage.trainingPage__measurementPane.trainingPage__measurementPane--select {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  justify-self: stretch;
+  box-sizing: border-box;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementPaneSticky,
+.logPage__trainingEmbedded .trainingPage__measurementStep--record .trainingPage__measurementPlayer,
+.logPage__trainingEmbedded .trainingPage__measurementStep--record .trainingPage__measurementRecorder,
+.logPage__trainingEmbedded .trainingPage__measurementStep--record .trainingPage__measurementSupportSlot {
+  width: 100%;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep--manage {
+  gap: 12px;
+  padding: 0 0 6px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementStepHead {
+  padding: 0 8px 6px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetGrid {
+  gap: 6px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetItem {
+  display: block;
+  width: calc(100% + 16px);
+  min-height: 92px;
+  margin-left: -8px;
+  margin-right: -8px;
+  padding: 14px 0;
+  justify-self: stretch;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetItemHead {
+  padding-right: 62px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetBody {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetText {
+  gap: 6px;
+  width: 100%;
+}
+
+.logPage__trainingEmbedded .trainingPage__studioCard {
+  gap: 12px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStepHead--training {
+  padding-bottom: 0;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStepDesc {
+  font-size: 12px;
+}
+
+.logPage__trainingMeasureBlock {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.logPage__trainingMeasureBlock.trainingPage__measurementStep {
+  gap: 14px;
+}
+
+.logPage__trainingStepCol {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.logPage__trainingEmbedded .audioPlayer__sessionCard .trainingPage__measurementPlayerTransport {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: stretch;
+}
+
+.logPage__trainingStepMarker {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.logPage__trainingStepBadge {
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 50%, #27444c);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.logPage__trainingPresetBtn {
+  position: relative;
+}
+
+.logPage__trainingPresetBtn.trainingPage__measurementPresetItemBtn {
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background: #ffffff;
+}
+
+.logPage__trainingPresetBtn.trainingPage__measurementPresetItemBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 24%, #c7d8de);
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+}
+
+.logPage__trainingPresetBtn.trainingPage__measurementPresetItemBtn.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 28%, #b8cfd7);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.logPage__trainingPresetTitleIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  background: color-mix(in srgb, currentColor 10%, #ffffff);
+}
+
+.logPage__trainingPresetTitleIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.logPage__trainingPresetRadio {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1.6px solid #b7c6cf;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-right: 2px;
+}
+
+.logPage__trainingPresetRadio::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: inherit;
+  background: transparent;
+}
+
+.logPage__trainingPresetRadio.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 58%, #89a8b1);
+}
+
+.logPage__trainingPresetRadio.is-selected::after {
+  background: color-mix(in srgb, var(--accent) 78%, #14c6d8);
+}
+
+.logPage__trainingRecordBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #123247;
+  box-shadow: 0 8px 18px rgba(20, 198, 216, 0.12);
+}
+
+.logPage__trainingRecordBtnIcon {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: #173d56;
+}
+
+.logPage__trainingRecordBtnIcon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__trainingFileInput {
+  display: none;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep--record .trainingPage__pitchGuideRangeBtn.is-active {
+  box-shadow: none;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementStep--record .trainingPage__pitchGuideRangeBtn.is-active .trainingPage__pitchGuideRangeBtnLabel,
+.logPage__trainingEmbedded .trainingPage__measurementStep--record .trainingPage__pitchGuideRangeBtn.is-active .trainingPage__pitchGuideRangeBtnMeta {
+  color: inherit;
+}
+
+.logPage__trainingActionGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.logPage__trainingActionBtn {
+  width: 100%;
+  border: 1px solid #d8e2ec;
+  border-radius: 14px;
+  background: #fff;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.logPage__trainingActionIcon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  flex: 0 0 36px;
+}
+
+.logPage__trainingActionIcon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logPage__trainingActionIcon svg .accent {
+  stroke: color-mix(in srgb, var(--accent) 62%, #70839a);
+}
+
+.logPage__trainingActionBody {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.logPage__trainingActionTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--log-brand-text);
+}
+
+.logPage__trainingActionText {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--log-brand-muted);
+}
+
+.logPage__trainingActionNote {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--log-brand-muted);
+}
+
+.logPage__trainingPlayerToggleWrap {
+  display: flex;
+  justify-content: stretch;
+  margin-top: 10px;
+}
+
+.logPage__trainingPlayerToggle {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, #d7e2ea);
+  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 52%, var(--log-brand-text));
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.logPage__trainingPlayerToggle.is-open {
+  border-color: color-mix(in srgb, var(--accent) 34%, #ccdce4);
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+}
+
+.logPage__trainingPlayerToggleIcon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 16px;
+  order: 2;
+}
+
+.logPage__trainingPlayerToggleIcon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+  transition: transform 0.18s ease;
+}
+
+.logPage__trainingPlayerToggle.is-open .logPage__trainingPlayerToggleIcon svg {
+  transform: rotate(90deg);
+}
+
+.logPage__trainingPlayerToggleText {
+  line-height: 1;
+  order: 1;
+}
+
+.logPage__trainingPlayerPanel {
+  width: 100%;
+  justify-self: stretch;
+  gap: 12px;
+}
+
+.logPage__trainingPlayerPanel .trainingPage__panelHead {
+  margin-bottom: 2px;
+}
+
+.logPage__trainingPlayerMeta {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--log-brand-muted);
+  margin-top: 8px;
+  margin-bottom: 18px;
+}
+
+.logPage__trainingEmbedded .audioPlayer {
+  gap: 14px;
+}
+
+.logPage__trainingEmbedded .audioPlayer__settingsBar {
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.logPage__trainingEmbedded .audioPlayer__appSelectButton {
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.logPage__trainingEmbedded .audioPlayer__appSelectButton .appSelect__value {
+  font-size: 15px;
+}
+
+.logPage__trainingEmbedded .audioPlayer__sessionCard.trainingPage__measurementPlayer {
+  gap: 6px;
+  min-height: 360px;
+  padding: 10px 14px 12px;
+  border-radius: 14px;
+}
+
+.logPage__trainingEmbedded .audioPlayer__sessionCard .trainingPage__measurementPlayerArt {
+  width: min(100%, 320px);
+}
+
+.logPage__trainingEmbedded .audioPlayer__sessionCard .trainingPage__measurementPlayerArt .scalePattern {
+  max-width: 182px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementPlayerMeta {
+  gap: 2px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementPlayerName {
   margin-bottom: 0;
-  padding-bottom: 8px;
+  font-size: 15px;
+}
+
+.logPage__trainingEmbedded .trainingPage__measurementPlayerSub {
+  font-size: 12px;
+}
+
+.logPage__trainingEmbedded .audioPlayer__seekRow {
+  gap: 8px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.logPage__trainingEmbedded .audioPlayer__time {
+  font-size: 12px;
+}
+
+.logPage__trainingEmbedded .audioPlayer__sessionCard .trainingPage__measurementPlayerTransport {
+  min-height: 44px;
+  margin-top: 0;
+}
+
+.logPage__trainingEmbedded .audioPlayer__playBtn.trainingPage__saveBtn.trainingPage__recordPrimaryInline.trainingPage__playerPrimary {
+  width: min(180px, 48vw);
+  min-height: 46px;
+}
+
+.logPage__trainingEmbedded .audioPlayer__loopToggle.trainingPage__measurementMiniBtn {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+}
+
+@media (min-width: 1100px) {
+  .logPage__desktopShell {
+    width: min(1260px, 100%);
+    margin-inline: auto;
+    transform: translateX(-28px);
+    display: grid;
+    grid-template-columns: 296px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .logPage__desktopSidebar {
+    display: block;
+    position: sticky;
+    top: 92px;
+    padding: 16px;
+    border-radius: 24px;
+    background: #fbfcfd;
+    box-shadow: none;
+  }
+
+  .logPage__desktopAi {
+    display: none;
+  }
+
+  .logPage__desktopAiTop {
+    display: grid;
+    margin-bottom: 18px;
+  }
+
+  .logPage__mobileAi {
+    display: none;
+  }
+
+  .logPage__desktopMain {
+    min-width: 0;
+  }
+
+  .logPage__dateRail {
+    display: none;
+  }
+
+  .logPage__sectionBlock--practicePanel,
+  .logPage__contentSection--measurePanel,
+  .logPage__contentSection--outputPanel .logPage__sectionBlock {
+    padding: 0;
+    border-radius: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .page.logPage {
+    padding-inline: 24px;
+  }
+
+  .logPage__stack {
+    width: 100%;
+    margin-inline: 0;
+  }
+
+  .logPage__dayBoard {
+    grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+    gap: 28px 28px;
+    align-items: start;
+  }
+
+  .logPage__sectionBlock--practicePanel {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 18px 18px 20px;
+    border-radius: 24px;
+    background: #fbfcfd;
+    box-shadow: none;
+  }
+
+  .logPage__contentSection--measurePanel {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    align-self: start;
+    width: min(760px, 100%);
+    justify-self: start;
+    padding: 18px 18px 20px;
+    border-radius: 24px;
+    background: #fbfcfd;
+    box-shadow: none;
+  }
+
+  .logPage__contentSection--measurePanel .logPage__contentWave,
+  .logPage__contentSection--outputPanel .logPage__contentWave {
+    display: none;
+  }
+
+  .logPage__contentSection--measurePanel .logPage__contentInner--measure,
+  .logPage__contentSection--outputPanel .logPage__contentInner--white {
+    background: transparent;
+    padding: 0;
+  }
+
+  .logPage__contentSection--outputPanel {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .logPage__contentSection--outputPanel .logPage__contentInner--white {
+    display: grid;
+    grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+    gap: 28px 28px;
+    align-items: start;
+  }
+
+  .logPage__sectionBlock {
+    gap: 14px;
+  }
+
+  .logPage__sectionLabelRow {
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: none;
+  }
+
+  .logPage__contentSection--outputPanel .logPage__sectionBlock {
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    align-self: start;
+    padding: 18px 18px 20px;
+    border-radius: 24px;
+    background: #fbfcfd;
+    box-shadow: none;
+  }
+
+  .logPage__measurementGrid {
+    gap: 18px;
+  }
+
+  .logPage__summaryCard--combined {
+    min-height: 100%;
+    width: 100%;
+  }
+
+  .logPage__trainingCard,
+  .logPage__todayMenusCard,
+  .logPage__memoCard {
+    width: 100%;
+    min-height: 0;
+    height: auto;
+  }
+
+  .logPage__summaryCard,
+  .logPage__metricCard,
+  .logPage__durationCard,
+  .logPage__trainingCard,
+  .logPage__todayMenusCard,
+  .logPage__memoCard {
+    border: none;
+    border-radius: 12px;
+  }
+
+  .logPage__daySectionHead {
+    margin-bottom: 0;
+    padding-bottom: 12px;
+    border-bottom: none;
+  }
+
+  .logPage__summaryCard {
+    padding: 18px 20px;
+    gap: 12px;
+    min-height: 0;
+    height: auto;
+  }
+
+  .logPage__summaryCardMainRow {
+    padding: 0 12px 0 4px;
+  }
+
+  .logPage__summaryCardArtwork,
+  .logPage__durationCard::before {
+    display: none;
+  }
+
+  .logPage__trainingCard,
+  .logPage__todayMenusCard,
+  .logPage__memoCard {
+    padding: 20px 22px;
+    gap: 16px;
+  }
+
+  .logPage__sectionBlock--training {
+    grid-column: 1 / -1;
+    padding: 14px 6px 16px;
+    gap: 8px;
+  }
+
+  .logPage__sectionBlock--training .logPage__sectionLabelRow {
+    padding-bottom: 4px;
+  }
+
+  .logPage__trainingActionGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .logPage__sectionBlock--training .logPage__trainingCard {
+    padding: 0;
+    gap: 12px;
+  }
+
+  .logPage__trainingPlayerPanel {
+    width: 100%;
+  }
+
+  .logPage__sectionBlock--practicePanel .logPage__summaryCard--combined,
+  .logPage__contentSection--measurePanel .logPage__metricCard {
+    align-self: start;
+  }
+
+  .logPage__contentSection--measurePanel .logPage__metricCard {
+    padding: 18px 18px 16px;
+    border-radius: 14px;
+    gap: 14px;
+    background: #ffffff;
+  }
+
+  .logPage__contentSection--measurePanel .logPage__metricBody {
+    gap: 14px;
+  }
+
+  .logPage__contentSection--outputPanel .logPage__daySectionHead {
+    min-height: 68px;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 1099px) {
+  .logPage__contentSection--measurePanel {
+    overflow: visible;
+    background: transparent;
+  }
+
+  .logPage__contentSection--measurePanel .logPage__contentWave {
+    display: block;
+    line-height: 0;
+    color: var(--ui-measure-section-bg);
+  }
+
+  .logPage__contentSection--measurePanel .logPage__contentInner--measure {
+    padding-top: 0;
+  }
+
+  .logPage__contentSection--measurePanel .logPage__contentWave--measureBottom {
+    margin-top: -1px;
+    transform: rotate(180deg);
+    transform-origin: center;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetDesc {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetName {
+    gap: 7px;
+    font-size: 16px;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetNameIcon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetNameIcon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetRadio {
+    width: 20px;
+    height: 20px;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementSelectedBadge {
+    min-width: 60px;
+    min-height: 30px;
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage {
+    padding: 18px 16px;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementStepHead {
+    padding: 0 0 8px;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetGrid {
+    gap: 8px;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetItem {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 14px 12px;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetItemHead {
+    padding-right: 72px;
+  }
+
+  .logPage__trainingEmbedded .trainingPage__measurementStep--manage .trainingPage__measurementPresetBody {
+    padding: 0;
+  }
+}
+
+.logPage__aiWeekAction {
+  margin-bottom: 12px;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--log-card-border));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+  display: grid;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.logPage__aiWeekAction::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: color-mix(in srgb, var(--accent) 72%, #74b7bf);
+  opacity: 0.9;
+}
+
+.logPage__aiWeekAction > * {
+  position: relative;
+  z-index: 1;
+}
+
+.logPage__aiWeekAction.has-beginner-guide {
+  margin-bottom: 0;
 }
 
 .logPage__aiWeekActionTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
 }
 
 .logPage__aiWeekActionMain {
   min-width: 0;
   display: grid;
-  gap: 3px;
+  gap: 6px;
   flex: 1 1 auto;
 }
 
@@ -282,26 +1540,28 @@ body:has(.page.logPage) {
   min-width: 0;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  font-size: 0.95rem;
-  font-weight: 800;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 900;
   line-height: 1.2;
-  color: color-mix(in srgb, var(--accent) 64%, #09363d);
+  color: color-mix(in srgb, var(--accent) 56%, #09363d);
 }
 
 .logPage__aiWeekActionIcon {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #70839a;
+  color: color-mix(in srgb, var(--accent) 28%, #6f8293);
   flex: 0 0 auto;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 10%, #ffffff);
 }
 
 .logPage__aiWeekActionIcon svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   stroke: currentColor;
   stroke-width: 1.9;
   fill: none;
@@ -310,14 +1570,15 @@ body:has(.page.logPage) {
 }
 
 .logPage__aiWeekActionIcon svg .accent {
-  fill: #43a5f5;
+  fill: color-mix(in srgb, var(--accent) 72%, #6eb6de);
   stroke: none;
 }
 
 .logPage__aiWeekActionSubtext {
-  font-size: 0.8rem;
+  max-width: 62ch;
+  font-size: 0.87rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.5;
   color: var(--log-brand-muted);
 }
 
@@ -325,26 +1586,30 @@ body:has(.page.logPage) {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .logPage__aiWeekActionLink {
-  border: 0;
-  background: transparent;
-  padding: 0;
+  min-height: 40px;
+  padding: 0 14px 0 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--log-card-border));
+  border-radius: 999px;
+  background: #ffffff;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: var(--ui-accent-strong);
-  font-size: 0.92rem;
-  font-weight: 800;
+  gap: 8px;
+  color: color-mix(in srgb, var(--accent) 58%, #0f3f46);
+  font-size: 0.9rem;
+  font-weight: 900;
   line-height: 1.2;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 .logPage__aiWeekActionLink:hover {
-  opacity: 0.8;
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--log-card-border));
+  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
 }
 
 .logPage__aiWeekActionLock {
@@ -362,46 +1627,50 @@ body:has(.page.logPage) {
 }
 
 .logPage__aiWeekActionBtn {
-  min-height: 34px;
-  padding-inline: 14px;
+  min-height: 40px;
+  padding-inline: 16px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
-  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--log-card-border));
-  color: color-mix(in srgb, var(--accent) 44%, #09363d);
+  background: color-mix(in srgb, var(--accent) 12%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--log-card-border));
+  color: color-mix(in srgb, var(--accent) 48%, #09363d);
   box-shadow: none;
   white-space: nowrap;
   font-weight: 900;
 }
 
 .logPage__aiWeekActionBtn.logPage__btn {
-  height: 34px;
+  height: 40px;
   border-radius: 999px;
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--log-card-border));
-  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
-  color: color-mix(in srgb, var(--accent) 44%, #09363d);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--log-card-border));
+  background: color-mix(in srgb, var(--accent) 12%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 48%, #09363d);
   box-shadow: none;
 }
 
 .logPage__aiWeekActionBtn.uiButton,
 .logPage__aiWeekActionBtn.logPage__btn.uiButton {
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--log-card-border));
-  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
-  color: color-mix(in srgb, var(--accent) 44%, #09363d);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--log-card-border));
+  background: color-mix(in srgb, var(--accent) 12%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 48%, #09363d);
 }
 
 .logPage__aiWeekActionBtn.logPage__btn:hover {
-  border-color: color-mix(in srgb, var(--accent) 52%, var(--log-card-border));
-  background: color-mix(in srgb, var(--accent) 14%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 54%, var(--log-card-border));
+  background: color-mix(in srgb, var(--accent) 18%, #ffffff);
   box-shadow: none;
 }
 
 @media (max-width: 640px) {
   .logPage__aiWeekAction {
-    padding: 12px 16px;
+    padding: 16px 16px 14px;
   }
 
   .logPage__aiWeekActionRow {
-    justify-content: flex-end;
+    justify-content: flex-start;
+  }
+
+  .logPage__aiWeekActionTop {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -520,12 +1789,23 @@ body:has(.page.logPage) {
 
 .logPage__summaryCard--streak {
   background: #fff3eb;
-  border-color: #efd7c8;
 }
 
 .logPage__summaryCard--combined {
   grid-template-columns: minmax(0, 1fr);
   width: 100%;
+}
+
+.logPage__summaryCard--timeOnly .logPage__summaryCardMainRow {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding: 0;
+  margin-top: 0;
+}
+
+.logPage__summaryCard--status {
+  padding: 16px 18px;
+  gap: 12px;
 }
 
 .logPage__summaryCardArtwork {
@@ -581,7 +1861,7 @@ body:has(.page.logPage) {
 .logPage__summaryCardLabel {
   font-size: 12px;
   font-weight: 700;
-  color: #64748b;
+  color: #5e7386;
 }
 
 .logPage__summaryCardValueBlock {
@@ -658,13 +1938,13 @@ body:has(.page.logPage) {
 
 .logPage__summaryCardSubMetaLabel {
   font-weight: 600;
-  color: #7f8d9b;
+  color: #6f8090;
   white-space: nowrap;
 }
 
 .logPage__summaryCardSubMetaValue {
-  font-weight: 600;
-  color: #415664;
+  font-weight: 700;
+  color: #30495d;
   white-space: nowrap;
 }
 
@@ -683,6 +1963,58 @@ body:has(.page.logPage) {
   gap: 3px;
   align-content: center;
   justify-self: start;
+}
+
+.logPage__practiceStatusList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.logPage__practiceStatusItem {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  justify-items: start;
+  align-content: stretch;
+  gap: 8px;
+  min-height: 92px;
+  padding: 12px 10px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
+}
+
+.logPage__practiceStatusLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6f8090;
+  text-align: left;
+  align-self: start;
+}
+
+.logPage__practiceStatusValue {
+  font-size: 1.9rem;
+  line-height: 1;
+  font-weight: 900;
+  color: #30495d;
+  letter-spacing: -0.02em;
+  align-self: center;
+  justify-self: center;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.logPage__practiceStatusValueMain {
+  font-size: 1em;
+  line-height: 1;
+}
+
+.logPage__practiceStatusValueUnit {
+  font-size: 0.56em;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #6f8090;
+  padding-bottom: 2px;
 }
 
 .logPage__summaryCardAction,
@@ -1234,7 +2566,7 @@ body:has(.page.logPage) {
 
 .logPage__daySectionTitle {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--log-brand-text);
 }
 
@@ -1243,14 +2575,14 @@ body:has(.page.logPage) {
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.18em;
-  color: var(--log-brand-muted);
+  color: #728596;
 }
 
 .logPage__noteSubtext {
   margin-top: 0;
   font-size: 13px;
   line-height: 1.45;
-  color: #64748b;
+  color: #738595;
 }
 
 .logPage__metricEmpty {
@@ -1269,8 +2601,8 @@ body:has(.page.logPage) {
   min-height: 38px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--menu-chip-color) 36%, rgba(18, 53, 58, 0.08));
-  background: color-mix(in srgb, var(--menu-chip-color) 8%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--menu-chip-color) 88%, rgba(18, 53, 58, 0.18));
+  background: color-mix(in srgb, var(--menu-chip-color) 52%, #ffffff);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1333,9 +2665,9 @@ body:has(.page.logPage) {
   display: flex;
   align-items: center;
   gap: 12px;
-  border: none;
+  border: 1px solid color-mix(in srgb, var(--menu-chip-color) 82%, rgba(18, 53, 58, 0.18));
   border-radius: 16px;
-  background: color-mix(in srgb, var(--menu-chip-color) 7%, #ffffff);
+  background: color-mix(in srgb, var(--menu-chip-color) 48%, #ffffff);
   color: var(--log-brand-text);
 }
 
@@ -1344,7 +2676,7 @@ body:has(.page.logPage) {
   height: 10px;
   border-radius: 999px;
   background: var(--menu-chip-color);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--menu-chip-color) 14%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--menu-chip-color) 36%, transparent);
   flex: 0 0 auto;
 }
 
@@ -3193,7 +4525,28 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   color: var(--bg);
 }
 
+:root[data-theme-mode="dark"] .logPage__contentWave,
+:root[data-theme-mode="dark"] .logPage__contentWave--measure {
+  color: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__contentSection,
+:root[data-theme-mode="dark"] .logPage__contentSection--white,
+:root[data-theme-mode="dark"] .logPage__contentSection--measurePanel,
+:root[data-theme-mode="dark"] .logPage__contentSection--outputPanel,
+:root[data-theme-mode="dark"] .logPage__sectionBlock,
+:root[data-theme-mode="dark"] .logPage__sectionBlock--training,
+:root[data-theme-mode="dark"] .logPage__trainingCard,
+:root[data-theme-mode="dark"] .logPage__trainingEmbedded {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__contentInner,
 :root[data-theme-mode="dark"] .logPage__contentInner--white {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__contentInner--measure {
   background: var(--bg);
 }
 
@@ -3202,7 +4555,9 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .logPage__aiWeekAction {
-  border-bottom-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #111927;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
 }
 
 :root[data-theme-mode="dark"] .logPage__aiWeekActionTitle {
@@ -3214,7 +4569,8 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .logPage__aiWeekActionIcon {
-  color: color-mix(in srgb, var(--accent) 40%, #dffbff);
+  color: color-mix(in srgb, var(--accent) 42%, #dffbff);
+  background: #1d2739;
 }
 
 :root[data-theme-mode="dark"] .logPage__aiWeekActionIcon svg .accent {
@@ -3222,16 +4578,20 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .logPage__aiWeekActionLink {
-  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 38%, rgba(255, 255, 255, 0.18));
+  background: #1d2739;
+  color: color-mix(in srgb, var(--accent) 44%, #ffffff);
 }
 
 :root[data-theme-mode="dark"] .logPage__aiWeekActionLink:hover {
-  color: color-mix(in srgb, var(--accent) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.22));
+  background: #243149;
+  color: color-mix(in srgb, var(--accent) 62%, #ffffff);
 }
 
 :root[data-theme-mode="dark"] .logPage__summaryCard,
 :root[data-theme-mode="dark"] .logPage__durationModalPanel {
-  background: var(--card);
+  background: #182131;
   border-color: rgba(255, 255, 255, 0.14);
   color: rgba(255, 255, 255, 0.94);
 }
@@ -3331,8 +4691,153 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .logPage__metricCard {
-  background: var(--card);
+  background: #182131;
   color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__practiceStatusItem {
+  background: #1d2739;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__practiceStatusLabel,
+:root[data-theme-mode="dark"] .logPage__practiceStatusValueUnit {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+:root[data-theme-mode="dark"] .logPage__practiceStatusValue {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarCard {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #182131;
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.34);
+}
+
+:root[data-theme-mode="dark"] .logPage__desktopSidebar {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarMonthValue,
+:root[data-theme-mode="dark"] .logPage__calendarDayNumber,
+:root[data-theme-mode="dark"] .logPage__calendarSummaryValue,
+:root[data-theme-mode="dark"] .logPage__calendarSummaryValue small,
+:root[data-theme-mode="dark"] .logPage__calendarSummaryMenuTag,
+:root[data-theme-mode="dark"] .logPage__calendarSummaryMenuCount strong {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarWeekdayLabel,
+:root[data-theme-mode="dark"] .logPage__calendarSummaryMenusLabel,
+:root[data-theme-mode="dark"] .logPage__calendarSummaryLabel,
+:root[data-theme-mode="dark"] .logPage__calendarSummaryMenuCount {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarSummaryHeadIcon,
+:root[data-theme-mode="dark"] .logPage__calendarSummaryMenusIcon {
+  color: color-mix(in srgb, var(--accent) 36%, #dffbff);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarSummaryHeadIcon svg .accent,
+:root[data-theme-mode="dark"] .logPage__calendarSummaryMenusIcon svg .accent {
+  stroke: color-mix(in srgb, var(--accent) 72%, #8aefff);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarDay,
+:root[data-theme-mode="dark"] .logPage__calendarDay.is-light,
+:root[data-theme-mode="dark"] .logPage__calendarDay.is-active {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarDay:hover {
+  border-color: color-mix(in srgb, var(--accent) 42%, rgba(255, 255, 255, 0.18));
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarDay.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarDay.is-today:not(.is-selected) {
+  border-color: color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.18));
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarDayDot {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarDayDot.is-filled {
+  background: color-mix(in srgb, var(--accent) 80%, #8aefff);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarSummary {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarSummaryEyebrow {
+  color: color-mix(in srgb, var(--accent) 36%, #dffbff);
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarSummaryStat {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #1d2739;
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarSummaryMenuTag {
+  border-color: color-mix(in srgb, var(--calendar-menu-color) 42%, rgba(255, 255, 255, 0.14));
+  background: color-mix(in srgb, var(--calendar-menu-color) 18%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .logPage__calendarSummaryMenuCount {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .logPage__durationCard,
+:root[data-theme-mode="dark"] .logPage__todayMenusCard,
+:root[data-theme-mode="dark"] .logPage__memoCard,
+:root[data-theme-mode="dark"] .logPage__contentSection--measurePanel .logPage__metricCard,
+:root[data-theme-mode="dark"] .logPage__sectionBlock--practicePanel .logPage__summaryCard--combined {
+  background: #182131;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__notePreview,
+:root[data-theme-mode="dark"] .logPage__todayMenuItem,
+:root[data-theme-mode="dark"] .logPage__dayMemoInput {
+  background: #1d2739;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .logPage__trainingEmbedded .trainingPage__measurementStep,
+:root[data-theme-mode="dark"] .logPage__trainingEmbedded .trainingPage__measurementPresetItemBtn,
+:root[data-theme-mode="dark"] .logPage__trainingEmbedded .audioPlayer__sessionCard.trainingPage__measurementPlayer,
+:root[data-theme-mode="dark"] .logPage__trainingPlayerToggle,
+:root[data-theme-mode="dark"] .logPage__trainingPlayerPanel {
+  background: #182131;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .logPage__trainingEmbedded .trainingPage__measurementPresetItemBtn:hover {
+  background: #212d42;
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.18));
+}
+
+:root[data-theme-mode="dark"] .logPage__trainingEmbedded .trainingPage__measurementPresetItemBtn.is-selected {
+  background: #2b4269;
+  border-color: color-mix(in srgb, var(--accent) 48%, rgba(255, 255, 255, 0.18));
+}
+
+:root[data-theme-mode="dark"] .logPage__trainingEmbedded .trainingPage__measurementStepDesc,
+:root[data-theme-mode="dark"] .logPage__trainingEmbedded .trainingPage__measurementPresetDesc,
+:root[data-theme-mode="dark"] .logPage__trainingEmbedded .trainingPage__measurementPlayerSub,
+:root[data-theme-mode="dark"] .logPage__trainingPlayerMeta {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .logPage__sectionTitle--comparison {
@@ -4163,11 +5668,10 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .logPage__aiThemeInputWrap {
   display: grid;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  gap: 9px;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .logPage__aiWeekAction.is-theme-open .logPage__aiThemeInputWrap {
@@ -4184,28 +5688,49 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 .logPage__aiThemeInputLabel {
   font-size: 12px;
-  font-weight: 800;
-  color: color-mix(in srgb, var(--accent) 40%, var(--text));
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--accent) 32%, var(--text));
 }
 
 .logPage__aiThemeInput {
-  height: 40px;
+  height: 44px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, #cfdbe4);
+  background: #ffffff;
   color: var(--text);
-  padding: 0 12px;
+  padding: 0 13px;
   font-size: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .logPage__aiThemeInput::placeholder {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 88%, #8fa3b1);
 }
 
 .logPage__aiThemeInput:focus {
   outline: none;
   border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.logPage__aiThemeInputRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.logPage__aiThemeInputRow .logPage__aiThemeInput {
+  width: 100%;
+  min-width: 0;
+}
+
+.logPage__aiThemeGenerateBtn {
+  min-width: 176px;
+  height: 44px;
+  padding: 0 16px;
+  flex: 0 0 auto;
 }
 
 .logPage__aiThemeHint {
@@ -5304,6 +6829,32 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   color: #ffffff;
 }
 
+:root[data-theme-mode="dark"] .logPage__aiThemeInputLabel {
+  color: color-mix(in srgb, var(--accent) 26%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiThemeInput {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.96);
+  color: #10202d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme-mode="dark"] .logPage__aiThemeInput::placeholder {
+  color: #708394;
+}
+
+@media (max-width: 680px) {
+  .logPage__aiThemeInputRow {
+    grid-template-columns: 1fr;
+  }
+
+  .logPage__aiThemeGenerateBtn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 :root[data-theme-mode="dark"] .logAi__collective {
   border-color: rgba(255, 255, 255, 0.14);
   background: rgba(7, 11, 20, 0.52);
@@ -5561,14 +7112,14 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
 :root[data-theme-mode="dark"] .logPage__aiWeekActionBtn,
 :root[data-theme-mode="dark"] .logPage__aiWeekActionBtn.logPage__btn {
-  border-color: color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.14));
-  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.04));
-  color: color-mix(in srgb, var(--accent) 42%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 38%, rgba(255, 255, 255, 0.18));
+  background: #1d2739;
+  color: color-mix(in srgb, var(--accent) 44%, #ffffff);
 }
 
 :root[data-theme-mode="dark"] .logPage__aiWeekActionBtn.logPage__btn:hover {
-  border-color: color-mix(in srgb, var(--accent) 46%, rgba(255, 255, 255, 0.18));
-  background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.04));
+  border-color: color-mix(in srgb, var(--accent) 56%, rgba(255, 255, 255, 0.2));
+  background: #243149;
 }
 
 :root[data-theme-mode="dark"] .logPage__aiSettingsLink {

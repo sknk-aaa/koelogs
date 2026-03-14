@@ -1,10 +1,16 @@
+body.monthlyLogsModal--open header {
+  display: none !important;
+}
+
 .mlm__overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
   display: grid;
   place-items: center;
-  padding: 18px 14px;
+  padding: 24px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .mlm__backdrop {
@@ -18,7 +24,7 @@
   position: relative;
   z-index: 1;
   width: min(860px, 100%);
-  height: min(86vh, 780px);
+  max-height: min(calc(100dvh - 48px), 820px);
   overflow: hidden;
   border-radius: 18px;
   display: grid;
@@ -43,6 +49,7 @@
   padding: 12px 14px 14px;
   overflow: auto;
   min-height: 0;
+  overscroll-behavior: contain;
 }
 
 .mlm__footer {
@@ -92,12 +99,15 @@
 
 .mlm__date {
   font-weight: 900;
+  color: #17324a;
 }
 
 .mlm__duration,
 .mlm__notesHint {
   font-size: 12px;
-  opacity: 0.75;
+  font-weight: 700;
+  color: #52697a;
+  opacity: 1;
 }
 
 .mlm__rowMid {
@@ -108,6 +118,47 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.mlm__menuTag {
+  --menu-color: #dbeafe;
+  min-width: 0;
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--menu-color) 94%, rgba(18, 53, 58, 0.16));
+  background: color-mix(in srgb, var(--menu-color) 72%, #ffffff);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #10283d;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.mlm__menuTag.is-archived {
+  opacity: 0.7;
+}
+
+.mlm__menuTag--empty {
+  --menu-color: #e5e7eb;
+  color: #52697a;
+}
+
+.mlm__menuTagDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--menu-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--menu-color) 30%, transparent);
+  flex: 0 0 auto;
+}
+
+.mlm__menuTagText {
+  min-width: 0;
+  line-height: 1;
+  color: #000000 !important;
+  font-weight: 900;
 }
 
 .mlm__controls {
@@ -154,6 +205,14 @@
 }
 
 @media (max-width: 520px) {
+  .mlm__overlay {
+    padding: 12px;
+  }
+
+  .mlm__panel {
+    max-height: calc(100dvh - 24px);
+  }
+
   .mlm__monthNav {
     gap: 8px;
   }
@@ -194,4 +253,18 @@
 
 :root[data-theme-mode="dark"] .mlm__error {
   color: #ff8ea0;
+}
+
+:root[data-theme-mode="dark"] .mlm__menuTag {
+  border-color: color-mix(in srgb, var(--menu-color) 30%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--menu-color) 52%, #ffffff);
+  color: #17324a;
+}
+
+:root[data-theme-mode="dark"] .mlm__menuTagText {
+  color: #000000 !important;
+}
+
+:root[data-theme-mode="dark"] .mlm__menuTag--empty {
+  color: #5f7480;
 }

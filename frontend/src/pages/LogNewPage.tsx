@@ -29,18 +29,16 @@ function todayISO(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// 最小パレット（背景向けの薄め色）
+// 白背景でも沈みにくい、やや深めの共通パレット
 const MENU_COLOR_PALETTE: { name: string; color: string }[] = [
-  { name: "Sky", color: "#E0F2FE" },
-  { name: "Mint", color: "#D1FAE5" },
-  { name: "Lime", color: "#ECFCCB" },
-  { name: "Yellow", color: "#FEF9C3" },
-  { name: "Orange", color: "#FFEDD5" },
-  { name: "Red", color: "#FFE4E6" },
-  { name: "Pink", color: "#FCE7F3" },
-  { name: "Purple", color: "#EDE9FE" },
-  { name: "Gray", color: "#E5E7EB" },
-  { name: "Blue", color: "#DBEAFE" },
+  { name: "Sky", color: "#8FD2F4" },
+  { name: "Mint", color: "#86DBBF" },
+  { name: "Lime", color: "#B5DD82" },
+  { name: "Canary", color: "#EDD16E" },
+  { name: "Coral", color: "#EC9C81" },
+  { name: "Lavender", color: "#B3A3EA" },
+  { name: "Rose", color: "#E39AC3" },
+  { name: "Slate", color: "#B8C4CF" },
 ];
 
 export default function LogNewPage() {

@@ -44,7 +44,7 @@ const browseTagOptions = [
   ...IMPROVEMENT_TAG_OPTIONS.map((opt) => ({ value: opt.key, label: opt.label })),
 ];
 
-function CommunityInfoIcon({ kind }: { kind: "browse" | "post" | "favorite" | "ranking" }) {
+function CommunityInfoIcon({ kind }: { kind: "browse" | "post" | "favorite" }) {
   if (kind === "browse") {
     return (
       <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
@@ -70,15 +70,6 @@ function CommunityInfoIcon({ kind }: { kind: "browse" | "post" | "favorite" | "r
       </svg>
     );
   }
-  return (
-    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-      <path d="M5 18.5h14" />
-      <path d="M7.3 18.5v-5.2" />
-      <path d="M12 18.5v-8.1" />
-      <path d="M16.7 18.5v-11" />
-      <path className="accent" d="m6.8 12.1 4-2.7 3.1 1.9 3.7-3" />
-    </svg>
-  );
 }
 
 export default function CommunityPage() {
@@ -447,50 +438,8 @@ export default function CommunityPage() {
                 </InfoModalItems>
               </InfoModalSection>
 
-              <InfoModalSection
-                title="RANKINGS"
-                icon={(
-                  <svg viewBox="0 0 24 24" focusable="false">
-                    <path d="M5 18.5h14" />
-                    <path d="M7.3 18.5v-5.2" />
-                    <path d="M12 18.5v-8.1" />
-                    <path d="M16.7 18.5v-11" />
-                    <path className="accent" d="m6.8 12.1 4-2.7 3.1 1.9 3.7-3" />
-                  </svg>
-                )}
-              >
-                <InfoModalItems>
-                  <InfoModalItem
-                    icon={<CommunityInfoIcon kind="ranking" />}
-                    title="みんなの進捗"
-                    description="継続日数・週間XP・AI貢献度の上位メンバーを見て、日々の練習の目安にできます。"
-                    noDivider
-                  />
-                </InfoModalItems>
-              </InfoModalSection>
             </InfoModal>
           </div>
-        </div>
-
-        <div className="communityPage__heroActions">
-          <Link className="communityPage__rankingGuide" to="/community/rankings">
-            <span className="communityPage__rankingGuideBody">
-              <span className="communityPage__rankingGuideKickerRow">
-                <span className="communityPage__rankingGuideIcon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" focusable="false">
-                    <path d="M5 18.5h14" />
-                    <path d="M7.3 18.5v-5.2" />
-                    <path d="M12 18.5v-8.1" />
-                    <path d="M16.7 18.5v-11" />
-                    <path className="accent" d="m6.8 12.1 4-2.7 3.1 1.9 3.7-3" />
-                  </svg>
-                </span>
-                <span className="communityPage__rankingGuideKicker">RANKINGS</span>
-              </span>
-              <span className="communityPage__rankingGuideDesc">みんなの進捗を確認できます</span>
-            </span>
-            <span className="communityPage__rankingGuideArrow" aria-hidden="true">ランキングを見る→</span>
-          </Link>
         </div>
       </section>
 
@@ -649,11 +598,48 @@ export default function CommunityPage() {
                 <div className="communityPage__cardTitleMain">{post.menu_name}</div>
                 {post.improvement_tags.length > 0 ? (
                   <>
+                    <div className="communityPage__cardImprovementLead">
+                      <span className="communityPage__cardImprovementLabel">改善された点</span>
+                      <span className="communityPage__cardImprovementValue">
+                        {post.improvement_tags.map((tag) => improvementTagLabel(tag)).join(" / ")}
+                      </span>
+                    </div>
+                  </>
+                ) : null}
+                {post.comment?.trim() ? (() => {
+                  const trimmedComment = post.comment.trim();
+                  const isLong = trimmedComment.length > 140;
+                  const isExpanded = expandedComments[post.id] ?? false;
+                  const isCollapsed = isLong && !isExpanded;
+                  return (
+                    <div className="communityPage__commentSection">
+                      <div className={`communityPage__commentCard ${isCollapsed ? "is-collapsed" : ""}`}>
+                        <p className={`communityPage__comment ${isCollapsed ? "is-collapsed" : ""}`}>{renderCommentText(trimmedComment)}</p>
+                      </div>
+                      {isLong ? (
+                        <button
+                          type="button"
+                          className="communityPage__commentToggle"
+                          onClick={() =>
+                            setExpandedComments((prev) => ({
+                              ...prev,
+                              [post.id]: !isExpanded,
+                            }))
+                          }
+                        >
+                          {isExpanded ? "閉じる" : "もっと見る"}
+                        </button>
+                      ) : null}
+                    </div>
+                  );
+                })() : null}
+                {post.improvement_tags.length > 0 ? (
+                  <>
                     <div className="communityPage__cardMetaLabel communityPage__cardMetaLabel--effects">
                       <span className="communityPage__cardMetaLabelIcon" aria-hidden="true">
                         <EffectsLabelIcon />
                       </span>
-                      <span>EFFECTS</span>
+                      <span>EFFECT</span>
                     </div>
                     <div className="communityPage__tags communityPage__tags--field">
                       {post.improvement_tags.map((tag) => {
@@ -668,45 +654,16 @@ export default function CommunityPage() {
                     </div>
                   </>
                 ) : null}
-                {!post.comment?.trim() ? (
-                  <div className="communityPage__usedScaleRow">
-                    <span className="communityPage__fieldLabel--muted">SCALE</span>
-                    <span className="communityPage__usedScale">{usedScaleLabel(post.used_scale_type, post.used_scale_other_text)}</span>
-                  </div>
-                ) : null}
+                <div className="communityPage__usedScaleRow">
+                  <span className="communityPage__cardMetaLabel">
+                    <span>SCALE</span>
+                  </span>
+                  <span className="communityPage__tag communityPage__tag--neutral communityPage__tag--scale">
+                    <span aria-hidden="true">🎹</span>
+                    <span>{usedScaleLabel(post.used_scale_type, post.used_scale_other_text)}</span>
+                  </span>
+                </div>
               </div>
-
-              {post.comment?.trim() ? (() => {
-                const trimmedComment = post.comment.trim();
-                const isLong = trimmedComment.length > 140;
-                const isExpanded = expandedComments[post.id] ?? false;
-                const isCollapsed = isLong && !isExpanded;
-                return (
-                  <div className="communityPage__commentSection">
-                    <div className={`communityPage__commentCard ${isCollapsed ? "is-collapsed" : ""}`}>
-                      <div className="communityPage__commentMetaRow">
-                        <span className="communityPage__fieldLabel--muted">SCALE</span>
-                        <span className="communityPage__usedScale">{usedScaleLabel(post.used_scale_type, post.used_scale_other_text)}</span>
-                      </div>
-                      <p className={`communityPage__comment ${isCollapsed ? "is-collapsed" : ""}`}>{renderCommentText(trimmedComment)}</p>
-                    </div>
-                    {isLong ? (
-                      <button
-                        type="button"
-                        className="communityPage__commentToggle"
-                        onClick={() =>
-                          setExpandedComments((prev) => ({
-                            ...prev,
-                            [post.id]: !isExpanded,
-                          }))
-                        }
-                      >
-                        {isExpanded ? "閉じる" : "もっと見る"}
-                      </button>
-                    ) : null}
-                  </div>
-                );
-              })() : null}
 
               <div className="communityPage__cardDivider" />
 
@@ -729,7 +686,9 @@ export default function CommunityPage() {
       </div>
 
       <button type="button" className="communityPage__fab" onClick={onClickOpenPost} aria-label="投稿する">
-        投稿
+        <span className="communityPage__fabIcon" aria-hidden="true">
+          <EditPencilIcon />
+        </span>
       </button>
 
       {postModalOpen && (

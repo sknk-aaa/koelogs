@@ -10,6 +10,8 @@
 }
 
 .page.planPage {
+  max-width: 960px;
+  margin: 0 auto;
   padding-top: 8px;
   padding-bottom: 92px;
   background: #ffffff;

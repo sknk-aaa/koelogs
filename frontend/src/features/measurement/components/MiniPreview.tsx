@@ -4,7 +4,7 @@ export type MeasurementPreviewKind = "range" | "sustain" | "loudness" | "pitch";
 
 type Props = {
   kind: MeasurementPreviewKind;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 };
 
 export default function MiniPreview({ kind, size = "md" }: Props) {

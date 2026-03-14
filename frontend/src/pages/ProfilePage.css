@@ -1,3 +1,8 @@
+.profilePage.page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
 .profilePage {
   display: grid;
   gap: 24px;
@@ -294,9 +299,9 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(64px + env(safe-area-inset-bottom));
+  bottom: 0;
   z-index: 15;
-  padding: 10px 16px 12px;
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
   background: linear-gradient(to top, #ffffff 62%, rgba(255, 255, 255, 0));
 }
 

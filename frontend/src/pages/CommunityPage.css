@@ -1,11 +1,23 @@
+.communityPage {
+  --accent-primary: #3b82f6;
+}
+
+body:has(.page.communityPage) {
+  background: #f7f8fa;
+}
+
 .communityPage.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 24px;
   padding-bottom: 0;
+  background: transparent;
 }
 
 .communityPage__heroShell {
   display: grid;
   gap: 6px;
-  margin-bottom: 0;
+  margin-bottom: 8px;
 }
 
 .communityPage__heroMain {
@@ -18,10 +30,11 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: #f1fffe;
-  border: 1px solid color-mix(in srgb, var(--accent) 8%, #e3ebf0);
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(59, 130, 246, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
 }
 
 .communityPage__introCopy {
@@ -71,7 +84,7 @@
   font-size: 14px;
   font-weight: 800;
   line-height: 1.4;
-  color: #244050;
+  color: #1f2937;
 }
 
 .communityPage__introSub {
@@ -79,7 +92,7 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 1.55;
-  color: #7d8f9b;
+  color: #6b7280;
 }
 
 .communityPage__introInfoBtn {
@@ -323,13 +336,13 @@
 .communityPage__accentGroup {
   display: grid;
   gap: 0;
-  margin: 2px -16px 0;
+  margin: 2px 0 0;
 }
 
 .communityPage__accentWave {
-  display: block;
+  display: none;
   height: 24px;
-  color: var(--ui-measure-section-bg);
+  color: #eef4ff;
 }
 
 .communityPage__accentWave svg {
@@ -339,8 +352,8 @@
 }
 
 .communityPage__accentInner {
-  background: var(--ui-measure-section-bg);
-  padding: 2px 16px calc(18px + env(safe-area-inset-bottom));
+  background: transparent;
+  padding: 2px 0 calc(18px + env(safe-area-inset-bottom));
   display: grid;
   gap: 0;
 }
@@ -452,9 +465,12 @@
 .communityPage__controls {
   display: grid;
   gap: 10px;
-  padding: 12px 0 14px;
+  padding: 14px 16px 16px;
   margin-bottom: 12px;
-  border-bottom: none;
+  border: 1px solid rgba(59, 130, 246, 0.08);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
 }
 
 .communityPage__controlsLabelRow {
@@ -511,14 +527,7 @@
 
 .communityPage__list {
   display: grid;
-  gap: 12px;
-}
-
-@media (min-width: 760px) {
-  .communityPage__accentGroup {
-    margin-left: -18px;
-    margin-right: -18px;
-  }
+  gap: 16px;
 }
 
 .communityPage__subTabs {
@@ -551,7 +560,7 @@
 }
 
 .communityPage__subTab.is-active {
-  color: color-mix(in srgb, var(--ui-accent-strong) 68%, #335765);
+  color: var(--accent-primary);
 }
 
 .communityPage__subTab.is-active::after {
@@ -562,7 +571,7 @@
   bottom: -3px;
   height: 2px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--ui-accent-strong) 68%, #335765);
+  background: var(--accent-primary);
 }
 
 .communityPage__tagFilter {
@@ -579,16 +588,22 @@
 }
 
 .communityPage__post {
-  border: none;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  border: 1px solid rgba(59, 130, 246, 0.06);
   background: #ffffff;
   position: relative;
   overflow: hidden;
   border-radius: 16px;
-  padding: 14px 14px 14px;
+  padding: 18px 18px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .communityPage__post.is-highlight {
-  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+  background: #ffffff;
+  border-color: rgba(59, 130, 246, 0.18);
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.08);
 }
 
 .communityPage__postHead {
@@ -655,10 +670,10 @@
 
 .communityPage__cardTitleMain {
   margin-top: 2px;
-  font-size: 17px;
-  font-weight: 900;
-  line-height: 1.3;
-  color: #16384a;
+  font-size: 23px;
+  font-weight: 950;
+  line-height: 1.25;
+  color: #111827;
 }
 
 .communityPage__cardMetaLabel {
@@ -703,7 +718,7 @@
 
 .communityPage__cardDate {
   font-size: 11px;
-  color: #b6c0c8;
+  color: #9ca3af;
   white-space: nowrap;
 }
 
@@ -727,9 +742,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 58%, #b4c7cf);
+  border: 1px solid rgba(59, 130, 246, 0.14);
   background: #ffffff;
-  color: color-mix(in srgb, var(--text) 88%, #183247);
+  color: #475569;
   font-size: 16px;
   line-height: 1;
   font-weight: 800;
@@ -784,7 +799,7 @@
 }
 
 .communityPage__postActionItem:hover {
-  background: color-mix(in srgb, var(--accent) 12%, #f3f7ff);
+  background: rgba(59, 130, 246, 0.08);
 }
 
 .communityPage__postActionItem.is-danger {
@@ -793,14 +808,34 @@
 
 .communityPage__cardBody {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .communityPage__usedScaleRow {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+}
+
+.communityPage__cardImprovementLead {
+  display: grid;
+  gap: 4px;
+}
+
+.communityPage__cardImprovementLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.communityPage__cardImprovementValue {
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.45;
+  color: #1d4ed8;
 }
 
 .communityPage__threadBody {
@@ -884,13 +919,23 @@
 }
 
 .communityPage__tag {
-  font-size: 11px;
-  font-weight: 800;
-  border: 1px solid color-mix(in srgb, var(--border) 78%, #eef2f8);
+  padding: 6px 10px;
   border-radius: 999px;
-  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, #eef2f8);
   background: #fcfdfe;
   color: color-mix(in srgb, var(--text) 78%, #52657a);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.2;
+}
+
+.communityPage__tag--scale {
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 22%, #d5e1e8);
+  color: #355569;
 }
 
 .communityPage__tag--blue,
@@ -1130,12 +1175,25 @@
   color: #4a5a74;
 }
 
+.communityPage__tags--field .communityPage__tag {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: transparent;
+  color: #1d4ed8;
+}
+
+.communityPage__usedScaleRow .communityPage__tag--scale {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: transparent;
+  color: #1d4ed8;
+}
+
 .communityPage__comment {
-  font-size: 13px;
-  line-height: 1.9;
+  font-size: 14px;
+  line-height: 1.8;
   font-weight: 700;
   white-space: pre-wrap;
   margin: 0;
+  color: #475569;
 }
 
 .communityPage__commentTemplateLabel {
@@ -1148,23 +1206,15 @@
 }
 
 .communityPage__commentCard {
-  border: 1px solid color-mix(in srgb, var(--accent) 3%, #ebf0f4);
-  border-radius: 12px;
-  background: #f3fdff;
-  padding: 8px 10px;
-}
-
-.communityPage__commentMetaRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.06);
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 12px 14px;
 }
 
 .communityPage__commentSection {
-  margin-top: 10px;
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .communityPage__commentCard.is-collapsed .communityPage__comment {
@@ -1176,7 +1226,7 @@
   align-self: flex-start;
   border: none;
   background: transparent;
-  color: #91a0ab;
+  color: var(--accent-primary);
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
@@ -1279,7 +1329,7 @@
 }
 
 .communityPage__footerMeta {
-  margin-top: 6px;
+  margin-top: 4px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -1291,9 +1341,9 @@
 }
 
 .communityPage__favoriteBtn {
-  border: 1px solid color-mix(in srgb, var(--accent) 8%, #dbe4ea);
+  border: 1px solid rgba(59, 130, 246, 0.12);
   background: #ffffff;
-  color: #607484;
+  color: #475569;
   border-radius: 999px;
   padding: 5px 12px;
   font-size: 12px;
@@ -1305,14 +1355,18 @@
 }
 
 .communityPage__favoriteBtn.is-on {
-  border-color: color-mix(in srgb, var(--accent) 18%, #cad8e0);
-  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
+  border-color: rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.08);
 }
 
 :root[data-theme-mode="dark"] .communityPage__cardUserName,
 :root[data-theme-mode="dark"] .communityPage__cardTitleMain,
 :root[data-theme-mode="dark"] .communityPage__fieldLabel--muted {
   color: var(--on-dark-1);
+}
+
+:root[data-theme-mode="dark"] .communityPage__cardImprovementValue {
+  color: color-mix(in srgb, var(--accent) 68%, #e8f7ff);
 }
 
 :root[data-theme-mode="dark"] .communityPage__favoriteBtnLabel {
@@ -1335,7 +1389,7 @@
 .communityPage__favoriteBtnLabel {
   font-size: 12px;
   font-weight: 700;
-  color: #728390;
+  color: #64748b;
 }
 
 .communityPage__favoriteCount {
@@ -1345,24 +1399,40 @@
 
 .communityPage__fab {
   position: fixed;
-  right: 16px;
-  bottom: calc(76px + env(safe-area-inset-bottom));
+  right: 32px;
+  bottom: calc(32px + env(safe-area-inset-bottom));
   z-index: 70;
-  min-width: 72px;
-  height: 46px;
-  padding: 0 16px;
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  padding: 0;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, #cad8e0);
-  background: color-mix(in srgb, var(--accent) 11%, #ffffff);
-  color: #16384a;
+  border: 0;
+  background: var(--accent-primary);
+  color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: 0.04em;
   cursor: pointer;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+}
+
+.communityPage__fabIcon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.communityPage__fabIcon svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .communityPage__cardTitle {
@@ -1665,17 +1735,12 @@
 }
 
 @media (max-width: 520px) {
-  .communityPage__rankingGuide {
-    padding-right: 0;
-  }
-
   .communityPage__fab {
-    right: 12px;
-    bottom: calc(72px + env(safe-area-inset-bottom));
-    min-width: 68px;
-    height: 44px;
-    padding: 0 14px;
-    font-size: 13px;
+    right: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
   }
 
   .communityPage__rankHero {

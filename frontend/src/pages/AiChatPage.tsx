@@ -38,6 +38,42 @@ const ASSISTANT_TYPING_INTERVAL_MS = 14;
 const ASSISTANT_TYPING_CHAR_STEP = 6;
 const AI_CHAT_FIRST_VISIT_SEEN_KEY_PREFIX = "koelogs:ai_chat_first_visit_seen:user_";
 const AI_CHAT_LAST_ACTIVE_THREAD_KEY_PREFIX = "koelogs:ai_chat_last_active_thread:user_";
+
+function LogReturnIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+      <path
+        d="M4 10.6L12 4l8 6.6V19a1 1 0 0 1-1 1h-5.4v-5.3a1 1 0 0 0-1-1h-1.2a1 1 0 0 0-1 1V20H5a1 1 0 0 1-1-1v-8.4Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function AiCustomSettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <path
+        d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+      />
+      <path
+        d="M19 12a7.4 7.4 0 0 0-.1-1.1l1.9-1.5-1.8-3.1-2.4 1a7.8 7.8 0 0 0-1.8-1.1l-.3-2.4h-3.8l-.3 2.4a7.8 7.8 0 0 0-1.8 1.1l-2.4-1-1.8 3.1 1.9 1.5A7.4 7.4 0 0 0 5 12c0 .4 0 .8.1 1.1l-1.9 1.5 1.8 3.1 2.4-1a7.8 7.8 0 0 0 1.8 1.1l.3 2.4h3.8l.3-2.4a7.8 7.8 0 0 0 1.8-1.1l2.4 1 1.8-3.1-1.9-1.5c.1-.3.1-.7.1-1.1Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 const MEMORY_SECTION_OPTIONS = ["課題", "強み", "成長過程", "避けたい練習/注意点"] as const;
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"] as const;
 type MemoryCandidatePromptInfo = { savedText: string; sectionLabel: string };
@@ -1066,6 +1102,13 @@ export default function AiChatPage() {
               </div>
             </div>
           </div>
+          <Link to="/settings/ai" className="aiChatPage__sideFooterLink" onClick={() => setSideOpen(false)}>
+            <span className="aiChatPage__sideFooterIcon" aria-hidden="true">
+              <AiCustomSettingsIcon />
+            </span>
+            <span className="aiChatPage__sideFooterText">AIカスタム指示</span>
+            <span className="aiChatPage__sideFooterArrow" aria-hidden="true">›</span>
+          </Link>
         </aside>
 
         <section className={`aiChatPage__chatPane ${isEmptyThread ? "is-empty-thread" : ""}`} aria-label="チャット本文">
@@ -1142,6 +1185,12 @@ export default function AiChatPage() {
 
                   {isRecommendationThread ? (
                     <div className="aiChatPage__chatHeaderRight">
+                      <Link to="/log" className="aiChatPage__logLink">
+                        <span className="aiChatPage__logLinkIcon">
+                          <LogReturnIcon />
+                        </span>
+                        ログへ戻る
+                      </Link>
                       <InfoModal
                         title="AIおすすめのつくられかた"
                         bodyClassName="logPage__aiInfoBody"
@@ -1150,7 +1199,16 @@ export default function AiChatPage() {
                         <AiRecommendationInfoContent />
                       </InfoModal>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="aiChatPage__chatHeaderRight">
+                      <Link to="/log" className="aiChatPage__logLink">
+                        <span className="aiChatPage__logLinkIcon">
+                          <LogReturnIcon />
+                        </span>
+                        ログへ戻る
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </header>
 

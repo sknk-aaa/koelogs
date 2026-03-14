@@ -1,6 +1,7 @@
 // frontend/src/pages/TrainingPage.tsx
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { createPortal } from "react-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import type { ScaleRange, ScaleTrack, ScaleType } from "../api/scaleTracks";
 import { SCALE_RANGES, SCALE_TYPES } from "../features/training/constants";
 import { useScaleTracks } from "../features/training/hooks/useScaleTracks";
@@ -26,6 +27,11 @@ import replayReviewIcon from "../assets/premium/replay-review-cyan.svg";
 import "./TrainingPage.css";
 
 type MeasurementSystemKey = "range" | "long_tone" | "volume_stability" | "pitch_accuracy";
+type TrainingPageLocationState = {
+  uploadedMeasurementFile?: File;
+  uploadedMeasurementKey?: MeasurementSystemKey;
+  uploadedPitchGuideRange?: PitchGuideRange | null;
+};
 function parseMeasurementSystemKey(value: string | null): MeasurementSystemKey | null {
   if (value === "range" || value === "long_tone" || value === "volume_stability" || value === "pitch_accuracy") {
     return value;
@@ -34,6 +40,10 @@ function parseMeasurementSystemKey(value: string | null): MeasurementSystemKey |
 }
 type RangePhase = "chest" | "falsetto";
 type PitchGuideRange = "low" | "mid" | "high";
+function parsePitchGuideRange(value: string | null): PitchGuideRange | null {
+  if (value === "low" || value === "mid" || value === "high") return value;
+  return null;
+}
 type PitchJudgeTone = "inactive" | "green" | "yellow" | "red";
 type PitchPoint = { t: number; midi: number };
 type PitchGuideSegment = { startSec: number; endSec: number; midi: number };
@@ -235,8 +245,68 @@ function StepArrowIcon({ direction }: { direction: "left" | "right" }) {
   );
 }
 
-export default function TrainingPage() {
+function RecordMicIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 4.4a2.8 2.8 0 0 1 2.8 2.8v5.6a2.8 2.8 0 1 1-5.6 0V7.2A2.8 2.8 0 0 1 12 4.4Z" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7.8 11.6v.8a4.2 4.2 0 0 0 8.4 0v-.8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 16.6v3.2" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9.5 19.8h5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function renderLogMeasureCardIcon(kind: MeasurementSystemKey): ReactNode {
+  if (kind === "range") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M12 4.2v15.6" />
+        <path d="M12 4.2 8.4 7.8" />
+        <path d="M12 4.2 15.6 7.8" />
+        <path d="M12 19.8 8.4 16.2" />
+        <path d="M12 19.8 15.6 16.2" />
+        <path d="M6.2 12h11.6" />
+      </svg>
+    );
+  }
+  if (kind === "long_tone") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="9" cy="12" r="5.5" />
+        <path d="M9 9v3.6l2.4 1.6" />
+        <path d="M16 12h4.5" />
+        <path d="M18.4 9.8v4.4" />
+      </svg>
+    );
+  }
+  if (kind === "volume_stability") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M4 14.5V9.5h3.6l3.2-2.7v10.4l-3.2-2.7Z" />
+        <path d="M15 9.3a4.6 4.6 0 0 1 0 5.4" />
+        <path d="M17.8 7.2a7.2 7.2 0 0 1 0 9.6" />
+        <rect x="4.2" y="18.2" width="2.2" height="1.8" rx="0.9" fill="currentColor" stroke="none" />
+        <rect x="7.6" y="17.2" width="2.2" height="2.8" rx="0.9" fill="currentColor" stroke="none" />
+        <rect x="11" y="16.1" width="2.2" height="3.9" rx="0.9" fill="currentColor" stroke="none" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <rect x="8.2" y="4.3" width="5.6" height="9.3" rx="2.8" />
+      <path d="M5.8 10.8v.6a5.7 5.7 0 0 0 11.4 0v-.6" />
+      <path d="M12 17.1v3.2" />
+      <path d="M8.8 20.3h6.4" />
+      <path d="M17.9 8.2h2" />
+      <path d="M17.9 11.1h2.9" />
+      <path d="M17.9 14h2" />
+    </svg>
+  );
+}
+
+export default function TrainingPage({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { tracks, loading, error } = useScaleTracks();
   const { settings } = useSettings();
@@ -251,7 +321,7 @@ export default function TrainingPage() {
   const [measurementFileAnalyzing, setMeasurementFileAnalyzing] = useState(false);
   const [measurementUseTrainingTrack] = useState(false);
   const [measurementRecording, setMeasurementRecording] = useState(false);
-  const [pitchGuideRange, setPitchGuideRange] = useState<PitchGuideRange | null>(null);
+  const [pitchGuideRange, setPitchGuideRange] = useState<PitchGuideRange | null>(() => parsePitchGuideRange(searchParams.get("pitchGuideRange")));
   const [measurementElapsedSec, setMeasurementElapsedSec] = useState(0);
   const [, setMeasurementCurrentNote] = useState<string | null>(null);
   const [measurementCurrentMidi, setMeasurementCurrentMidi] = useState<number | null>(null);
@@ -279,6 +349,7 @@ export default function TrainingPage() {
   const [tutorialRangeDonePending, setTutorialRangeDonePending] = useState(false);
   const [rangeChestGuideOpen, setRangeChestGuideOpen] = useState(false);
   const [rangePhase, setRangePhase] = useState<RangePhase | null>(null);
+  const [embeddedPlayerOpen, setEmbeddedPlayerOpen] = useState(false);
 
   const measurementAudioContextRef = useStateRef<AudioContext | null>(null);
   const measurementAnalyserRef = useStateRef<AnalyserNode | null>(null);
@@ -315,9 +386,12 @@ export default function TrainingPage() {
   const measurementSaveBtnRef = useRef<HTMLButtonElement | null>(null);
   const measurementReplaySectionRef = useRef<HTMLDivElement | null>(null);
   const measurementResultBodyRef = useRef<HTMLDivElement | null>(null);
+  const measurementSelectPaneRef = useRef<HTMLElement | null>(null);
   const replayAudioRef = useStateRef<HTMLAudioElement | null>(null);
   const replayRafRef = useStateRef<number | null>(null);
   const rangeChestGuideShownRef = useRef(false);
+  const uploadedFileConsumedRef = useRef<File | null>(null);
+  const autoStartConsumedRef = useRef(false);
 
   const selected: ScaleTrack | null = useMemo(() => {
     return tracks.find((t) => t.scale_type === scaleType && t.range_type === rangeType) ?? null;
@@ -327,12 +401,9 @@ export default function TrainingPage() {
     [activeMeasurementKey]
   );
   const queryMeasurementKey = parseMeasurementSystemKey(searchParams.get("measurement"));
+  const queryPitchGuideRange = parsePitchGuideRange(searchParams.get("pitchGuideRange"));
   const effectivePitchGuideRange: PitchGuideRange = pitchGuideRange ?? "mid";
   const pitchGuide = useMemo(() => buildPitchGuide(effectivePitchGuideRange), [effectivePitchGuideRange]);
-  const selectedPitchGuideOption = useMemo(
-    () => PITCH_GUIDE_OPTIONS.find((v) => v.key === pitchGuideRange) ?? null,
-    [pitchGuideRange]
-  );
   const sessionCopy = sessionCopyFor(activeMeasurementKey);
   const activeMeasurementIndex = MEASUREMENT_SHORTCUTS.findIndex((v) => v.systemKey === activeMeasurementKey);
 
@@ -347,9 +418,17 @@ export default function TrainingPage() {
   const disabled = loading || !!error || !selected;
   const isMdUp = useMediaQuery("(min-width: 641px)");
   const mobileStepParam = searchParams.get("measureStep");
+  const autoStartRequested = searchParams.get("autoStart") === "1";
   const mobileStep: "select" | "execute" = mobileStepParam === "execute" ? "execute" : "select";
   const showSelectPane = isMdUp || mobileStep === "select";
   const showExecutePane = isMdUp || mobileStep === "execute";
+  const moveBackToMeasurementSelect = () => {
+    if (isMdUp) {
+      measurementSelectPaneRef.current?.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+      return;
+    }
+    setMobileMeasureStep("select");
+  };
   const supportsTrainingTrackToggle = activeMeasurementKey === "volume_stability";
   const shouldUseTrainingTrack = supportsTrainingTrackToggle && measurementUseTrainingTrack;
   const recordButtonDisabled =
@@ -381,7 +460,7 @@ export default function TrainingPage() {
   const guestMode = !authLoading && !me;
   const isPremium = me?.plan_tier === "premium";
   const goLogin = () => {
-    navigate("/login", { state: { fromPath: "/training" } });
+    navigate("/login", { state: { fromPath: embedded ? "/log" : "/training" } });
   };
 
   useEffect(() => {
@@ -401,6 +480,11 @@ export default function TrainingPage() {
     if (!queryMeasurementKey || queryMeasurementKey === activeMeasurementKey) return;
     setActiveMeasurementKey(queryMeasurementKey);
   }, [activeMeasurementKey, queryMeasurementKey]);
+
+  useEffect(() => {
+    if (!queryPitchGuideRange) return;
+    setPitchGuideRange(queryPitchGuideRange);
+  }, [queryPitchGuideRange]);
 
   useEffect(() => {
     if (!tutorialRangeDonePending || measurementResultModalOpen) return;
@@ -971,6 +1055,37 @@ export default function TrainingPage() {
     }
   };
 
+  useEffect(() => {
+    if (!autoStartRequested) {
+      autoStartConsumedRef.current = false;
+      return;
+    }
+    if (autoStartConsumedRef.current) return;
+    if (measurementRecording || measurementSessionSaving || measurementFileAnalyzing) return;
+    if (queryMeasurementKey && queryMeasurementKey !== activeMeasurementKey) return;
+    if (queryPitchGuideRange && queryPitchGuideRange !== pitchGuideRange) return;
+    if (recordButtonDisabled) return;
+
+    autoStartConsumedRef.current = true;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("autoStart");
+      return next;
+    }, { replace: true });
+    void startMeasurementRecording();
+  }, [
+    activeMeasurementKey,
+    autoStartRequested,
+    measurementFileAnalyzing,
+    measurementRecording,
+    measurementSessionSaving,
+    pitchGuideRange,
+    queryMeasurementKey,
+    queryPitchGuideRange,
+    recordButtonDisabled,
+    setSearchParams,
+  ]);
+
   const stopMeasurementRecording = async (save: boolean) => {
     const guideElapsedSec = measurementPitchGuideAudioRef.current?.currentTime;
     const elapsedAtStopSec =
@@ -1099,11 +1214,7 @@ export default function TrainingPage() {
     }
   };
 
-  const onUploadMeasurementFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.currentTarget.value = "";
-    if (!file) return;
-
+  const analyzeMeasurementFile = useCallback(async (file: File) => {
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctx) {
       setMeasurementError("AudioContext が利用できません");
@@ -1205,7 +1316,33 @@ export default function TrainingPage() {
         // no-op
       }
     }
+  }, [activeMeasurementKey, clearRecordedAudio, me, pitchGuide]);
+
+  const onUploadMeasurementFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.currentTarget.value = "";
+    if (!file) return;
+    await analyzeMeasurementFile(file);
   };
+
+  useEffect(() => {
+    const state = location.state as TrainingPageLocationState | null;
+    const uploadedFile = state?.uploadedMeasurementFile;
+    if (!uploadedFile) return;
+    if (uploadedFileConsumedRef.current === uploadedFile) return;
+    if (state.uploadedMeasurementKey && state.uploadedMeasurementKey !== activeMeasurementKey) return;
+    if (
+      state.uploadedMeasurementKey === "pitch_accuracy" &&
+      state.uploadedPitchGuideRange &&
+      state.uploadedPitchGuideRange !== pitchGuideRange
+    ) {
+      return;
+    }
+
+    uploadedFileConsumedRef.current = uploadedFile;
+    navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null });
+    void analyzeMeasurementFile(uploadedFile);
+  }, [activeMeasurementKey, analyzeMeasurementFile, location.pathname, location.search, location.state, navigate, pitchGuideRange]);
 
   const saveMeasurementSessionFromMetrics = async ({
     mids,
@@ -1524,6 +1661,78 @@ export default function TrainingPage() {
     }
   };
 
+  const recordMonitorPanel = measurementRecording ? (
+    <div className="trainingPage__recordCard trainingPage__recordCard--monitor">
+      {activeMeasurementKey === "volume_stability" ? (
+        <RealtimeDbMonitor dbValues={measurementRealtimeDbPoints} currentDb={measurementCurrentDb} />
+      ) : (
+        <RealtimePitchMonitor
+          points={measurementRealtimePitchPoints}
+          currentMidi={measurementCurrentMidi}
+          systemKey={activeMeasurementKey}
+          pitchGuide={activeMeasurementKey === "pitch_accuracy" ? pitchGuide : null}
+          pitchGuideRange={effectivePitchGuideRange}
+          elapsedSec={measurementElapsedSec}
+        />
+      )}
+      {activeMeasurementKey === "range" ? (
+        <div className="trainingPage__rangePhaseActions">
+          <div className="trainingPage__rangePhaseBanner">
+            {rangePhase === "falsetto" ? "次は裏声の音域です。" : "まずは地声の音域です。"}
+          </div>
+          {rangePhase === "falsetto" ? (
+            <div className="trainingPage__rangePhaseBtnRow">
+              <button
+                type="button"
+                className="trainingPage__saveBtn uiButton uiButton--danger is-recording"
+                onClick={() => void stopMeasurementRecording(true)}
+                disabled={measurementSessionSaving}
+              >
+                録音停止して分析
+              </button>
+              <button
+                type="button"
+                className="trainingPage__measurementMiniBtn trainingPage__measurementMiniBtn--ghost uiButton uiButton--secondary"
+                onClick={cancelMeasurementRecording}
+                disabled={measurementSessionSaving}
+              >
+                やめる
+              </button>
+            </div>
+          ) : (
+            <div className="trainingPage__rangePhaseBtnRow">
+              <button
+                type="button"
+                className="trainingPage__saveBtn uiButton uiButton--primary is-recording"
+                onClick={moveToFalsettoRange}
+                disabled={measurementSessionSaving}
+              >
+                次に裏声を測定する
+              </button>
+              <button
+                type="button"
+                className="trainingPage__measurementMiniBtn trainingPage__measurementMiniBtn--ghost uiButton uiButton--secondary"
+                onClick={cancelMeasurementRecording}
+                disabled={measurementSessionSaving}
+              >
+                やめる
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="trainingPage__saveBtn uiButton uiButton--danger is-recording"
+          onClick={() => void stopMeasurementRecording(true)}
+          disabled={measurementSessionSaving}
+        >
+          録音停止して測定保存
+        </button>
+      )}
+    </div>
+  ) : null;
+
   return (
     <div className="page trainingPage">
       <ProcessingOverlay
@@ -1537,131 +1746,70 @@ export default function TrainingPage() {
         description="音声ファイルを解析しています"
         delayMs={0}
       />
-      {measurementRecording && (
-        <div className="trainingPage__recordOverlay" role="dialog" aria-modal="true" aria-label="録音中の音程表示">
-          <div className="trainingPage__recordCard trainingPage__recordCard--monitor">
-            {activeMeasurementKey === "volume_stability" ? (
-              <RealtimeDbMonitor dbValues={measurementRealtimeDbPoints} currentDb={measurementCurrentDb} />
-            ) : (
-                <RealtimePitchMonitor
-                  points={measurementRealtimePitchPoints}
-                  currentMidi={measurementCurrentMidi}
-                  systemKey={activeMeasurementKey}
-                  pitchGuide={activeMeasurementKey === "pitch_accuracy" ? pitchGuide : null}
-                  pitchGuideRange={effectivePitchGuideRange}
-                  elapsedSec={measurementElapsedSec}
-                />
-            )}
-            {activeMeasurementKey === "range" ? (
-              <div className="trainingPage__rangePhaseActions">
-                <div className="trainingPage__rangePhaseBanner">
-                  {rangePhase === "falsetto" ? "次は裏声の音域です。" : "まずは地声の音域です。"}
-                </div>
-                {rangePhase === "falsetto" ? (
-                  <div className="trainingPage__rangePhaseBtnRow">
-                    <button
-                      type="button"
-                      className="trainingPage__saveBtn uiButton uiButton--danger is-recording"
-                      onClick={() => void stopMeasurementRecording(true)}
-                      disabled={measurementSessionSaving}
-                    >
-                      録音停止して分析
-                    </button>
-                    <button
-                      type="button"
-                      className="trainingPage__measurementMiniBtn trainingPage__measurementMiniBtn--ghost uiButton uiButton--secondary"
-                      onClick={cancelMeasurementRecording}
-                      disabled={measurementSessionSaving}
-                    >
-                      やめる
-                    </button>
-                  </div>
-                ) : (
-                  <div className="trainingPage__rangePhaseBtnRow">
-                    <button
-                      type="button"
-                      className="trainingPage__saveBtn uiButton uiButton--primary is-recording"
-                      onClick={moveToFalsettoRange}
-                      disabled={measurementSessionSaving}
-                    >
-                      次に裏声を測定する
-                    </button>
-                    <button
-                      type="button"
-                      className="trainingPage__measurementMiniBtn trainingPage__measurementMiniBtn--ghost uiButton uiButton--secondary"
-                      onClick={cancelMeasurementRecording}
-                      disabled={measurementSessionSaving}
-                    >
-                      やめる
-                    </button>
-                  </div>
-                )}
+      {measurementRecording && typeof document !== "undefined"
+        ? createPortal(
+            <div className="trainingPage">
+              <div className="trainingPage__recordOverlay" role="dialog" aria-modal="true" aria-label="録音中の音程表示">
+                {recordMonitorPanel}
               </div>
-            ) : (
-              <button
-                type="button"
-                className="trainingPage__saveBtn uiButton uiButton--danger is-recording"
-                onClick={() => void stopMeasurementRecording(true)}
-                disabled={measurementSessionSaving}
+            </div>,
+            document.body
+          )
+        : null}
+      {measurementResultModalOpen && measurementInstantResult && typeof document !== "undefined"
+        ? createPortal(
+            <div className="trainingPage">
+              <div
+                className="trainingPage__modalOverlay uiModalBackdrop"
+                role="button"
+                tabIndex={0}
+                onClick={closeMeasurementResultModal}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") closeMeasurementResultModal();
+                }}
               >
-                録音停止して測定保存
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-      {measurementResultModalOpen && measurementInstantResult && (
-        <div
-          className="trainingPage__modalOverlay uiModalBackdrop"
-          role="button"
-          tabIndex={0}
-          onClick={closeMeasurementResultModal}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") closeMeasurementResultModal();
-          }}
-        >
-          <div
-            className={`trainingPage__resultModalCard uiModalPanel${
-              measurementInstantResult.title === "音域"
-                ? " is-range"
-                : measurementInstantResult.title === "ロングトーン" || measurementInstantResult.title === "音程精度"
-                  ? " is-long-tone"
-                  : " is-volume"
-            }${
-              measurementInstantResult.source === "recording" &&
-              !!measurementRecordedAudioUrl &&
-              !measurementReplayPanelOpen
-                ? " is-replay-collapsed"
-                : ""
-            }`}
-            role="dialog"
-            aria-modal="true"
-            aria-label="測定結果"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.stopPropagation();
-                closeMeasurementResultModal();
-                return;
-              }
-              if ((e.key === "Enter" || e.key === " ") && measurementInstantResult.title === "音域" && !measurementInstantResult.includeInInsights) {
-                e.preventDefault();
-                void saveMeasurementForInsights();
-                return;
-              }
-              e.stopPropagation();
-            }}
-          >
-            <div className="trainingPage__resultModalHeader uiModalHeader">
-              <div className="trainingPage__resultModalTitle uiModalTitle">
-                {measurementInstantResult.source === "file" ? "解析完了" : "測定完了"}
-              </div>
-              {measurementInstantResult.title !== "音域" && (
-                <div className="trainingPage__resultModalMeta">
-                  {measurementInstantResult.title} / {measurementInstantResult.measuredAt}
-                </div>
-              )}
-            </div>
+                <div
+                  className={`trainingPage__resultModalCard uiModalPanel${
+                    measurementInstantResult.title === "音域"
+                      ? " is-range"
+                      : measurementInstantResult.title === "ロングトーン" || measurementInstantResult.title === "音程精度"
+                        ? " is-long-tone"
+                        : " is-volume"
+                  }${
+                    measurementInstantResult.source === "recording" &&
+                    !!measurementRecordedAudioUrl &&
+                    !measurementReplayPanelOpen
+                      ? " is-replay-collapsed"
+                      : ""
+                  }`}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="測定結果"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.stopPropagation();
+                      closeMeasurementResultModal();
+                      return;
+                    }
+                    if ((e.key === "Enter" || e.key === " ") && measurementInstantResult.title === "音域" && !measurementInstantResult.includeInInsights) {
+                      e.preventDefault();
+                      void saveMeasurementForInsights();
+                      return;
+                    }
+                    e.stopPropagation();
+                  }}
+                >
+                  <div className="trainingPage__resultModalHeader uiModalHeader">
+                    <div className="trainingPage__resultModalTitle uiModalTitle">
+                      {measurementInstantResult.source === "file" ? "解析完了" : "測定完了"}
+                    </div>
+                    {measurementInstantResult.title !== "音域" && (
+                      <div className="trainingPage__resultModalMeta">
+                        {measurementInstantResult.title} / {measurementInstantResult.measuredAt}
+                      </div>
+                    )}
+                  </div>
 
             <div className="trainingPage__resultModalBody" ref={measurementResultBodyRef}>
               {measurementInstantResult.title === "音域" && (
@@ -1844,40 +1992,43 @@ export default function TrainingPage() {
                 </div>
               )}
             </div>
-            <div className="trainingPage__resultModalFooter">
-              <div className="trainingPage__resultModalActions">
-                <div className="trainingPage__resultModalActionGroup trainingPage__resultModalActionGroup--persist">
-                  <button
-                    type="button"
-                    className="trainingPage__resultModalBtn trainingPage__resultModalBtn--save trainingPage__resultModalBtn--savePrimary uiButton uiButton--primary"
-                    onClick={() => void saveMeasurementForInsights()}
-                    disabled={measurementResultSaving || measurementInstantResult.includeInInsights}
-                    ref={measurementSaveBtnRef}
-                  >
-                    {measurementInstantResult.includeInInsights
-                      ? "保存済み"
-                      : measurementResultSaving
-                        ? "保存中..."
-                        : "この結果を保存する"}
-                  </button>
-                </div>
-                <div className="trainingPage__resultModalActionGroup trainingPage__resultModalActionGroup--close">
-                  <button
-                    type="button"
-                    className="trainingPage__resultModalBtn trainingPage__resultModalBtn--close trainingPage__resultModalBtn--closeText uiButton uiButton--secondary"
-                    onClick={closeMeasurementResultModal}
-                  >
-                    閉じる
-                  </button>
+                  <div className="trainingPage__resultModalFooter">
+                    <div className="trainingPage__resultModalActions">
+                      <div className="trainingPage__resultModalActionGroup trainingPage__resultModalActionGroup--persist">
+                        <button
+                          type="button"
+                          className="trainingPage__resultModalBtn trainingPage__resultModalBtn--save trainingPage__resultModalBtn--savePrimary uiButton uiButton--primary"
+                          onClick={() => void saveMeasurementForInsights()}
+                          disabled={measurementResultSaving || measurementInstantResult.includeInInsights}
+                          ref={measurementSaveBtnRef}
+                        >
+                          {measurementInstantResult.includeInInsights
+                            ? "保存済み"
+                            : measurementResultSaving
+                              ? "保存中..."
+                              : "この結果を保存する"}
+                        </button>
+                      </div>
+                      <div className="trainingPage__resultModalActionGroup trainingPage__resultModalActionGroup--close">
+                        <button
+                          type="button"
+                          className="trainingPage__resultModalBtn trainingPage__resultModalBtn--close trainingPage__resultModalBtn--closeText uiButton uiButton--secondary"
+                          onClick={closeMeasurementResultModal}
+                        >
+                          閉じる
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="trainingPage__bg" aria-hidden="true" />
+            </div>,
+            document.body
+          )
+        : null}
+      {!embedded && <div className="trainingPage__bg" aria-hidden="true" />}
 
-      {guestMode && (
+      {!embedded && guestMode && (
         <section className="card trainingPage__aiIntroCard">
           <div className="trainingPage__aiIntroTitle">録音測定</div>
           <div className="trainingPage__aiIntroText">
@@ -1893,6 +2044,432 @@ export default function TrainingPage() {
         </section>
       )}
 
+      {embedded ? (
+        <div className="trainingPage__embeddedStack">
+          <div className="trainingPage__measureSection trainingPage__measureSection--embedded">
+            <div className="trainingPage__measureInner">
+              <section className="trainingPage__measurementPanel">
+                <div className="trainingPage__panelHead trainingPage__measurementPanelHead">
+                  <div>
+                    <div className="trainingPage__eyebrowRow">
+                      <span className="trainingPage__eyebrowIcon">
+                        <TrainingMeasureIcon />
+                      </span>
+                      <div className="trainingPage__eyebrow">MEASURE</div>
+                    </div>
+                  </div>
+                  {!guestMode && !isMdUp && mobileStep === "execute" && (
+                    <button
+                      type="button"
+                      className="trainingPage__measurementBackBtn"
+                      onClick={() => setMobileMeasureStep("select")}
+                    >
+                      ← 測定を選び直す
+                    </button>
+                  )}
+                </div>
+
+                {guestMode ? (
+                  <div className="trainingPage__measurementGuest">
+                    ログインすると、固定の測定メニューで録音測定を継続利用できます。
+                  </div>
+                ) : (
+                  <>
+                    <div className={`trainingPage__measurementLayout${isMdUp ? " is-desktop" : ""}`}>
+                      {showSelectPane && (
+                        <section
+                          ref={measurementSelectPaneRef}
+                          className="trainingPage__measurementStep trainingPage__measurementStep--manage trainingPage__measurementPane trainingPage__measurementPane--select"
+                        >
+                          <div className="trainingPage__measurementStepHead">
+                            <div className="trainingPage__measurementStepHeadText">
+                              <div className="trainingPage__measurementTitleLine">
+                                <span className="trainingPage__measurementStepChip trainingPage__measurementStepChip--inline">STEP 1</span>
+                                <div className="trainingPage__measurementStepTitle">測定項目を選ぶ</div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              className="trainingPage__measurementMiniBtn trainingPage__measurementMiniBtn--ghost"
+                              onClick={() => setMeasurementMetricInfoOpen(true)}
+                            >
+                              測定項目について
+                            </button>
+                          </div>
+                          <div className="trainingPage__measurementPresetGrid">
+                            {MEASUREMENT_SHORTCUTS.map((shortcut) => {
+                              const selectedNow = activeMeasurementKey === shortcut.systemKey;
+                              return (
+                                <button
+                                  key={shortcut.systemKey}
+                                  type="button"
+                                  className={`trainingPage__measurementPresetItem trainingPage__measurementPresetItemBtn${
+                                    selectedNow ? " is-selected" : ""
+                                  } uiPanel`}
+                                  data-measurement={shortcut.systemKey}
+                                  onClick={() => onSelectMeasurementShortcut(shortcut.systemKey)}
+                                  aria-pressed={selectedNow}
+                                >
+                                  <div className="trainingPage__measurementPresetBody">
+                                    <div className="trainingPage__measurementPresetText">
+                                      <div className="trainingPage__measurementPresetItemHead">
+                                        <div className="trainingPage__measurementPresetName">
+                                          <span className={`trainingPage__measurementPresetRadio${selectedNow ? " is-selected" : ""}`} aria-hidden="true" />
+                                          <span className="trainingPage__measurementPresetNameIcon" aria-hidden="true">
+                                            {renderLogMeasureCardIcon(shortcut.systemKey)}
+                                          </span>
+                                          <span>{shortcut.title}</span>
+                                        </div>
+                                        <span
+                                          className={`trainingPage__measurementSelectedBadge uiStatusPill${selectedNow ? "" : " is-hidden"}`}
+                                          aria-hidden={!selectedNow}
+                                        >
+                                          選択中
+                                        </span>
+                                      </div>
+                                      <div className="trainingPage__measurementPresetDesc" title={shortcut.note}>
+                                        {shortcut.note}
+                                      </div>
+                                    </div>
+                                    {!embedded ? <MiniPreview kind={previewKindFor(shortcut.systemKey)} size={isMdUp ? "lg" : "sm"} /> : null}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      )}
+
+                      {showExecutePane && (
+                        <section
+                          className="trainingPage__measurementStep trainingPage__measurementStep--record trainingPage__measurementPane trainingPage__measurementPane--execute"
+                          data-measurement={activeMeasurementKey}
+                        >
+                          <div className="trainingPage__measurementPaneSticky">
+                            <SessionStepHead
+                              badge={null}
+                              title={
+                                <span className="trainingPage__measurementTitleLine">
+                                  <span className="trainingPage__measurementStepChip trainingPage__measurementStepChip--inline">STEP 2</span>
+                                  <span className="trainingPage__measurementTitleWithIcon">
+                                    <span className="trainingPage__measurementTitleWithIconMark" aria-hidden="true">
+                                      <MeasurementTypeIcon kind={activeMeasurementKey} />
+                                    </span>
+                                    <span>{activeMeasurement?.title ?? "測定"}</span>
+                                  </span>
+                                </span>
+                              }
+                              subtitle={sessionCopy.subtitle}
+                              titleClassName="trainingPage__measurementStepTitle--record"
+                              action={
+                                <button
+                                  type="button"
+                                  className="trainingPage__measurementMiniBtn trainingPage__measurementMiniBtn--ghost uiButton uiButton--secondary"
+                                  onClick={moveBackToMeasurementSelect}
+                                >
+                                  項目を選び直す
+                                </button>
+                              }
+                            />
+
+                            <SessionPlayerCard
+                              active={measurementRecording}
+                              art={<MiniPreview kind={previewKindFor(activeMeasurementKey)} size="lg" />}
+                              title={activeMeasurement?.title ?? "測定"}
+                              description={undefined}
+                              error={measurementError ? <div className="trainingPage__measurementError">{measurementError}</div> : undefined}
+                              transport={
+                                embedded ? (
+                                  <button
+                                    type="button"
+                                    className={`trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary trainingPage__playerPrimary--solo uiButton ${
+                                      measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
+                                    }`}
+                                    onClick={() => {
+                                      if (measurementRecording && activeMeasurementKey !== "range") void stopMeasurementRecording(true);
+                                      else void startMeasurementRecording();
+                                    }}
+                                    disabled={recordButtonDisabled}
+                                  >
+                                    {!measurementRecording && (
+                                      <span className="trainingPage__recordButtonIcon" aria-hidden="true">
+                                        <RecordMicIcon />
+                                      </span>
+                                    )}
+                                    {playerRecordLabel}
+                                  </button>
+                                ) : (
+                                  <>
+                                    <button
+                                      type="button"
+                                      className="trainingPage__transportBtn uiButton uiButton--secondary uiIconButton"
+                                      onClick={() => moveMeasurementShortcut(-1)}
+                                      disabled={transportSwitchDisabled}
+                                      aria-label="前の測定項目"
+                                    >
+                                      <StepArrowIcon direction="left" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className={`trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary trainingPage__playerPrimary--solo uiButton ${
+                                        measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
+                                      }`}
+                                      onClick={() => {
+                                        if (measurementRecording && activeMeasurementKey !== "range") void stopMeasurementRecording(true);
+                                        else void startMeasurementRecording();
+                                      }}
+                                      disabled={recordButtonDisabled}
+                                    >
+                                      {!measurementRecording && (
+                                        <span className="trainingPage__recordButtonIcon" aria-hidden="true">
+                                          <RecordMicIcon />
+                                        </span>
+                                      )}
+                                      {playerRecordLabel}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="trainingPage__transportBtn uiButton uiButton--secondary uiIconButton"
+                                      onClick={() => moveMeasurementShortcut(1)}
+                                      disabled={transportSwitchDisabled}
+                                      aria-label="次の測定項目"
+                                    >
+                                      <StepArrowIcon direction="right" />
+                                    </button>
+                                  </>
+                                )
+                              }
+                              footer={
+                                <>
+                                  <div className="trainingPage__measurementSupportSlot">
+                                    {activeMeasurementKey === "range" && (
+                                      <div className="trainingPage__rangeTips" role="note" aria-label="音域測定のコツ">
+                                        <div className="trainingPage__measurementAssistTitle">
+                                          <span className="trainingPage__measurementAssistTitleIcon" aria-hidden="true">
+                                            <MeasurementAccuracyIcon />
+                                          </span>
+                                          <span>測定のコツ</span>
+                                        </div>
+                                        <ul className="trainingPage__rangeTipsList">
+                                          <li>地声の最高音は、少し長めにキープしてみましょう。</li>
+                                          <li>音はできるだけつなげて、なめらかに出してみましょう。</li>
+                                        </ul>
+                                      </div>
+                                    )}
+                                    {activeMeasurementKey === "long_tone" && (
+                                      <div className="trainingPage__measurementAssistCard uiPanel uiPanel--tinted" role="note" aria-label="ロングトーン測定のヒント">
+                                        <div className="trainingPage__measurementAssistTitle">
+                                          <span className="trainingPage__measurementAssistTitleIcon" aria-hidden="true">
+                                            <MeasurementPointIcon />
+                                          </span>
+                                          <span>測定のポイント</span>
+                                        </div>
+                                        <div className="trainingPage__measurementAssistText">
+                                          息の流れを止めず、同じ音程を安定して保ちながら発声してください。
+                                        </div>
+                                      </div>
+                                    )}
+                                    {activeMeasurementKey === "volume_stability" && (
+                                      <div className="trainingPage__measurementAssistCard uiPanel uiPanel--tinted" role="note" aria-label="音量安定性測定のヒント">
+                                        <div className="trainingPage__measurementAssistTitle">
+                                          <span className="trainingPage__measurementAssistTitleIcon" aria-hidden="true">
+                                            <MeasurementPointIcon />
+                                          </span>
+                                          <span>測定のポイント</span>
+                                        </div>
+                                        <div className="trainingPage__measurementAssistText">
+                                          大きさを急に変えず、一定の音量をキープしながらまっすぐ発声してください。
+                                        </div>
+                                      </div>
+                                    )}
+                                    {activeMeasurementKey === "pitch_accuracy" && (
+                                      <div className="trainingPage__pitchGuideConfig" role="note" aria-label="音程精度測定設定">
+                                        <div className="trainingPage__pitchGuideTitle">スケール選択（音程精度 / 音源追従）</div>
+                                        <div className="trainingPage__pitchGuideDesc">音域に合わせてスケールを選択できます。</div>
+                                        <div className="trainingPage__pitchGuideRangeRow">
+                                          {PITCH_GUIDE_OPTIONS.map((opt) => (
+                                            <button
+                                              key={opt.key}
+                                              type="button"
+                                              className={`trainingPage__pitchGuideRangeBtn uiChoiceButton ${pitchGuideRange === opt.key ? "is-active uiChoiceButton--active" : ""}`}
+                                              onClick={() => setPitchGuideRange(opt.key)}
+                                              disabled={measurementRecording || measurementSessionSaving}
+                                            >
+                                              <span className="trainingPage__pitchGuideRangeBtnLabel">{opt.label}</span>
+                                              <span className="trainingPage__pitchGuideRangeBtnMeta">{opt.detail}</span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <label className={`trainingPage__fileBtn uiButton uiButton--secondary uiFileButton ${measurementFileAnalyzing ? "is-busy" : ""}`}>
+                                    {measurementFileAnalyzing ? "解析中…" : "音声ファイルを解析"}
+                                    <input
+                                      type="file"
+                                      accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg"
+                                      onChange={(ev) => void onUploadMeasurementFile(ev)}
+                                      disabled={measurementRecording || measurementSessionSaving || measurementFileAnalyzing}
+                                    />
+                                  </label>
+                                </>
+                              }
+                            />
+                          </div>
+
+                          {!isMdUp && (
+                            <div className="trainingPage__mobileRecordDock" role="presentation">
+                              <button
+                                type="button"
+                                className={`trainingPage__saveBtn trainingPage__mobileRecordBtn uiButton ${
+                                  measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
+                                }`}
+                                onClick={() => {
+                                  if (measurementRecording && activeMeasurementKey !== "range") void stopMeasurementRecording(true);
+                                  else void startMeasurementRecording();
+                                }}
+                                disabled={recordButtonDisabled}
+                              >
+                                {playerRecordLabel}
+                              </button>
+                            </div>
+                          )}
+                        </section>
+                      )}
+                    </div>
+                    {measurementMetricInfoOpen && (
+                      <div
+                        className="trainingPage__modalOverlay uiModalBackdrop"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setMeasurementMetricInfoOpen(false)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") setMeasurementMetricInfoOpen(false);
+                        }}
+                      >
+                        <div
+                          className="trainingPage__modalCard uiModalPanel"
+                          role="dialog"
+                          aria-modal="true"
+                          aria-label="測定項目の説明"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
+                          <div className="trainingPage__modalHead uiModalHeader">
+                            <div className="trainingPage__modalTitle uiModalTitle">測定項目について</div>
+                            <button
+                              type="button"
+                              className="trainingPage__measurementMiniBtn trainingPage__measurementMiniBtn--ghost uiButton uiButton--secondary"
+                              onClick={() => setMeasurementMetricInfoOpen(false)}
+                            >
+                              閉じる
+                            </button>
+                          </div>
+                          <div className="trainingPage__modalBody">
+                            {PRESET_INFO.map((preset) => (
+                              <div key={preset.title} className="trainingPage__metricInfoItem uiPanel">
+                                <div className="trainingPage__metricInfoLabel">{preset.title}</div>
+                                <div className="trainingPage__metricInfoText trainingPage__metricInfoText--desc">{preset.description}</div>
+                                <div className="trainingPage__metricInfoMetaHead">記録される項目</div>
+                                <div className="trainingPage__metricInfoDataList">
+                                  {preset.savedItems.map((item) => (
+                                    <span key={item} className="trainingPage__metricInfoDataChip uiCompareChip">
+                                      {item}
+                                    </span>
+                                  ))}
+                                </div>
+                                {preset.condition && (
+                                  <div className="trainingPage__metricInfoCondition">{preset.condition}</div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
+            </div>
+          </div>
+
+          <section className="trainingPage__panel trainingPage__panel--embedded logPage__trainingPlayerPanel">
+            <div className="logPage__trainingPlayerToggleWrap">
+              <button
+                type="button"
+                className={`logPage__trainingPlayerToggle${embeddedPlayerOpen ? " is-open" : ""}`}
+                onClick={() => setEmbeddedPlayerOpen((open) => !open)}
+                aria-expanded={embeddedPlayerOpen}
+                aria-controls="log-training-player-panel"
+              >
+                <span className="logPage__trainingPlayerToggleIcon" aria-hidden="true">
+                  <StepArrowIcon direction={embeddedPlayerOpen ? "left" : "right"} />
+                </span>
+                <span className="logPage__trainingPlayerToggleText">
+                  音源再生
+                </span>
+              </button>
+            </div>
+
+            {embeddedPlayerOpen ? (
+              <>
+                <div className="trainingPage__panelHead" id="log-training-player-panel">
+                  <div>
+                    <div className="trainingPage__eyebrowRow">
+                      <span className="trainingPage__eyebrowIcon">
+                        <TrainingMenuIcon />
+                      </span>
+                      <div className="trainingPage__eyebrow">PLAYER</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="logPage__trainingPlayerMeta">
+                  スケールと音域タイプを選び、練習用の音源を再生できます。
+                </div>
+
+                <div className="trainingPage__studioCard">
+                  <div className="trainingPage__studioPlayer">
+                    <AudioPlayer
+                      audioRef={audioRef}
+                      src={selected?.file_path ?? undefined}
+                      disabled={disabled}
+                      isPlaying={isPlaying}
+                      onTogglePlay={togglePlay}
+                      onPlay={onPlay}
+                      onPause={onPause}
+                      onEnded={onEnded}
+                      defaultVolume={settings.defaultVolume}
+                      loopEnabled={settings.loopEnabled}
+                      scaleType={scaleType}
+                      rangeType={rangeType}
+                      scaleTypes={SCALE_TYPES}
+                      rangeTypes={SCALE_RANGES}
+                      onChangeScaleType={setScaleType}
+                      onChangeRangeType={setRangeType}
+                    />
+                  </div>
+                </div>
+
+                {loading && (
+                  <div className="trainingPage__loading" aria-hidden="true">
+                    <div className="trainingPage__skeleton" />
+                    <div className="trainingPage__skeleton trainingPage__skeleton--long" />
+                  </div>
+                )}
+
+                {error && (
+                  <div className="trainingPage__error" role="alert">
+                    <div className="trainingPage__errorTitle">読み込みに失敗しました</div>
+                    <div className="trainingPage__errorText">Error: {error}</div>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </section>
+        </div>
+      ) : (
+      <>
       <main className="trainingPage__grid">
         <section className="trainingPage__panel">
           <div className="trainingPage__panelHead">
@@ -1988,12 +2565,17 @@ export default function TrainingPage() {
               <>
                 <div className={`trainingPage__measurementLayout${isMdUp ? " is-desktop" : ""}`}>
                   {showSelectPane && (
-                    <section className="trainingPage__measurementStep trainingPage__measurementStep--manage trainingPage__measurementPane trainingPage__measurementPane--select">
-                      <div className="trainingPage__measurementStepHead">
-                        <div className="trainingPage__measurementStepHeadText">
-                          <div className="trainingPage__measurementStepTitle">測定項目を選ぶ</div>
-                          <div className="trainingPage__measurementStepDesc">カードをタップすると、すぐ実行画面へ進みます。</div>
-                        </div>
+                    <section
+                      ref={measurementSelectPaneRef}
+                      className="trainingPage__measurementStep trainingPage__measurementStep--manage trainingPage__measurementPane trainingPage__measurementPane--select"
+                    >
+                          <div className="trainingPage__measurementStepHead">
+                            <div className="trainingPage__measurementStepHeadText">
+                              <div className="trainingPage__measurementTitleLine">
+                                <span className="trainingPage__measurementStepChip trainingPage__measurementStepChip--inline">STEP 1</span>
+                                <div className="trainingPage__measurementStepTitle">測定項目を選ぶ</div>
+                              </div>
+                            </div>
                         <button
                           type="button"
                           className="trainingPage__measurementMiniBtn trainingPage__measurementMiniBtn--ghost"
@@ -2019,22 +2601,25 @@ export default function TrainingPage() {
                               <div className="trainingPage__measurementPresetBody">
                                 <div className="trainingPage__measurementPresetText">
                                   <div className="trainingPage__measurementPresetItemHead">
-                                    <div className="trainingPage__measurementPresetName">
-                                      <span className="trainingPage__measurementPresetNameIcon" aria-hidden="true">
-                                        <MeasurementTypeIcon kind={shortcut.systemKey} />
-                                      </span>
-                                      <span>{shortcut.title}</span>
-                                    </div>
-                                    {selectedNow && <span className="trainingPage__measurementSelectedBadge uiStatusPill">選択中</span>}
+                                <div className="trainingPage__measurementPresetName">
+                                  <span className={`trainingPage__measurementPresetRadio${selectedNow ? " is-selected" : ""}`} aria-hidden="true" />
+                                  <span className="trainingPage__measurementPresetNameIcon" aria-hidden="true">
+                                    {renderLogMeasureCardIcon(shortcut.systemKey)}
+                                  </span>
+                                  <span>{shortcut.title}</span>
+                                </div>
+                                    <span
+                                      className={`trainingPage__measurementSelectedBadge uiStatusPill${selectedNow ? "" : " is-hidden"}`}
+                                      aria-hidden={!selectedNow}
+                                    >
+                                      選択中
+                                    </span>
                                   </div>
                                   <div className="trainingPage__measurementPresetDesc" title={shortcut.note}>
                                     {shortcut.note}
                                   </div>
                                 </div>
-                                <MiniPreview
-                                  kind={previewKindFor(shortcut.systemKey)}
-                                  size={isMdUp ? "md" : "sm"}
-                                />
+                                <MiniPreview kind={previewKindFor(shortcut.systemKey)} size={isMdUp ? "lg" : "sm"} />
                               </div>
                             </button>
                           );
@@ -2052,20 +2637,32 @@ export default function TrainingPage() {
                         <SessionStepHead
                           badge={null}
                           title={
-                            <span className="trainingPage__measurementTitleWithIcon">
-                              <span className="trainingPage__measurementTitleWithIconMark" aria-hidden="true">
-                                <MeasurementTypeIcon kind={activeMeasurementKey} />
+                            <span className="trainingPage__measurementTitleLine">
+                              <span className="trainingPage__measurementStepChip trainingPage__measurementStepChip--inline">STEP 2</span>
+                              <span className="trainingPage__measurementTitleWithIcon">
+                                <span className="trainingPage__measurementTitleWithIconMark" aria-hidden="true">
+                                  <MeasurementTypeIcon kind={activeMeasurementKey} />
+                                </span>
+                                <span>{activeMeasurement?.title ?? "測定"}</span>
                               </span>
-                              <span>{activeMeasurement?.title ?? "測定"}</span>
                             </span>
                           }
                           subtitle={sessionCopy.subtitle}
                           titleClassName="trainingPage__measurementStepTitle--record"
+                          action={
+                            <button
+                              type="button"
+                              className="trainingPage__measurementMiniBtn trainingPage__measurementMiniBtn--ghost uiButton uiButton--secondary"
+                              onClick={moveBackToMeasurementSelect}
+                            >
+                              項目を選び直す
+                            </button>
+                          }
                         />
 
                         <SessionPlayerCard
                           active={measurementRecording}
-                          art={<MiniPreview kind={previewKindFor(activeMeasurementKey)} size="md" />}
+                          art={<MiniPreview kind={previewKindFor(activeMeasurementKey)} size="lg" />}
                           title={activeMeasurement?.title ?? "測定"}
                           description={undefined}
                           error={measurementError ? <div className="trainingPage__measurementError">{measurementError}</div> : undefined}
@@ -2091,6 +2688,11 @@ export default function TrainingPage() {
                                 }}
                                 disabled={recordButtonDisabled}
                               >
+                                {!measurementRecording && (
+                                  <span className="trainingPage__recordButtonIcon" aria-hidden="true">
+                                    <RecordMicIcon />
+                                  </span>
+                                )}
                                 {playerRecordLabel}
                               </button>
                                 <button
@@ -2113,7 +2715,7 @@ export default function TrainingPage() {
                                       <span className="trainingPage__measurementAssistTitleIcon" aria-hidden="true">
                                         <MeasurementAccuracyIcon />
                                       </span>
-                                      <span>正確に測定するために</span>
+                                      <span>測定のコツ</span>
                                     </div>
                                     <ul className="trainingPage__rangeTipsList">
                                       <li>地声の最高音は、少し長めにキープしてみましょう。</li>
@@ -2150,22 +2752,7 @@ export default function TrainingPage() {
                                 {activeMeasurementKey === "pitch_accuracy" && (
                                   <div className="trainingPage__pitchGuideConfig" role="note" aria-label="音程精度測定設定">
                                     <div className="trainingPage__pitchGuideTitle">スケール選択（音程精度 / 音源追従）</div>
-                                    <div className="trainingPage__pitchGuideDesc">
-                                      使う5toneスケールを選べます。録音開始と同時に選択した固定音源を再生するので、参照バーに合わせて発声してください（イヤホン推奨）。
-                                    </div>
-                                    <div
-                                      className={`trainingPage__pitchGuideStatus uiPanel ${
-                                        pitchGuideRange ? "is-selected uiPanel--tinted" : "is-required"
-                                      }`}
-                                      aria-live="polite"
-                                    >
-                                      <span className="trainingPage__pitchGuideStatusStep">Step 1</span>
-                                      <span className="trainingPage__pitchGuideStatusText">
-                                        {selectedPitchGuideOption
-                                          ? `選択中: ${selectedPitchGuideOption.label}（${selectedPitchGuideOption.detail}）`
-                                          : "先にスケールを選択してください"}
-                                      </span>
-                                    </div>
+                                    <div className="trainingPage__pitchGuideDesc">音域に合わせてスケールを選択できます。</div>
                                     <div className="trainingPage__pitchGuideRangeRow">
                                       {PITCH_GUIDE_OPTIONS.map((opt) => (
                                         <button
@@ -2272,6 +2859,8 @@ export default function TrainingPage() {
           </section>
         </div>
       </div>
+      </>
+      )}
       <PremiumUpsellModal
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}

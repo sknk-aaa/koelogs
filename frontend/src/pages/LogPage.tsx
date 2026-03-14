@@ -1067,12 +1067,6 @@ export default function LogPage() {
     clearWeekLongPress();
   };
 
-  const scrollToGuestPreview = () => {
-    const el = document.getElementById("guest-preview");
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const openTodayMenuModal = () => {
     if (!authMe) {
       goLogin();
@@ -1256,10 +1250,114 @@ export default function LogPage() {
       result: { avg_cents_error: 22.4, accuracy_score: 77.6, note_count: 96 },
     },
   };
+  const previewMonthData = useMemo<MonthlyLogData | null>(() => {
+    if (!guestMode) return null;
+
+    const previewMenus = [
+      { id: -11, name: "リップロール", color: "#F59E0B", archived: false },
+      { id: -12, name: "ハミング", color: "#34D399", archived: false },
+      { id: -13, name: "ミックス練習", color: "#60A5FA", archived: false },
+    ];
+    const menuById = new Map(previewMenus.map((menu) => [menu.id, menu]));
+    const buildPreviewLog = (
+      id: number,
+      practiced_on: string,
+      duration_min: number,
+      menuIds: number[],
+      notes: string
+    ): TrainingLog => ({
+      id,
+      practiced_on,
+      duration_min,
+      menus: menuIds
+        .map((menuId) => menuById.get(menuId))
+        .filter((menu): menu is NonNullable<typeof menu> => menu != null),
+      notes,
+    });
+    const previewLogsByMonth: Record<string, TrainingLog[]> = {
+      "2026-02": [
+        buildPreviewLog(-201, "2026-02-03", 18, [ -11 ], "声の立ち上がりを軽く確認。"),
+        buildPreviewLog(-202, "2026-02-06", 34, [ -12, -13 ], "ミドル付近のつながりを確認。"),
+        buildPreviewLog(-203, "2026-02-09", 52, [ -11, -12 ], "息漏れを減らして安定感を意識。"),
+        buildPreviewLog(-209, "2026-02-11", 70, [ -11, -12, -13 ], "週の軸として長めに通して実施。"),
+        buildPreviewLog(-204, "2026-02-12", 27, [ -13 ], "音程を優先してテンポを落とした。"),
+        buildPreviewLog(-205, "2026-02-16", 41, [ -11, -13 ], "換声点前後を重点的に練習。"),
+        buildPreviewLog(-210, "2026-02-18", 70, [ -11, -12, -13 ], "基礎からフレーズまでまとめて確認。"),
+        buildPreviewLog(-206, "2026-02-20", 63, [ -12, -13 ], "語尾で喉を締めない感覚を確認。"),
+        buildPreviewLog(-207, "2026-02-24", 22, [ -11 ], "ウォームアップ中心。"),
+        buildPreviewLog(-211, "2026-02-25", 70, [ -11, -12, -13 ], "週後半の確認としてしっかり練習。"),
+        buildPreviewLog(-208, "2026-02-27", 48, [ -11, -12, -13 ], "全体を通して録音しながら確認。"),
+      ],
+      "2026-03": [
+        buildPreviewLog(-301, "2026-03-02", 24, [ -11 ], "軽くウォームアップしてスタート。"),
+        buildPreviewLog(-302, "2026-03-05", 38, [ -12, -13 ], "地声からミックスへのつなぎを確認。"),
+        buildPreviewLog(-309, "2026-03-07", 70, [ -11, -12, -13 ], "週末にまとめて長めの練習を実施。"),
+        buildPreviewLog(-303, "2026-03-08", 46, [ -11, -12 ], "響きを前に集める意識。"),
+        buildPreviewLog(-304, "2026-03-11", 19, [ -13 ], "短めに音程確認。"),
+        buildPreviewLog(-310, "2026-03-14", 70, [ -11, -12, -13 ], "録音を聞き返しながら全体を調整。"),
+        buildPreviewLog(-305, "2026-03-15", 28, [ -11, -12, -13 ], "高音で喉が締まりやすい。息を少し減らすと安定。"),
+        buildPreviewLog(-306, "2026-03-18", 57, [ -12, -13 ], "ロングトーン後にフレーズへ接続。"),
+        buildPreviewLog(-311, "2026-03-21", 70, [ -11, -12, -13 ], "週の仕上げとして通しで確認。"),
+        buildPreviewLog(-307, "2026-03-22", 66, [ -11, -13 ], "換声点をまたぐ流れを重点的に。"),
+        buildPreviewLog(-308, "2026-03-27", 31, [ -11, -12 ], "録音を聞き返して音量差を調整。"),
+        buildPreviewLog(-312, "2026-03-28", 70, [ -11, -12, -13 ], "月末に向けて長めに記録を残した。"),
+      ],
+      "2026-04": [
+        buildPreviewLog(-401, "2026-04-01", 16, [ -11 ], "短いウォームアップ。"),
+        buildPreviewLog(-402, "2026-04-04", 36, [ -12, -13 ], "高音前の脱力を確認。"),
+        buildPreviewLog(-409, "2026-04-06", 70, [ -11, -12, -13 ], "週の前半に長めの練習を実施。"),
+        buildPreviewLog(-403, "2026-04-07", 44, [ -11, -12 ], "ハミング中心で当たりを整える。"),
+        buildPreviewLog(-404, "2026-04-10", 29, [ -13 ], "地声の支えを確認。"),
+        buildPreviewLog(-410, "2026-04-13", 70, [ -11, -12, -13 ], "録音と聞き返しをセットで実施。"),
+        buildPreviewLog(-405, "2026-04-14", 53, [ -11, -13 ], "音域を広げるより安定を優先。"),
+        buildPreviewLog(-406, "2026-04-19", 68, [ -12, -13 ], "テンポを上げても崩れないか確認。"),
+        buildPreviewLog(-411, "2026-04-20", 70, [ -11, -12, -13 ], "週1回の長めメニューを継続。"),
+        buildPreviewLog(-407, "2026-04-23", 21, [ -11 ], "短時間で確認のみ。"),
+        buildPreviewLog(-412, "2026-04-27", 70, [ -11, -12, -13 ], "月末前に全体をまとめて確認。"),
+        buildPreviewLog(-408, "2026-04-28", 47, [ -11, -12, -13 ], "月末のまとめとして全体を実施。"),
+      ],
+    };
+    const daily_logs = previewLogsByMonth[selectedMonth] ?? [];
+    const menuCountsMap = new Map<number, { menu_id: number; name: string; color: string | null; count: number }>();
+    let totalDuration = 0;
+    let totalMenuCount = 0;
+
+    for (const logItem of daily_logs) {
+      totalDuration += logItem.duration_min ?? 0;
+      totalMenuCount += logItem.menus?.length ?? 0;
+      for (const menu of logItem.menus ?? []) {
+        const current = menuCountsMap.get(menu.id);
+        if (current) {
+          current.count += 1;
+        } else {
+          menuCountsMap.set(menu.id, {
+            menu_id: menu.id,
+            name: menu.name,
+            color: menu.color ?? null,
+            count: 1,
+          });
+        }
+      }
+    }
+
+    return {
+      month: selectedMonth,
+      month_start: monthDates[0] ?? `${selectedMonth}-01`,
+      month_end: monthDates[monthDates.length - 1] ?? `${selectedMonth}-28`,
+      notes: null,
+      summary: {
+        total_duration_min: totalDuration,
+        total_menu_count: totalMenuCount,
+        menu_counts: Array.from(menuCountsMap.values()).sort((a, b) => b.count - a.count),
+      },
+      daily_logs,
+    };
+  }, [guestMode, monthDates, selectedMonth]);
 
   const effectiveLog = guestMode ? previewLog : log;
   const effectiveLatestMeasurements = guestMode ? previewMeasurements : latestMeasurements;
   const effectiveAiRec = guestMode ? previewAiRec : aiRec;
+  const effectiveMonthData = guestMode ? previewMonthData : monthData;
   const showAiLauncher = isDayMode;
 
   const menuItems = effectiveLog?.menus ?? [];
@@ -1267,15 +1365,15 @@ export default function LogPage() {
   const emptyHint = isToday
     ? "最初は1項目だけでもOKです。入力した分だけ反映されます。"
     : "この日付で入力すると、今日の結果と同じ形式で表示されます。";
-  const monthTotalDuration = monthData?.summary.total_duration_min ?? 0;
+  const monthTotalDuration = effectiveMonthData?.summary.total_duration_min ?? 0;
   const monthTotalDurationHourText = minutesToHoursText(monthTotalDuration);
-  const monthTotalMenuCount = monthData?.summary.total_menu_count ?? 0;
-  const monthMenuCounts = monthData?.summary.menu_counts ?? [];
-  const monthPracticeDays = monthData?.daily_logs?.length ?? 0;
+  const monthTotalMenuCount = effectiveMonthData?.summary.total_menu_count ?? 0;
+  const monthMenuCounts = effectiveMonthData?.summary.menu_counts ?? [];
+  const monthPracticeDays = effectiveMonthData?.daily_logs?.length ?? 0;
   const topMonthMenus = monthMenuCounts.slice(0, 3);
   const calendarActivityByDate = useMemo(() => {
     const entries = new Map<string, { level: "none" | "light" | "active"; dots: number }>();
-    for (const logItem of monthData?.daily_logs ?? []) {
+    for (const logItem of effectiveMonthData?.daily_logs ?? []) {
       const duration = logItem.duration_min ?? 0;
       const menuCount = logItem.menus?.length ?? 0;
       const dots = duration >= 60 ? 3 : duration >= 30 ? 2 : duration > 0 ? 1 : 0;
@@ -1283,7 +1381,7 @@ export default function LogPage() {
       entries.set(logItem.practiced_on, { level, dots });
     }
     return entries;
-  }, [monthData?.daily_logs]);
+  }, [effectiveMonthData?.daily_logs]);
   const comparisonDiagnosis = useMemo(
     () => (monthComparisonData ? buildComparisonDiagnosis(monthComparisonData) : null),
     [monthComparisonData]
@@ -2422,51 +2520,6 @@ export default function LogPage() {
           navigate("/premium");
         }}
       />
-
-      {guestMode && isDayMode && (
-        <>
-          <section className="card logPage__guestHero">
-            <div className="logPage__guestHeroTitle">声の状態を記録すると、今日の練習がすぐ決まる</div>
-            <div className="logPage__guestHeroText">まずはサンプルで使い方を30秒で確認できます</div>
-            <div className="logPage__guestHeroActions">
-              <button className="logPage__btn logPage__btn--subtle uiButton uiButton--secondary" onClick={scrollToGuestPreview}>
-                サンプルを見る
-              </button>
-              <button className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary" onClick={goLogin}>
-                ログインして始める
-              </button>
-            </div>
-          </section>
-
-          <section id="guest-preview" className="card logPage__guestPreview">
-            <div className="logPage__guestPreviewTitle">サンプルデータ表示中（保存されません）</div>
-            <div className="logPage__guestPreviewGrid">
-              <article className="logPage__guestPreviewCard">
-                <div className="logPage__guestPreviewCardTitle">月ごとの積み上げが見える</div>
-                <div className="logPage__guestPreviewCardValue">合計 420 分 / 37 回</div>
-                <div className="logPage__guestPreviewCardText">今月の日ログ・実施数・合計時間を確認</div>
-              </article>
-
-              <article className="logPage__guestPreviewCard">
-                <div className="logPage__guestPreviewCardTitle">継続状況が一目で分かる</div>
-                <div className="logPage__guestPreviewCardValue">現在 3 日 / 最長 11 日</div>
-                <div className="logPage__guestPreviewCardText">現在連続日数 / 最長記録</div>
-              </article>
-
-              <article className="logPage__guestPreviewCard">
-                <div className="logPage__guestPreviewCardTitle">次にやることが決まる</div>
-                <div className="logPage__guestPreviewCardValue">今週のおすすめ</div>
-                <div className="logPage__guestPreviewCardText">目標と記録からAIが提案</div>
-              </article>
-            </div>
-
-            <div className="logPage__guestReCtaText">ここまでの流れをあなたのデータで始める</div>
-            <button className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary" onClick={goLogin}>
-              ログインして始める
-            </button>
-          </section>
-        </>
-      )}
 
       <div className="logPage__stack">
         {isDayMode ? (

@@ -462,6 +462,17 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
   const goLogin = () => {
     navigate("/login", { state: { fromPath: embedded ? "/log" : "/training" } });
   };
+  const onPressRecordButton = () => {
+    if (guestMode) {
+      goLogin();
+      return;
+    }
+    if (measurementRecording && activeMeasurementKey !== "range") {
+      void stopMeasurementRecording(true);
+      return;
+    }
+    void startMeasurementRecording();
+  };
 
   useEffect(() => {
     if (!me) {
@@ -2028,22 +2039,6 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
         : null}
       {!embedded && <div className="trainingPage__bg" aria-hidden="true" />}
 
-      {!embedded && guestMode && (
-        <section className="card trainingPage__aiIntroCard">
-          <div className="trainingPage__aiIntroTitle">録音測定</div>
-          <div className="trainingPage__aiIntroText">
-            録音した音声から、音域・ロングトーン・音量安定性を測定します。
-            結果をもとに、成長の推移を確認できます。
-          </div>
-          <div className="trainingPage__aiIntroExample">
-            例: 音域 2.1 octave / ロングトーン 18.4 秒 / 音量安定スコア 82.3 点 / 音程精度 76.4 点
-          </div>
-          <button className="trainingPage__aiIntroBtn" onClick={goLogin}>
-            ログインして測定機能を使う
-          </button>
-        </section>
-      )}
-
       {embedded ? (
         <div className="trainingPage__embeddedStack">
           <div className="trainingPage__measureSection trainingPage__measureSection--embedded">
@@ -2058,7 +2053,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                       <div className="trainingPage__eyebrow">MEASURE</div>
                     </div>
                   </div>
-                  {!guestMode && !isMdUp && mobileStep === "execute" && (
+                  {!isMdUp && mobileStep === "execute" && (
                     <button
                       type="button"
                       className="trainingPage__measurementBackBtn"
@@ -2069,11 +2064,6 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                   )}
                 </div>
 
-                {guestMode ? (
-                  <div className="trainingPage__measurementGuest">
-                    ログインすると、固定の測定メニューで録音測定を継続利用できます。
-                  </div>
-                ) : (
                   <>
                     <div className={`trainingPage__measurementLayout${isMdUp ? " is-desktop" : ""}`}>
                       {showSelectPane && (
@@ -2181,14 +2171,11 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                               transport={
                                 embedded ? (
                                   <button
-                                    type="button"
-                                    className={`trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary trainingPage__playerPrimary--solo uiButton ${
-                                      measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
-                                    }`}
-                                    onClick={() => {
-                                      if (measurementRecording && activeMeasurementKey !== "range") void stopMeasurementRecording(true);
-                                      else void startMeasurementRecording();
-                                    }}
+                                  type="button"
+                                  className={`trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary trainingPage__playerPrimary--solo uiButton ${
+                                    measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
+                                  }`}
+                                    onClick={onPressRecordButton}
                                     disabled={recordButtonDisabled}
                                   >
                                     {!measurementRecording && (
@@ -2214,10 +2201,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                                       className={`trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary trainingPage__playerPrimary--solo uiButton ${
                                         measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
                                       }`}
-                                      onClick={() => {
-                                        if (measurementRecording && activeMeasurementKey !== "range") void stopMeasurementRecording(true);
-                                        else void startMeasurementRecording();
-                                      }}
+                                      onClick={onPressRecordButton}
                                       disabled={recordButtonDisabled}
                                     >
                                       {!measurementRecording && (
@@ -2324,10 +2308,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                                 className={`trainingPage__saveBtn trainingPage__mobileRecordBtn uiButton ${
                                   measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
                                 }`}
-                                onClick={() => {
-                                  if (measurementRecording && activeMeasurementKey !== "range") void stopMeasurementRecording(true);
-                                  else void startMeasurementRecording();
-                                }}
+                                onClick={onPressRecordButton}
                                 disabled={recordButtonDisabled}
                               >
                                 {playerRecordLabel}
@@ -2388,7 +2369,6 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                       </div>
                     )}
                   </>
-                )}
               </section>
             </div>
           </div>
@@ -2546,7 +2526,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                   <div className="trainingPage__eyebrow">MEASURE</div>
                 </div>
               </div>
-              {!guestMode && !isMdUp && mobileStep === "execute" && (
+              {!isMdUp && mobileStep === "execute" && (
                 <button
                   type="button"
                   className="trainingPage__measurementBackBtn"
@@ -2557,11 +2537,6 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
               )}
             </div>
 
-            {guestMode ? (
-              <div className="trainingPage__measurementGuest">
-                ログインすると、固定の測定メニューで録音測定を継続利用できます。
-              </div>
-            ) : (
               <>
                 <div className={`trainingPage__measurementLayout${isMdUp ? " is-desktop" : ""}`}>
                   {showSelectPane && (
@@ -2678,16 +2653,13 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                                 <StepArrowIcon direction="left" />
                               </button>
                               <button
-                                type="button"
-                                className={`trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary uiButton ${
-                                  measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
-                                }`}
-                                onClick={() => {
-                                  if (measurementRecording && activeMeasurementKey !== "range") void stopMeasurementRecording(true);
-                                  else void startMeasurementRecording();
-                                }}
-                                disabled={recordButtonDisabled}
-                              >
+                              type="button"
+                              className={`trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary uiButton ${
+                                measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
+                              }`}
+                              onClick={onPressRecordButton}
+                              disabled={recordButtonDisabled}
+                            >
                                 {!measurementRecording && (
                                   <span className="trainingPage__recordButtonIcon" aria-hidden="true">
                                     <RecordMicIcon />
@@ -2786,18 +2758,15 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
 
                       {!isMdUp && (
                         <div className="trainingPage__mobileRecordDock" role="presentation">
-                          <button
-                            type="button"
-                            className={`trainingPage__saveBtn trainingPage__mobileRecordBtn uiButton ${
-                              measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
-                            }`}
-                            onClick={() => {
-                              if (measurementRecording && activeMeasurementKey !== "range") void stopMeasurementRecording(true);
-                              else void startMeasurementRecording();
-                            }}
-                            disabled={recordButtonDisabled}
-                          >
-                            {playerRecordLabel}
+                        <button
+                          type="button"
+                          className={`trainingPage__saveBtn trainingPage__mobileRecordBtn uiButton ${
+                            measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
+                          }`}
+                          onClick={onPressRecordButton}
+                          disabled={recordButtonDisabled}
+                        >
+                          {playerRecordLabel}
                           </button>
                         </div>
                       )}
@@ -2855,7 +2824,6 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                   </div>
                 )}
               </>
-            )}
           </section>
         </div>
       </div>

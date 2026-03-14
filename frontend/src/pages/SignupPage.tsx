@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import AuthHeader from "../components/AuthHeader";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 import { fetchMe } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
@@ -86,23 +87,28 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="authPage">
+    <div className="authPage authPage--signup">
       <div className="authPage__bg" aria-hidden="true" />
+      <AuthHeader />
 
       <div className="authPage__shell">
-        <section className="card authPage__hero">
-          <div className="authPage__kicker">Get Started</div>
-          <h1 className="authPage__title">新規登録</h1>
-          <p className="authPage__sub">最初のアカウントを作成して、練習ログを積み上げましょう。</p>
-          <div className="authPage__chips">
-            <div className="authPage__chip">無料ではじめる</div>
-            <div className="authPage__chip">継続を見える化</div>
-            <div className="authPage__chip">AIおすすめ</div>
-          </div>
+        <section className="authPage__hero">
+          <div className="authPage__brand">Koelogs</div>
         </section>
 
-        <section className="card authPage__card">
+        <section className="authPage__card">
+          <div className="authPage__cardHeader">
+            <h1 className="authPage__cardTitle">新規登録</h1>
+            <p className="authPage__cardSub">アカウントを作成して記録を始めましょう。</p>
+          </div>
+
           <form onSubmit={onSubmit} className="authPage__form">
+            <GoogleSignInButton
+              text="signup_with"
+              onCredential={onGoogleCredential}
+              disabled={submitting}
+            />
+
             <div className="authPage__field">
               <label className="authPage__label">Email</label>
               <input
@@ -142,27 +148,12 @@ export default function SignupPage() {
               {submitting ? "登録中..." : "新規登録"}
             </button>
 
-            <GoogleSignInButton
-              text="signup_with"
-              onCredential={onGoogleCredential}
-              disabled={submitting}
-            />
-
             <p className="authPage__support">メール登録では確認メールを送信します。Google を使う場合はそのままログインできます。</p>
           </form>
 
           <div className="authPage__link">
-            既にアカウントがある？ <Link to="/login">ログイン</Link>
+            登録済みの方はこちら → <Link to="/login">ログイン</Link>
           </div>
-        </section>
-
-        <section className="card authPage__valueCard">
-          <div className="authPage__valueTitle">最初の一歩</div>
-          <ul className="authPage__valueList">
-            <li>アカウント作成後に目標を1つ設定</li>
-            <li>今日の練習ログを1件追加</li>
-            <li>分析ページで進捗を確認</li>
-          </ul>
         </section>
       </div>
     </div>

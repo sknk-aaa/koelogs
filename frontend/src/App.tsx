@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
 import RequireAuth from "./features/auth/RequireAuth";
-import RequireBeginnerMissionsCompleted from "./features/missions/RequireBeginnerMissionsCompleted";
 import AppLayout from "./components/AppLayout";
 
 import LogPage from "./pages/LogPage";
@@ -56,6 +55,7 @@ export default function App() {
             <Route path="/community/topics/:topicId" element={<CommunityTopicDetailPage />} />
             <Route path="/community/rankings" element={<CommunityRankingPage />} />
             <Route path="/community/profile/:userId" element={<CommunityProfilePage />} />
+            <Route path="/chat" element={<AiChatPage />} />
             <Route path="/premium" element={<PremiumPlanPage />} />
 
             {/* 認証が必要なページ */}
@@ -66,9 +66,6 @@ export default function App() {
               <Route path="/plan" element={<PlanPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/mypage" element={<MyPage />} />
-              <Route element={<RequireBeginnerMissionsCompleted />}>
-                <Route path="/chat" element={<AiChatPage />} />
-              </Route>
             </Route>
 
             {/* ヘルプはログイン不要 */}

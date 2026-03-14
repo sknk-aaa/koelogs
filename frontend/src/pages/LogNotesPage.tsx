@@ -102,7 +102,32 @@ function renderMetricTabIcon(kind: MetricTabKey): React.ReactNode {
   );
 }
 
-const GUEST_RANGE_RUNS: MeasurementRun[] = [
+function formatGuestIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function createGuestDateRange(start: string, end: string): string[] {
+  const startDate = new Date(`${start}T00:00:00+09:00`);
+  const endDate = new Date(`${end}T00:00:00+09:00`);
+  const dates: string[] = [];
+  const current = new Date(startDate);
+  while (current <= endDate) {
+    dates.push(formatGuestIsoDate(current));
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
+}
+
+function guestRecordedAt(date: string): string {
+  return `${date}T08:00:00+09:00`;
+}
+
+const GUEST_DETAIL_MARCH_APRIL_DATES = createGuestDateRange("2026-03-01", "2026-04-30");
+
+const GUEST_RANGE_BASE_RUNS: MeasurementRun[] = [
   {
     id: -101,
     measurement_type: "range",
@@ -169,7 +194,37 @@ const GUEST_RANGE_RUNS: MeasurementRun[] = [
   },
 ];
 
-const GUEST_LONG_TONE_RUNS: MeasurementRun[] = [
+const GUEST_RANGE_RUNS: MeasurementRun[] = [
+  ...GUEST_RANGE_BASE_RUNS,
+  ...GUEST_DETAIL_MARCH_APRIL_DATES.filter(
+    (date) => !new Set(GUEST_RANGE_BASE_RUNS.map((run) => run.recorded_at.slice(0, 10))).has(date)
+  ).map((date, index) => {
+    const semitones = 41 + Math.min(6, Math.floor(index / 10)) + (index % 3);
+    const highestNotes = [ "F5", "F#5", "G5", "G#5", "A5" ] as const;
+    const lowestNotes = [ "C2", "B1", "C#2", "C2", "A#1" ] as const;
+    const chestNotes = [ "G4", "G#4", "A4", "A#4", "B4" ] as const;
+    const highest = highestNotes[index % highestNotes.length];
+    const lowest = lowestNotes[index % lowestNotes.length];
+    const chest = chestNotes[index % chestNotes.length];
+    return {
+      id: -1000 - index,
+      measurement_type: "range",
+      include_in_insights: true,
+      recorded_at: guestRecordedAt(date),
+      created_at: guestRecordedAt(date),
+      result: {
+        lowest_note: lowest,
+        highest_note: highest,
+        chest_top_note: chest,
+        falsetto_top_note: highest,
+        range_semitones: semitones,
+        range_octaves: Number((semitones / 12).toFixed(2)),
+      },
+    } satisfies MeasurementRun;
+  }),
+];
+
+const GUEST_LONG_TONE_BASE_RUNS: MeasurementRun[] = [
   {
     id: -209,
     measurement_type: "long_tone",
@@ -252,7 +307,26 @@ const GUEST_LONG_TONE_RUNS: MeasurementRun[] = [
   },
 ];
 
-const GUEST_VOLUME_RUNS: MeasurementRun[] = [
+const GUEST_LONG_TONE_RUNS: MeasurementRun[] = [
+  ...GUEST_LONG_TONE_BASE_RUNS,
+  ...GUEST_DETAIL_MARCH_APRIL_DATES.map((date, index) => {
+    const sustain = 11.2 + Math.min(4.8, index * 0.08) + [ 0, 0.4, -0.2, 0.6 ][index % 4];
+    const notes = [ "A3", "A#3", "B3", "C4" ] as const;
+    return {
+      id: -2000 - index,
+      measurement_type: "long_tone",
+      include_in_insights: true,
+      recorded_at: guestRecordedAt(date),
+      created_at: guestRecordedAt(date),
+      result: {
+        sustain_sec: Number(sustain.toFixed(1)),
+        sustain_note: notes[index % notes.length],
+      },
+    } satisfies MeasurementRun;
+  }),
+];
+
+const GUEST_VOLUME_BASE_RUNS: MeasurementRun[] = [
   {
     id: -309,
     measurement_type: "volume_stability",
@@ -405,7 +479,33 @@ const GUEST_VOLUME_RUNS: MeasurementRun[] = [
   },
 ];
 
-const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
+const GUEST_VOLUME_RUNS: MeasurementRun[] = [
+  ...GUEST_VOLUME_BASE_RUNS,
+  ...GUEST_DETAIL_MARCH_APRIL_DATES.map((date, index) => {
+    const avg = -68.6 + (index % 5) * 0.22 - Math.min(1.8, index * 0.03);
+    const rangeDb = Math.max(8.8, 13.4 - index * 0.05 + [ 0.4, -0.2, 0.1 ][index % 3]);
+    const min = avg - rangeDb * 0.55;
+    const max = avg + rangeDb * 0.45;
+    const pct = Math.min(91.5, 79.8 + index * 0.18 + [ 0, 0.8, -0.5, 0.4 ][index % 4]);
+    return {
+      id: -3000 - index,
+      measurement_type: "volume_stability",
+      include_in_insights: true,
+      recorded_at: guestRecordedAt(date),
+      created_at: guestRecordedAt(date),
+      result: {
+        avg_loudness_db: Number(avg.toFixed(1)),
+        min_loudness_db: Number(min.toFixed(1)),
+        max_loudness_db: Number(max.toFixed(1)),
+        loudness_range_db: Number(rangeDb.toFixed(1)),
+        loudness_range_ratio: Number((rangeDb / Math.abs(avg)).toFixed(3)),
+        loudness_range_pct: Number(pct.toFixed(1)),
+      },
+    } satisfies MeasurementRun;
+  }),
+];
+
+const GUEST_PITCH_ACCURACY_BASE_RUNS: MeasurementRun[] = [
   {
     id: -409,
     measurement_type: "pitch_accuracy",
@@ -526,6 +626,27 @@ const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
       note_count: 96,
     },
   },
+];
+
+const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
+  ...GUEST_PITCH_ACCURACY_BASE_RUNS,
+  ...GUEST_DETAIL_MARCH_APRIL_DATES.map((date, index) => {
+    const avgCents = Math.max(11.8, 22.8 - index * 0.12 + [ 0.8, -0.4, 0.2 ][index % 3]);
+    const accuracy = Math.min(88.8, 77.2 + index * 0.16 + [ 0.6, -0.3, 0.2, 0.1 ][index % 4]);
+    const noteCount = 96 + (index % 7) * 2;
+    return {
+      id: -4000 - index,
+      measurement_type: "pitch_accuracy",
+      include_in_insights: true,
+      recorded_at: guestRecordedAt(date),
+      created_at: guestRecordedAt(date),
+      result: {
+        avg_cents_error: Number(avgCents.toFixed(1)),
+        accuracy_score: Number(accuracy.toFixed(1)),
+        note_count: noteCount,
+      },
+    } satisfies MeasurementRun;
+  }),
 ];
 
 export function InsightsNotesView({ embedded = false, initialMetric, onMetricChange }: InsightsNotesViewProps) {

@@ -132,6 +132,51 @@ function recommendationThreadTitle(date: string): string {
   return `${date} 週のおすすめに質問`;
 }
 
+const GUEST_RECOMMENDATION_THREAD_ID = -1;
+const GUEST_NEW_THREAD_ID = -2;
+const GUEST_RECOMMENDATION_THREAD: AiChatThread = {
+  id: GUEST_RECOMMENDATION_THREAD_ID,
+  project_id: null,
+  project_name: null,
+  title: "2026-03-09 週のおすすめに質問",
+  model_name: "Gemini 2.5 Flash",
+  system_prompt_version: "guest-sample",
+  user_prompt_version: "guest-sample",
+  source_kind: "ai_recommendation",
+  source_date: "2026-03-09",
+  last_message_at: "2026-03-11T01:21:22+09:00",
+  created_at: "2026-03-11T01:21:22+09:00",
+};
+
+const GUEST_NEW_THREAD: AiChatThread = {
+  id: GUEST_NEW_THREAD_ID,
+  project_id: null,
+  project_name: null,
+  title: "新しい会話",
+  model_name: "Gemini 2.5 Flash",
+  system_prompt_version: "guest-sample",
+  user_prompt_version: "guest-sample",
+  source_kind: null,
+  source_date: null,
+  last_message_at: "2026-03-11T01:21:22+09:00",
+  created_at: "2026-03-11T01:21:22+09:00",
+};
+
+const GUEST_THREADS: AiChatThread[] = [GUEST_NEW_THREAD, GUEST_RECOMMENDATION_THREAD];
+
+const GUEST_THREAD_MESSAGES: Record<number, AiChatMessage[]> = {
+  [GUEST_RECOMMENDATION_THREAD_ID]: [
+    {
+      id: -1001,
+      role: "assistant",
+      created_at: "2026-03-11T01:21:22+09:00",
+      content:
+        "1) 今週のテーマ\n今週のテーマは、user012さんが設定してくださった通り、ミドルボイス（D4~G4あたり）の地声感を強くすることです！✨\n\n2) テーマに関しての現状\n今週テーマ「ミドルボイス（D4~G4あたり）の地声感を強くする」に対して、現在の状態と今週の狙いを整理します。\nuser012さんは、ミドルボイスの安定に課題を感じつつも、着実に成長されていますね！ 特に、以前の練習でハミングを各スケールで行った時に「ミドルが楽に出せるようになった」という素晴らしい体験がありましたね😊 これは、ミドルボイスの感覚を掴む上で、とっても大切なヒントになりますよ。 また、最近のログでは「ミックス寄りの響きを確認」できた日もあって、地声と裏声のつながりが少しずつ良くなってきているのがわかります。 今週は、この良い流れをさらに活かして、D4〜G4あたりのミドルボイスで、もっと地声のようなしっかりとした響きを感じられるように、練習していきましょうね！ 無理なく、喉に負担をかけないように進めるのがポイントです👍\n3) 今週のおすすめメニュー\nハミング\nやり方: 喚声点付近（F4あたり）で、喉の奥を広げるように意識しながら、優しく「んー」と発声してみましょう。\n/ なぜ有効か: 喉に余計な力を入れずに、声帯を効率よく振動させ、ミドルボイスの響きを安定させるのに役立ちますよ。\n/ 失敗時: 詰まりや力みが出たら半音下げて再開\n根拠: コミュニティ2件\nコミュニティ原文: 「改善された点:ミドルの安定度、喉の力みを減らす 音域:喚声点付近 意識した点:喉を開く」\n地声強化（地声）\nやり方: D4〜G4あたりの音域で、お腹からしっかりと息を支えながら、力まずに「あー」と発声してみましょう。最初は短くても大丈夫です。\n/ なぜ有効か: 喉を締めずに、地声の響きをミドルボイスの帯域に持ち込む感覚を養うことができます。\n/ 失敗時: 詰まりや力みが出たら半音下げて再開\n根拠: コミュニティ1件\nリップロール（裏声）\nやり方: F#4付近の喚声点あたりで、裏声を出すつもりで唇を震わせながら「ブーーーー」と発声してみましょう。\n/ なぜ有効か: 喉の力みを抑えつつ、地声と裏声の切り替わりをスムーズにし、特にミドルボイスでのつながりを自然にする効果がありますよ。\n根拠: コミュニティ4件\nコミュニティ原文: 「F#4付近でやると、喚声点でのつながりがきれいになる。」",
+    },
+  ],
+  [GUEST_NEW_THREAD_ID]: [],
+};
+
 function isWeeklyRecommendationSourceDate(value: string | null | undefined): boolean {
   const d = normalizeLocalDate(value);
   if (!d) return false;
@@ -283,7 +328,8 @@ function renderChatMessageText(text: string, role: "user" | "assistant") {
 export default function AiChatPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { me } = useAuth();
+  const { me, isLoading: authLoading } = useAuth();
+  const guestMode = !authLoading && !me;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -318,6 +364,9 @@ export default function AiChatPage() {
   const recommendationBootingRef = useRef(false);
   const initialLoadStartedRef = useRef(false);
   const isPremium = me?.plan_tier === "premium";
+  const goLogin = () => {
+    navigate("/login", { state: { fromPath: "/chat" } });
+  };
   const sanitizeThreads = (rows: AiChatThread[]): AiChatThread[] =>
     rows.filter(
       (thread) => thread.source_kind !== "ai_recommendation" || isWeeklyRecommendationSourceDate(thread.source_date)
@@ -452,6 +501,18 @@ export default function AiChatPage() {
   };
 
   const loadThreads = async (targetActiveId?: number | null) => {
+    if (guestMode) {
+      const nextActiveId =
+        targetActiveId ??
+        (targetActiveId === null ? null : activeThreadId) ??
+        GUEST_RECOMMENDATION_THREAD_ID;
+      const nextThread = GUEST_THREADS.find((thread) => thread.id === nextActiveId) ?? null;
+      setThreads(GUEST_THREADS);
+      setActiveThreadId(nextThread?.id ?? null);
+      setActiveThread(nextThread);
+      setMessages(nextThread ? [ ...(GUEST_THREAD_MESSAGES[nextThread.id] ?? []) ] : []);
+      return;
+    }
     const threadRes = await fetchAiChatThreads();
     if (!threadRes.ok) {
       setError(threadRes.errors.join("\n"));
@@ -478,6 +539,15 @@ export default function AiChatPage() {
   };
 
   const hydrateThread = async (threadId: number): Promise<boolean> => {
+    if (guestMode) {
+      const thread = GUEST_THREADS.find((item) => item.id === threadId) ?? null;
+      if (!thread) return false;
+      setActiveThreadId(threadId);
+      setActiveThread(thread);
+      setMessages([ ...(GUEST_THREAD_MESSAGES[threadId] ?? []) ]);
+      setThreadLoading(false);
+      return true;
+    }
     const detailRes = await fetchAiChatThread(threadId);
     if (!detailRes.ok) {
       setError(detailRes.errors.join("\n"));
@@ -491,8 +561,18 @@ export default function AiChatPage() {
   };
 
   const loadInitial = async () => {
+    if (authLoading) return;
     setLoading(true);
     setError(null);
+
+    if (guestMode) {
+      setThreads(GUEST_THREADS);
+      setActiveThreadId(GUEST_RECOMMENDATION_THREAD_ID);
+      setActiveThread(GUEST_RECOMMENDATION_THREAD);
+      setMessages([ ...(GUEST_THREAD_MESSAGES[GUEST_RECOMMENDATION_THREAD_ID] ?? []) ]);
+      setLoading(false);
+      return;
+    }
 
     const threadRes = await fetchAiChatThreads();
 
@@ -559,12 +639,13 @@ export default function AiChatPage() {
   };
 
   useEffect(() => {
+    if (authLoading) return () => clearTypingTimer();
     if (initialLoadStartedRef.current) return () => clearTypingTimer();
     initialLoadStartedRef.current = true;
     void loadInitial();
     return () => clearTypingTimer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authLoading]);
 
   useEffect(() => {
     setRecoVisibleCount(INITIAL_RECO_VISIBLE);
@@ -669,6 +750,15 @@ export default function AiChatPage() {
   }, []);
 
   useEffect(() => {
+    if (guestMode) {
+      const thread = GUEST_THREADS.find((item) => item.id === activeThreadId) ?? null;
+      setActiveThread(thread);
+      setMessages(thread ? [ ...(GUEST_THREAD_MESSAGES[thread.id] ?? []) ] : []);
+      setThreadLoading(false);
+      setRecommendationLimitReached(false);
+      setShowJumpToLatest(false);
+      return;
+    }
     if (!activeThreadId) {
       setActiveThread(null);
       setMessages([]);
@@ -697,7 +787,7 @@ export default function AiChatPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeThreadId]);
+  }, [activeThreadId, guestMode]);
 
   useEffect(() => {
     if (!isRecommendationThread || isPremium) {
@@ -737,6 +827,12 @@ export default function AiChatPage() {
   }, [draft, activeThreadId]);
 
   const onCreateThread = async () => {
+    if (guestMode) {
+      setActiveThreadId(GUEST_NEW_THREAD_ID);
+      setSideOpen(false);
+      setThreadMenuOpenId(null);
+      return;
+    }
     if (!isPremium) {
       openPremiumModal();
       return;
@@ -755,6 +851,10 @@ export default function AiChatPage() {
   };
 
   const onRenameThread = async (thread: AiChatThread) => {
+    if (guestMode) {
+      goLogin();
+      return;
+    }
     const nextTitle = window.prompt("新しいチャット名", thread.title)?.trim();
     if (!nextTitle || nextTitle === thread.title) return;
     const res = await updateAiChatThread(thread.id, { title: nextTitle });
@@ -768,6 +868,10 @@ export default function AiChatPage() {
   };
 
   const onDeleteThread = async (thread: AiChatThread) => {
+    if (guestMode) {
+      goLogin();
+      return;
+    }
     if (!window.confirm(`チャット「${thread.title}」を削除します。よろしいですか？`)) return;
     const res = await deleteAiChatThread(thread.id);
     if (!res.ok) {
@@ -792,6 +896,10 @@ export default function AiChatPage() {
     rawText: string,
     options?: { restoreDraftOnError?: boolean }
   ) => {
+    if (guestMode) {
+      goLogin();
+      return;
+    }
     if (sending) return;
     const text = rawText.trim();
     if (!text) return;
@@ -849,6 +957,10 @@ export default function AiChatPage() {
   };
 
   const sendCurrentDraft = async () => {
+    if (guestMode) {
+      goLogin();
+      return;
+    }
     if (!activeThreadId || sending || isRecommendationFollowupLocked) return;
     await sendMessageToThread(activeThreadId, draft, { restoreDraftOnError: true });
   };
@@ -1006,28 +1118,32 @@ export default function AiChatPage() {
                         <div className="aiChatPage__threadTitle">{thread.title}</div>
                       </button>
 
-                      <button
-                        type="button"
-                        className="aiChatPage__threadMenuBtn"
-                        aria-label="チャット操作"
-                        onClick={() => setThreadMenuOpenId((prev) => (prev === thread.id ? null : thread.id))}
-                      >
-                        <span className="aiChatPage__threadMenuDots" aria-hidden="true">
-                          <span />
-                          <span />
-                          <span />
-                        </span>
-                      </button>
+                      {!guestMode && (
+                        <>
+                          <button
+                            type="button"
+                            className="aiChatPage__threadMenuBtn"
+                            aria-label="チャット操作"
+                            onClick={() => setThreadMenuOpenId((prev) => (prev === thread.id ? null : thread.id))}
+                          >
+                            <span className="aiChatPage__threadMenuDots" aria-hidden="true">
+                              <span />
+                              <span />
+                              <span />
+                            </span>
+                          </button>
 
-                      {threadMenuOpenId === thread.id && (
-                        <div className="aiChatPage__threadMenu" role="menu" aria-label="チャット操作メニュー">
-                          <button type="button" className="aiChatPage__threadMenuItem" onClick={() => void onRenameThread(thread)}>
-                            名前編集
-                          </button>
-                          <button type="button" className="aiChatPage__threadMenuItem is-danger" onClick={() => void onDeleteThread(thread)}>
-                            削除
-                          </button>
-                        </div>
+                          {threadMenuOpenId === thread.id && (
+                            <div className="aiChatPage__threadMenu" role="menu" aria-label="チャット操作メニュー">
+                              <button type="button" className="aiChatPage__threadMenuItem" onClick={() => void onRenameThread(thread)}>
+                                名前編集
+                              </button>
+                              <button type="button" className="aiChatPage__threadMenuItem is-danger" onClick={() => void onDeleteThread(thread)}>
+                                削除
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </article>
                   ))
@@ -1060,28 +1176,32 @@ export default function AiChatPage() {
                               {thread.source_date && <div className="aiChatPage__recoMeta">{thread.source_date}</div>}
                             </button>
 
-                            <button
-                              type="button"
-                              className="aiChatPage__threadMenuBtn"
-                              aria-label="チャット操作"
-                              onClick={() => setThreadMenuOpenId((prev) => (prev === thread.id ? null : thread.id))}
-                            >
-                              <span className="aiChatPage__threadMenuDots" aria-hidden="true">
-                                <span />
-                                <span />
-                                <span />
-                              </span>
-                            </button>
+                            {!guestMode && (
+                              <>
+                                <button
+                                  type="button"
+                                  className="aiChatPage__threadMenuBtn"
+                                  aria-label="チャット操作"
+                                  onClick={() => setThreadMenuOpenId((prev) => (prev === thread.id ? null : thread.id))}
+                                >
+                                  <span className="aiChatPage__threadMenuDots" aria-hidden="true">
+                                    <span />
+                                    <span />
+                                    <span />
+                                  </span>
+                                </button>
 
-                            {threadMenuOpenId === thread.id && (
-                              <div className="aiChatPage__threadMenu" role="menu" aria-label="チャット操作メニュー">
-                                <button type="button" className="aiChatPage__threadMenuItem" onClick={() => void onRenameThread(thread)}>
-                                  名前編集
-                                </button>
-                                <button type="button" className="aiChatPage__threadMenuItem is-danger" onClick={() => void onDeleteThread(thread)}>
-                                  削除
-                                </button>
-                              </div>
+                                {threadMenuOpenId === thread.id && (
+                                  <div className="aiChatPage__threadMenu" role="menu" aria-label="チャット操作メニュー">
+                                    <button type="button" className="aiChatPage__threadMenuItem" onClick={() => void onRenameThread(thread)}>
+                                      名前編集
+                                    </button>
+                                    <button type="button" className="aiChatPage__threadMenuItem is-danger" onClick={() => void onDeleteThread(thread)}>
+                                      削除
+                                    </button>
+                                  </div>
+                                )}
+                              </>
                             )}
                           </article>
                         ))}

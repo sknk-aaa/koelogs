@@ -128,11 +128,11 @@ body:has(.page.logPage) {
 }
 
 .logPage__calendarSpacer {
-  min-height: 52px;
+  min-height: 46px;
 }
 
 .logPage__calendarDay {
-  min-height: 52px;
+  min-height: 46px;
   border: 1px solid #dbe4ed;
   border-radius: 10px;
   background: #fff;
@@ -140,8 +140,8 @@ body:has(.page.logPage) {
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 2px;
-  padding: 6px 3px 5px;
+  gap: 1px;
+  padding: 4px 3px 4px;
   box-shadow: none;
   transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 }
@@ -529,6 +529,11 @@ body:has(.page.logPage) {
   gap: 0;
 }
 
+.logPage__sectionBlock--practicePanel,
+.logPage__contentSection--measurePanel .logPage__sectionBlock {
+  gap: 6px;
+}
+
 .logPage__sectionLabel {
   font-size: var(--ui-section-eyebrow-size);
   font-weight: 800;
@@ -540,6 +545,11 @@ body:has(.page.logPage) {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.logPage__sectionBlock--practicePanel .logPage__sectionLabelRow,
+.logPage__contentSection--measurePanel .logPage__sectionLabelRow {
+  padding-bottom: 2px;
 }
 
 .logPage__sectionLabelIcon {
@@ -1174,7 +1184,7 @@ body:has(.page.logPage) {
     margin-inline: auto;
     transform: translateX(-28px);
     display: grid;
-    grid-template-columns: 296px minmax(0, 1fr);
+    grid-template-columns: 320px minmax(0, 1fr);
     gap: 24px;
     align-items: start;
   }
@@ -1229,7 +1239,7 @@ body:has(.page.logPage) {
   }
 
   .logPage__dayBoard {
-    grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+    grid-template-columns: minmax(340px, 388px) minmax(0, 1fr);
     gap: 28px 28px;
     align-items: start;
   }
@@ -1293,6 +1303,11 @@ body:has(.page.logPage) {
     gap: 12px;
     padding-bottom: 14px;
     border-bottom: none;
+  }
+
+  .logPage__sectionBlock--practicePanel .logPage__sectionLabelRow,
+  .logPage__contentSection--measurePanel .logPage__sectionLabelRow {
+    padding-bottom: 6px;
   }
 
   .logPage__contentSection--outputPanel .logPage__sectionBlock {
@@ -1396,6 +1411,11 @@ body:has(.page.logPage) {
     border-radius: 14px;
     gap: 14px;
     background: #ffffff;
+  }
+
+  .logPage__contentSection--measurePanel .logPage__metricCard--range,
+  .logPage__contentSection--measurePanel .logPage__metricCard--pitch_accuracy {
+    align-self: stretch;
   }
 
   .logPage__contentSection--measurePanel .logPage__metricBody {
@@ -3420,79 +3440,6 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logPage__compareModalBody {
   display: grid;
   gap: 10px;
-}
-
-.logPage__guestHero {
-  margin-bottom: 12px;
-  display: grid;
-  gap: 10px;
-}
-
-.logPage__guestHeroTitle {
-  font-size: 18px;
-  font-weight: 950;
-  line-height: 1.4;
-}
-
-.logPage__guestHeroText {
-  font-size: 13px;
-  line-height: 1.6;
-  opacity: 0.78;
-}
-
-.logPage__guestHeroActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.logPage__guestPreview {
-  margin-bottom: 14px;
-  display: grid;
-  gap: 10px;
-}
-
-.logPage__guestPreviewTitle {
-  font-size: 13px;
-  font-weight: 950;
-}
-
-.logPage__guestPreviewGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.logPage__guestPreviewCard {
-  border-radius: 13px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 70%, var(--card));
-  padding: 10px;
-  display: grid;
-  gap: 6px;
-}
-
-.logPage__guestPreviewCardTitle {
-  font-size: 12px;
-  font-weight: 950;
-  opacity: 0.82;
-}
-
-.logPage__guestPreviewCardValue {
-  font-size: 14px;
-  font-weight: 950;
-}
-
-.logPage__guestPreviewCardText {
-  font-size: 12px;
-  line-height: 1.55;
-  opacity: 0.74;
-}
-
-.logPage__guestReCtaText {
-  font-size: 13px;
-  font-weight: 900;
-  opacity: 0.8;
 }
 
 .logPage__card {
@@ -7829,10 +7776,6 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 
   .logPage__headerRight .logPage__btn {
     width: 100%;
-  }
-
-  .logPage__guestPreviewGrid {
-    grid-template-columns: 1fr;
   }
 
 }

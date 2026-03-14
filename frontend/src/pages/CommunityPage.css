@@ -684,13 +684,16 @@ body:has(.page.communityPage) {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  text-decoration: none;
-  color: inherit;
 }
 
 .communityPage__cardUser.is-disabled {
   opacity: 0.75;
   pointer-events: none;
+}
+
+.communityPage__cardAvatarLink {
+  display: inline-flex;
+  border-radius: 50%;
 }
 
 .communityPage__cardAvatar {
@@ -702,6 +705,12 @@ body:has(.page.communityPage) {
 
 .communityPage__cardUserMeta {
   display: grid;
+}
+
+.communityPage__cardUserNameLink {
+  display: inline-flex;
+  text-decoration: none;
+  color: inherit;
 }
 
 .communityPage__cardUserName {
@@ -2180,6 +2189,29 @@ body:has(.page.communityPage) {
   background: color-mix(in srgb, var(--accent) 14%, var(--community-card));
   color: var(--community-text);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+:root[data-theme-mode="dark"] .communityPage__mainTab {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: color-mix(in srgb, var(--community-muted) 92%, var(--community-text));
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .communityPage__mainTab.is-active {
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.06));
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.16));
+  color: var(--community-text);
+}
+
+:root[data-theme-mode="dark"] .communityPage__postsTabs {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme-mode="dark"] .communityPage__filterLabel,
+:root[data-theme-mode="dark"] .communityPage__tagsLabel {
+  color: var(--community-muted);
 }
 
 /* 投稿カード本体（いま白固定） */

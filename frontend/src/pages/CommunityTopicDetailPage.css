@@ -280,3 +280,71 @@
     margin-left: 10px;
   }
 }
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage.page {
+  background: transparent;
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__back {
+  color: color-mix(in srgb, var(--accent) 74%, #dfefff);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__card,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__comments,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__empty {
+  background: #111a2b;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__category {
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.06));
+  color: #dce9ff;
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__date,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__commentCount,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__authorName span {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__title,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__sectionTitle,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__authorName,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__body,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__commentBody {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__likeBtn {
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.06));
+  color: #dce9ff;
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__likeBtn.is-on {
+  background: color-mix(in srgb, var(--accent) 52%, #101827);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__textarea {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__commentCard,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__replyCard {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__replyBtn {
+  color: color-mix(in srgb, var(--accent) 74%, #dfefff);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__empty {
+  color: rgba(255, 255, 255, 0.68);
+}

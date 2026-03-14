@@ -948,18 +948,26 @@ export default function CommunityPage() {
 
                   <div className="communityPage__cardBody">
                     {topic.user.public && topic.user.user_id ? (
-                      <Link to={`/community/profile/${topic.user.user_id}`} className="communityPage__cardUser">
-                        <img
-                          src={avatarIconPath(topic.user.avatar_icon, topic.user.avatar_image_url)}
-                          alt={topic.user.display_name ?? "ユーザー"}
-                          className="communityPage__cardAvatar"
-                        />
+                      <div className="communityPage__cardUser">
+                        <Link
+                          to={`/community/profile/${topic.user.user_id}`}
+                          className="communityPage__cardAvatarLink"
+                          aria-label={`${topic.user.display_name ?? "ユーザー"}のプロフィール`}
+                        >
+                          <img
+                            src={avatarIconPath(topic.user.avatar_icon, topic.user.avatar_image_url)}
+                            alt={topic.user.display_name ?? "ユーザー"}
+                            className="communityPage__cardAvatar"
+                          />
+                        </Link>
                         <div className="communityPage__cardUserMeta">
-                          <div className="communityPage__cardUserName">
-                            {topic.user.display_name} <span>Lv.{topic.user.level ?? 1}</span>
-                          </div>
+                          <Link to={`/community/profile/${topic.user.user_id}`} className="communityPage__cardUserNameLink">
+                            <span className="communityPage__cardUserName">
+                              {topic.user.display_name} <span>Lv.{topic.user.level ?? 1}</span>
+                            </span>
+                          </Link>
                         </div>
-                      </Link>
+                      </div>
                     ) : (
                       <div className="communityPage__cardUser is-disabled">
                         <img src={avatarIconPath("note_blue")} alt="非公開ユーザー" className="communityPage__cardAvatar" />

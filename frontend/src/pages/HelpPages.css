@@ -707,6 +707,13 @@
   padding-top: 4px;
 }
 
+@media (min-width: 900px) {
+  .infoModal__card:has(.helpAbout__detailModalBody) {
+    width: min(720px, calc(100vw - 56px));
+    max-height: min(82vh, 820px);
+  }
+}
+
 .helpAbout__detailModal {
   display: grid;
   gap: 20px;
@@ -1137,6 +1144,131 @@
   }
 }
 
+@media (min-width: 900px) {
+  .helpAbout__hero {
+    gap: 10px;
+    padding-top: 18px;
+    padding-bottom: 14px;
+  }
+
+  .helpAbout__hero .helpPage__sub {
+    max-width: 76ch;
+    font-size: 14px;
+    line-height: 1.82;
+  }
+
+  .helpAbout__groupList {
+    max-width: 980px;
+    margin: 10px auto 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+
+  .helpAbout__tocIntro {
+    grid-column: 1 / -1;
+  }
+
+  .helpAbout__group {
+    gap: 10px;
+    min-height: 100%;
+    padding: 16px 16px 18px;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--accent) 14%, #d9e7ec);
+    background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+  }
+
+  .helpAbout__groupHead {
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .helpAbout__tocTag {
+    min-height: 54px;
+    padding: 0 16px 0 14px;
+  }
+
+  .helpAbout__tocTagTitle {
+    font-size: 17px;
+  }
+
+  .helpAbout__contentCard {
+    max-width: 980px;
+    gap: 18px;
+    padding: 18px 0 26px;
+  }
+
+  .helpAbout__groupBodyHead {
+    gap: 10px;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+  }
+
+  .helpAbout__section {
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+
+  .helpAbout__sectionHeadBlock {
+    gap: 10px;
+    padding: 6px 0 18px 18px;
+  }
+
+  .helpAbout__sectionHeadBlock::before {
+    top: 8px;
+    height: 42px;
+    width: 3px;
+  }
+
+  .helpAbout__sectionTitle {
+    font-size: 24px;
+    line-height: 1.28;
+  }
+
+  .helpAbout__lead {
+    font-size: 15px;
+    line-height: 1.88;
+    max-width: 78ch;
+  }
+
+  .helpAbout__bodyStack {
+    gap: 18px;
+  }
+
+  .helpAbout__aiOverview {
+    gap: 14px;
+  }
+
+  .helpAbout__aiOverviewList {
+    gap: 12px;
+  }
+
+  .helpAbout__aiOverviewRow {
+    gap: 6px;
+    padding: 18px 18px 18px 64px;
+  }
+
+  .helpAbout__aiOverviewRow::before {
+    top: 18px;
+    left: 18px;
+  }
+
+  .helpAbout__aiOverviewKey {
+    font-size: 18px;
+  }
+
+  .helpAbout__aiOverviewValue,
+  .helpAbout__paragraph {
+    font-size: 14px;
+    line-height: 1.82;
+  }
+
+  .helpAbout__detailAction {
+    min-height: 48px;
+    padding: 0 18px 0 12px;
+  }
+}
+
 .contactForm {
   display: grid;
   gap: 22px;
@@ -1455,6 +1587,11 @@
 :root[data-theme-mode="dark"] .helpAbout__tocTag {
   background: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.03));
   border-color: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.16));
+}
+
+:root[data-theme-mode="dark"] .helpAbout__group {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--accent) 6%, rgba(255, 255, 255, 0.04));
 }
 
 :root[data-theme-mode="dark"] .helpAbout__tocTag:hover {

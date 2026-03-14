@@ -33,6 +33,10 @@ class User < ApplicationRecord
   has_many :community_posts, dependent: :destroy
   has_many :community_post_favorites, dependent: :destroy
   has_many :favorite_community_posts, through: :community_post_favorites, source: :community_post
+  has_many :community_topics, dependent: :destroy
+  has_many :community_topic_comments, dependent: :destroy
+  has_many :community_topic_likes, dependent: :destroy
+  has_many :liked_community_topics, through: :community_topic_likes, source: :topic
   has_many :ai_contribution_events, dependent: :destroy
   has_many :monthly_logs, dependent: :destroy
   has_many :xp_events, dependent: :destroy

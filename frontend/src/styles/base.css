@@ -163,6 +163,12 @@ html {
   filter: invert(1) brightness(1.2);
 }
 
+@media (max-width: 767px) {
+  header nav[aria-label="primary navigation"] {
+    display: none !important;
+  }
+}
+
 /* Segments / toggles */
 :root[data-theme-mode="dark"] .segment,
 :root[data-theme-mode="dark"] .insightsSegment,

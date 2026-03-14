@@ -7,11 +7,16 @@ body:has(.page.communityPage) {
 }
 
 .communityPage.page {
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 0 24px;
+  padding: 0;
   padding-bottom: 0;
   background: transparent;
+}
+
+.communityContainer {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 16px;
+  padding-top: 10px;
 }
 
 .communityPage__heroShell {
@@ -465,7 +470,7 @@ body:has(.page.communityPage) {
 .communityPage__controls {
   display: grid;
   gap: 10px;
-  padding: 14px 16px 16px;
+  padding: 14px 16px;
   margin-bottom: 12px;
   border: 1px solid rgba(59, 130, 246, 0.08);
   border-radius: 16px;
@@ -477,7 +482,7 @@ body:has(.page.communityPage) {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .communityPage__controlsLabelIcon {
@@ -530,11 +535,36 @@ body:has(.page.communityPage) {
   gap: 16px;
 }
 
+.communityPage__mainTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.communityPage__mainTab {
+  border: 1px solid rgba(59, 130, 246, 0.08);
+  background: #ffffff;
+  color: #617282;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.communityPage__mainTab.is-active {
+  color: #1d4ed8;
+  border-color: rgba(59, 130, 246, 0.18);
+  background: rgba(59, 130, 246, 0.06);
+}
+
 .communityPage__subTabs {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 0 2px 4px;
+  gap: 6px;
+  padding: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -543,40 +573,58 @@ body:has(.page.communityPage) {
   display: none;
 }
 
-.communityPage__subTabs--primary {
-  gap: 20px;
-}
-
 .communityPage__subTab {
   border: none;
   background: transparent;
-  padding: 4px 0;
+  padding: 10px 14px;
   font-size: 12px;
   font-weight: 800;
   color: color-mix(in srgb, var(--muted) 92%, #667784);
   cursor: pointer;
   position: relative;
   flex: 0 0 auto;
+  border-radius: 10px;
 }
 
 .communityPage__subTab.is-active {
   color: var(--accent-primary);
+  background: rgba(59, 130, 246, 0.08);
 }
 
 .communityPage__subTab.is-active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--accent-primary);
+  display: none;
+}
+
+.communityPage__postsTabs {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .communityPage__tagFilter {
   display: grid;
   width: 100%;
+}
+
+.communityPage__filterRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.communityPage__filterLabel {
+  font-size: 13px;
+  font-weight: 800;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.communityPage__filterControl {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .communityPage__tagsLabel {
@@ -589,8 +637,8 @@ body:has(.page.communityPage) {
 
 .communityPage__post {
   width: 100%;
-  max-width: 680px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   border: 1px solid rgba(59, 130, 246, 0.06);
   background: #ffffff;
   position: relative;
@@ -811,6 +859,61 @@ body:has(.page.communityPage) {
   gap: 14px;
 }
 
+.communityPage__post--topic {
+  gap: 0;
+  cursor: pointer;
+}
+
+.communityPage__topicHeaderMain {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.communityPage__topicCategoryChip {
+  display: inline-flex;
+  align-items: center;
+  justify-self: flex-start;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.communityPage__topicTitle {
+  font-size: 22px;
+  font-weight: 950;
+  line-height: 1.3;
+  color: #111827;
+  text-decoration: none;
+}
+
+.communityPage__topicPreview {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #52657a;
+}
+
+.communityPage__footerMeta--topic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.communityPage__topicCommentLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #3b82f6;
+  text-decoration: none;
+}
+
 .communityPage__usedScaleRow {
   display: flex;
   align-items: center;
@@ -820,7 +923,7 @@ body:has(.page.communityPage) {
 
 .communityPage__cardImprovementLead {
   display: grid;
-  gap: 4px;
+  gap: 8px;
 }
 
 .communityPage__cardImprovementLabel {
@@ -831,11 +934,24 @@ body:has(.page.communityPage) {
   color: #64748b;
 }
 
-.communityPage__cardImprovementValue {
-  font-size: 15px;
-  font-weight: 900;
-  line-height: 1.45;
-  color: #1d4ed8;
+.communityPage__usedScaleText {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: -2px;
+}
+
+.communityPage__usedScaleTextLabel {
+  font-size: 13px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.communityPage__usedScaleTextValue {
+  font-size: 13px;
+  font-weight: 800;
+  color: #334155;
 }
 
 .communityPage__threadBody {
@@ -1175,7 +1291,7 @@ body:has(.page.communityPage) {
   color: #4a5a74;
 }
 
-.communityPage__tags--field .communityPage__tag {
+.communityPage__tags--field .communityPage__tag:not([class*="improvementTagTone--"]) {
   background: rgba(59, 130, 246, 0.1);
   border-color: transparent;
   color: #1d4ed8;
@@ -1354,6 +1470,25 @@ body:has(.page.communityPage) {
   gap: 6px;
 }
 
+.communityPage__actionIcon {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.communityPage__actionIcon svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .communityPage__favoriteBtn.is-on {
   border-color: rgba(59, 130, 246, 0.2);
   background: rgba(59, 130, 246, 0.08);
@@ -1367,6 +1502,14 @@ body:has(.page.communityPage) {
 
 :root[data-theme-mode="dark"] .communityPage__cardImprovementValue {
   color: color-mix(in srgb, var(--accent) 68%, #e8f7ff);
+}
+
+:root[data-theme-mode="dark"] .communityPage__usedScaleTextLabel {
+  color: var(--community-muted);
+}
+
+:root[data-theme-mode="dark"] .communityPage__usedScaleTextValue {
+  color: var(--community-text);
 }
 
 :root[data-theme-mode="dark"] .communityPage__favoriteBtnLabel {
@@ -1399,7 +1542,7 @@ body:has(.page.communityPage) {
 
 .communityPage__fab {
   position: fixed;
-  right: 32px;
+  right: 88px;
   bottom: calc(32px + env(safe-area-inset-bottom));
   z-index: 70;
   width: 64px;
@@ -1481,6 +1624,46 @@ body:has(.page.communityPage) {
   line-height: 1.55;
   font-weight: 700;
   color: #56707c;
+}
+
+.communityPage__composerSelect {
+  display: grid;
+  gap: 12px;
+}
+
+.communityPage__composerChoice {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  border: 1px solid rgba(59, 130, 246, 0.12);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.communityPage__composerChoiceTitle {
+  font-size: 15px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.communityPage__composerChoiceText {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #667784;
+}
+
+@media (max-width: 767px) {
+  .communityContainer {
+    padding: 0 14px;
+  }
+
+  .communityPage__filterRow {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+  }
 }
 
 .communityPage__rankingCard {
@@ -1736,8 +1919,8 @@ body:has(.page.communityPage) {
 
 @media (max-width: 520px) {
   .communityPage__fab {
-    right: 20px;
-    bottom: calc(20px + env(safe-area-inset-bottom));
+    right: 24px;
+    bottom: calc(72px + env(safe-area-inset-bottom));
     width: 58px;
     height: 58px;
     min-width: 58px;
@@ -1817,6 +2000,7 @@ body:has(.page.communityPage) {
     min-height: 180px;
   }
 }
+
 /* =========================
    Dark mode overrides (Community)
    目的: 固定の白背景・薄い境界線・黒固定文字を解消

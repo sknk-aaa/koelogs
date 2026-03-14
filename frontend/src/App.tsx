@@ -21,6 +21,7 @@ import ProfilePage from "./pages/ProfilePage";
 import MyPage from "./pages/MyPage";
 import AiChatPage from "./pages/AiChatPage";
 import CommunityPage from "./pages/CommunityPage";
+import CommunityTopicDetailPage from "./pages/CommunityTopicDetailPage";
 import CommunityProfilePage from "./pages/CommunityProfilePage";
 import CommunityRankingPage from "./pages/CommunityRankingPage";
 import LandingPage from "./pages/LandingPage";
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="/log/notes" element={<LogNotesPage />} />
             <Route path="/insights/notes" element={<Navigate to="/log/notes" replace />} />
             <Route path="/community" element={<CommunityPage />} />
+            <Route path="/community/topics/:topicId" element={<CommunityTopicDetailPage />} />
             <Route path="/community/rankings" element={<CommunityRankingPage />} />
             <Route path="/community/profile/:userId" element={<CommunityProfilePage />} />
             <Route path="/premium" element={<PremiumPlanPage />} />

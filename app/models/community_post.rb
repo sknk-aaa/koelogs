@@ -20,6 +20,7 @@ class CommunityPost < ApplicationRecord
   validates :canonical_key, presence: true
   validates :effect_level, inclusion: { in: 1..5 }
   validates :improvement_tags, presence: true
+  validates :comment, presence: true, length: { maximum: 240 }
   validates :used_scale_type, inclusion: { in: USED_SCALE_TYPES }
   validate :improvement_tags_are_allowed
   validate :training_menu_same_user

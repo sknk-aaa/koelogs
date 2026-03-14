@@ -1801,7 +1801,7 @@ export default function LogPage() {
               <span className="logPage__calendarSummaryHeadIcon" aria-hidden="true">
                 {renderMonthSectionIcon()}
               </span>
-              <div className="logPage__calendarSummaryEyebrow">THIS MONTH</div>
+              <div className="logPage__calendarSummaryEyebrow">今月のまとめ</div>
             </div>
             <div className="logPage__calendarSummaryStats">
               <div className="logPage__calendarSummaryStat is-days">

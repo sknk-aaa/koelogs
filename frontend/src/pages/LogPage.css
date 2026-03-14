@@ -344,7 +344,7 @@ body:has(.page.logPage) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #6d8798;
+  color: #3c9fb3;
   flex: 0 0 auto;
 }
 
@@ -359,7 +359,7 @@ body:has(.page.logPage) {
 }
 
 .logPage__calendarSummaryMenusIcon svg .accent {
-  stroke: color-mix(in srgb, var(--accent) 72%, currentColor);
+  stroke: #66c9df;
 }
 
 .logPage__calendarSummaryMenuTags {

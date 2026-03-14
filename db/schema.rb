@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_13_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_15_161000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -188,6 +188,47 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_170000) do
     t.index ["training_menu_id"], name: "index_community_posts_on_training_menu_id"
     t.index ["user_id", "created_at"], name: "index_community_posts_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_community_posts_on_user_id"
+  end
+
+  create_table "community_topic_comments", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.bigint "parent_id"
+    t.bigint "topic_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["parent_id"], name: "index_community_topic_comments_on_parent_id"
+    t.index ["topic_id", "created_at"], name: "index_community_topic_comments_on_topic_id_and_created_at"
+    t.index ["topic_id"], name: "index_community_topic_comments_on_topic_id"
+    t.index ["user_id"], name: "index_community_topic_comments_on_user_id"
+  end
+
+  create_table "community_topic_likes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "topic_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["topic_id", "user_id"], name: "index_community_topic_likes_on_topic_id_and_user_id", unique: true
+    t.index ["topic_id"], name: "index_community_topic_likes_on_topic_id"
+    t.index ["user_id"], name: "index_community_topic_likes_on_user_id"
+  end
+
+  create_table "community_topics", force: :cascade do |t|
+    t.text "body", null: false
+    t.string "category", null: false
+    t.integer "comments_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.integer "likes_count", default: 0, null: false
+    t.boolean "published", default: true, null: false
+    t.string "title", limit: 120, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["category"], name: "index_community_topics_on_category"
+    t.index ["created_at"], name: "index_community_topics_on_created_at"
+    t.index ["likes_count"], name: "index_community_topics_on_likes_count"
+    t.index ["published", "created_at"], name: "index_community_topics_on_published_and_created_at"
+    t.index ["published", "likes_count"], name: "index_community_topics_on_published_and_likes_count"
+    t.index ["user_id"], name: "index_community_topics_on_user_id"
   end
 
   create_table "measurement_long_tone_results", force: :cascade do |t|
@@ -408,6 +449,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_170000) do
   add_foreign_key "community_post_favorites", "users"
   add_foreign_key "community_posts", "training_menus"
   add_foreign_key "community_posts", "users"
+  add_foreign_key "community_topic_comments", "community_topic_comments", column: "parent_id"
+  add_foreign_key "community_topic_comments", "community_topics", column: "topic_id"
+  add_foreign_key "community_topic_comments", "users"
+  add_foreign_key "community_topic_likes", "community_topics", column: "topic_id"
+  add_foreign_key "community_topic_likes", "users"
+  add_foreign_key "community_topics", "users"
   add_foreign_key "measurement_long_tone_results", "measurement_runs"
   add_foreign_key "measurement_pitch_accuracy_results", "measurement_runs"
   add_foreign_key "measurement_range_results", "measurement_runs"

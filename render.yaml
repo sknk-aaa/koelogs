@@ -1,9 +1,10 @@
 services:
-  - type: static_site
+  - type: web
     name: koelogs-frontend
+    runtime: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
-    staticPublishPath: dist
+    staticPublishPath: ./frontend/dist
     routes:
       - type: rewrite
         source: /*

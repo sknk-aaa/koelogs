@@ -1,0 +1,238 @@
+.todayMenuModal {
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 16px 0;
+}
+
+.todayMenuModal__backdrop {
+  background: transparent;
+}
+
+.todayMenuModal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(920px, calc(100vw - 32px));
+  max-height: min(76dvh, calc(100dvh - 56px - 16px));
+  margin: 0 auto 24px;
+  overflow: hidden;
+  border: none;
+  border-radius: 28px;
+  background: #fafbfb;
+  box-shadow: 0 -18px 40px rgba(15, 23, 42, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .todayMenuModal__panel {
+    width: min(980px, calc(100vw - 96px));
+    max-height: min(78dvh, calc(100dvh - 56px - 20px));
+  }
+}
+
+.todayMenuModal__head {
+  padding: 18px 20px 14px;
+  border-bottom: none;
+}
+
+.todayMenuModal__eyebrow {
+  color: var(--ui-section-eyebrow-color);
+}
+
+.todayMenuModal__title {
+  color: #09363d;
+}
+
+.todayMenuModal__close {
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+}
+
+.todayMenuModal__composer {
+  display: grid;
+  gap: 10px;
+}
+
+.todayMenuModal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 16px 20px 0;
+}
+
+.todayMenuModal__input {
+  height: 44px;
+  width: 100%;
+  border-radius: 12px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, #c8d5de);
+  background: #ffffff;
+}
+
+.todayMenuModal__palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.todayMenuModal__swatch {
+}
+
+.todayMenuModal__swatch.is-active {
+}
+
+.todayMenuModal__addBtn,
+.todayMenuModal__ghost,
+.todayMenuModal__save {
+  height: 40px;
+  padding: 0 14px;
+}
+
+.todayMenuModal__addBtn.is-ready {
+  border-color: color-mix(in srgb, #14c6d8 42%, #cfe6ea);
+  background: color-mix(in srgb, #14c6d8 12%, #ffffff);
+  color: color-mix(in srgb, #14c6d8 72%, #09363d);
+}
+
+.todayMenuModal__save {
+}
+
+.todayMenuModal__list {
+  display: grid;
+  gap: 8px;
+  min-height: 220px;
+  align-content: start;
+}
+
+.todayMenuModal__item {
+}
+
+.todayMenuModal__item.is-selected {
+  border-color: rgba(20, 198, 216, 0.58);
+  background: rgba(20, 198, 216, 0.06);
+}
+
+.todayMenuModal__check {
+}
+
+.todayMenuModal__tag {
+  --menu-color: #dbeafe;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--menu-color) 82%, rgba(18, 53, 58, 0.18));
+  background: color-mix(in srgb, var(--menu-color) 48%, #ffffff);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #09363d;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.todayMenuModal__tagDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--menu-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--menu-color) 36%, transparent);
+}
+
+.todayMenuModal__remove {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: #5f7480;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.todayMenuModal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px calc(18px + env(safe-area-inset-bottom));
+  border-top: none;
+  background: #fafbfb;
+}
+
+.todayMenuModal__muted {
+  font-size: 0.85rem;
+  color: #5f7480;
+}
+
+.todayMenuModal__error {
+  padding: 10px 12px;
+  border: 1px solid rgba(176, 0, 32, 0.22);
+  border-radius: 12px;
+  background: rgba(176, 0, 32, 0.06);
+  color: #b00020;
+  font-size: 0.82rem;
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__muted {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__panel {
+  background: #16202a;
+  box-shadow: 0 -18px 40px rgba(0, 0, 0, 0.38);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__head,
+:root[data-theme-mode="dark"] .todayMenuModal__footer {
+  background: #16202a;
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__tag,
+:root[data-theme-mode="dark"] .todayMenuModal__remove {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__addBtn.is-ready {
+  border-color: color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.03));
+  color: color-mix(in srgb, var(--accent) 46%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__swatch {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: var(--swatch-display-color);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 4px 10px rgba(0, 0, 0, 0.22),
+    0 0 14px color-mix(in srgb, var(--swatch-display-color) 18%, transparent),
+    inset 0 0 0 1px rgba(4, 10, 20, 0.18);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__swatch.is-active {
+  outline-color: color-mix(in srgb, var(--accent) 72%, #ffffff);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 6px 12px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(4, 10, 20, 0.12);
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__item.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.03));
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__tag {
+  border-color: color-mix(in srgb, var(--menu-color) 24%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--menu-color) 12%, rgba(255, 255, 255, 0.03));
+}
+
+:root[data-theme-mode="dark"] .todayMenuModal__save {
+  color: #ffffff;
+}

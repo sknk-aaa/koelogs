@@ -1,0 +1,350 @@
+.communityTopicDetailPage.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+}
+
+.communityTopicDetailPage__head {
+  padding-top: 10px;
+  margin-bottom: 14px;
+}
+
+.communityTopicDetailPage__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #3b82f6;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.communityTopicDetailPage__card,
+.communityTopicDetailPage__comments,
+.communityTopicDetailPage__empty,
+.communityTopicDetailPage__notice,
+.communityTopicDetailPage__error {
+  max-width: 720px;
+  margin: 0 auto;
+  border-radius: 16px;
+}
+
+.communityTopicDetailPage__card,
+.communityTopicDetailPage__comments,
+.communityTopicDetailPage__empty {
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.communityTopicDetailPage__card {
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.communityTopicDetailPage__metaRow,
+.communityTopicDetailPage__footer,
+.communityTopicDetailPage__commentHead,
+.communityTopicDetailPage__commentActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.communityTopicDetailPage__category {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.communityTopicDetailPage__date,
+.communityTopicDetailPage__commentCount {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7b8794;
+}
+
+.communityTopicDetailPage__title {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.25;
+  color: #0f172a;
+}
+
+.communityTopicDetailPage__author {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.communityTopicDetailPage__author.is-disabled {
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.communityTopicDetailPage__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(59, 130, 246, 0.08);
+}
+
+.communityTopicDetailPage__avatar--sm {
+  width: 34px;
+  height: 34px;
+}
+
+.communityTopicDetailPage__authorName {
+  font-size: 13px;
+  font-weight: 800;
+  color: #34495d;
+}
+
+.communityTopicDetailPage__authorName span {
+  font-size: 11px;
+  color: #97a4b1;
+  margin-left: 4px;
+}
+
+.communityTopicDetailPage__body,
+.communityTopicDetailPage__commentBody {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  color: #334155;
+  font-size: 14px;
+}
+
+.communityTopicDetailPage__likeBtn,
+.communityTopicDetailPage__submit,
+.communityTopicDetailPage__replyBtn,
+.communityTopicDetailPage__deleteBtn {
+  border: none;
+  cursor: pointer;
+}
+
+.communityTopicDetailPage__likeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.communityTopicDetailPage__likeBtn.is-on {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.communityTopicDetailPage__comments {
+  margin-top: 18px;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.communityTopicDetailPage__sectionTitle {
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.communityTopicDetailPage__composer,
+.communityTopicDetailPage__replyComposer {
+  display: grid;
+  gap: 10px;
+}
+
+.communityTopicDetailPage__textarea {
+  min-height: 110px;
+  border-radius: 14px;
+  border: 1px solid rgba(59, 130, 246, 0.12);
+  padding: 14px;
+  resize: vertical;
+  font: inherit;
+  color: #1f2937;
+  background: #ffffff;
+}
+
+.communityTopicDetailPage__textarea--reply {
+  min-height: 88px;
+}
+
+.communityTopicDetailPage__submit {
+  justify-self: flex-start;
+  padding: 11px 18px;
+  border-radius: 999px;
+  background: #3b82f6;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+}
+
+.communityTopicDetailPage__commentList,
+.communityTopicDetailPage__replies {
+  display: grid;
+  gap: 14px;
+}
+
+.communityTopicDetailPage__commentCard,
+.communityTopicDetailPage__replyCard {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(59, 130, 246, 0.08);
+  border-radius: 14px;
+  background: #fbfdff;
+  padding: 14px;
+}
+
+.communityTopicDetailPage__replyCard {
+  background: #ffffff;
+}
+
+.communityTopicDetailPage__replies {
+  margin-left: 20px;
+}
+
+.communityTopicDetailPage__replyBtn,
+.communityTopicDetailPage__deleteBtn {
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.communityTopicDetailPage__replyBtn {
+  color: #3b82f6;
+}
+
+.communityTopicDetailPage__deleteBtn {
+  color: #b42318;
+}
+
+.communityTopicDetailPage__notice,
+.communityTopicDetailPage__error,
+.communityTopicDetailPage__empty {
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.communityTopicDetailPage__notice {
+  color: #0f5132;
+  border: 1px solid rgba(25, 135, 84, 0.25);
+  background: rgba(25, 135, 84, 0.08);
+}
+
+.communityTopicDetailPage__error {
+  color: #b42318;
+  border: 1px solid rgba(180, 35, 24, 0.2);
+  background: rgba(180, 35, 24, 0.08);
+}
+
+.communityTopicDetailPage__empty {
+  color: #617282;
+  font-weight: 700;
+}
+
+@media (max-width: 767px) {
+  .communityTopicDetailPage.page {
+    padding: 0 16px 24px;
+  }
+
+  .communityTopicDetailPage__card,
+  .communityTopicDetailPage__comments {
+    padding: 16px;
+  }
+
+  .communityTopicDetailPage__title {
+    font-size: 24px;
+  }
+
+  .communityTopicDetailPage__footer,
+  .communityTopicDetailPage__commentHead {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .communityTopicDetailPage__replies {
+    margin-left: 10px;
+  }
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage.page {
+  background: transparent;
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__back {
+  color: color-mix(in srgb, var(--accent) 74%, #dfefff);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__card,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__comments,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__empty {
+  background: #111a2b;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__category {
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.06));
+  color: #dce9ff;
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__date,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__commentCount,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__authorName span {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__title,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__sectionTitle,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__authorName,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__body,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__commentBody {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__likeBtn {
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.06));
+  color: #dce9ff;
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__likeBtn.is-on {
+  background: color-mix(in srgb, var(--accent) 52%, #101827);
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__textarea {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__commentCard,
+:root[data-theme-mode="dark"] .communityTopicDetailPage__replyCard {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__replyBtn {
+  color: color-mix(in srgb, var(--accent) 74%, #dfefff);
+}
+
+:root[data-theme-mode="dark"] .communityTopicDetailPage__empty {
+  color: rgba(255, 255, 255, 0.68);
+}

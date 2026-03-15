@@ -1,16 +1,17 @@
 import { createContext } from "react";
-import type { Me } from "../../api/auth";
+import type { Me, SignupResult } from "../../api/auth";
 
 export type AuthState = {
   me: Me | null;
   isLoading: boolean;
   refresh: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   signup: (
     email: string,
     password: string,
     passwordConfirmation: string
-  ) => Promise<void>;
+  ) => Promise<SignupResult>;
   logout: () => Promise<void>;
 };
 

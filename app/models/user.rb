@@ -1,6 +1,10 @@
 class User < ApplicationRecord
   PASSWORD_RESET_TOKEN_TTL = 30.minutes
   PASSWORD_RESET_REQUEST_INTERVAL = 1.minute
+  EMAIL_VERIFICATION_TOKEN_TTL = 24.hours
+  EMAIL_VERIFICATION_REQUEST_INTERVAL = 1.minute
+  LOGIN_LOCK_THRESHOLD = 5
+  LOGIN_LOCK_DURATION = 60.minutes
 
   AVATAR_ICON_VALUES = %w[
     note_blue
@@ -11,7 +15,8 @@ class User < ApplicationRecord
     heart_red
   ].freeze
   PLAN_TIERS = %w[free premium].freeze
-  BILLING_CYCLES = %w[monthly yearly].freeze
+  BILLING_CYCLES = %w[monthly quarterly].freeze
+  PREMIUM_ACTIVE_SUBSCRIPTION_STATUSES = %w[active trialing past_due].freeze
 
   has_secure_password
 
@@ -28,12 +33,18 @@ class User < ApplicationRecord
   has_many :community_posts, dependent: :destroy
   has_many :community_post_favorites, dependent: :destroy
   has_many :favorite_community_posts, through: :community_post_favorites, source: :community_post
+  has_many :community_topics, dependent: :destroy
+  has_many :community_topic_comments, dependent: :destroy
+  has_many :community_topic_likes, dependent: :destroy
+  has_many :liked_community_topics, through: :community_topic_likes, source: :topic
   has_many :ai_contribution_events, dependent: :destroy
   has_many :monthly_logs, dependent: :destroy
   has_many :xp_events, dependent: :destroy
   has_many :user_badges, dependent: :destroy
 
-  validates :email, presence: true, uniqueness: true
+  before_validation :normalize_email
+  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :google_sub, uniqueness: true, allow_nil: true
 
   # 表示名は任意。空白は nil として扱う
   before_validation :normalize_display_name
@@ -61,6 +72,7 @@ class User < ApplicationRecord
   validates :avatar_icon, inclusion: { in: AVATAR_ICON_VALUES }
   validates :plan_tier, inclusion: { in: PLAN_TIERS }
   validates :billing_cycle, inclusion: { in: BILLING_CYCLES }, allow_nil: true
+  validates :failed_login_attempts, numericality: { greater_than_or_equal_to: 0, only_integer: true }
 
   def premium_plan?
     plan_tier == "premium"
@@ -70,8 +82,49 @@ class User < ApplicationRecord
     !premium_plan?
   end
 
+  def premium_access_active?
+    premium_plan? && PREMIUM_ACTIVE_SUBSCRIPTION_STATUSES.include?(stripe_subscription_status.to_s)
+  end
+
   def can_send_password_reset_email?
     password_reset_sent_at.nil? || password_reset_sent_at < PASSWORD_RESET_REQUEST_INTERVAL.ago
+  end
+
+  def email_verified?
+    email_verified_at.present?
+  end
+
+  def can_send_email_verification_email?
+    email_verification_sent_at.nil? || email_verification_sent_at < EMAIL_VERIFICATION_REQUEST_INTERVAL.ago
+  end
+
+  def generate_email_verification_token!
+    token = SecureRandom.urlsafe_base64(32)
+    update!(
+      email_verification_token_digest: digest_email_verification_token(token),
+      email_verification_sent_at: Time.current
+    )
+    token
+  end
+
+  def email_verification_token_valid?(token)
+    return false if token.blank? || email_verification_token_digest.blank? || email_verification_sent_at.blank?
+    return false if email_verification_sent_at < EMAIL_VERIFICATION_TOKEN_TTL.ago
+
+    ActiveSupport::SecurityUtils.secure_compare(
+      email_verification_token_digest,
+      digest_email_verification_token(token)
+    )
+  rescue ArgumentError
+    false
+  end
+
+  def verify_email!
+    update!(
+      email_verified_at: Time.current,
+      email_verification_token_digest: nil,
+      email_verification_sent_at: nil
+    )
   end
 
   def generate_password_reset_token!
@@ -81,6 +134,22 @@ class User < ApplicationRecord
       password_reset_sent_at: Time.current
     )
     token
+  end
+
+  def login_locked?
+    login_locked_until.present? && login_locked_until > Time.current
+  end
+
+  def reset_login_failures!
+    update_columns(failed_login_attempts: 0, login_locked_until: nil, updated_at: Time.current)
+  end
+
+  def register_failed_login!
+    attempts = failed_login_attempts.to_i + 1
+    attrs = { failed_login_attempts: attempts, updated_at: Time.current }
+    attrs[:login_locked_until] = LOGIN_LOCK_DURATION.from_now if attempts >= LOGIN_LOCK_THRESHOLD
+    update_columns(attrs)
+    attempts
   end
 
   def password_reset_token_valid?(token)
@@ -97,8 +166,16 @@ class User < ApplicationRecord
 
   private
 
+  def digest_email_verification_token(token)
+    Digest::SHA256.hexdigest(token.to_s)
+  end
+
   def digest_password_reset_token(token)
     Digest::SHA256.hexdigest(token.to_s)
+  end
+
+  def normalize_email
+    self.email = email.to_s.strip.downcase
   end
 
   def normalize_display_name

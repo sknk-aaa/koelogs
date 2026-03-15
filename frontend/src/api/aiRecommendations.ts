@@ -79,6 +79,7 @@ function isAiRecommendation(v: unknown): v is AiRecommendation {
   return (
     typeof v.id === "number" &&
     typeof v.generated_for_date === "string" &&
+    typeof v.week_start_date === "string" &&
     typeof v.range_days === "number" &&
     typeof v.recommendation_text === "string" &&
     (v.collective_summary === undefined || v.collective_summary === null || isCollectiveSummary(v.collective_summary)) &&
@@ -149,7 +150,7 @@ export async function fetchAiRecommendationByDate(
 }
 
 export async function createAiRecommendation(
-  payload?: { range_days?: number; date?: string }
+  payload?: { range_days?: number; date?: string; today_theme?: string }
 ): Promise<
   | { ok: true; data: AiRecommendation; rewards: SaveRewards | null; status: 200 | 201 }
   | { ok: false; status: number; errors: string[] }
@@ -197,6 +198,7 @@ function isHistoryItem(v: unknown): v is AiRecommendationHistoryItem {
     isRecord(v) &&
     typeof v.id === "number" &&
     typeof v.generated_for_date === "string" &&
+    typeof v.week_start_date === "string" &&
     typeof v.range_days === "number" &&
     typeof v.recommendation_text_preview === "string" &&
     typeof v.created_at === "string"

@@ -22,6 +22,11 @@ Rails.application.routes.draw do
     get "insights", to: "insights#show"
     get "missions", to: "missions#show"
     post "help/contact", to: "help_contacts#create"
+    post "billing/checkout", to: "billing#create_checkout_session"
+    post "billing/checkout/confirm", to: "billing#confirm_checkout_session"
+    post "billing/portal", to: "billing#create_portal_session"
+    post "billing/refresh", to: "billing#refresh_subscription"
+    post "billing/webhook", to: "billing#webhook"
 
     # ✅ AI recommendations
     get "ai_recommendations", to: "ai_recommendations#show"
@@ -50,18 +55,29 @@ Rails.application.routes.draw do
     delete "community/posts/:id/favorite", to: "community_posts#unfavorite"
     get "community/rankings", to: "community_rankings#show"
     get "community/profiles/:id", to: "community_profiles#show"
+    get "community/topics", to: "community/topics#index"
+    post "community/topics", to: "community/topics#create"
+    get "community/topics/:id", to: "community/topics#show"
+    patch "community/topics/:id", to: "community/topics#update"
+    delete "community/topics/:id", to: "community/topics#destroy"
+    post "community/topics/:id/like", to: "community/topics#like"
+    delete "community/topics/:id/like", to: "community/topics#unlike"
+    post "community/topics/:topic_id/comments", to: "community/topic_comments#create"
+    delete "community/topics/:topic_id/comments/:id", to: "community/topic_comments#destroy"
 
     # auth
     post "auth/signup", to: "auth#signup"
     post "auth/login", to: "auth#login"
+    post "auth/google", to: "auth#google_login"
     post "auth/logout", to: "auth#logout"
+    post "auth/email_verification_requests", to: "auth#email_verification_request"
+    post "auth/email_verifications", to: "auth#email_verification"
     post "auth/password_reset_requests", to: "auth#password_reset_request"
     post "auth/password_resets", to: "auth#password_reset"
 
     # me
     get "me", to: "me#show"
     patch "me", to: "me#update"
-    post "me/ai_profile/recalculate", to: "me#recalculate_ai_profile"
     get "me/ai_memory_candidates", to: "ai_memory_candidates#index"
     patch "me/ai_memory_candidates/:id", to: "ai_memory_candidates#update"
   end

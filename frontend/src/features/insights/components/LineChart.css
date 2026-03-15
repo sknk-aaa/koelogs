@@ -84,3 +84,17 @@
   white-space: nowrap;
   text-align: center;
 }
+
+:root[data-theme-mode="dark"] .lineChart {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .lineChart__legend,
+:root[data-theme-mode="dark"] .lineChart__hint,
+:root[data-theme-mode="dark"] .lineChart__yTitle,
+:root[data-theme-mode="dark"] .lineChart__yTick,
+:root[data-theme-mode="dark"] .lineChart__labels {
+  color: rgba(255, 255, 255, 0.72);
+}

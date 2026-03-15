@@ -4,8 +4,8 @@ module Ai
   class RecommendationFollowupResponder
     SYSTEM_PROMPT_VERSION = "followup-v1"
     USER_PROMPT_VERSION = "followup-v1"
-    RADICAL_CHANGE_TEMPLATE = "この会話では、当日のおすすめの具体化・調整のみ対応できます。大幅な変更は再生成をご利用ください。"
-    SAFETY_TEMPLATE = "安全上の理由でその内容には対応できません。声のケアや練習の範囲で、当日の提案を調整する質問に切り替えてください。"
+    RADICAL_CHANGE_TEMPLATE = "この会話では、今週のおすすめの具体化・調整のみ対応できます。大幅な変更は再生成をご利用ください。"
+    SAFETY_TEMPLATE = "安全上の理由でその内容には対応できません。声のケアや練習の範囲で、今週の提案を調整する質問に切り替えてください。"
 
     class << self
       def call(recommendation:, context_snapshot:, messages:)
@@ -71,7 +71,7 @@ module Ai
     def build_system_text
       <<~SYS
         あなたはボイストレーニングアプリのフォローアップコーチです。
-        この会話の役割は「当日のおすすめ」の具体化・調整に限定します。
+        この会話の役割は「今週のおすすめ」の具体化・調整に限定します。
 
         ルール:
         - 回答は基本的に優しい口調で行い、安心感のある言い回しを優先する。
@@ -109,7 +109,7 @@ module Ai
         lines << line.chomp
       end
       lines << ""
-      lines << "おすすめ対象日: #{recommendation.generated_for_date.iso8601}"
+      lines << "おすすめ対象週: #{recommendation.week_start_date.iso8601}"
       lines << "元のおすすめ:"
       lines << recommendation.recommendation_text.to_s
       lines << ""

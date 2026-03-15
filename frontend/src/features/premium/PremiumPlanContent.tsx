@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import BrandLogo from "../../components/BrandLogo";
 import WaveDivider from "./components/WaveDivider";
 import "../../pages/PremiumPlanPage.css";
 
@@ -14,7 +15,7 @@ type CompareRow = {
 };
 
 const BENEFITS: Benefit[] = [
-  { icon: "trend", title: "停滞を見抜く", sub: "成長の止まりどころを自動で可視化" },
+  { icon: "trend", title: "分析を深く見る", sub: "長期推移や履歴をまとめて確認" },
   { icon: "ai", title: "AIを無制限で深掘り", sub: "おすすめを何度でも相談できる" },
   { icon: "compare", title: "全期間で伸びを比較", sub: "30/90/365日で変化が追える" },
   { icon: "replay", title: "録音で精度を上げる", sub: "音源と重ねて聞き直せる" },
@@ -24,21 +25,22 @@ const BENEFITS: Benefit[] = [
 
 const COMPARE_ROWS: CompareRow[] = [
   { feature: "AI無制限相談", free: "1回/日" },
-  { feature: "30/90/365日比較", free: "7日のみ" },
-  { feature: "全履歴表示", free: "最新1件" },
+  { feature: "推移グラフの開放", free: "7日のみ" },
+  { feature: "測定履歴の閲覧", free: "最新1件" },
   { feature: "録音重ね再生", free: "—" },
-  { feature: "録音を保存（WAV）", free: "—" },
+  { feature: "録音を保存", free: "—" },
   { feature: "CSV出力", free: "—" },
   { feature: "今後追加される新機能", free: "—" },
 ];
 
-type BillingCycle = "monthly" | "quarterly";
+export type BillingCycle = "monthly" | "quarterly";
 
 type Props = {
   mode?: "page" | "modal";
   onDismiss?: () => void;
-  onPrimaryAction?: () => void;
-  onSelectPlan?: (cycle: BillingCycle) => void;
+  onPrimaryAction?: (cycle: BillingCycle) => void;
+  ctaLabel?: string;
+  ctaDisabled?: boolean;
 };
 
 function renderBenefitIcon(kind: Benefit["icon"]): ReactNode {
@@ -110,16 +112,17 @@ function renderBenefitIcon(kind: Benefit["icon"]): ReactNode {
   return null;
 }
 
-export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimaryAction, onSelectPlan }: Props) {
+export default function PremiumPlanContent({
+  mode = "page",
+  onDismiss,
+  onPrimaryAction,
+  ctaLabel = "プレミアムを開始",
+  ctaDisabled = false,
+}: Props) {
   const [selectedCycle, setSelectedCycle] = useState<BillingCycle>("quarterly");
 
-  const handlePlanAction = (cycle: BillingCycle) => {
+  const handleSelectCycle = (cycle: BillingCycle) => {
     setSelectedCycle(cycle);
-    if (onSelectPlan) {
-      onSelectPlan(cycle);
-      return;
-    }
-    onPrimaryAction?.();
   };
 
   return (
@@ -129,17 +132,7 @@ export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimary
           <div className="premiumPlanPage__hero" aria-label="プレミアムプラン概要">
             <div className="premiumPlanPage__badge">PREMIUM</div>
             <div className="premiumPlanPage__heroVisual" aria-hidden="true">
-              <span className="premiumPlanPage__heroOrnament premiumPlanPage__heroOrnament--left" />
-              <span className="premiumPlanPage__heroMark">
-                <svg viewBox="0 0 64 64" focusable="false" aria-hidden="true">
-                  <path className="premiumPlanPage__heroLineBase" d="M10 48h44" />
-                  <rect className="premiumPlanPage__heroBar premiumPlanPage__heroBar--1" x="16" y="31" width="7" height="12" rx="2" />
-                  <rect className="premiumPlanPage__heroBar premiumPlanPage__heroBar--2" x="28.5" y="23" width="7" height="20" rx="2" />
-                  <rect className="premiumPlanPage__heroBar premiumPlanPage__heroBar--3" x="41" y="16" width="7" height="27" rx="2" />
-                  <path className="premiumPlanPage__heroTrend" d="M14 28c6 0 9-3 11-8 2.8 4.4 5.7 8 12.2 8s9.4-3.4 12.3-8c2.1 4.6 5.4 8 10.5 8" />
-                </svg>
-              </span>
-              <span className="premiumPlanPage__heroOrnament premiumPlanPage__heroOrnament--right" />
+              <BrandLogo decorative className="premiumPlanPage__heroLogo" />
             </div>
             <h1 className="premiumPlanPage__heading">プレミアムプラン</h1>
             <p className="premiumPlanPage__heroSub">あなたに合った最適なトレーニングを見つける。</p>
@@ -225,7 +218,7 @@ export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimary
             type="button"
             className={`premiumPlanPage__planCard${selectedCycle === "monthly" ? " is-selected" : ""}`}
             aria-label="1か月プランを選択"
-            onClick={() => handlePlanAction("monthly")}
+            onClick={() => handleSelectCycle("monthly")}
           >
             <div className="premiumPlanPage__planHead">1か月</div>
             <div className="premiumPlanPage__planPrice">
@@ -239,22 +232,27 @@ export default function PremiumPlanContent({ mode = "page", onDismiss, onPrimary
             type="button"
             className={`premiumPlanPage__planCard premiumPlanPage__planCard--highlight${selectedCycle === "quarterly" ? " is-selected" : ""}`}
             aria-label="3か月プランを選択"
-            onClick={() => handlePlanAction("quarterly")}
+            onClick={() => handleSelectCycle("quarterly")}
           >
-            <div className="premiumPlanPage__planBadge">おすすめ</div>
+            <div className="premiumPlanPage__planBadge">15%OFF</div>
             <div className="premiumPlanPage__planHead">3か月</div>
             <div className="premiumPlanPage__planPrice">
-              ¥2,640
+              ¥2,499
               <span>/3か月</span>
             </div>
-            <div className="premiumPlanPage__planSub">実質 ¥880/月</div>
+            <div className="premiumPlanPage__planSub">実質 ¥833/月</div>
             <div className="premiumPlanPage__planFoot">継続して試すならこちら</div>
           </button>
         </div>
 
         <div className="premiumPlanPage__actions">
-          <button type="button" className="premiumPlanPage__cta" onClick={() => handlePlanAction(selectedCycle)}>
-            プレミアムを開始
+          <button
+            type="button"
+            className="premiumPlanPage__cta"
+            disabled={ctaDisabled}
+            onClick={() => onPrimaryAction?.(selectedCycle)}
+          >
+            {ctaLabel}
           </button>
           {!!onDismiss && (
             <button type="button" className="premiumPlanPage__secondary" onClick={onDismiss}>

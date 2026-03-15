@@ -1,0 +1,509 @@
+.helpGuidePage {
+  background: #ffffff;
+}
+
+.helpGuidePage__hero {
+  gap: 10px;
+  padding-top: 18px;
+  padding-bottom: 16px;
+}
+
+.helpGuidePage__heroHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.helpGuidePage__title {
+  font-size: 2.16rem;
+  line-height: 1.14;
+}
+
+.helpGuidePage__lead {
+  max-width: 72ch;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.helpGuidePage__heroChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.helpGuidePage__heroChip {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--help-log-border));
+  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--ui-section-eyebrow-color);
+}
+
+.helpGuidePage__toc {
+  display: grid;
+  gap: 8px;
+  padding: 10px 0 18px;
+}
+
+.helpGuidePage__tocHead {
+  display: grid;
+  gap: 2px;
+}
+
+.helpGuidePage__tocTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--help-log-title);
+}
+
+.helpGuidePage__tocLead {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--help-log-muted);
+}
+
+.helpGuidePage__tocList {
+  display: grid;
+  gap: 6px;
+}
+
+.helpGuidePage__tocLink {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, #c7dce3);
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+  padding: 0 14px 0 12px;
+  text-decoration: none;
+  color: var(--help-log-title);
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.helpGuidePage__tocLink:hover {
+  transform: translateY(-1px);
+  background: #f8fefe;
+  border-color: color-mix(in srgb, var(--accent) 42%, #bdd6de);
+}
+
+.helpGuidePage__tocLink:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.helpGuidePage__tocNumber {
+  min-width: 28px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--ui-section-eyebrow-color);
+}
+
+.helpGuidePage__tocText {
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.helpGuidePage__band {
+  margin: 0 -16px;
+}
+
+.helpGuidePage__wave {
+  display: block;
+  height: 24px;
+  color: #ffffff;
+}
+
+.helpGuidePage__wave.is-tint {
+  color: #effbfc;
+}
+
+.helpGuidePage__wave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.helpGuidePage__wave--bottom svg {
+  transform: rotate(180deg);
+  transform-origin: center;
+}
+
+.helpGuidePage__inner {
+  padding: 2px 16px 0;
+}
+
+.helpGuidePage__inner.is-white {
+  background: #ffffff;
+  --help-guide-surface: #f6fcfd;
+  --help-guide-surface-border: color-mix(in srgb, var(--accent) 18%, #d9e8ed);
+}
+
+.helpGuidePage__inner.is-tint {
+  background: #effbfc;
+  --help-guide-surface: #ffffff;
+  --help-guide-surface-border: color-mix(in srgb, var(--accent) 14%, #d9e8ed);
+}
+
+.helpGuidePage__group {
+  display: grid;
+  gap: 18px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 0 26px;
+}
+
+.helpGuidePage__groupHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 14%, #d9e7ec);
+}
+
+.helpGuidePage__groupLabels {
+  display: grid;
+  gap: 2px;
+}
+
+.helpGuidePage__groupEnglish {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: var(--ui-section-eyebrow-color);
+}
+
+.helpGuidePage__groupTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.35;
+  color: var(--help-log-title);
+}
+
+.helpGuidePage__steps {
+  display: grid;
+}
+
+.helpGuidePage__step {
+  display: grid;
+  gap: 12px;
+  padding: 24px 0;
+  scroll-margin-top: 84px;
+}
+
+.helpGuidePage__step + .helpGuidePage__step {
+  border-top: 1px solid color-mix(in srgb, var(--accent) 12%, #d7e4ea);
+}
+
+.helpGuidePage__stepHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.helpGuidePage__stepNumber {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, #c8dde4);
+  color: var(--ui-section-eyebrow-color);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.helpGuidePage__stepTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.28;
+  color: var(--help-log-title);
+}
+
+.helpGuidePage__stepLead {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--help-log-body);
+}
+
+.helpGuidePage__stepBody {
+  display: grid;
+  gap: 18px;
+}
+
+.helpGuidePage__pointList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: var(--help-log-body);
+  font-size: 14px;
+  line-height: 1.82;
+}
+
+.helpGuidePage__screen {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.helpGuidePage__screenHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.helpGuidePage__screenPill,
+.helpGuidePage__screenMeta {
+  border-radius: 999px;
+  border: 1px solid var(--help-guide-surface-border);
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.helpGuidePage__screenPill {
+  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
+  color: var(--ui-section-eyebrow-color);
+}
+
+.helpGuidePage__screenMeta {
+  background: transparent;
+  color: var(--help-log-muted);
+}
+
+.helpGuidePage__screenImage,
+.helpGuidePage__screenFallback {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid var(--help-guide-surface-border);
+  background: var(--help-guide-surface);
+}
+
+.helpGuidePage__screenImage {
+  display: block;
+  object-fit: cover;
+  box-shadow: 0 10px 26px rgba(12, 34, 44, 0.08);
+}
+
+.helpGuidePage__screenFallback {
+  display: grid;
+  place-items: center;
+  min-height: 190px;
+  padding: 18px;
+  text-align: center;
+}
+
+.helpGuidePage__screenFallbackTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--help-log-title);
+}
+
+.helpGuidePage__screenFallbackPath {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--help-log-muted);
+  word-break: break-all;
+}
+
+.helpGuidePage__stepNote {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--help-log-muted);
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage {
+  background: var(--bg);
+  --help-log-title: #e6f0fb;
+  --help-log-body: rgba(255, 255, 255, 0.82);
+  --help-log-muted: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__wave {
+  color: var(--surface);
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__wave.is-tint {
+  color: var(--ui-section-wave-fill);
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__inner.is-white {
+  background: var(--surface);
+  --help-guide-surface: color-mix(in srgb, var(--accent) 10%, var(--surfaceStrong));
+  --help-guide-surface-border: color-mix(in srgb, var(--accent) 20%, rgba(255, 255, 255, 0.18));
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__inner.is-tint {
+  background: var(--ui-section-soft-bg);
+  --help-guide-surface: color-mix(in srgb, var(--accent) 6%, rgba(255, 255, 255, 0.04));
+  --help-guide-surface-border: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.16));
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__groupHead,
+:root[data-theme-mode="dark"] .helpGuidePage__step + .helpGuidePage__step {
+  border-color: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.14));
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__tocTitle {
+  color: #e6f0fb;
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__tocLink {
+  background: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.03));
+  border-color: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.16));
+  color: #e6f0fb;
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__tocLink:hover {
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.04));
+  border-color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.2));
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__tocNumber,
+:root[data-theme-mode="dark"] .helpGuidePage__groupEnglish,
+:root[data-theme-mode="dark"] .helpGuidePage__screenPill,
+:root[data-theme-mode="dark"] .helpGuidePage .helpPage__kicker,
+:root[data-theme-mode="dark"] .helpGuidePage .helpPage__sectionIcon {
+  color: #baeef4;
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__tocText {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__heroChip {
+  border-color: color-mix(in srgb, var(--accent) 24%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.04));
+  color: #dff7fb;
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__stepNumber {
+  background: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, 0.04));
+  border-color: color-mix(in srgb, var(--accent) 26%, rgba(255, 255, 255, 0.2));
+  color: #baeef4;
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__screenPill {
+  background: color-mix(in srgb, var(--accent) 14%, rgba(255, 255, 255, 0.06));
+}
+
+:root[data-theme-mode="dark"] .helpGuidePage__screenMeta {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+@media (min-width: 900px) {
+  .helpGuidePage__tocList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .helpGuidePage__stepBody {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 460px);
+    align-items: start;
+  }
+
+  .helpGuidePage__screen {
+    order: 2;
+  }
+
+  .helpGuidePage__pointList {
+    order: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .helpGuidePage__hero {
+    gap: 7px;
+    padding-top: 14px;
+    padding-bottom: 8px;
+  }
+
+  .helpGuidePage__title {
+    font-size: 1.62rem;
+  }
+
+  .helpGuidePage__lead {
+    font-size: 11px;
+    line-height: 1.7;
+  }
+
+  .helpGuidePage__heroChips {
+    gap: 6px;
+  }
+
+  .helpGuidePage__heroChip {
+    padding: 5px 9px;
+    font-size: 10px;
+  }
+
+  .helpGuidePage__toc {
+    gap: 6px;
+    padding-bottom: 10px;
+  }
+
+  .helpGuidePage__tocLink {
+    min-height: 42px;
+    gap: 8px;
+    padding: 0 12px 0 11px;
+  }
+
+  .helpGuidePage__tocText {
+    font-size: 13px;
+  }
+
+  .helpGuidePage__group {
+    gap: 10px;
+    padding: 8px 0 12px;
+  }
+
+  .helpGuidePage__groupTitle {
+    font-size: 16px;
+  }
+
+  .helpGuidePage__step {
+    gap: 7px;
+    padding: 14px 0;
+  }
+
+  .helpGuidePage__stepTitle {
+    font-size: 18px;
+    line-height: 1.32;
+  }
+
+  .helpGuidePage__stepLead {
+    font-size: 13px;
+    line-height: 1.78;
+  }
+
+  .helpGuidePage__pointList {
+    gap: 5px;
+    font-size: 12px;
+    line-height: 1.72;
+  }
+
+  .helpGuidePage__screenHead {
+    gap: 8px;
+  }
+
+  .helpGuidePage__screenFallback {
+    min-height: 154px;
+    padding: 14px;
+  }
+}

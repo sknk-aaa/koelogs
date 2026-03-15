@@ -55,11 +55,6 @@ module Api
       render json: { error: e.record.errors.full_messages }, status: :unprocessable_entity
     end
 
-    def recalculate_ai_profile
-      AiUserProfileRefreshJob.perform_later(current_user.id, true)
-      render json: { ok: true }, status: :accepted
-    end
-
     private
 
     def serialize_me(user)
@@ -88,6 +83,10 @@ module Api
         beginner_missions_completed: beginner_missions_completed?(user),
         plan_tier: user.plan_tier,
         billing_cycle: user.billing_cycle,
+        premium_access_active: user.premium_access_active?,
+        stripe_subscription_status: user.stripe_subscription_status,
+        stripe_current_period_end: user.stripe_current_period_end&.iso8601,
+        stripe_cancel_at_period_end: user.stripe_cancel_at_period_end,
         ai_contribution_count: user.ai_contribution_events.distinct.count(:ai_recommendation_id),
         created_at: user.created_at&.iso8601
       }
@@ -106,16 +105,14 @@ module Api
     end
 
     def beginner_missions_completed?(user)
-      daily_log_done = user.training_logs.exists?
-      goal_done = user.goal_text.present?
       ai_customization_done =
         user.ai_custom_instructions.present? ||
         Array(user.ai_improvement_tags).any? ||
         Ai::ResponseStylePreferences.customized?(user.ai_response_style_prefs)
+      community_started = user.community_post_favorites.exists?
       measurement_done = user.measurement_runs.exists?
-      ai_recommendation_done = user.ai_recommendations.exists?
 
-      daily_log_done && goal_done && ai_customization_done && measurement_done && ai_recommendation_done
+      ai_customization_done && community_started && measurement_done
     end
   end
 end

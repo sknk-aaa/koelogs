@@ -1,8 +1,3 @@
-import { useEffect, useState } from "react";
-import { fetchInsights } from "../api/insights";
-import { useAuth } from "../features/auth/useAuth";
-import { THEMES } from "../features/theme/themes";
-import { isThemeUnlocked, readLastSeenLevel, unlockLabel } from "../features/theme/themeUnlock";
 import { useTheme } from "../features/theme/useTheme";
 import { useSettings } from "../features/settings/useSettings";
 
@@ -13,43 +8,61 @@ function clamp01(n: number) {
   return Math.min(1, Math.max(0, n));
 }
 
+function renderSettingsSectionIcon(kind: "display" | "training" | "readability") {
+  if (kind === "display") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <rect x="4.5" y="5.5" width="15" height="10.5" rx="2.2" />
+        <path d="M9 19h6" />
+        <path d="M12 16v3" />
+      </svg>
+    );
+  }
+  if (kind === "training") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="11.5" cy="12.2" r="7.2" />
+        <path d="M11.5 8.4v4.2l2.8 1.8" />
+        <path className="accent" d="M18.3 4.8v3.1" />
+        <path className="accent" d="M16.8 6.35h3" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M12 4v16" />
+      <path d="M6.5 8.2h2.3" />
+      <path d="M6.5 15.8h2.3" />
+      <path d="M15.2 8.2h2.3" />
+      <path d="M15.2 15.8h2.3" />
+      <circle className="accent-fill" cx="12" cy="12" r="2.1" />
+    </svg>
+  );
+}
+
 export default function SettingsPage() {
-  const { me } = useAuth();
-  const { themeKey, setThemeKey, themeMode, setThemeMode, resolvedMode } = useTheme();
+  const { themeMode, setThemeMode } = useTheme();
   const { settings, patchSettings } = useSettings();
-  const [level, setLevel] = useState<number>(() => readLastSeenLevel());
 
   const volumePct = Math.round(clamp01(settings.defaultVolume) * 100);
 
-  useEffect(() => {
-    let cancelled = false;
-    if (!me) return () => {};
-
-    void (async () => {
-      const res = await fetchInsights(7);
-      if (cancelled || !res.data) return;
-      setLevel((prev) => Math.max(prev, res.data.gamification.level));
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [me]);
-
-  return (
+      return (
     <div className="page settingsPage">
-      <div className="settingsPage__bg" aria-hidden="true" />
-
-      <section className="card settingsPage__hero">
-        <div className="settingsPage__kicker">Settings</div>
-        <h1 className="settingsPage__title">設定</h1>
-        <p className="settingsPage__sub">テーマ、再生挙動、表示の読みやすさをここで調整できます。</p>
-      </section>
-
-      <section className="card settingsPage__card">
-        <div className="settingsPage__cardTitle">表示モード</div>
+      <section className="settingsPage__section">
+        <div className="settingsPage__sectionHead">
+          <div className="settingsPage__sectionHeadMain">
+            <span className="settingsPage__sectionIcon" aria-hidden="true">
+              {renderSettingsSectionIcon("display")}
+            </span>
+            <div>
+              <div className="settingsPage__sectionEyebrow">DISPLAY</div>
+            </div>
+          </div>
+        </div>
         <div className="settingsPage__block">
-          <div className="settingsPage__label">ライト / ダーク</div>
+          <div className="settingsPage__hint settingsPage__hint--sectionLead">
+            アプリ全体のテーマを設定できます。
+          </div>
           <div className="settingsPage__row">
             <label className={`settingsPage__pillRadio ${themeMode === "light" ? "isSelected" : ""}`}>
               <input
@@ -67,63 +80,21 @@ export default function SettingsPage() {
               />
               <span>ダーク</span>
             </label>
-            <label className={`settingsPage__pillRadio ${themeMode === "system" ? "isSelected" : ""}`}>
-              <input
-                type="radio"
-                checked={themeMode === "system"}
-                onChange={() => setThemeMode("system")}
-              />
-              <span>システム</span>
-            </label>
-          </div>
-          <div className="settingsPage__hint">
-            現在適用中: {resolvedMode === "dark" ? "ダーク" : "ライト"}
           </div>
         </div>
       </section>
 
-      <section className="card settingsPage__card">
-        <div className="settingsPage__cardTitle">テーマカラー</div>
-        <div className="settingsPage__hint settingsPage__hint--themeLevel">現在レベル: Lv{level}</div>
-        {themeMode === "dark" && (
-          <div className="settingsPage__hint">ダークモード選択中はテーマカラーを変更できません。</div>
-        )}
-        <div className="settingsPage__themeGrid">
-          {THEMES.map((t) => {
-            const unlocked = isThemeUnlocked(t, level);
-            const disabledByMode = themeMode === "dark";
-            const selected = t.key === themeKey;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setThemeKey(t.key)}
-                className={`settingsPage__themeBtn ${selected ? "isSelected" : ""}${unlocked ? "" : " isLocked"}${disabledByMode ? " isModeLocked" : ""}`}
-                disabled={!unlocked || disabledByMode}
-                aria-label={
-                  disabledByMode
-                    ? "ダークモード中は選択できません"
-                    : unlocked
-                      ? `${t.name}テーマを選択`
-                      : `${t.name}テーマは未開放`
-                }
-              >
-                <span className="settingsPage__swatchWrap">
-                  <span className="settingsPage__swatch" style={{ background: t.vars["--accent"] }} />
-                  <span className="settingsPage__swatch" style={{ background: t.vars["--accentSoft"] }} />
-                </span>
-                <span className="settingsPage__themeMeta">
-                  <span className="settingsPage__themeName">{t.name}</span>
-                  {!unlocked && <span className="settingsPage__themeLock">{unlockLabel(t)}</span>}
-                </span>
-              </button>
-            );
-          })}
+      <section className="settingsPage__section">
+        <div className="settingsPage__sectionHead">
+          <div className="settingsPage__sectionHeadMain">
+            <span className="settingsPage__sectionIcon" aria-hidden="true">
+              {renderSettingsSectionIcon("training")}
+            </span>
+            <div>
+              <div className="settingsPage__sectionEyebrow">TRAINING</div>
+            </div>
+          </div>
         </div>
-      </section>
-
-      <section className="card settingsPage__card">
-        <div className="settingsPage__cardTitle">トレーニング</div>
 
         <div className="settingsPage__block">
           <div className="settingsPage__label">トレーニング音源のデフォルト音量</div>
@@ -170,8 +141,17 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="card settingsPage__card">
-        <div className="settingsPage__cardTitle">アクセシビリティ</div>
+      <section className="settingsPage__section">
+        <div className="settingsPage__sectionHead">
+          <div className="settingsPage__sectionHeadMain">
+            <span className="settingsPage__sectionIcon" aria-hidden="true">
+              {renderSettingsSectionIcon("readability")}
+            </span>
+            <div>
+              <div className="settingsPage__sectionEyebrow">READABILITY</div>
+            </div>
+          </div>
+        </div>
         <div className="settingsPage__block">
           <div className="settingsPage__label">フォントサイズ</div>
           <div className="settingsPage__row">

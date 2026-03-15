@@ -9,6 +9,8 @@ type Props = {
   triggerClassName?: string;
   bodyClassName?: string;
   closeLabel?: string;
+  triggerContent?: ReactNode;
+  triggerAriaLabel?: string;
 };
 
 export default function InfoModal({
@@ -17,6 +19,8 @@ export default function InfoModal({
   triggerClassName,
   bodyClassName,
   closeLabel = "閉じる",
+  triggerContent,
+  triggerAriaLabel,
 }: Props) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
@@ -45,18 +49,18 @@ export default function InfoModal({
     open && typeof document !== "undefined"
       ? createPortal(
         <div
-          className="infoModal__overlay"
+          className="infoModal__overlay uiModalBackdrop"
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
           onClick={() => setOpen(false)}
         >
-          <section className="card infoModal__card" onClick={(event) => event.stopPropagation()}>
-            <div className="infoModal__head">
-              <h2 id={titleId} className="infoModal__title">
+          <section className="card infoModal__card uiModalPanel" onClick={(event) => event.stopPropagation()}>
+            <div className="infoModal__head uiModalHeader">
+              <h2 id={titleId} className="infoModal__title uiModalTitle">
                 {title}
               </h2>
-              <button type="button" className="infoModal__close" onClick={() => setOpen(false)}>
+              <button type="button" className="infoModal__close uiButton uiButton--secondary" onClick={() => setOpen(false)}>
                 {closeLabel}
               </button>
             </div>
@@ -73,9 +77,16 @@ export default function InfoModal({
         type="button"
         className={triggerClassName ? `infoModal__trigger ${triggerClassName}` : "infoModal__trigger"}
         onClick={() => setOpen(true)}
-        aria-label={`${title}の説明を開く`}
+        aria-label={triggerAriaLabel ?? `${title}の説明を開く`}
       >
-        ⓘ
+        {triggerContent ?? (
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5" />
+            <text x="12" y="12.45" className="infoModal__triggerText" textAnchor="middle" dominantBaseline="middle">
+              i
+            </text>
+          </svg>
+        )}
       </button>
       {modal}
     </>

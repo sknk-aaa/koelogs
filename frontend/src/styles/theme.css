@@ -1,25 +1,25 @@
 :root {
-  --bg-glow-1: rgba(0, 0, 0, 0);
-  --bg-glow-2: rgba(0, 0, 0, 0);
-  --card-tint: #ffffff;
+  --bg-glow-1: rgba(22, 191, 211, 0.08);
+  --bg-glow-2: rgba(120, 218, 229, 0.14);
+  --card-tint: #f4fbfc;
 
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 10px 24px rgba(12, 28, 54, 0.12);
-  --shadow-md: 0 18px 44px rgba(12, 28, 54, 0.2);
+  --shadow-sm: 0 8px 24px rgba(16, 69, 76, 0.08);
+  --shadow-md: 0 18px 42px rgba(16, 69, 76, 0.12);
 
   --space-2: 10px;
-  --space-3: 14px;
-  --space-4: 18px;
-  --space-5: 22px;
+  --space-3: 16px;
+  --space-4: 20px;
+  --space-5: 24px;
 
-  --accent-1: #f9c74f;
-  --accent-2: #9b7bff;
-  --accent-3: #5aa1f2;
-  --accent-4: #5ac87f;
-  --accent-5: #ff6b9a;
+  --accent-1: #b8f0f5;
+  --accent-2: #83e0e9;
+  --accent-3: #4dcfdd;
+  --accent-4: #bce7d6;
+  --accent-5: #9ca7ff;
 }
 
 :root[data-theme-mode="dark"] {
@@ -31,15 +31,16 @@
   --card: #141f33;
   --card-tint: #1d2a45;
   --text: #e7eefb;
-  --muted: rgba(231, 238, 251, 0.66);
+  --muted: rgba(231, 238, 251, 0.78);
   --border: rgba(255, 255, 255, 0.08);
   --pageText: var(--text);
   --cardText: var(--text);
+  --headerTitleText: #baeef4;
 
   --bgTop: #101a2d;
   --bgMid: #0b1220;
   --bgBottom: #0a0f1a;
-  --headerBg: rgba(12, 16, 27, 0.82);
+  --headerBg: #0c101b;
   --headerBorder: rgba(255, 255, 255, 0.08);
   --drawerBackdrop: rgba(4, 8, 16, 0.7);
   --drawerSheet: #141f33;

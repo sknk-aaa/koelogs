@@ -67,6 +67,13 @@ module Api
     #   published: true
     # }
     def create
+      return if enforce_rate_limit!(
+        key: "community:posts:create",
+        limit: 10,
+        window: 5.minutes,
+        message: "投稿の送信回数が多すぎます。しばらく待ってから再度お試しください。"
+      )
+
       menu = current_user.training_menus.find_by(id: create_params[:training_menu_id])
       return render json: { errors: [ "training_menu_id is invalid" ] }, status: :unprocessable_entity if menu.nil?
 

@@ -5,6 +5,82 @@
   background: #ffffff;
 }
 
+.premiumPlanPageWrap {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.premiumPlanNotice {
+  margin: 12px 16px 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.premiumPlanNotice--success {
+  background: #edf8f1;
+  color: #1d6a3a;
+}
+
+.premiumPlanNotice--error {
+  background: #fff2f0;
+  color: #b23b2a;
+}
+
+.premiumPlanNotice--info {
+  background: #eef5ff;
+  color: #31577f;
+}
+
+.premiumPlanStatus {
+  width: min(1120px, calc(100% - 32px));
+  margin: 12px auto 12px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: #f4f8fc;
+  color: #34506d;
+}
+
+.premiumPlanStatus.is-active {
+  background: #edf8f1;
+  color: #24563b;
+}
+
+.premiumPlanStatus.is-canceling {
+  background: #fff7ec;
+  color: #8b5625;
+}
+
+.premiumPlanStatus__eyebrow {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  opacity: 0.72;
+}
+
+.premiumPlanStatus__title {
+  margin-top: 5px;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.premiumPlanStatus__body {
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.premiumPlanStatus__meta {
+  margin-top: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.82;
+}
+
 .premiumPlanHeader {
   position: sticky;
   top: 0;
@@ -54,7 +130,6 @@
 
 .premiumPlanPage {
   --premium-page-x: 20px;
-  --premium-pricing-height: 188px;
   --premium-line: #d9e2ec;
   --premium-text: #2f3d50;
   --premium-text-muted: #63768d;
@@ -67,18 +142,17 @@
   --premium-wave-mid-top: var(--premium-white-zone-bg);
   --premium-wave-mid-bottom: #eef5ff;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto;
   color: var(--premium-text);
 }
 
 .premiumPlanPage__main {
   min-height: 0;
-  overflow: auto;
-  padding-bottom: 16px;
+  padding-bottom: 0;
 }
 
 .premiumPlanPage__heroZone {
-  padding: 24px var(--premium-page-x) 0;
+  padding: 34px var(--premium-page-x) 0;
   background: linear-gradient(180deg, #dcecff 0%, #ecf5ff 55%, #f3f9ff 100%);
 }
 
@@ -89,25 +163,35 @@
 }
 
 .premiumPlanPage__badge {
-  min-height: 22px;
-  padding: 0 10px;
+  justify-self: center;
+  min-height: 18px;
+  width: auto;
+  max-width: max-content;
+  padding: 0 5px;
   border-radius: 999px;
   border: 1px solid #cad9ea;
   background: #eef5ff;
   color: #5b6f88;
   display: inline-flex;
   align-items: center;
-  font-size: 10px;
+  justify-content: center;
+  font-size: 7.5px;
   font-weight: 900;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .premiumPlanPage__heroVisual {
-  margin-top: 14px;
+  margin-top: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+}
+
+.premiumPlanPage__heroLogo {
+  display: block;
+  width: min(100%, 238px);
+  height: auto;
 }
 
 .premiumPlanPage__heroOrnament {
@@ -174,10 +258,10 @@
 }
 
 .premiumPlanPage__heading {
-  margin: 14px 0 0;
-  font-size: 24px;
+  margin: 10px 0 0;
+  font-size: 30px;
   font-weight: 900;
-  line-height: 1.16;
+  line-height: 1.12;
   letter-spacing: 0.01em;
   color: #3a485b;
 }
@@ -191,7 +275,7 @@
 }
 
 .premiumPlanPage__heroSub {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   font-size: 13px;
   line-height: 1.55;
   color: #5e728a;
@@ -229,6 +313,17 @@
   padding: 0 var(--premium-page-x);
   background: var(--premium-white-zone-bg);
   display: flow-root;
+}
+
+.premiumPlanPage__hero > *,
+.premiumPlanPage__benefits,
+.premiumPlanPage__assurance,
+.premiumPlanPage__compare,
+.premiumPlanPage__pricingGrid,
+.premiumPlanPage__actions {
+  width: min(100%, 860px);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .premiumPlanPage__benefits {
@@ -298,8 +393,8 @@
 }
 
 .premiumPlanPage__assurance {
-  margin-top: 20px;
-  margin-bottom: 14px;
+  margin-top: 28px;
+  margin-bottom: 28px;
   min-height: 168px;
   border-radius: 20px;
   border: 1px solid #cddff2;
@@ -353,7 +448,7 @@
 
 .premiumPlanPage__blueZone {
   margin-top: -1px;
-  padding: 1px var(--premium-page-x) calc(var(--premium-pricing-height) + env(safe-area-inset-bottom) + 18px);
+  padding: 1px var(--premium-page-x) 24px;
   background: linear-gradient(180deg, #eef5ff 0%, #e8f2ff 100%);
 }
 
@@ -372,29 +467,18 @@
 
 .premiumPlanPage__compareWrap {
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   border: none;
-  border-radius: 0;
+  border-radius: 18px;
   background: transparent;
   padding: 0;
 }
 
 .premiumPlanPage__compareWrap::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: calc(100% * 0.24);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #3f8fda 0%, #2f74be 100%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
-  z-index: 0;
+  content: none;
 }
 
 .premiumPlanPage__compareTable {
-  position: relative;
-  z-index: 1;
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
@@ -435,11 +519,12 @@
 }
 
 .premiumPlanPage__compareTable thead th:last-child {
-  background: transparent;
+  background: linear-gradient(180deg, #3f8fda 0%, #2f74be 100%);
   color: #ffffff;
   font-size: 13px;
   white-space: nowrap;
   letter-spacing: 0;
+  border-top-right-radius: 18px;
 }
 
 .premiumPlanPage__compareTable tbody tr {
@@ -506,7 +591,11 @@
   font-size: 22px;
   font-weight: 900;
   border-bottom: none;
-  background: transparent;
+  background: linear-gradient(180deg, #3f8fda 0%, #2f74be 100%);
+}
+
+.premiumPlanPage__compareTable tbody tr:last-child .premiumPlanPage__premiumCell {
+  border-bottom-right-radius: 18px;
 }
 
 .premiumPlanPage__summaryCard {
@@ -516,6 +605,99 @@
   background: #ffffff;
   padding: 18px 16px;
   box-shadow: 0 6px 14px rgba(44, 72, 104, 0.08);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanShell {
+  background: #080c17;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage {
+  --premium-line: rgba(255, 255, 255, 0.12);
+  --premium-text: rgba(255, 255, 255, 0.94);
+  --premium-text-muted: rgba(255, 255, 255, 0.68);
+  --premium-white-zone-bg: #0d1320;
+  --premium-wave-hero-top: #101826;
+  --premium-wave-hero-bottom: #0d1320;
+  --premium-wave-mid-top: #0d1320;
+  --premium-wave-mid-bottom: #101826;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroZone {
+  background: linear-gradient(180deg, #0b1220 0%, #0f1828 55%, #101826 100%);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__badge,
+:root[data-theme-mode="dark"] .premiumPlanPage__heroMark,
+:root[data-theme-mode="dark"] .premiumPlanPage__assuranceIcon,
+:root[data-theme-mode="dark"] .premiumPlanPage__summaryCard,
+:root[data-theme-mode="dark"] .premiumPlanPage__compareWrap::after {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__badge,
+:root[data-theme-mode="dark"] .premiumPlanPage__assuranceIcon {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroMark,
+:root[data-theme-mode="dark"] .premiumPlanPage__assurance,
+:root[data-theme-mode="dark"] .premiumPlanPage__summaryCard {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.32);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heading,
+:root[data-theme-mode="dark"] .premiumPlanPage__heroLine,
+:root[data-theme-mode="dark"] .premiumPlanPage__benefitTitle,
+:root[data-theme-mode="dark"] .premiumPlanPage__assuranceMain,
+:root[data-theme-mode="dark"] .premiumPlanPage__compareHeading,
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody th {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__heroSub,
+:root[data-theme-mode="dark"] .premiumPlanPage__benefitSub,
+:root[data-theme-mode="dark"] .premiumPlanPage__assuranceSub,
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable thead th,
+:root[data-theme-mode="dark"] .premiumPlanPage__freeCell.is-value {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__benefitList {
+  border-color: rgba(138, 170, 204, 0.28);
+  background: rgba(17, 30, 49, 0.88);
+  box-shadow: 0 16px 36px rgba(2, 8, 18, 0.28);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__benefitRow {
+  border-bottom-color: rgba(149, 180, 214, 0.16);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__benefitIcon {
+  color: #8fb8e6;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__benefitAccent {
+  stroke: #67c6ff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__blueZone {
+  background: linear-gradient(180deg, #101826 0%, #0b1220 100%);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody tr:nth-child(odd) th,
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody tr:nth-child(odd) td.premiumPlanPage__freeCell {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody tr:nth-child(even) th,
+:root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody tr:nth-child(even) td.premiumPlanPage__freeCell {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__freeCell {
+  color: rgba(255, 255, 255, 0.42);
 }
 
 .premiumPlanPage__summaryTitle {
@@ -535,16 +717,13 @@
 }
 
 .premiumPlanPage__pricing {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 28;
+  position: static;
   min-height: 186px;
-  border-top: 1px solid #d6e0ec;
-  background: linear-gradient(180deg, #f9fbff 0%, #f2f6fc 100%);
-  box-shadow: 0 -10px 24px rgba(42, 64, 90, 0.13);
-  padding: 8px 0 calc(6px + env(safe-area-inset-bottom));
+  margin-top: 0;
+  border-top: none;
+  background: linear-gradient(180deg, #eef5ff 0%, #e8f2ff 100%);
+  box-shadow: none;
+  padding: 24px 0 calc(18px + env(safe-area-inset-bottom));
 }
 
 .premiumPlanPage__pricingGrid {
@@ -560,7 +739,7 @@
   height: 122px;
   position: relative;
   border-radius: 16px;
-  border: 1px solid #cfdae8;
+  border: 1px solid #d9e4ee;
   background: #ffffff;
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -568,7 +747,7 @@
   padding: 0;
   text-align: inherit;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition: transform 120ms ease, background-color 160ms ease, border-color 160ms ease;
 }
 
 .premiumPlanPage__planCard:hover {
@@ -581,13 +760,13 @@
 }
 
 .premiumPlanPage__planHead {
-  min-height: 26px;
+  min-height: 24px;
   display: grid;
   place-items: center;
   font-size: 14px;
   font-weight: 900;
   color: #5f738d;
-  background: #eaf1fb;
+  background: #f3f7fb;
 }
 
 .premiumPlanPage__planPrice {
@@ -607,37 +786,37 @@
 
 .premiumPlanPage__planSub {
   text-align: center;
-  font-size: 11px;
-  font-weight: 900;
+  font-size: 10px;
+  font-weight: 800;
   color: var(--premium-blue);
-  margin-top: -4px;
+  margin-top: -2px;
 }
 
 .premiumPlanPage__planFoot {
-  margin: 0 7px 5px;
-  min-height: 20px;
-  border-radius: 999px;
-  border: 1px solid #d6e0ec;
-  background: #f4f8fd;
-  color: #71849b;
-  font-size: 8px;
+  margin: 0 10px 8px;
+  min-height: 16px;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  color: #788ba1;
+  font-size: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0 6px;
+  padding: 0;
 }
 
 .premiumPlanPage__planCard--highlight {
-  border: 2px solid var(--premium-blue);
-  background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%);
-  box-shadow: 0 8px 18px rgba(43, 108, 176, 0.2);
+  border: 1px solid color-mix(in srgb, var(--premium-blue) 26%, #bfd3ea);
+  background: #ffffff;
+  box-shadow: none;
 }
 
 .premiumPlanPage__planCard--highlight .premiumPlanPage__planHead {
-  background: #deebfb;
-  color: #2f74be;
+  background: #f3f7fb;
+  color: #5f738d;
 }
 
 .premiumPlanPage__planCard--highlight .premiumPlanPage__planPrice {
@@ -645,24 +824,37 @@
 }
 
 .premiumPlanPage__planCard.is-selected {
-  border-width: 2px;
   border-color: var(--premium-blue);
+  background: #f2fafb;
+}
+
+.premiumPlanPage__planCard.is-selected .premiumPlanPage__planHead {
+  background: #e8f6f8;
+  color: #2f7887;
+}
+
+.premiumPlanPage__planCard.is-selected .premiumPlanPage__planPrice {
+  color: #2a6277;
+}
+
+.premiumPlanPage__planCard.is-selected .premiumPlanPage__planSub {
+  color: #2d8a98;
 }
 
 .premiumPlanPage__planBadge {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 6px;
+  right: 8px;
   min-height: 16px;
   padding: 0 6px;
   border-radius: 999px;
-  border: 1px solid #8fb9e4;
-  background: #edf5ff;
-  color: #2e73ba;
+  border: 1px solid #efb2b2;
+  background: #fff0f0;
+  color: #c24a4a;
   display: inline-flex;
   align-items: center;
   font-size: 8px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.02em;
 }
 
@@ -676,14 +868,19 @@
 .premiumPlanPage__cta {
   height: 48px;
   border-radius: 24px;
-  border: 1px solid #2b73be;
-  background: linear-gradient(180deg, #3e8edb 0%, #2f74be 100%);
-  color: #ffffff;
+  border: 1px solid #8edbe4;
+  background: #dff8fb;
+  color: #17879a;
   font-size: 16px;
   font-weight: 900;
   letter-spacing: 0.01em;
   cursor: pointer;
-  box-shadow: 0 8px 16px rgba(45, 109, 176, 0.24);
+  box-shadow: none;
+}
+
+.premiumPlanPage__cta:disabled {
+  opacity: 0.7;
+  cursor: default;
 }
 
 .premiumPlanPage__secondary {
@@ -698,9 +895,7 @@
 
 @media (min-width: 760px) {
   .premiumPlanPage {
-    max-width: 860px;
-    margin: 0 auto;
-    --premium-pricing-height: 202px;
+    --premium-page-x: 24px;
   }
 
   .premiumPlanPage__main {
@@ -731,14 +926,184 @@
     padding-left: 24px;
     padding-right: 24px;
   }
+}
+
+@media (min-width: 1100px) {
+  .premiumPlanPage {
+    --premium-page-x: 32px;
+  }
+
+  .premiumPlanPage__main {
+    padding-bottom: 0;
+  }
+
+  .premiumPlanPage__heroZone {
+    padding-top: 44px;
+  }
+
+  .premiumPlanPage__heroLogo {
+    width: min(100%, 248px);
+  }
+
+  .premiumPlanPage__heading {
+    font-size: 38px;
+  }
+
+  .premiumPlanPage__heroSub {
+    font-size: 14px;
+  }
+
+  .premiumPlanPage__whiteZone {
+    width: min(100%, 1080px);
+    margin: 0 auto;
+  }
+
+  .premiumPlanPage__benefitList {
+    border: 1px solid #d9e3ef;
+    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.88);
+    padding: 10px 26px;
+    box-shadow: 0 16px 36px rgba(52, 84, 118, 0.08);
+  }
+
+  .premiumPlanPage__benefitRow {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 16px;
+    min-height: 76px;
+    padding: 14px 0;
+  }
+
+  .premiumPlanPage__benefitIcon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .premiumPlanPage__benefitIcon svg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .premiumPlanPage__benefitTitle {
+    font-size: 19px;
+  }
+
+  .premiumPlanPage__benefitSub {
+    margin-top: 4px;
+    font-size: 14px;
+  }
+
+  .premiumPlanPage__assurance {
+    width: min(100%, 1080px);
+    margin: 30px auto;
+    min-height: 0;
+    padding: 26px 24px 28px;
+    border-radius: 26px;
+  }
+
+  .premiumPlanPage__assuranceMain {
+    font-size: 32px;
+  }
+
+  .premiumPlanPage__assuranceSub {
+    font-size: 15px;
+    max-width: 24ch;
+  }
+
+  .premiumPlanPage__compare {
+    max-width: 1080px;
+    margin: 18px auto 0;
+  }
+
+  .premiumPlanPage__blueZone {
+    padding-bottom: 36px;
+  }
+
+  .premiumPlanPage__compareHeading {
+    margin-bottom: 18px;
+    text-align: left;
+    font-size: 30px;
+  }
+
+  .premiumPlanPage__compareWrap {
+    overflow: hidden;
+    border-radius: 26px;
+    box-shadow: 0 18px 42px rgba(44, 72, 104, 0.12);
+  }
+
+  .premiumPlanPage__compareTable thead th {
+    height: 54px;
+    font-size: 13px;
+  }
+
+  .premiumPlanPage__compareTable tbody tr {
+    height: 58px;
+  }
+
+  .premiumPlanPage__compareTable tbody th {
+    font-size: 15px;
+  }
+
+  .premiumPlanPage__freeCell {
+    font-size: 21px;
+  }
+
+  .premiumPlanPage__freeCell.is-value {
+    font-size: 13px;
+  }
 
   .premiumPlanPage__pricing {
-    left: 50%;
-    right: auto;
-    width: min(100%, 860px);
-    transform: translateX(-50%);
-    border-radius: 18px;
-    border: 1px solid #d6e0ec;
+    width: 100%;
+    padding-top: 14px;
+    box-shadow: 0 -12px 30px rgba(42, 64, 90, 0.08);
+  }
+
+  .premiumPlanPage__pricingGrid {
+    gap: 14px;
+  }
+
+  .premiumPlanPage__planCard {
+    height: 144px;
+    border-radius: 20px;
+  }
+
+  .premiumPlanPage__planHead {
+    min-height: 30px;
+    font-size: 15px;
+  }
+
+  .premiumPlanPage__planPrice {
+    font-size: 36px;
+  }
+
+  .premiumPlanPage__planPrice span {
+    font-size: 13px;
+  }
+
+  .premiumPlanPage__planSub {
+    font-size: 12px;
+  }
+
+  .premiumPlanPage__planFoot {
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+
+  .premiumPlanPage__planBadge {
+    top: 10px;
+    right: 12px;
+    min-height: 20px;
+    padding: 0 8px;
+    font-size: 9px;
+  }
+
+  .premiumPlanPage__actions {
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .premiumPlanPage__cta {
+    height: 54px;
+    font-size: 18px;
   }
 }
 
@@ -763,6 +1128,21 @@
 
 :root[data-theme-mode="dark"] .premiumPlanShell {
   background: #0b1220;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanStatus {
+  background: #121b2a;
+  color: #c4d5ea;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanStatus.is-active {
+  background: #12231c;
+  color: #b8e2c8;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanStatus.is-canceling {
+  background: #2a1d12;
+  color: #f0cfaa;
 }
 
 :root[data-theme-mode="dark"] .premiumPlanHeader {
@@ -890,8 +1270,7 @@
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__compareWrap::after {
-  background: linear-gradient(180deg, #2e7dcb 0%, #225f9c 100%);
-  box-shadow: inset 0 0 0 1px rgba(201, 228, 255, 0.16);
+  content: none;
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__compareTable thead th {
@@ -904,6 +1283,7 @@
 
 :root[data-theme-mode="dark"] .premiumPlanPage__compareTable thead th:last-child {
   color: #eff7ff;
+  background: linear-gradient(180deg, #2e7dcb 0%, #225f9c 100%);
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__compareTable tbody th,
@@ -949,8 +1329,12 @@
 
 :root[data-theme-mode="dark"] .premiumPlanPage__pricing {
   border-top-color: rgba(142, 172, 205, 0.34);
-  background: linear-gradient(180deg, #101f36 0%, #0d1b31 100%);
+  background: linear-gradient(180deg, #0f1d34 0%, #10243f 100%);
   box-shadow: 0 -12px 30px rgba(3, 8, 18, 0.5);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__premiumCell {
+  background: linear-gradient(180deg, #2e7dcb 0%, #225f9c 100%);
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__planCard {
@@ -980,20 +1364,20 @@
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__planFoot {
-  border-color: rgba(136, 168, 202, 0.34);
-  background: rgba(162, 196, 233, 0.08);
+  border-color: transparent;
+  background: transparent;
   color: #a4bfdc;
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__planCard--highlight {
   border-color: #5b9ce2;
-  background: linear-gradient(180deg, #173255 0%, #153050 100%);
-  box-shadow: 0 10px 20px rgba(8, 18, 36, 0.46);
+  background: #12243d;
+  box-shadow: none;
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__planCard--highlight .premiumPlanPage__planHead {
-  background: #1f426b;
-  color: #d6e9ff;
+  background: #183353;
+  color: #aac3df;
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__planCard--highlight .premiumPlanPage__planPrice {
@@ -1002,20 +1386,100 @@
 
 :root[data-theme-mode="dark"] .premiumPlanPage__planCard.is-selected {
   border-color: #77b2ef;
+  background: rgba(72, 199, 215, 0.14);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard.is-selected .premiumPlanPage__planHead {
+  background: rgba(72, 199, 215, 0.18);
+  color: #c2f3f8;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard.is-selected .premiumPlanPage__planPrice {
+  color: #ddfbff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard.is-selected .premiumPlanPage__planSub {
+  color: #94edf5;
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__planBadge {
-  border-color: rgba(139, 179, 223, 0.6);
-  background: rgba(109, 165, 224, 0.22);
-  color: #d5e9ff;
+  border-color: rgba(239, 132, 132, 0.58);
+  background: rgba(194, 74, 74, 0.18);
+  color: #ffb9b9;
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__cta {
-  border-color: #63a7ea;
-  background: linear-gradient(180deg, #4a94dd 0%, #3179c5 100%);
-  box-shadow: 0 8px 18px rgba(10, 22, 40, 0.48);
+  border-color: #58bfcd;
+  background: rgba(72, 199, 215, 0.2);
+  box-shadow: none;
 }
 
 :root[data-theme-mode="dark"] .premiumPlanPage__secondary {
   color: #9cb5d1;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanShell {
+  background: #071223;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanHeader {
+  background: #071223;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanHeader__title {
+  color: #e6f0fb;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__pricing {
+  border-top-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, #0d1626 0%, #0a1220 100%);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard {
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planHead {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__planCard--highlight {
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__cta {
+  color: #f8fbff;
+}
+
+:root[data-theme-mode="dark"] .premiumPlanPage__secondary {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+@media (min-width: 1100px) {
+  :root[data-theme-mode="dark"] .premiumPlanPage__benefitList {
+    border-color: rgba(136, 169, 207, 0.34);
+    background: linear-gradient(180deg, #112038 0%, #0e1a2d 100%);
+    box-shadow: 0 18px 42px rgba(2, 8, 18, 0.42);
+  }
+
+  :root[data-theme-mode="dark"] .premiumPlanPage__benefitRow {
+    border-bottom-color: rgba(149, 180, 214, 0.18);
+  }
+
+  :root[data-theme-mode="dark"] .premiumPlanPage__benefitIcon {
+    color: #9ec3ea;
+  }
+
+  :root[data-theme-mode="dark"] .premiumPlanPage__benefitAccent {
+    stroke: #72ccff;
+  }
+
+  :root[data-theme-mode="dark"] .premiumPlanPage__benefitTitle {
+    color: #d9ebff;
+  }
+
+  :root[data-theme-mode="dark"] .premiumPlanPage__benefitSub {
+    color: #a8bfdc;
+  }
 }

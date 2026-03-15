@@ -1,14 +1,75 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { updateMe } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
-import { AVATAR_ICON_OPTIONS, avatarIconPath } from "../features/profile/avatarIcons";
+import { avatarIconPath } from "../features/profile/avatarIcons";
 
 import "./ProfilePage.css";
 
+const BILLING_CYCLE_LABEL = {
+  monthly: "Premium 1か月プラン",
+  quarterly: "Premium 3か月プラン",
+} as const;
+
+function renderProfileSectionIcon(kind: "account" | "identity" | "plan" | "visibility" | "contribution"): React.ReactNode {
+  if (kind === "account") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="12" cy="8.3" r="3.3" />
+        <path d="M6.8 18c.5-2.6 2.6-4.4 5.2-4.4s4.7 1.8 5.2 4.4" />
+      </svg>
+    );
+  }
+  if (kind === "identity") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M6.8 6.2h10.4" />
+        <path d="M6.8 11h10.4" />
+        <path className="accent" d="M6.8 15.8h7.2" />
+      </svg>
+    );
+  }
+  if (kind === "plan") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M5.5 8.5 12 4l6.5 4.5" />
+        <path d="M7 10.2V18h10v-7.8" />
+        <path className="accent" d="M9.5 13h5" />
+      </svg>
+    );
+  }
+  if (kind === "visibility") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M3.8 12s3-5 8.2-5 8.2 5 8.2 5-3 5-8.2 5-8.2-5-8.2-5Z" />
+        <circle className="accent" cx="12" cy="12" r="2.5" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M12 4.4 13.8 8l4 .6-2.9 2.8.7 4-3.6-1.9-3.6 1.9.7-4L6.2 8.6l4-.6Z" />
+    </svg>
+  );
+}
+
+function formatBillingDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).format(date);
+}
+
 export default function ProfilePage() {
   const { me, refresh } = useAuth();
+  const navigate = useNavigate();
 
   const initial = useMemo(() => me?.display_name ?? "", [me?.display_name]);
   const [displayName, setDisplayName] = useState(initial);
@@ -35,15 +96,20 @@ export default function ProfilePage() {
   if (!me) {
     return (
       <div className="page profilePage">
-        <div className="profilePage__bg" aria-hidden="true" />
-        <section className="card profilePage__hero">
-          <div className="profilePage__kicker">Profile</div>
-          <h1 className="profilePage__title">プロフィール</h1>
+        <section className="profilePage__hero">
           <p className="profilePage__sub">ログインしてください。</p>
         </section>
       </div>
     );
   }
+
+  const hasPremiumPlan = me.plan_tier === "premium";
+  const isCanceling = hasPremiumPlan && Boolean(me.stripe_cancel_at_period_end);
+  const currentPlanLabel =
+    hasPremiumPlan && (me.billing_cycle === "monthly" || me.billing_cycle === "quarterly")
+      ? BILLING_CYCLE_LABEL[me.billing_cycle]
+      : "Free";
+  const currentPeriodEndLabel = formatBillingDate(me.stripe_current_period_end);
 
   const onSave = async () => {
     setIsSaving(true);
@@ -91,7 +157,14 @@ export default function ProfilePage() {
     }
   };
 
+  const hasProfileChanges =
+    displayName !== (me.display_name ?? "") ||
+    avatarIcon !== (me.avatar_icon ?? "note_blue") ||
+    avatarImageUrl !== (me.avatar_image_url ?? "") ||
+    publicProfileEnabled !== (me.public_profile_enabled ?? false) ||
+    rankingParticipationEnabled !== (me.ranking_participation_enabled ?? false);
   const canSave = displayName.trim().length <= 30;
+  const canSubmit = hasProfileChanges && canSave && !isSaving;
   const canSavePassword = currentPassword.length > 0 && newPassword.length > 0 && newPassword === newPasswordConfirm;
 
   const onSavePassword = async () => {
@@ -136,16 +209,15 @@ export default function ProfilePage() {
 
   return (
     <div className="page profilePage">
-      <div className="profilePage__bg" aria-hidden="true" />
-
-      <section className="card profilePage__hero">
-        <div className="profilePage__kicker">Profile</div>
-        <h1 className="profilePage__title">プロフィール</h1>
-        <p className="profilePage__sub">表示名を更新して、記録画面での表示を整えます。</p>
-      </section>
-
-      <section className="card profilePage__card">
-        <div className="profilePage__cardTitle">アカウント情報</div>
+      <section className="profilePage__section">
+        <div className="profilePage__sectionHead">
+          <div className="profilePage__sectionHeadMain">
+            <span className="profilePage__sectionIcon" aria-hidden="true">
+              {renderProfileSectionIcon("account")}
+            </span>
+            <div className="profilePage__sectionEyebrow">ACCOUNT</div>
+          </div>
+        </div>
 
         <div className="profilePage__row">
           <div className="profilePage__k">メール</div>
@@ -153,7 +225,7 @@ export default function ProfilePage() {
         </div>
 
         <details className="profilePage__passwordAccordion">
-          <summary className="profilePage__passwordSummary">パスワードを再設定する</summary>
+          <summary className="profilePage__passwordSummary">パスワードを変更する</summary>
           <div className="profilePage__passwordBody">
             <label className="profilePage__label">
               <div className="profilePage__k">現在のパスワード</div>
@@ -199,9 +271,9 @@ export default function ProfilePage() {
             </button>
           </div>
         </details>
+      </section>
 
-        <div className="profilePage__hr" />
-
+      <section className="profilePage__section">
         <label className="profilePage__label">
           <div className="profilePage__k">表示名（30文字まで / 未設定可）</div>
           <input
@@ -216,8 +288,6 @@ export default function ProfilePage() {
           </div>
         </label>
 
-        <div className="profilePage__hr" />
-
         <div className="profilePage__label">
           <div className="profilePage__k">アイコン</div>
           <div className="profilePage__avatarPreview">
@@ -228,13 +298,7 @@ export default function ProfilePage() {
             />
           </div>
           <div className="profilePage__avatarCustom">
-            <div className="profilePage__hint">自由設定: 画像URLを貼るか、端末画像を選択できます。</div>
-            <input
-              value={avatarImageUrl}
-              onChange={(e) => setAvatarImageUrl(e.target.value)}
-              className="profilePage__input"
-              placeholder="https://... または data:image/... "
-            />
+            <div className="profilePage__hint">端末画像を設定できます。</div>
             <div className="profilePage__avatarActions">
               <label className="profilePage__avatarFileBtn">
                 画像を選択
@@ -247,33 +311,61 @@ export default function ProfilePage() {
               </label>
               <button
                 type="button"
-                className="profilePage__avatarResetBtn"
+                className="profilePage__avatarResetBtn profilePage__avatarResetBtn--text"
                 onClick={() => setAvatarImageUrl("")}
               >
                 カスタム画像を解除
               </button>
             </div>
           </div>
-          <div className="profilePage__avatarGrid">
-            {AVATAR_ICON_OPTIONS.map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                className={`profilePage__avatarBtn ${avatarIcon === opt.key ? "is-active" : ""}`}
-                onClick={() => setAvatarIcon(opt.key)}
-              >
-                <img src={avatarIconPath(opt.key)} alt={opt.label} className="profilePage__avatarBtnImg" />
-              </button>
-            ))}
+        </div>
+      </section>
+
+      <section className="profilePage__section">
+        <div className="profilePage__sectionHead">
+          <div className="profilePage__sectionHeadMain">
+            <span className="profilePage__sectionIcon" aria-hidden="true">
+              {renderProfileSectionIcon("plan")}
+            </span>
+            <div className="profilePage__sectionEyebrow">PLAN</div>
           </div>
         </div>
 
-        <div className="profilePage__hr" />
+        <div className="profilePage__row">
+          <div className="profilePage__k">現在のプラン</div>
+          <div className="profilePage__v">{currentPlanLabel}</div>
+        </div>
+
+        {hasPremiumPlan && currentPeriodEndLabel ? (
+          <div className="profilePage__row">
+            <div className="profilePage__k">{isCanceling ? "利用終了予定日" : "次回更新日"}</div>
+            <div className="profilePage__v">{currentPeriodEndLabel}</div>
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          className="profilePage__saveBtn profilePage__saveBtn--secondary profilePage__planAction"
+          onClick={() => navigate(hasPremiumPlan ? "/plan" : "/premium")}
+        >
+          {hasPremiumPlan ? "契約を管理" : "プランを見る"}
+        </button>
+      </section>
+
+      <section className="profilePage__section">
+        <div className="profilePage__sectionHead">
+          <div className="profilePage__sectionHeadMain">
+            <span className="profilePage__sectionIcon" aria-hidden="true">
+              {renderProfileSectionIcon("visibility")}
+            </span>
+            <div className="profilePage__sectionEyebrow">VISIBILITY</div>
+          </div>
+        </div>
 
         <div className="profilePage__toggleRow">
           <div>
             <div className="profilePage__k">コミュニティからプロフィール閲覧可能にする</div>
-            <div className="profilePage__hint">ONでコミュニティ投稿からあなたのプロフィールを閲覧できます</div>
+            <div className="profilePage__hint">コミュニティで、他のユーザーがあなたのプロフィールを見られるようになります</div>
           </div>
           <label className="profilePage__switch">
             <input
@@ -288,7 +380,7 @@ export default function ProfilePage() {
         <div className="profilePage__toggleRow">
           <div>
             <div className="profilePage__k">ランキングに参加する</div>
-            <div className="profilePage__hint">ONでコミュニティランキング（AI貢献/連続日数/直近7日練習時間）に表示されます</div>
+            <div className="profilePage__hint">コミュニティランキングに表示されます</div>
           </div>
           <label className="profilePage__switch">
             <input
@@ -300,49 +392,26 @@ export default function ProfilePage() {
           </label>
         </div>
 
-        <div className="profilePage__previewCard">
-          <div className="profilePage__k">公開プロフィールの見え方</div>
-          <div className="profilePage__hint">
-            コミュニティでは「アイコン / 名前 / Lv / 連続日数 / XP / バッジ / AI貢献度」が表示されます。
-          </div>
-          <Link
-            to={`/community/profile/${me.id}`}
-            className={`profilePage__previewLink ${publicProfileEnabled ? "" : "is-disabled"}`}
-            aria-disabled={!publicProfileEnabled}
-            onClick={(e) => {
-              if (!publicProfileEnabled) e.preventDefault();
-            }}
-          >
-            公開プロフィールを確認する
-          </Link>
-        </div>
-
-        <div className="profilePage__hr" />
-
-        <div className="profilePage__contribution">
-          <div className="profilePage__awardIcon" aria-hidden="true">🏅</div>
-          <div>
-          <div className="profilePage__contributionValue">
-            あなたのデータは <span className="profilePage__contributionCount">{me.ai_contribution_count}回</span> AI改善根拠に使われました
-          </div>
-          <div className="profilePage__contributionHelp">
-            AIおすすめ生成時に、あなたのコミュニティ投稿が根拠として採用された回数です。
-            同じおすすめ内で複数回使われても1回として数えます。
-          </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onSave}
-          disabled={isSaving}
-          className="profilePage__saveBtn"
-        >
-          {isSaving ? "保存中…" : "保存"}
-        </button>
-
-        <div className="profilePage__note">空欄で保存すると「未設定」になります。</div>
       </section>
+
+      <div className="profilePage__footer">
+        <div className="profilePage__note">
+          {!hasProfileChanges ? "変更すると保存できます。" : !canSave ? "表示名は30文字以内で保存できます。" : "空欄で保存すると「未設定」になります。"}
+        </div>
+      </div>
+
+      <div className="profilePage__saveDock" role="region" aria-label="保存操作">
+        <div className="profilePage__saveDockInner">
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!canSubmit}
+            className="profilePage__saveBtn"
+          >
+            {isSaving ? "保存中…" : "保存"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

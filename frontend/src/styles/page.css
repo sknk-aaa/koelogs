@@ -5,6 +5,10 @@
   color: var(--pageText, var(--text));
 }
 
+.page:not(.logPage):not(.aiChatPage):not(.communityRanking) {
+  padding-top: 0;
+}
+
 .h1 {
   font-size: 20px;
   font-weight: 900;
@@ -26,7 +30,7 @@
   border-radius: var(--radius-xl);
   padding: var(--space-4);
   color: var(--cardText, var(--text));
-  box-shadow: 0 4px 12px rgba(12, 28, 54, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .hr {
@@ -63,6 +67,10 @@
     padding-right: 18px;
   }
 
+  .page:not(.logPage):not(.aiChatPage):not(.communityRanking) {
+    padding-top: 0;
+  }
+
   .h1 {
     font-size: 21px;
   }
@@ -89,4 +97,36 @@ input, textarea, button {
 }
 .btn:active {
   transform: translateY(1px);
+}
+
+button:not(:disabled) {
+  transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+:root[data-theme-mode="dark"] .page {
+  color: var(--pageText, rgba(255, 255, 255, 0.92));
+}
+
+:root[data-theme-mode="dark"] .card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--cardText, rgba(255, 255, 255, 0.92));
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .hr {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .k {
+  color: rgba(255, 255, 255, 0.64);
+  opacity: 1;
+}
+
+:root[data-theme-mode="dark"] .v {
+  color: rgba(255, 255, 255, 0.9);
 }

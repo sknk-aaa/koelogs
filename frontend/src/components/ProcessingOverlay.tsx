@@ -3,6 +3,34 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import MetronomeLoader from "./MetronomeLoader";
 import "./ProcessingOverlay.css";
 
+let processingOverlayScrollLockCount = 0;
+let prevBodyOverflow = "";
+let prevBodyTouchAction = "";
+let prevBodyOverscrollBehavior = "";
+
+function lockBodyScroll(): () => void {
+  const body = document.body;
+  processingOverlayScrollLockCount += 1;
+
+  if (processingOverlayScrollLockCount === 1) {
+    prevBodyOverflow = body.style.overflow;
+    prevBodyTouchAction = body.style.touchAction;
+    prevBodyOverscrollBehavior = body.style.overscrollBehavior;
+    body.style.overflow = "hidden";
+    body.style.touchAction = "none";
+    body.style.overscrollBehavior = "none";
+  }
+
+  return () => {
+    processingOverlayScrollLockCount = Math.max(0, processingOverlayScrollLockCount - 1);
+    if (processingOverlayScrollLockCount === 0) {
+      body.style.overflow = prevBodyOverflow;
+      body.style.touchAction = prevBodyTouchAction;
+      body.style.overscrollBehavior = prevBodyOverscrollBehavior;
+    }
+  };
+}
+
 type Props = {
   open: boolean;
   title: string;
@@ -29,6 +57,11 @@ export default function ProcessingOverlay({
     const timer = window.setTimeout(() => setVisible(true), Math.max(0, delayMs));
     return () => window.clearTimeout(timer);
   }, [delayMs, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    return lockBodyScroll();
+  }, [open]);
 
   const videoSources = useMemo(() => {
     const out: string[] = [];

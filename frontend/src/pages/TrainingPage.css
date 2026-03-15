@@ -3,50 +3,63 @@
 .trainingPage {
   position: relative;
   isolation: isolate;
-  --va-bg: #070b12;
-  --va-panel: #0b111b;
-  --va-panel-2: #0a0f18;
-  --va-border: rgba(255, 255, 255, 0.1);
-  --va-border-strong: rgba(255, 255, 255, 0.18);
-  --va-text: rgba(255, 255, 255, 0.92);
-  --va-text-muted: rgba(255, 255, 255, 0.7);
-  --va-text-faint: rgba(255, 255, 255, 0.55);
-  --va-accent-yellow: #f4e600;
-  --va-accent-orange: #ff8a1f;
-  --va-accent-red: #ff4a4a;
-  --va-state-good: #f4e600;
-  --va-state-mid: #ff8a1f;
-  --va-state-bad: #ff4a4a;
-  --va-shadow: 0 16px 44px rgba(0, 0, 0, 0.55);
-  --va-glow-yellow: 0 0 24px rgba(244, 230, 0, 0.22);
-  --va-glow-red: 0 0 24px rgba(255, 74, 74, 0.18);
+  --va-bg: #effbfc;
+  --va-panel: #ffffff;
+  --va-panel-2: #ffffff;
+  --va-border: #dfe8ef;
+  --va-border-strong: #d3e1ea;
+  --va-text: #203548;
+  --va-text-muted: #6c7f8c;
+  --va-text-faint: #8ea0ac;
+  --va-overlay-surface: rgba(255, 255, 255, 0.94);
+  --va-overlay-soft: rgba(255, 255, 255, 0.82);
+  --va-track: #eef4f7;
+  --va-line-soft: rgba(112, 131, 144, 0.18);
+  --va-accent-yellow: #14c6d8;
+  --va-accent-orange: #14c6d8;
+  --va-accent-red: #d85d72;
+  --va-state-good: #14c6d8;
+  --va-state-mid: #14c6d8;
+  --va-state-bad: #d85d72;
+  --va-shadow: none;
+  --va-glow-yellow: none;
+  --va-glow-red: none;
+}
+
+.page.trainingPage {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+:root[data-theme-mode="dark"] .trainingPage {
+  --va-bg: var(--bgMid);
+  --va-panel: var(--card);
+  --va-panel-2: var(--surface);
+  --va-border: var(--border);
+  --va-border-strong: color-mix(in srgb, var(--accent) 16%, var(--border));
+  --va-text: var(--text);
+  --va-text-muted: var(--muted);
+  --va-text-faint: color-mix(in srgb, var(--muted) 82%, transparent);
+  --va-overlay-surface: color-mix(in srgb, var(--surface) 92%, rgba(255, 255, 255, 0.04));
+  --va-overlay-soft: color-mix(in srgb, var(--surface) 86%, rgba(255, 255, 255, 0.05));
+  --va-track: color-mix(in srgb, var(--surface) 88%, rgba(255, 255, 255, 0.06));
+  --va-line-soft: color-mix(in srgb, var(--muted) 22%, transparent);
 }
 
 .trainingPage__bg {
-  position: absolute;
-  top: -120px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100vw;
-  height: 320px;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(520px 180px at 12% 16%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 64%),
-    radial-gradient(420px 160px at 90% 0%, rgba(255, 255, 255, 0.18), transparent 68%);
-  filter: blur(8px);
+  display: none;
 }
 
 .trainingPage__grid {
   display: grid;
-  gap: 24px;
+  gap: 20px;
 }
 
 .trainingPage__aiIntroCard {
   border-radius: var(--radius-xl);
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border: none;
   background: color-mix(in srgb, var(--accent) 10%, var(--card));
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   display: grid;
   gap: 8px;
   margin-bottom: 16px;
@@ -75,24 +88,20 @@
   height: 40px;
   justify-self: start;
   padding: 0 14px;
-  border-radius: 10px;
+  border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent) 86%, #0b1220),
-    color-mix(in srgb, var(--accent) 70%, #0b1220)
-  );
-  color: #eef6ff;
+  background: var(--va-panel);
+  color: var(--ui-accent-strong);
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
 }
 
 .trainingPage__panel {
-  border-radius: 24px;
+  border-radius: 16px;
   padding: 0;
   display: grid;
-  gap: 16px;
+  gap: 12px;
   width: min(760px, 100%);
   justify-self: center;
 }
@@ -100,26 +109,53 @@
 .trainingPage__panelHead {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 10px;
 }
 
-.trainingPage__panelTitle {
-  font-size: 15px;
-  font-weight: 950;
-  position: relative;
-  padding-left: 10px;
+.trainingPage__eyebrowRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
 }
 
-.trainingPage__panelTitle::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 2px;
-  bottom: 2px;
-  width: 3px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 72%, var(--text));
+.trainingPage__eyebrowIcon {
+  width: var(--ui-section-icon-size, 28px);
+  height: var(--ui-section-icon-size, 28px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-section-icon-color, #3c9fb3);
+  flex-shrink: 0;
+}
+
+.trainingPage__eyebrowIcon svg {
+  width: var(--ui-section-icon-size, 28px);
+  height: var(--ui-section-icon-size, 28px);
+  stroke: currentColor;
+  stroke-width: var(--ui-section-icon-stroke-width, 1.9);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trainingPage__eyebrowIcon .accent {
+  stroke: var(--ui-section-icon-accent, #66c9df);
+}
+
+.trainingPage__eyebrow {
+  font-size: var(--ui-section-eyebrow-size, 1.05rem);
+  font-weight: 800;
+  letter-spacing: var(--ui-section-eyebrow-letter-spacing, 0.16em);
+  text-transform: uppercase;
+  color: var(--ui-section-eyebrow-color, #446d85);
+}
+
+.trainingPage__panelTitle {
+  font-size: 16px;
+  font-weight: 950;
+  color: var(--va-text);
 }
 
 :root[data-theme-mode="dark"] .trainingPage__panelTitle {
@@ -133,14 +169,14 @@
 }
 
 .trainingPage__studioCard {
-  border-radius: 24px;
-  border: 1px solid var(--border);
+  border-radius: 16px;
+  border: none;
   background: var(--card);
   color: var(--cardText, var(--text));
-  box-shadow: var(--shadow-sm);
-  padding: 20px;
+  box-shadow: none;
+  padding: 0;
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .trainingPage__studioFilters {
@@ -162,7 +198,7 @@
   height: 12px;
   width: 55%;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
+  background: #e7eef4;
 }
 
 .trainingPage__skeleton--long {
@@ -193,8 +229,47 @@
 .trainingPage__measurementPanel {
   margin-top: 0;
   display: grid;
-  gap: 16px;
+  gap: 14px;
   padding: 0;
+}
+
+.trainingPage__measureSection {
+  position: relative;
+  margin: 2px -16px 0;
+  margin-bottom: calc(-88px - env(safe-area-inset-bottom));
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}
+
+.trainingPage__measureSection::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 24px;
+  bottom: 0;
+  background: var(--ui-measure-section-bg);
+  z-index: 0;
+}
+
+.trainingPage__measureWave {
+  display: block;
+  height: 24px;
+  color: var(--ui-measure-section-bg);
+  position: relative;
+  z-index: 1;
+}
+
+.trainingPage__measureWave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.trainingPage__measureInner {
+  background: var(--ui-measure-section-bg);
+  padding: 2px 16px 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .trainingPage__measurementPanelHead {
@@ -205,17 +280,18 @@
   height: 36px;
   padding: 0 12px;
   margin-top: 8px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  background: #ffffff;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+  color: var(--text);
 }
 
 .trainingPage__measurementLayout {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .trainingPage__measurementLayout.is-desktop {
@@ -226,7 +302,6 @@
 .trainingPage__measurementPane {
   min-height: 0;
 }
-
 .trainingPage__measurementLayout.is-desktop.is-balanced {
   align-items: stretch;
 }
@@ -258,60 +333,57 @@
 
 .trainingPage__measurementStep {
   display: grid;
-  gap: 10px;
-  border: 1px solid var(--border);
+  gap: 12px;
+  border: none;
   border-radius: 16px;
-  padding: 12px;
-  background: var(--card);
+  padding: 14px;
+  background: #ffffff;
   color: var(--cardText, var(--text));
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .trainingPage__measurementStep::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: color-mix(in srgb, var(--accent) 30%, var(--border));
+  content: none;
 }
 
 .trainingPage__measurementStep--manage {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  background: var(--card);
+}
+
+.trainingPage__measurementPane--select {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .trainingPage__measurementStep--manage::before {
-  background: color-mix(in srgb, var(--accent) 70%, var(--text));
+  background: none;
 }
 
 .trainingPage__measurementStep--record {
-  border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
-  box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 20%, transparent);
-  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  box-shadow: none;
+  background: var(--card);
 }
 
 .trainingPage__measurementStep--record[data-measurement="range"] {
-  background: color-mix(in srgb, var(--accent-3) 14%, var(--card));
+  background: var(--card);
 }
 
 .trainingPage__measurementStep--record[data-measurement="long_tone"] {
-  background: color-mix(in srgb, var(--accent-2) 14%, var(--card));
+  background: var(--card);
 }
 
 .trainingPage__measurementStep--record[data-measurement="volume_stability"] {
-  background: color-mix(in srgb, var(--accent-4) 12%, var(--card));
+  background: var(--card);
 }
 
 .trainingPage__measurementStep--record[data-measurement="pitch_accuracy"] {
-  background: color-mix(in srgb, var(--accent-1) 12%, var(--card));
+  background: var(--card);
 }
 
 .trainingPage__measurementStep--record::before {
-  background: color-mix(in srgb, var(--accent) 70%, var(--text));
+  background: none;
 }
 
 .trainingPage__measurementStep--record .trainingPage__measurementStepHead {
@@ -323,8 +395,36 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  padding-bottom: 6px;
+  padding-bottom: 8px;
   border-bottom: 1px dashed color-mix(in srgb, var(--border) 82%, transparent);
+}
+
+.trainingPage__measurementStepChip {
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  color: color-mix(in srgb, var(--accent) 52%, #27444c);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.trainingPage__measurementStepChip--inline {
+  flex: 0 0 auto;
+}
+
+.trainingPage__measurementTitleLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.trainingPage__measurementStepHead.is-badge-less {
+  gap: 0;
 }
 
 .trainingPage__measurementStepHead--training {
@@ -334,14 +434,15 @@
 
 .trainingPage__measurementStepHeadText {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .trainingPage__measurementStepBadge {
   width: 24px;
   height: 24px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
-  background: color-mix(in srgb, var(--accent) 14%, var(--card));
+  border: none;
+  background: transparent;
   display: grid;
   place-items: center;
   font-size: 12px;
@@ -349,44 +450,93 @@
 }
 
 .trainingPage__measurementStep--manage .trainingPage__measurementStepBadge {
-  border-color: color-mix(in srgb, #4b9ecf 52%, var(--border));
-  background: color-mix(in srgb, #4b9ecf 16%, var(--card));
+  border-color: transparent;
+  background: transparent;
 }
 
 .trainingPage__measurementStep--record .trainingPage__measurementStepBadge {
-  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
-  background: color-mix(in srgb, var(--accent) 22%, var(--card));
+  border-color: transparent;
+  background: transparent;
 }
 
 .trainingPage__measurementStepTitle {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 950;
   line-height: 1.35;
+  color: var(--va-text);
 }
 
 .trainingPage__measurementStepTitle--record {
-  color: color-mix(in srgb, var(--accent) 82%, #f8faff);
+  color: #203548;
   letter-spacing: 0.01em;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.trainingPage__measurementTitleWithIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.trainingPage__measurementTitleWithIconMark {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+  flex: 0 0 auto;
+}
+
+.trainingPage__measurementStep--record[data-measurement="range"] .trainingPage__measurementTitleWithIconMark {
+  color: #5d8fe7;
+}
+
+.trainingPage__measurementStep--record[data-measurement="long_tone"] .trainingPage__measurementTitleWithIconMark {
+  color: #8b6fda;
+}
+
+.trainingPage__measurementStep--record[data-measurement="volume_stability"] .trainingPage__measurementTitleWithIconMark {
+  color: #3faf93;
+}
+
+.trainingPage__measurementStep--record[data-measurement="pitch_accuracy"] .trainingPage__measurementTitleWithIconMark {
+  color: #d5a430;
+}
+
+.trainingPage__measurementTitleWithIconMark svg {
+  width: 30px;
+  height: 30px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trainingPage__measurementTitleWithIconMark svg .accent {
+  stroke: currentColor;
 }
 
 .trainingPage__measurementSessionSub {
-  margin-top: 2px;
+  margin-top: 4px;
   font-size: 12px;
   font-weight: 700;
-  color: color-mix(in srgb, var(--text) 74%, var(--card));
+  color: var(--va-text-muted);
   opacity: 0.96;
 }
 
 .trainingPage__measurementStep--manage .trainingPage__measurementStepTitle {
-  color: color-mix(in srgb, #2ca4ff 88%, #e9e9e9);
+  color: var(--va-text);
 }
 
 .trainingPage__measurementStepDesc {
   margin-top: 2px;
   font-size: 12px;
   line-height: 1.5;
-  color: color-mix(in srgb, var(--text) 70%, var(--card));
-  opacity: 0.92;
+  color: var(--va-text-muted);
+  opacity: 1;
 }
 
 :root[data-theme-mode="dark"] .trainingPage__measurementSessionSub {
@@ -418,47 +568,96 @@
 
 .trainingPage__measurementPresetGrid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: 1fr;
 }
 
 .trainingPage__measurementPresetItem {
   display: flex;
   align-items: stretch;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--surface) 70%, var(--card));
-  padding: 10px 12px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  padding: 12px 14px;
   min-height: 96px;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .trainingPage__measurementPresetItemBtn {
   appearance: none;
+  display: block;
+  width: 100%;
   text-align: left;
   cursor: pointer;
-  transition: border-color 120ms ease, transform 100ms ease, background-color 120ms ease, box-shadow 120ms ease;
+  transition: transform 100ms ease, background-color 120ms ease;
+}
+
+.trainingPage__measurementPane {
+  position: relative;
+}
+
+.trainingPage__measurementPane.is-tutorial-guided {
+  z-index: 2;
+}
+
+.trainingPage__tutorialBlocker {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: rgba(8, 12, 22, 0.7);
+  pointer-events: auto;
+}
+
+.trainingPage__measurementPane--execute.is-tutorial-guided .trainingPage__measurementPlayerTransport {
+  position: relative;
+  z-index: 4;
+}
+
+.trainingPage__measurementPresetItemBtn.is-tutorial-target,
+.trainingPage__saveBtn.is-tutorial-target {
+  position: relative;
+  z-index: 4;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 12px 28px rgba(59, 130, 246, 0.28);
+  animation: trainingPageGuidePulse 0.95s ease-in-out infinite;
 }
 
 .trainingPage__measurementPresetItemBtn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(6, 10, 20, 0.35);
+  transform: none;
 }
 
 .trainingPage__measurementPresetItemBtn:active {
-  transform: scale(0.99);
+  transform: none;
 }
 
 .trainingPage__measurementPresetItemBtn.is-selected {
-  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
-  background: color-mix(in srgb, var(--accent) 14%, var(--card));
-  box-shadow: 0 10px 18px color-mix(in srgb, var(--accent) 20%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+}
+
+.trainingPage__measurementPresetItemBtn.is-selected[data-measurement="range"] {
+  background: rgba(108, 161, 255, 0.12);
+}
+
+.trainingPage__measurementPresetItemBtn.is-selected[data-measurement="long_tone"] {
+  background: rgba(146, 122, 224, 0.12);
+}
+
+.trainingPage__measurementPresetItemBtn.is-selected[data-measurement="volume_stability"] {
+  background: rgba(71, 186, 166, 0.12);
+}
+
+.trainingPage__measurementPresetItemBtn.is-selected[data-measurement="pitch_accuracy"] {
+  background: rgba(239, 201, 77, 0.16);
 }
 
 .trainingPage__measurementPresetItemHead {
-  display: flex;
+  display: block;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+  padding-right: 72px;
 }
 
 .trainingPage__measurementPresetBody {
@@ -476,23 +675,108 @@
 }
 
 .trainingPage__measurementSelectedBadge {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  min-width: 56px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 4px 8px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--border));
-  background: color-mix(in srgb, var(--accent) 18%, var(--card));
   font-size: 11px;
   font-weight: 800;
 }
 
+.trainingPage__measurementSelectedBadge.is-hidden {
+  visibility: hidden;
+}
+
+.trainingPage__measurementSelectedBadge.uiStatusPill {
+  border-color: #b8e5ef;
+  background: #ecfbff;
+  color: #24424a;
+  padding: 0 8px;
+}
+
 .trainingPage__measurementPresetName {
-  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
   font-weight: 900;
+  width: 100%;
+  min-width: 0;
+}
+
+.trainingPage__measurementPresetRadio {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid #b7c9d8;
+  background: #ffffff;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.trainingPage__measurementPresetRadio.is-selected {
+  border-color: #2cc3dd;
+}
+
+.trainingPage__measurementPresetRadio.is-selected::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  background: #2cc3dd;
+}
+
+.trainingPage__measurementPresetNameIcon {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.trainingPage__measurementPresetItemBtn[data-measurement="range"] .trainingPage__measurementPresetNameIcon {
+  color: #5d8fe7;
+}
+
+.trainingPage__measurementPresetItemBtn[data-measurement="long_tone"] .trainingPage__measurementPresetNameIcon {
+  color: #8b6fda;
+}
+
+.trainingPage__measurementPresetItemBtn[data-measurement="volume_stability"] .trainingPage__measurementPresetNameIcon {
+  color: #3faf93;
+}
+
+.trainingPage__measurementPresetItemBtn[data-measurement="pitch_accuracy"] .trainingPage__measurementPresetNameIcon {
+  color: #d5a430;
+}
+
+.trainingPage__measurementPresetNameIcon svg {
+  width: 28px;
+  height: 28px;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trainingPage__measurementPresetNameIcon svg .accent {
+  stroke: currentColor;
 }
 
 .trainingPage__measurementPresetDesc {
   font-size: 12px;
   line-height: 1.45;
-  opacity: 0.82;
+  color: #708390;
+  opacity: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -501,19 +785,19 @@
 .trainingPage__measurementRecorder {
   display: grid;
   gap: 14px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-  background: color-mix(in srgb, var(--surface) 70%, var(--card));
-  padding: 12px;
+  border-radius: 16px;
+  border: none;
+  background: #ffffff;
+  padding: 14px;
 }
 
 .trainingPage__measurementPlayer {
   display: grid;
   gap: 12px;
   border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-  background: color-mix(in srgb, var(--surface) 70%, var(--card));
-  padding: 12px;
+  border: none;
+  background: #ffffff;
+  padding: 14px;
 }
 
 .trainingPage__measurementRecorderTop {
@@ -532,27 +816,28 @@
 }
 
 .trainingPage__measurementRecorderTitle {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.03em;
-  color: var(--muted);
+  color: #708390;
 }
 
 .trainingPage__measurementPlayerArt {
-  width: min(100%, 164px);
-  aspect-ratio: 1 / 1;
+  width: auto;
+  aspect-ratio: auto;
   justify-self: center;
-  border-radius: 18px;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface-strong));
+  border: none;
+  background: transparent;
   display: grid;
   place-items: center;
-  box-shadow: 0 10px 20px rgba(6, 10, 20, 0.35);
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
 }
 
 .trainingPage__measurementPlayerArt .miniPreview {
-  width: 118px;
-  height: 70px;
+  width: 150px;
+  height: 88px;
 }
 
 .trainingPage__measurementPlayerMeta {
@@ -563,41 +848,55 @@
 }
 
 .trainingPage__measurementPlayerName {
-  font-size: 24px;
-  line-height: 1.15;
-  font-weight: 950;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 800;
   letter-spacing: 0.01em;
-  color: var(--text);
+  color: #47687e;
+  margin-bottom: 4px;
 }
 
 .trainingPage__measurementPlayerSub {
   font-size: 13px;
   font-weight: 800;
-  color: var(--muted);
+  color: #708390;
 }
 
 .trainingPage__measurementPlayerDesc {
   font-size: 12px;
   line-height: 1.45;
-  color: var(--muted);
+  color: #708390;
 }
 
 .trainingPage__measurementPlayerTransport {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 52px;
-  gap: 10px;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  gap: 12px;
   align-items: center;
 }
 
 .trainingPage__transportBtn {
-  height: 52px;
+  width: 44px;
+  height: 38px;
+  min-width: 44px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
-  background: color-mix(in srgb, var(--surface) 70%, var(--card));
-  color: var(--text);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 900;
   cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  padding: 0;
+}
+
+.trainingPage__transportBtn.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
+.trainingPage__transportBtn svg {
+  display: block;
 }
 
 .trainingPage__transportBtn:disabled {
@@ -609,6 +908,27 @@
   border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
 }
 
+.trainingPage__recordPrimaryInline {
+  gap: 8px;
+}
+
+.trainingPage__recordButtonIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f3548;
+  flex: 0 0 auto;
+  transform: translateY(1px);
+}
+
+.trainingPage__recordButtonIcon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
 .trainingPage__measurementStatusBadge {
   padding: 4px 9px;
   border-radius: 999px;
@@ -617,7 +937,7 @@
   font-weight: 900;
   line-height: 1.2;
   letter-spacing: 0.02em;
-  background: color-mix(in srgb, var(--surface) 70%, var(--card));
+  background: #ffffff;
   pointer-events: none;
 }
 
@@ -656,12 +976,81 @@
   align-items: start;
 }
 
+.trainingPage__measurementSupportSlot {
+  min-height: 112px;
+  display: grid;
+  align-content: start;
+}
+
+.trainingPage__measurementAssistCard {
+  min-height: 112px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+  padding: 12px;
+}
+
+.trainingPage__measurementAssistCard.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
+.trainingPage__measurementAssistCard.uiPanel.uiPanel--tinted {
+  border-color: color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+}
+
+.trainingPage__measurementAssistTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #203548;
+}
+
+.trainingPage__measurementAssistTitleIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 62%, #70839a);
+  flex: 0 0 auto;
+}
+
+.trainingPage__measurementAssistTitleIcon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trainingPage__measurementAssistTitleIcon svg .accent {
+  stroke: currentColor;
+}
+
+.trainingPage__measurementAssistText {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--cardText, var(--text));
+  font-weight: 700;
+}
+
 .trainingPage__measurementModeBox {
   display: grid;
   gap: 8px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.66);
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
   padding: 8px 10px;
 }
 
@@ -723,19 +1112,43 @@
 
 .trainingPage__saveBtn.trainingPage__recordPrimaryInline {
   width: 100%;
-  min-height: 60px;
+  min-height: 40px;
   border-radius: 999px;
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
   font-weight: 950;
-  background: linear-gradient(180deg, #ffd94a 0%, #ffba22 100%);
-  color: #182033;
-  border-color: color-mix(in srgb, #ffbe3b 80%, #c28800);
-  box-shadow: 0 10px 20px rgba(255, 183, 42, 0.3);
+  line-height: 1;
+  box-shadow: none;
+}
+
+.trainingPage__saveBtn.trainingPage__recordPrimaryInline.uiButton {
+  background: inherit;
+  color: inherit;
+  border-color: inherit;
+}
+
+.trainingPage__saveBtn.trainingPage__playerPrimary--solo {
+  grid-column: 1 / -1;
+}
+
+.trainingPage__saveBtn.trainingPage__recordPrimaryInline:not(.is-recording):not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
+  color: #08324d;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .trainingPage__saveBtn.trainingPage__recordPrimaryInline:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(255, 183, 42, 0.34);
+  box-shadow: none;
+}
+
+.trainingPage__saveBtn.trainingPage__recordPrimaryInline:not(.is-recording):not(:disabled):hover {
+  background: color-mix(in srgb, var(--accent) 9%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .trainingPage__saveBtn.trainingPage__recordPrimaryInline:active:not(:disabled) {
@@ -743,11 +1156,23 @@
 }
 
 .trainingPage__saveBtn.trainingPage__recordPrimaryInline.is-recording {
-  animation: trainingPageRecordGlow 1.3s ease-in-out infinite;
+  animation: none;
 }
 
 .trainingPage__saveBtn.trainingPage__playerPrimary {
   min-height: 62px;
+}
+
+@keyframes trainingPageGuidePulse {
+  0%,
+  100% {
+    transform: scale(0.985);
+    opacity: 0.86;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
 }
 
 .trainingPage__measurementModeDetails {
@@ -789,9 +1214,9 @@
 .trainingPage__rangeTips {
   display: grid;
   gap: 6px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
-  background: color-mix(in srgb, var(--accent) 7%, var(--card));
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
   padding: 10px 12px;
   font-size: 12px;
   line-height: 1.55;
@@ -816,9 +1241,9 @@
 }
 
 .trainingPage__pitchGuideConfig {
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
   padding: 10px;
   display: grid;
   gap: 8px;
@@ -843,14 +1268,20 @@
   gap: 2px;
 }
 
+.trainingPage__pitchGuideStatus.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
 .trainingPage__pitchGuideStatus.is-required {
-  border-color: color-mix(in srgb, #ff7f7f 42%, var(--border));
-  background: color-mix(in srgb, #ff7f7f 10%, var(--surface));
+  border-color: color-mix(in srgb, #d85d72 28%, var(--border));
+  background: color-mix(in srgb, #d85d72 5%, #ffffff);
 }
 
 .trainingPage__pitchGuideStatus.is-selected {
-  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, #ffffff);
 }
 
 .trainingPage__pitchGuideStatusStep {
@@ -876,22 +1307,16 @@
   min-height: 42px;
   flex: 1 1 150px;
   padding: 6px 10px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 900;
-  cursor: pointer;
-  display: grid;
-  align-content: center;
-  gap: 1px;
-  text-align: left;
 }
 
 .trainingPage__pitchGuideRangeBtn.is-active {
-  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
-  background: color-mix(in srgb, var(--accent) 24%, var(--surface));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent) inset;
+  box-shadow: none;
+}
+
+.trainingPage__pitchGuideRangeBtn.uiChoiceButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .trainingPage__pitchGuideRangeBtnLabel {
@@ -943,8 +1368,8 @@
 
 .trainingPage__saveBtn.is-recording {
   border-color: color-mix(in srgb, #ff4b4b 52%, var(--border));
-  background: linear-gradient(180deg, #ff7a7a, #e23737);
-  color: #fff;
+  background: color-mix(in srgb, #d85d72 10%, #ffffff);
+  color: #9b3045;
 }
 
 @keyframes trainingPageStatusBlink {
@@ -964,16 +1389,6 @@
   }
   50% {
     transform: scale(1.04);
-  }
-}
-
-@keyframes trainingPageRecordGlow {
-  0%,
-  100% {
-    box-shadow: 0 10px 20px rgba(255, 76, 76, 0.26);
-  }
-  50% {
-    box-shadow: 0 14px 28px rgba(255, 76, 76, 0.42);
   }
 }
 
@@ -1013,7 +1428,7 @@
   bottom: 0;
   z-index: 95;
   padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95) 44%);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(8px);
 }
 
@@ -1032,30 +1447,32 @@
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: rgba(10, 14, 22, 0.46);
+  background: rgba(9, 23, 31, 0.18);
   backdrop-filter: blur(2px);
   display: grid;
   place-items: center;
-  padding: 4px;
+  padding: 40px;
 }
 
 .trainingPage__recordCard {
-  width: min(1180px, 100%);
-  max-width: 920px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  width: min(1180px, calc(100vw - 80px));
+  max-width: 1120px;
+  max-height: calc(100dvh - 80px);
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
   background: rgba(255, 255, 255, 0.98);
   padding: 8px;
   display: grid;
   grid-template-rows: auto auto;
   gap: 4px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 10px 28px rgba(9, 54, 61, 0.08);
+  overflow: auto;
 }
 
 .trainingPage__recordCard--monitor {
-  background: #05070d;
-  border-color: #2a3344;
-  color: #e8edf8;
+  background: #ffffff;
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  color: #203548;
 }
 
 .trainingPage__rangePhaseActions {
@@ -1064,10 +1481,10 @@
 }
 
 .trainingPage__rangePhaseBanner {
-  border-radius: 10px;
-  border: 1px solid #355a8a;
-  background: rgba(40, 80, 132, 0.26);
-  color: #dce9ff;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
+  color: #203548;
   font-size: 14px;
   font-weight: 900;
   padding: 8px 10px;
@@ -1088,9 +1505,9 @@
 
 .trainingPage__measurementResult {
   margin-top: 6px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, #fff);
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
   padding: 10px;
   display: grid;
   gap: 4px;
@@ -1119,9 +1536,9 @@
 }
 
 .trainingPage__measurementPitchLiveChart {
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  background: #ffffff;
   padding: 6px;
 }
 
@@ -1300,10 +1717,10 @@
 }
 
 .trainingPage__monitor {
-  border-radius: 12px;
-  border: 1px solid #2a3344;
-  background: #070b12;
-  color: #eaf0ff;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  background: var(--va-panel);
+  color: var(--va-text);
   padding: 8px;
   display: grid;
   gap: 8px;
@@ -1325,8 +1742,8 @@
   position: relative;
   height: 26px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #3d3f46, #2f3239);
-  border: 1px solid #4b4f58;
+  background: var(--va-track);
+  border: 1px solid var(--va-border-strong);
 }
 
 .trainingPage__pitchMiniTunerCenter {
@@ -1336,7 +1753,7 @@
   bottom: 2px;
   width: 2px;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in srgb, var(--va-text-muted) 60%, transparent);
 }
 
 .trainingPage__pitchMiniTunerMark {
@@ -1344,7 +1761,7 @@
   top: 5px;
   bottom: 5px;
   width: 1px;
-  background: rgba(255, 255, 255, 0.45);
+  background: color-mix(in srgb, var(--va-border-strong) 84%, transparent);
 }
 
 .trainingPage__pitchMiniTunerMark--left {
@@ -1362,8 +1779,8 @@
   width: 96px;
   transform: translateX(-50%);
   border-radius: 8px;
-  background: linear-gradient(180deg, #2a8bff, #0c59cd);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+  background: color-mix(in srgb, var(--accent) 16%, #ffffff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, #ffffff);
 }
 
 .trainingPage__pitchMiniTunerMeta {
@@ -1371,7 +1788,7 @@
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: baseline;
   gap: 10px;
-  color: #f0f4ff;
+  color: var(--va-text);
   font-size: 18px;
   font-weight: 900;
 }
@@ -1395,12 +1812,12 @@
 .trainingPage__monitorSub {
   font-size: 20px;
   font-weight: 900;
-  color: #8cb6ff;
+  color: var(--va-text-muted);
 }
 
 .trainingPage__monitorEmpty {
-  border-radius: 10px;
-  border: 1px dashed #2a3344;
+  border-radius: 12px;
+  border: 1px dashed var(--va-border-strong);
   padding: 16px;
   font-size: 13px;
   opacity: 0.82;
@@ -1410,12 +1827,12 @@
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 10px;
-  background: #04070e;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--va-panel) 92%, var(--va-bg));
 }
 
 .trainingPage__monitorGridLine {
-  stroke: rgba(255, 255, 255, 0.2);
+  stroke: var(--va-line-soft);
   stroke-width: 1;
 }
 
@@ -1424,41 +1841,41 @@
 }
 
 .trainingPage__monitorPitchBand--white {
-  fill: rgba(246, 250, 255, 0.26);
+  fill: var(--va-overlay-surface);
 }
 
 .trainingPage__monitorPitchBand--black {
-  fill: rgba(0, 0, 0, 0.44);
+  fill: color-mix(in srgb, var(--va-panel) 72%, var(--va-track));
 }
 
 .trainingPage__monitorSemitoneLine {
-  stroke: rgba(255, 255, 255, 0.14);
+  stroke: color-mix(in srgb, var(--va-text-muted) 22%, transparent);
   stroke-width: 0.8;
 }
 
 .trainingPage__monitorAxisLabel {
-  fill: rgba(233, 240, 255, 0.9);
+  fill: var(--va-text-muted);
   font-size: 12px;
   font-weight: 800;
 }
 
 .trainingPage__monitorPitchPath {
-  stroke: #ffd24a;
+  stroke: #14c6d8;
   stroke-width: 2.4;
   fill: none;
 }
 
 .trainingPage__monitorPitchPath--inactive {
-  stroke: #ffd24a;
+  stroke: #14c6d8;
   opacity: 0.42;
 }
 
 .trainingPage__monitorPitchPath--green {
-  stroke: #46d58a;
+  stroke: #14c6d8;
 }
 
 .trainingPage__monitorPitchPath--yellow {
-  stroke: #ffd24a;
+  stroke: #14c6d8;
 }
 
 .trainingPage__monitorPitchPath--red {
@@ -1466,19 +1883,19 @@
 }
 
 .trainingPage__monitorReferenceBar {
-  fill: rgba(180, 187, 201, 0.55);
-  stroke: rgba(242, 245, 255, 0.6);
+  fill: color-mix(in srgb, var(--va-border-strong) 58%, transparent);
+  stroke: color-mix(in srgb, var(--va-text-muted) 48%, transparent);
   stroke-width: 0.8;
 }
 
 .trainingPage__monitorReferenceBarActive {
-  fill: rgba(255, 214, 74, 0.78);
-  stroke: rgba(255, 236, 164, 0.92);
+  fill: rgba(20, 198, 216, 0.28);
+  stroke: rgba(20, 198, 216, 0.5);
   stroke-width: 0.8;
 }
 
 .trainingPage__monitorPlayhead {
-  stroke: rgba(255, 255, 255, 0.62);
+  stroke: color-mix(in srgb, var(--va-text-muted) 58%, transparent);
   stroke-width: 1.2;
   stroke-dasharray: 4 4;
 }
@@ -1493,14 +1910,14 @@
   aspect-ratio: 1 / 1;
   border-radius: 999px;
   position: relative;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(20, 198, 216, 0.12);
 }
 
 .trainingPage__dbGaugeInner {
   position: absolute;
   inset: 22%;
   border-radius: 999px;
-  background: #06090f;
+  background: var(--va-overlay-surface);
   display: grid;
   place-items: center;
   font-size: 30px;
@@ -1513,18 +1930,39 @@
   gap: 8px;
   font-size: 12px;
   font-weight: 900;
-  color: #d2def8;
+  color: var(--va-text-muted);
 }
 
 .trainingPage__monitorDbPath {
-  stroke: #ff8e27;
+  stroke: #14c6d8;
   stroke-width: 2.6;
   fill: none;
 }
 
 @media (max-width: 640px) {
+  .trainingPage__measureInner {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .trainingPage__measurementPane--select {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .trainingPage__measurementStep--manage {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
   .trainingPage__measurementPresetItem {
     min-height: 92px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .trainingPage__measurementPresetBody {
@@ -1582,7 +2020,12 @@
   .trainingPage__measurementPane--execute {
     position: static;
     top: auto;
-    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+    padding-bottom: calc(54px + env(safe-area-inset-bottom));
+  }
+
+  .trainingPage__measurementSupportSlot,
+  .trainingPage__measurementAssistCard {
+    min-height: 0;
   }
 }
 
@@ -1601,14 +2044,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 42px;
+  height: 38px;
   padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
-  background: rgba(255, 255, 255, 0.56);
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+}
+
+.trainingPage__fileBtn.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .trainingPage__fileBtn.is-busy {
@@ -1623,16 +2070,12 @@
 }
 
 .trainingPage__saveBtn {
-  height: 40px;
+  height: 38px;
   padding: 0 14px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent) 86%, #0b1220),
-    color-mix(in srgb, var(--accent) 70%, #0b1220)
-  );
-  color: #eef6ff;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
+  background: #ffffff;
+  color: #203548;
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
@@ -1703,33 +2146,41 @@
 }
 
 .trainingPage__measurementMiniBtn {
-  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
-  background: color-mix(in srgb, var(--accent) 8%, var(--card));
-  color: var(--cardText, var(--text));
-  border-radius: 8px;
-  height: 30px;
-  padding: 0 10px;
+  border-radius: 999px;
+  height: 38px;
+  padding: 0 14px;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
 }
 
+.trainingPage__measurementMiniBtn.uiButton {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
 .trainingPage__measurementMiniBtn.is-active {
-  border-color: color-mix(in srgb, var(--accent) 56%, var(--border));
-  background: color-mix(in srgb, var(--accent) 22%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
 }
 
 .trainingPage__measurementMiniBtn--ghost {
   border-color: var(--border);
-  background: var(--surface);
+  background: var(--va-panel);
+}
+
+.trainingPage__measurementMiniBtn--ghost.uiButton {
+  border-color: var(--border);
+  background: var(--va-panel);
+  color: var(--va-text);
 }
 
 .trainingPage__modalOverlay {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(0, 0, 0, 0.68);
   display: grid;
   place-items: center;
   padding: 16px;
@@ -1738,11 +2189,10 @@
 .trainingPage__modalCard {
   width: min(620px, 96vw);
   max-height: min(86vh, 760px);
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--cardText, var(--text));
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+  background: #ffffff;
+  color: #09363d;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
@@ -1753,11 +2203,7 @@
   width: min(560px, 92vw);
   height: min(88vh, 760px);
   max-height: min(88vh, 760px);
-  border-radius: 26px;
-  border: 1px solid var(--va-border-strong);
-  background: linear-gradient(180deg, #0d131e 0%, #090f19 100%);
-  color: var(--va-text);
-  box-shadow: var(--va-shadow);
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -1774,7 +2220,7 @@
 .trainingPage__resultModalHeader {
   flex: 0 0 auto;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid var(--va-border);
 }
 
 .trainingPage__resultModalBody {
@@ -1800,7 +2246,7 @@
 .trainingPage__resultModalFooter {
   flex: 0 0 auto;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid var(--va-border);
 }
 
 .trainingPage__resultModalTitle {
@@ -1829,9 +2275,10 @@
   font-size: clamp(50px, 11vw, 76px);
   line-height: 0.95;
   font-weight: 950;
-  color: #40bfce;
+  color: var(--ui-accent-strong);
   letter-spacing: 0.01em;
   margin-bottom: 6px;
+  padding-bottom: 8px;
 }
 
 .trainingPage__resultModalHeroUnit {
@@ -1908,7 +2355,7 @@
 .trainingPage__resultModalHeroHint {
   font-size: clamp(11px, 1.8vw, 13px);
   opacity: 0.92;
-  color: rgba(247, 248, 252, 0.92);
+  color: #708390;
 }
 
 .trainingPage__resultModalHeroSub {
@@ -1925,13 +2372,14 @@
 
 .trainingPage__resultModalMeta {
   font-size: 13px;
-  opacity: 0.84;
+  opacity: 1;
+  color: #708390;
   text-align: center;
 }
 
 .trainingPage__resultModalMetric {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
   padding: 14px;
   display: grid;
   gap: 8px;
@@ -1942,19 +2390,19 @@
   font-size: clamp(42px, 10vw, 64px);
   line-height: 1;
   font-weight: 950;
-  color: #4bc6d7;
+  color: var(--ui-accent-strong);
 }
 
 .trainingPage__resultModalMetricValue span {
   margin-left: 6px;
   font-size: 0.46em;
-  color: rgba(247, 248, 252, 0.88);
+  color: #708390;
 }
 
 .trainingPage__resultModalMetricSub {
   font-size: 15px;
   font-weight: 800;
-  opacity: 0.9;
+  color: #708390;
 }
 
 .trainingPage__volumeResult {
@@ -1982,7 +2430,7 @@
 .trainingPage__volumeResultHead {
   border-radius: 16px;
   border: 1px solid var(--va-border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
   padding: 12px 12px 12px;
   display: grid;
   gap: 8px;
@@ -1997,35 +2445,28 @@
 }
 
 .trainingPage__volumeGauge {
-  position: relative;
+  --volume-gauge-progress: 0;
   width: 144px;
   height: 144px;
+  border-radius: 999px;
+  background: conic-gradient(var(--volumeTone) calc(var(--volume-gauge-progress) * 1turn), color-mix(in srgb, var(--volumeTone) 16%, #ffffff) 0);
   display: grid;
   place-items: center;
 }
 
-.trainingPage__volumeGauge svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.trainingPage__volumeGaugeTrack {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.14);
-  stroke-width: 10;
-}
-
-.trainingPage__volumeGaugeProgress {
-  fill: none;
-  stroke: var(--volumeTone);
-  stroke-width: 10;
-  stroke-linecap: round;
+.trainingPage__volumeGauge::before {
+  content: "";
+  width: 106px;
+  height: 106px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.94);
+  grid-area: 1 / 1;
 }
 
 .trainingPage__volumeGaugeCenter {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
   display: grid;
   align-content: center;
   justify-items: center;
@@ -2033,13 +2474,12 @@
 }
 
 .trainingPage__volumeResultScore {
-  font-size: clamp(42px, 9vw, 56px);
+  font-size: clamp(36px, 8vw, 48px);
   line-height: 1;
   font-weight: 950;
   letter-spacing: 0.01em;
   color: var(--va-text);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
 .trainingPage__volumeResultScoreUnit {
@@ -2049,7 +2489,7 @@
 }
 
 .trainingPage__volumeResultComment {
-  margin-top: 24px;
+  margin-top: 16px;
   font-size: 12px;
   font-weight: 700;
   color: var(--va-text-muted);
@@ -2069,7 +2509,7 @@
 }
 
 .trainingPage__volumeAvgLine {
-  stroke: rgba(255, 255, 255, 0.35);
+  stroke: rgba(112, 131, 144, 0.32);
   stroke-width: 1.5;
   stroke-dasharray: 5 4;
 }
@@ -2091,37 +2531,59 @@
 .trainingPage__volumeResultRangeCard {
   border-radius: 14px;
   border: 1px solid var(--va-border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-  padding: 10px 12px;
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+  padding: 12px 14px;
   display: grid;
-  gap: 4px;
+  gap: 8px;
+  justify-items: center;
+}
+
+.trainingPage__volumeResultRangeCard.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
 }
 
 .trainingPage__volumeResultRangeTitle {
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
   color: var(--va-text-muted);
+  text-align: center;
 }
 
 .trainingPage__volumeResultRangeValue {
-  font-size: 22px;
-  line-height: 1.1;
-  font-weight: 900;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 950;
   color: var(--va-text);
+  text-align: center;
 }
 
-.trainingPage__volumeResultRangeSub {
-  font-size: 12px;
-  line-height: 1.45;
+.trainingPage__volumeResultRangeStats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.trainingPage__volumeResultRangeStat {
+  display: grid;
+  gap: 3px;
+}
+
+.trainingPage__volumeResultRangeStat span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
   color: var(--va-text-faint);
 }
 
-.trainingPage__volumeResult--good .trainingPage__volumeGaugeProgress {
-  filter: drop-shadow(var(--va-glow-yellow));
-}
-
-.trainingPage__volumeResult--bad .trainingPage__volumeGaugeProgress {
-  filter: drop-shadow(var(--va-glow-red));
+.trainingPage__volumeResultRangeStat strong {
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 900;
+  color: var(--va-text);
 }
 
 .trainingPage__longToneHero {
@@ -2132,23 +2594,34 @@
 }
 
 .trainingPage__longToneRingWrap {
-  position: relative;
-  width: 196px;
-  aspect-ratio: 1 / 1;
+  display: grid;
+  justify-items: center;
   margin: 18px 0 16px;
+}
+
+.trainingPage__longToneRing {
+  --long-tone-progress: 0;
+  width: 156px;
+  height: 156px;
+  border-radius: 999px;
+  background: conic-gradient(#4bc6d7 calc(var(--long-tone-progress) * 1turn), rgba(75, 198, 215, 0.16) 0);
   display: grid;
   place-items: center;
 }
 
-.trainingPage__longToneRing {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
+.trainingPage__longToneRing::before {
+  content: "";
+  width: 116px;
+  height: 116px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.94);
+  grid-area: 1 / 1;
 }
 
 .trainingPage__longToneRingCenter {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
   display: grid;
   align-content: center;
   justify-items: center;
@@ -2157,19 +2630,19 @@
 }
 
 .trainingPage__longToneHeroValue {
-  font-size: clamp(42px, 8.4vw, 60px);
-  line-height: 1;
+  font-size: clamp(42px, 8.4vw, 56px);
+  line-height: 0.95;
   font-weight: 950;
-  color: #4bc6d7;
+  color: var(--ui-accent-strong);
   font-variant-numeric: tabular-nums;
 }
 
 .trainingPage__longToneHeroUnit {
-  margin-top: 1px;
-  font-size: 20px;
+  margin-top: 0;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.02em;
-  color: rgba(247, 248, 252, 0.9);
+  color: #708390;
 }
 
 .trainingPage__longToneHeroNote {
@@ -2188,12 +2661,19 @@
 
 .trainingPage__longToneCompare > div {
   border-radius: 999px;
-  border: none;
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #e4edf2;
+  background: #ffffff;
   padding: 4px 9px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(247, 248, 252, 0.9);
+  color: #708390;
+}
+
+.trainingPage__longToneCompare > .uiCompareChip {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+  padding: 0 10px;
 }
 
 .trainingPage__longToneHint {
@@ -2211,7 +2691,7 @@
 
 .trainingPage__resultModalStats > div {
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
   padding: 8px 6px;
   text-align: center;
   font-size: 12px;
@@ -2225,11 +2705,11 @@
 
 .trainingPage__rangeResultMessage {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
   padding: 10px 12px;
   font-size: clamp(12px, 1.8vw, 14px);
   line-height: 1.6;
-  color: rgba(247, 248, 252, 0.95);
+  color: #203548;
 }
 
 .trainingPage__rangeResultBody {
@@ -2246,8 +2726,8 @@
 
 .trainingPage__rangeResultMetaChip {
   border-radius: 999px;
-  background: #42bccf;
-  color: #f7f8fc;
+  background: color-mix(in srgb, var(--accent) 9%, #ffffff);
+  color: #203548;
   font-size: 14px;
   font-weight: 900;
   text-align: center;
@@ -2275,19 +2755,15 @@
 }
 
 .trainingPage__rangeResultMetaLine strong {
-  color: #48c4d5;
-}
-
-.trainingPage__rangeResultMetaChip--total {
-  background: #42bccf;
+  color: var(--ui-accent-strong);
 }
 
 .trainingPage__rangeResultMetaLine--total strong {
-  color: #42c6d5;
+  color: var(--ui-accent-strong);
 }
 
 .trainingPage__rangeResultMetaChip--chest {
-  background: #8f82b4;
+  background: rgba(143, 130, 180, 0.12);
 }
 
 .trainingPage__rangeResultMetaLine--chest strong {
@@ -2295,7 +2771,7 @@
 }
 
 .trainingPage__rangeResultMetaChip--overlap {
-  background: #a7b86f;
+  background: rgba(167, 184, 111, 0.14);
 }
 
 .trainingPage__rangeResultMetaLine--overlap strong {
@@ -2303,7 +2779,7 @@
 }
 
 .trainingPage__rangeResultMetaChip--falsetto {
-  background: #e4a84e;
+  background: rgba(228, 168, 78, 0.14);
 }
 
 .trainingPage__rangeResultMetaLine--falsetto strong {
@@ -2314,7 +2790,7 @@
   text-align: center;
   font-size: 14px;
   line-height: 1.6;
-  color: rgba(247, 248, 252, 0.95);
+  color: #708390;
 }
 
 .trainingPage__rangeResultV2 {
@@ -2323,40 +2799,65 @@
 }
 
 .trainingPage__rangeChart {
+  --range-chart-x-pad: 18px;
   position: relative;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.06);
-  padding: 22px 8px 20px;
+  border: 1px solid #e4edf2;
+  background: #ffffff;
+  padding: 22px var(--range-chart-x-pad) 20px;
   display: grid;
   gap: 5px;
 }
 
 .trainingPage__rangeChartGrid {
   position: absolute;
-  inset: 16px 8px 14px;
+  inset: 16px var(--range-chart-x-pad) 14px;
   border-radius: 10px;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 12.5% 50%;
+  border: 1px solid rgba(112, 131, 144, 0.08);
+  pointer-events: none;
+}
+
+.trainingPage__rangeTickLayer {
+  position: absolute;
+  top: 3px;
+  left: var(--range-chart-x-pad);
+  right: var(--range-chart-x-pad);
+  height: 14px;
   pointer-events: none;
 }
 
 .trainingPage__rangeTick {
   position: absolute;
-  top: 3px;
+  top: 0;
   transform: translateX(-50%);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   opacity: 0.7;
+  white-space: nowrap;
+  max-width: 30px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.trainingPage__rangeTick span {
+  display: block;
+}
+
+.trainingPage__rangeTick:first-child {
+  left: 0 !important;
+  transform: translateX(0);
+}
+
+.trainingPage__rangeTick:last-child {
+  left: 100% !important;
+  transform: translateX(-100%);
 }
 
 .trainingPage__rangeTrack {
   position: relative;
   height: 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #eef4f7;
 }
 
 .trainingPage__rangeTrackFill {
@@ -2366,73 +2867,86 @@
   border-radius: 999px;
 }
 
-.trainingPage__rangeTrackFill--total { background: linear-gradient(90deg, #3db4c7, #5ad4e5); }
-.trainingPage__rangeTrackFill--chest { background: linear-gradient(90deg, #9c3b45, #b25662); }
-.trainingPage__rangeTrackFill--falsetto { background: linear-gradient(90deg, #c49a2c, #d3ae4e); }
-.trainingPage__rangeTrackFill--overlap { background: linear-gradient(90deg, #2f8f83, #45a698); }
+.trainingPage__rangeTrackFill--total { background: #42bccf; }
+.trainingPage__rangeTrackFill--chest { background: #9c3b45; }
+.trainingPage__rangeTrackFill--falsetto { background: #c49a2c; }
+.trainingPage__rangeTrackFill--overlap { background: #2f8f83; }
 
-.trainingPage__rangeResultMetaV2 {
-  display: grid;
-  gap: 8px;
+.trainingPage__rangeSummaryTable {
+  border-radius: 12px;
+  border: 1px solid #e4edf2;
+  background: #ffffff;
+  overflow: hidden;
 }
 
-.trainingPage__rangeSummaryLine {
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.08);
-  padding: 8px 9px;
+.trainingPage__rangeSummaryTableHead,
+.trainingPage__rangeSummaryRow {
   display: grid;
-  gap: 6px;
+  grid-template-columns: minmax(88px, 0.9fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
 }
 
-.trainingPage__rangeSummaryHeader {
+.trainingPage__rangeSummaryTableHead {
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+  border-bottom: 1px solid #e4edf2;
+  font-size: 11px;
+  font-weight: 900;
+  color: #708390;
+}
+
+.trainingPage__rangeSummaryRow + .trainingPage__rangeSummaryRow {
+  border-top: 1px solid #eef3f6;
+}
+
+.trainingPage__rangeSummaryRow:nth-child(even) {
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+}
+
+.trainingPage__rangeSummaryCell {
+  min-width: 0;
+}
+
+.trainingPage__rangeSummaryCell--label {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
 }
 
 .trainingPage__rangeSummaryChip {
   border-radius: 999px;
-  padding: 2px 8px;
+  min-height: 28px;
+  padding: 0 10px;
   font-size: 11px;
   font-weight: 900;
-  color: #f7f8fc;
+  color: #ffffff;
+  line-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .trainingPage__rangeSummaryChip--total { background: #42bccf; }
-.trainingPage__rangeSummaryChip--chest { background: #9C3B45; }
-.trainingPage__rangeSummaryChip--falsetto { background: #C49A2C; }
-.trainingPage__rangeSummaryChip--overlap { background: #2F8F83; }
+.trainingPage__rangeSummaryChip--chest { background: #9c3b45; }
+.trainingPage__rangeSummaryChip--falsetto { background: #c49a2c; }
+.trainingPage__rangeSummaryChip--overlap { background: #2f8f83; }
 
-.trainingPage__rangeSummaryNotes {
-  display: grid;
-  gap: 3px;
+.trainingPage__rangeSummaryValue {
+  display: block;
   font-size: 12px;
   font-weight: 800;
-  opacity: 0.88;
-}
-
-.trainingPage__rangeSummaryLine--total {
-  background: rgba(72, 196, 213, 0.12);
-  border-color: rgba(78, 204, 222, 0.42);
-  box-shadow: 0 6px 14px rgba(51, 175, 192, 0.18);
-}
-
-.trainingPage__rangeSummaryLine--total .trainingPage__rangeSummaryChip {
-  font-size: 12px;
-  padding: 2px 9px;
-}
-
-.trainingPage__rangeSummaryNotes small {
-  font-size: 0.78em;
-  opacity: 0.68;
+  color: var(--va-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trainingPage__rangeResultOverlapInfo {
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--va-border);
+  background: var(--va-panel);
   padding: 8px 10px;
   font-size: 12px;
   line-height: 1.55;
@@ -2441,7 +2955,7 @@
 
 .trainingPage__resultModalLines {
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--accent) 4%, var(--va-panel));
   padding: 10px 12px;
   display: grid;
   gap: 6px;
@@ -2456,20 +2970,20 @@
   margin-top: 16px;
   padding: 12px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(5, 11, 22, 0.62);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--va-border);
+  background: var(--va-panel);
+  box-shadow: none;
 }
 
 .trainingPage__resultReplay {
   margin-top: 18px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--va-border);
+  background: var(--va-panel);
   padding: 12px;
   display: grid;
   gap: 10px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 .trainingPage__resultReplay--collapsed {
@@ -2509,10 +3023,10 @@
   width: 28px;
   height: 28px;
   padding: 0;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(247, 248, 252, 0.92);
+  border-radius: 999px;
+  border: 1px solid var(--va-border);
+  background: var(--va-panel);
+  color: var(--va-text);
   font-size: 14px;
   font-weight: 900;
   line-height: 1;
@@ -2531,8 +3045,8 @@
 .trainingPage__resultReplayToggleIcon > span {
   width: 8px;
   height: 8px;
-  border-right: 2px solid rgba(247, 248, 252, 0.92);
-  border-bottom: 2px solid rgba(247, 248, 252, 0.92);
+  border-right: 2px solid var(--va-text-muted);
+  border-bottom: 2px solid var(--va-text-muted);
   transform-origin: center;
 }
 
@@ -2547,14 +3061,22 @@
 .trainingPage__resultReplayMonitor {
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(3, 7, 14, 0.7);
+  border: 1px solid var(--va-border);
+  background: var(--va-panel);
 }
 
 .trainingPage__resultReplayMonitor .trainingPage__monitor {
   border-radius: 0;
   border: 0;
   padding: 8px;
+}
+
+.trainingPage__resultReplayMonitor .trainingPage__dbGauge {
+  width: min(36vw, 140px);
+}
+
+.trainingPage__resultReplayMonitor .trainingPage__dbGaugeInner {
+  font-size: 16px;
 }
 
 .trainingPage__resultReplayActions {
@@ -2570,6 +3092,25 @@
   font-weight: 800;
 }
 
+.trainingPage__resultReplayUnavailable {
+  padding: 10px 2px 2px;
+  display: grid;
+  gap: 6px;
+}
+
+.trainingPage__resultReplayUnavailableTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--va-text);
+  line-height: 1.5;
+}
+
+.trainingPage__resultReplayUnavailableText {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--va-text-muted);
+}
+
 .trainingPage__resultReplay--locked {
   position: relative;
 }
@@ -2579,12 +3120,9 @@
   inset-block-start: calc(12px + 28px);
   inset-inline: 12px;
   inset-block-end: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid color-mix(in srgb, var(--va-border) 92%, transparent);
   border-radius: 12px;
-  background:
-    linear-gradient(120deg, rgba(8, 15, 28, 0.18), rgba(8, 15, 28, 0.28)),
-    linear-gradient(45deg, rgba(255, 255, 255, 0.07) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0.07) 75%, transparent 75%, transparent);
-  background-size: auto, 14px 14px;
+  background: var(--va-overlay-soft);
   backdrop-filter: blur(0.8px);
   display: grid;
   place-items: center;
@@ -2602,13 +3140,11 @@
   width: min(92%, 360px);
   padding: 10px 14px 10px 42px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  background: rgba(10, 19, 34, 0.64);
-  color: rgba(255, 255, 255, 0.98);
+  border: 1px solid #dfe8ef;
+  background: #ffffff;
+  color: #203548;
   line-height: 1.3;
-  box-shadow:
-    0 8px 18px rgba(3, 8, 16, 0.42),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 24px rgba(9, 54, 61, 0.08);
 }
 
 .trainingPage__resultReplayLockOverlayText::before {
@@ -2633,7 +3169,6 @@
   font-size: 16px;
   font-weight: 900;
   letter-spacing: 0.01em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
 
 .trainingPage__resultReplayLockOverlaySub {
@@ -2675,10 +3210,20 @@
   cursor: pointer;
 }
 
+.trainingPage__resultModalBtn.uiButton {
+  box-shadow: none;
+}
+
 .trainingPage__resultModalBtn--close {
   background: transparent;
-  border-color: rgba(255, 255, 255, 0.28);
-  color: rgba(247, 248, 252, 0.9);
+  border-color: #dfe8ef;
+  color: #203548;
+}
+
+.trainingPage__resultModalBtn--close.uiButton {
+  background: transparent;
+  border-color: #dfe8ef;
+  color: #203548;
 }
 
 .trainingPage__resultModalBtn--share {
@@ -2688,29 +3233,53 @@
 }
 
 .trainingPage__resultModalBtn--download {
-  background: rgba(12, 23, 36, 0.48);
-  border-color: rgba(126, 218, 167, 0.94);
-  color: #c7f3db;
+  background: #ffffff;
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  color: #203548;
+}
+
+.trainingPage__resultModalBtn--download.uiButton {
+  background: #ffffff;
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  color: #203548;
 }
 
 .trainingPage__resultModalBtn--replay {
   background: transparent;
-  border-color: rgba(255, 214, 115, 0.9);
-  color: #ffd673;
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  color: #203548;
+}
+
+.trainingPage__resultModalBtn--replay.uiButton {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  color: #203548;
 }
 
 .trainingPage__resultModalBtn--save {
-  background: linear-gradient(135deg, #39b4c7, #58d0de);
-  border-color: rgba(182, 243, 251, 0.88);
-  color: #f7f8fc;
-  box-shadow: 0 6px 18px rgba(47, 187, 206, 0.28);
+  background: color-mix(in srgb, var(--accent) 9%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  color: #09363d;
+  box-shadow: none;
+}
+
+.trainingPage__resultModalBtn--save.uiButton {
+  background: color-mix(in srgb, var(--accent) 9%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  color: #09363d;
 }
 
 .trainingPage__resultModalBtn--replay-primary {
-  background: linear-gradient(135deg, #2f83de, #3e9bff);
-  border-color: rgba(175, 214, 255, 0.86);
-  color: #f7f8fc;
-  box-shadow: 0 6px 16px rgba(49, 134, 230, 0.28);
+  background: color-mix(in srgb, var(--accent) 9%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  color: #09363d;
+  box-shadow: none;
+}
+
+.trainingPage__resultModalBtn--replay-primary.uiButton {
+  background: color-mix(in srgb, var(--accent) 9%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  color: #09363d;
 }
 
 .trainingPage__resultModalBtn--savePrimary {
@@ -2724,9 +3293,15 @@
   min-width: 90px;
   border: 0;
   background: transparent;
-  color: rgba(247, 248, 252, 0.68);
+  color: #708390;
   font-size: 13px;
   font-weight: 700;
+}
+
+.trainingPage__resultModalBtn--closeText.uiButton {
+  border: 0;
+  background: transparent;
+  color: #708390;
 }
 
 .trainingPage__resultModalBtn:disabled {
@@ -2735,11 +3310,11 @@
 }
 
 .trainingPage__resultModalBtn:hover:not(:disabled) {
-  filter: brightness(1.03);
+  filter: none;
 }
 
 .trainingPage__resultModalBtn:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.78);
+  outline: 2px solid color-mix(in srgb, var(--accent) 44%, #ffffff);
   outline-offset: 2px;
 }
 
@@ -2898,14 +3473,14 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
 
 .trainingPage__modalHead {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .trainingPage__modalTitle {
   font-size: 16px;
-  font-weight: 950;
+  font-weight: 900;
 }
 
 .trainingPage__modalBody {
@@ -2925,6 +3500,12 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
   gap: 6px;
 }
 
+.trainingPage__metricInfoItem.uiPanel {
+  border-color: var(--border);
+  background: #fff;
+  color: #09363d;
+}
+
 .trainingPage__metricInfoLabel {
   font-size: 14px;
   font-weight: 900;
@@ -2932,7 +3513,20 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
 }
 
 :root[data-theme-mode="dark"] .trainingPage__metricInfoLabel {
-  color: #000000;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__metricInfoText--desc,
+:root[data-theme-mode="dark"] .trainingPage__metricInfoCondition {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__metricInfoMetaHead {
+  color: color-mix(in srgb, var(--accent) 34%, rgba(255, 255, 255, 0.82));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__metricInfoDataChip {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .trainingPage__metricInfoText {
@@ -2970,6 +3564,16 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
   color: rgba(16, 34, 60, 0.84);
   font-size: 12px;
   font-weight: 800;
+  line-height: 1.25;
+}
+
+.trainingPage__metricInfoDataChip.uiCompareChip {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, #fff);
+  color: rgba(16, 34, 60, 0.84);
+  min-height: 24px;
+  padding: 0 9px;
+  font-size: 12px;
   line-height: 1.25;
 }
 
@@ -3139,4 +3743,419 @@ body[data-hide-chrome="true"] nav[aria-label="mode tabs"] {
     height: 40px;
     font-size: 13px;
   }
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementStep,
+:root[data-theme-mode="dark"] .trainingPage__measurementPlayer.audioPlayer__sessionCard,
+:root[data-theme-mode="dark"] .trainingPage__measurementPresetCard,
+:root[data-theme-mode="dark"] .trainingPage__measurementPresetItem,
+:root[data-theme-mode="dark"] .trainingPage__measurementAssistCard,
+:root[data-theme-mode="dark"] .trainingPage__measurementTargetCard,
+:root[data-theme-mode="dark"] .trainingPage__measurementTargetPanel,
+:root[data-theme-mode="dark"] .trainingPage__measurementMetricInfo,
+:root[data-theme-mode="dark"] .trainingPage__measurementMetricInfoBody,
+:root[data-theme-mode="dark"] .trainingPage__measurementBody,
+:root[data-theme-mode="dark"] .trainingPage__measurementFooter,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryTable,
+:root[data-theme-mode="dark"] .trainingPage__resultReplayWrap,
+:root[data-theme-mode="dark"] .trainingPage__resultReplay,
+:root[data-theme-mode="dark"] .trainingPage__resultReplayMonitor,
+:root[data-theme-mode="dark"] .trainingPage__resultModalCard,
+:root[data-theme-mode="dark"] .trainingPage__rangeResultOverlapInfo {
+  background: var(--va-panel);
+  border-color: var(--va-border);
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementBody,
+:root[data-theme-mode="dark"] .trainingPage__measurementFooter,
+:root[data-theme-mode="dark"] .trainingPage__resultModalHeader,
+:root[data-theme-mode="dark"] .trainingPage__resultModalFooter,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryTableHead,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryRow + .trainingPage__rangeSummaryRow {
+  border-color: var(--va-border);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementTargetPlaceholder,
+:root[data-theme-mode="dark"] .trainingPage__measurementPaneHint,
+:root[data-theme-mode="dark"] .trainingPage__measurementTargetHint,
+:root[data-theme-mode="dark"] .trainingPage__measurementStepDesc,
+:root[data-theme-mode="dark"] .trainingPage__measurementTargetMeta,
+:root[data-theme-mode="dark"] .trainingPage__resultReplayUnavailableText,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryValue,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultRangeTitle,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultRangeStat span {
+  color: var(--va-text-muted);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementTargetPlaceholder,
+:root[data-theme-mode="dark"] .trainingPage__measurementTargetHint,
+:root[data-theme-mode="dark"] .trainingPage__monitorEmpty {
+  background: var(--va-overlay-soft);
+  border-color: var(--va-border-strong);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultModalLines,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultRangeCard,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryRow:nth-child(even) {
+  background: color-mix(in srgb, var(--accent) 8%, var(--va-panel));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__monitorSvg,
+:root[data-theme-mode="dark"] .trainingPage__pitchMiniTunerBar,
+:root[data-theme-mode="dark"] .trainingPage__rangeTrack {
+  background: var(--va-track);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultReplayToggle,
+:root[data-theme-mode="dark"] .trainingPage__measurementMiniBtn,
+:root[data-theme-mode="dark"] .trainingPage__measurementMiniBtn--ghost {
+  background: var(--va-panel-2);
+  border-color: var(--va-border);
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultReplayLockOverlay {
+  background: color-mix(in srgb, var(--surface) 88%, rgba(255, 255, 255, 0.05));
+  border-color: color-mix(in srgb, var(--va-border) 92%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementPresetItemBtn.is-selected[data-measurement="range"] {
+  background: rgba(93, 143, 231, 0.24);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementPresetItemBtn.is-selected[data-measurement="long_tone"] {
+  background: rgba(139, 111, 218, 0.24);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementPresetItemBtn.is-selected[data-measurement="volume_stability"] {
+  background: rgba(63, 175, 147, 0.24);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementPresetItemBtn.is-selected[data-measurement="pitch_accuracy"] {
+  background: rgba(213, 164, 48, 0.24);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementBackBtn,
+:root[data-theme-mode="dark"] .trainingPage__transportBtn,
+:root[data-theme-mode="dark"] .trainingPage__saveBtn.trainingPage__recordPrimaryInline,
+:root[data-theme-mode="dark"] .trainingPage__measurementSelectedBadge,
+:root[data-theme-mode="dark"] .trainingPage__measurementStatusBadge,
+:root[data-theme-mode="dark"] .trainingPage__measurementToggleThumb {
+  background: var(--va-panel-2);
+  border-color: var(--va-border);
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementSelectedBadge.uiStatusPill {
+  background: var(--va-panel-2);
+  border-color: var(--va-border);
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementMiniBtn--ghost.uiButton {
+  background: var(--va-panel-2);
+  border-color: var(--va-border);
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementStep,
+:root[data-theme-mode="dark"] .trainingPage__measurementRecorder,
+:root[data-theme-mode="dark"] .trainingPage__measurementPlayer {
+  background: var(--va-panel);
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__modalCard {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: var(--card);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementStepTitle--record,
+:root[data-theme-mode="dark"] .trainingPage__measurementAssistTitle,
+:root[data-theme-mode="dark"] .trainingPage__measurementPlayerName,
+:root[data-theme-mode="dark"] .trainingPage__saveBtn.trainingPage__recordPrimaryInline {
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementPresetDesc,
+:root[data-theme-mode="dark"] .trainingPage__measurementRecorderTitle,
+:root[data-theme-mode="dark"] .trainingPage__measurementPlayerSub,
+:root[data-theme-mode="dark"] .trainingPage__measurementPlayerDesc,
+:root[data-theme-mode="dark"] .trainingPage__measurementModeText,
+:root[data-theme-mode="dark"] .trainingPage__measurementResultMeta,
+:root[data-theme-mode="dark"] .trainingPage__measurementResultLine,
+:root[data-theme-mode="dark"] .trainingPage__measurementPitchLiveMeta {
+  color: var(--va-text-muted);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementGuest,
+:root[data-theme-mode="dark"] .trainingPage__measurementToggleTrack,
+:root[data-theme-mode="dark"] .trainingPage__measurementInfoPill,
+:root[data-theme-mode="dark"] .trainingPage__measurementPitchLive,
+:root[data-theme-mode="dark"] .trainingPage__measurementPitchLiveChart,
+:root[data-theme-mode="dark"] .trainingPage__measurementPitchLiveEmpty {
+  background: var(--va-overlay-soft);
+  border-color: var(--va-border);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementModeBox,
+:root[data-theme-mode="dark"] .trainingPage__measurementAssistCard {
+  background: color-mix(in srgb, var(--accent) 8%, var(--va-panel));
+  border-color: color-mix(in srgb, var(--accent) 16%, var(--va-border));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__metricInfoItem.uiPanel {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__metricInfoDataChip.uiCompareChip {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementModeSummary,
+:root[data-theme-mode="dark"] .trainingPage__measurementInfoPill,
+:root[data-theme-mode="dark"] .trainingPage__measurementNowNote,
+:root[data-theme-mode="dark"] .trainingPage__measurementPitchLiveTitle {
+  color: var(--va-text-muted);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementToggle input:checked + .trainingPage__measurementToggleTrack {
+  background: color-mix(in srgb, var(--accent) 34%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--va-border));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__saveBtn.trainingPage__recordPrimaryInline:not(.is-recording):not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 44%, var(--va-border));
+  color: color-mix(in srgb, var(--text) 92%, #ffffff 8%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__saveBtn.trainingPage__recordPrimaryInline:not(.is-recording):not(:disabled):hover {
+  background: color-mix(in srgb, var(--accent) 24%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--va-border));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__saveBtn.trainingPage__recordPrimaryInline.is-recording {
+  background: color-mix(in srgb, #d85d72 30%, var(--surface));
+  border-color: color-mix(in srgb, #d85d72 62%, var(--va-border));
+  color: #ffffff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #d85d72 22%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__saveBtn.is-recording {
+  background: color-mix(in srgb, #d85d72 30%, var(--surface));
+  border-color: color-mix(in srgb, #d85d72 62%, var(--va-border));
+  color: #ffffff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #d85d72 22%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultModalBtn--save,
+:root[data-theme-mode="dark"] .trainingPage__resultModalBtn--replay-primary {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--va-border));
+  color: #ffffff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultModalBtn--download {
+  background: var(--surface);
+  border-color: var(--va-border);
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultModalBtn--save:hover:not(:disabled),
+:root[data-theme-mode="dark"] .trainingPage__resultModalBtn--replay-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 28%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--va-border));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultReplayActionBtn {
+  height: 36px;
+  font-size: 13px;
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultModalBtn--savePrimary {
+  font-size: 15px;
+}
+
+:root[data-theme-mode="dark"] .trainingPage__mobileRecordDock {
+  background: color-mix(in srgb, var(--surface) 90%, rgba(255, 255, 255, 0.05));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__recordOverlay {
+  background: rgba(3, 8, 16, 0.56);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__recordCard,
+:root[data-theme-mode="dark"] .trainingPage__recordCard--monitor,
+:root[data-theme-mode="dark"] .trainingPage__measurementResult,
+:root[data-theme-mode="dark"] .trainingPage__measurementPitchLiveChart,
+:root[data-theme-mode="dark"] .trainingPage__rangePhaseBanner,
+:root[data-theme-mode="dark"] .trainingPage__rangeTips,
+:root[data-theme-mode="dark"] .trainingPage__pitchGuideConfig,
+:root[data-theme-mode="dark"] .trainingPage__pitchGuideRangeBtn {
+  background: var(--va-panel);
+  border-color: var(--va-border);
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__rangePhaseBanner,
+:root[data-theme-mode="dark"] .trainingPage__measurementResult,
+:root[data-theme-mode="dark"] .trainingPage__rangeTips,
+:root[data-theme-mode="dark"] .trainingPage__pitchGuideConfig,
+:root[data-theme-mode="dark"] .trainingPage__pitchGuideRangeBtn.is-active,
+:root[data-theme-mode="dark"] .trainingPage__pitchGuideStatus.is-selected {
+  background: color-mix(in srgb, var(--accent) 8%, var(--va-panel));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__rangePhaseBtnRow .trainingPage__measurementMiniBtn {
+  background: color-mix(in srgb, var(--accent) 28%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--va-border));
+  color: #ffffff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__rangePhaseBtnRow .trainingPage__measurementMiniBtn--ghost {
+  background: var(--surface);
+  border-color: var(--va-border);
+  color: var(--text);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .trainingPage__pitchGuideStatus.is-required {
+  background: color-mix(in srgb, #d85d72 10%, var(--va-panel));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__pitchGuideRangeBtn.is-active {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--va-border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementPitchLiveChart line {
+  stroke: color-mix(in srgb, var(--va-text-muted) 22%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measurementPitchLiveEmpty {
+  background: var(--va-overlay-soft);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__longToneHeroUnit,
+:root[data-theme-mode="dark"] .trainingPage__rangeResultFoot,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryTableHead,
+:root[data-theme-mode="dark"] .trainingPage__rangeTick,
+:root[data-theme-mode="dark"] .trainingPage__longToneHint {
+  color: var(--va-text-muted);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__longToneCompare > div,
+:root[data-theme-mode="dark"] .trainingPage__rangeChart,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryTable {
+  background: var(--va-panel);
+  border-color: var(--va-border);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__volumeResultHead,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultRangeCard {
+  background: color-mix(in srgb, var(--accent) 10%, var(--va-panel));
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--va-border));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultModalMetric {
+  background: color-mix(in srgb, var(--accent) 10%, var(--va-panel));
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--va-border));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__volumeGauge {
+  background: conic-gradient(var(--volumeTone) calc(var(--volume-gauge-progress) * 1turn), color-mix(in srgb, var(--volumeTone) 26%, var(--surface)) 0);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__volumeGauge::before,
+:root[data-theme-mode="dark"] .trainingPage__longToneRing::before {
+  background: color-mix(in srgb, var(--surfaceStrong) 92%, rgba(255, 255, 255, 0.06));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__volumeResultLabel,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultComment,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultScoreUnit,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultRangeTitle,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultRangeStat span,
+:root[data-theme-mode="dark"] .trainingPage__resultModalMetricValue span,
+:root[data-theme-mode="dark"] .trainingPage__resultModalMetricSub,
+:root[data-theme-mode="dark"] .trainingPage__longToneHeroNote,
+:root[data-theme-mode="dark"] .trainingPage__longToneCompare > div {
+  color: var(--va-text-muted);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__longToneHint {
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__longToneHeroNote,
+:root[data-theme-mode="dark"] .trainingPage__longToneCompare > div {
+  color: color-mix(in srgb, var(--text) 76%, var(--muted));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__volumeResultRangeValue,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultRangeStat strong,
+:root[data-theme-mode="dark"] .trainingPage__volumeResultScore,
+:root[data-theme-mode="dark"] .trainingPage__longToneHeroValue {
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__longToneRing {
+  background: conic-gradient(var(--accent) calc(var(--long-tone-progress) * 1turn), color-mix(in srgb, var(--accent) 24%, var(--surface)) 0);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__longToneCompare > div {
+  background: color-mix(in srgb, var(--surface) 88%, rgba(255, 255, 255, 0.03));
+  border-color: var(--va-border);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__rangeTrack {
+  background: var(--va-track);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__resultModalStats > div,
+:root[data-theme-mode="dark"] .trainingPage__rangeResultMessage,
+:root[data-theme-mode="dark"] .trainingPage__rangeResultMetaChip,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryTableHead,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryRow:nth-child(even) {
+  background: color-mix(in srgb, var(--accent) 8%, var(--va-panel));
+}
+
+:root[data-theme-mode="dark"] .trainingPage__rangeResultMessage,
+:root[data-theme-mode="dark"] .trainingPage__rangeResultMetaChip,
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryValue {
+  color: var(--va-text);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__rangeChartGrid {
+  border-color: color-mix(in srgb, var(--va-text-muted) 16%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__rangeSummaryRow + .trainingPage__rangeSummaryRow {
+  border-top-color: color-mix(in srgb, var(--va-border) 92%, transparent);
+}
+
+:root[data-theme-mode="dark"] .trainingPage,
+:root[data-theme-mode="dark"] .trainingPage__measureSection::after,
+:root[data-theme-mode="dark"] .trainingPage__measureInner {
+  background: var(--va-bg);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__measureWave {
+  color: var(--va-bg);
+}
+
+:root[data-theme-mode="dark"] .trainingPage__panelMeta,
+:root[data-theme-mode="dark"] .trainingPage__eyebrow {
+  color: var(--ui-section-eyebrow-color);
 }

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import AuthHeader from "../components/AuthHeader";
+import BrandLogo from "../components/BrandLogo";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 import { fetchMe } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
 import {
@@ -9,11 +12,12 @@ import {
   markFirstLoginLandingSeen,
 } from "../features/missions/beginnerMissionGate";
 import { saveTutorialStage } from "../features/tutorial/tutorialFlow";
+import { isValidEmailFormat, normalizeEmail } from "../utils/email";
 
 import "./AuthPages.css";
 
 export default function SignupPage() {
-  const { signup } = useAuth();
+  const { loginWithGoogle, signup } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -28,17 +32,28 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      await signup(email, password, passwordConfirmation);
-      let destination = "/log";
-      const meAfterSignup = await fetchMe();
-      if (meAfterSignup && !hasSeenFirstLoginLanding(meAfterSignup.id)) {
-        const beginnerGate = await fetchBeginnerMissionGate();
-        markFirstLoginLandingSeen(meAfterSignup.id);
-        if (beginnerGate && !beginnerGate.completed) {
-          saveTutorialStage(meAfterSignup.id, "log_welcome");
-        }
+      const normalizedEmail = normalizeEmail(email);
+      if (!normalizedEmail) {
+        throw new Error("メールアドレスを入力してください。");
       }
-      navigate(destination, { replace: true });
+      if (!isValidEmailFormat(normalizedEmail)) {
+        throw new Error("メールアドレスの形式が正しくありません。");
+      }
+      if (!password) {
+        throw new Error("パスワードを入力してください。");
+      }
+      if (password !== passwordConfirmation) {
+        throw new Error("確認用パスワードが一致しません。");
+      }
+
+      const result = await signup(normalizedEmail, password, passwordConfirmation);
+      navigate("/login", {
+        replace: true,
+        state: {
+          notice: result.message,
+          email: normalizedEmail,
+        },
+      });
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -50,27 +65,57 @@ export default function SignupPage() {
     }
   };
 
+  const onGoogleCredential = async (credential: string) => {
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await loginWithGoogle(credential);
+      const meAfterLogin = await fetchMe();
+      if (meAfterLogin && !hasSeenFirstLoginLanding(meAfterLogin.id)) {
+        const beginnerGate = await fetchBeginnerMissionGate();
+        markFirstLoginLandingSeen(meAfterLogin.id);
+        if (beginnerGate && !beginnerGate.completed) {
+          saveTutorialStage(meAfterLogin.id, "log_welcome");
+        }
+      }
+      navigate("/log", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Googleログインに失敗しました");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="authPage">
+    <div className="authPage authPage--signup">
       <div className="authPage__bg" aria-hidden="true" />
+      <AuthHeader />
 
       <div className="authPage__shell">
-        <section className="card authPage__hero">
-          <div className="authPage__kicker">Get Started</div>
-          <h1 className="authPage__title">新規登録</h1>
-          <p className="authPage__sub">最初のアカウントを作成して、練習ログを積み上げましょう。</p>
-          <div className="authPage__chips">
-            <div className="authPage__chip">無料ではじめる</div>
-            <div className="authPage__chip">継続を見える化</div>
-            <div className="authPage__chip">AIおすすめ</div>
+        <section className="authPage__hero">
+          <div className="authPage__brand">
+            <BrandLogo alt="Koelogs" className="authPage__brandImage" />
           </div>
         </section>
 
-        <section className="card authPage__card">
+        <section className="authPage__card">
+          <div className="authPage__cardHeader">
+            <h1 className="authPage__cardTitle">新規登録</h1>
+            <p className="authPage__cardSub">アカウントを作成して記録を始めましょう。</p>
+          </div>
+
           <form onSubmit={onSubmit} className="authPage__form">
+            <GoogleSignInButton
+              text="signup_with"
+              onCredential={onGoogleCredential}
+              disabled={submitting}
+            />
+
             <div className="authPage__field">
               <label className="authPage__label">Email</label>
               <input
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -106,21 +151,12 @@ export default function SignupPage() {
               {submitting ? "登録中..." : "新規登録"}
             </button>
 
-            <p className="authPage__support">登録後すぐにログ作成とトレーニング機能を利用できます。</p>
+            <p className="authPage__support">メール登録では確認メールを送信します。Google を使う場合はそのままログインできます。</p>
           </form>
 
           <div className="authPage__link">
-            既にアカウントがある？ <Link to="/login">ログイン</Link>
+            登録済みの方はこちら → <Link to="/login">ログイン</Link>
           </div>
-        </section>
-
-        <section className="card authPage__valueCard">
-          <div className="authPage__valueTitle">最初の一歩</div>
-          <ul className="authPage__valueList">
-            <li>アカウント作成後に目標を1つ設定</li>
-            <li>今日の練習ログを1件追加</li>
-            <li>分析ページで進捗を確認</li>
-          </ul>
         </section>
       </div>
     </div>

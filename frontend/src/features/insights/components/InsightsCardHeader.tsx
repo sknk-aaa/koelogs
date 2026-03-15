@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 type Props = {
   title: ReactNode;
+  eyebrow?: ReactNode;
+  icon?: ReactNode;
   hintText?: ReactNode;
   hintSub?: ReactNode;
   withChevron?: boolean;
@@ -10,6 +12,8 @@ type Props = {
 
 export default function InsightsCardHeader({
   title,
+  eyebrow,
+  icon,
   hintText,
   hintSub,
   withChevron = false,
@@ -18,7 +22,26 @@ export default function InsightsCardHeader({
   const hasHint = hintText != null || hintSub != null;
   return (
     <div className="insightsCard__head">
-      <div className="insightsCard__title">{title}</div>
+      <div className="insightsCard__headMain">
+        {eyebrow != null ? (
+          <div className="insightsCard__eyebrowRow">
+            {icon != null ? (
+              <span className="insightsCard__eyebrowIcon" aria-hidden="true">
+                {icon}
+              </span>
+            ) : null}
+            <div className="insightsCard__eyebrow">{eyebrow}</div>
+          </div>
+        ) : null}
+        <div className="insightsCard__titleRow">
+          {eyebrow == null && icon != null ? (
+            <span className="insightsCard__titleIcon" aria-hidden="true">
+              {icon}
+            </span>
+          ) : null}
+          <div className="insightsCard__title">{title}</div>
+        </div>
+      </div>
       {right ?? (hasHint && (
         <div className="insightsCard__hintBlock">
           {hintText != null && (

@@ -1,0 +1,314 @@
+.beginnerMissionGuide__card {
+  width: 100%;
+  border-radius: 14px;
+  box-shadow: none;
+  padding: 12px 12px 10px;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.beginnerMissionGuide__card.uiPanel {
+  border-color: inherit;
+  background: inherit;
+  color: inherit;
+}
+
+.beginnerMissionGuide__title {
+  font-size: 16px;
+  font-weight: 950;
+  color: #425766;
+  line-height: 1.35;
+}
+
+.beginnerMissionGuide__description {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #718492;
+}
+
+.beginnerMissionGuide__metaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.beginnerMissionGuide__label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #718492;
+}
+
+.beginnerMissionGuide__count {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 900;
+  color: color-mix(in srgb, var(--accent) 64%, #4e6978);
+}
+
+.beginnerMissionGuide__arrow {
+  font-size: 30px;
+  line-height: 0.6;
+  color: #c2ccd8;
+}
+
+.beginnerMissionGuide__progressTrack {
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 6%, #e8eef3);
+  display: block;
+}
+
+.beginnerMissionGuide__progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent) 24%, #a7dce6);
+}
+
+.beginnerMissionModal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+}
+
+.beginnerMissionModal__card {
+  position: relative;
+  width: min(680px, 100%);
+  max-height: min(80vh, 760px);
+  overflow: auto;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.beginnerMissionModal__card.uiModalPanel {
+  border-color: color-mix(in srgb, var(--accent) 10%, var(--border));
+  background: var(--card);
+  color: var(--cardText, var(--text));
+}
+
+.beginnerMissionModal__head {
+  margin-bottom: 12px;
+}
+
+.beginnerMissionModal__headMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.beginnerMissionModal__sectionIcon,
+.beginnerMissionModal__groupIcon {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 48%, #70839a);
+  flex: 0 0 auto;
+  transform: translateY(1px);
+}
+
+.beginnerMissionModal__sectionIcon svg,
+.beginnerMissionModal__groupIcon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.beginnerMissionModal__sectionIcon svg .accent,
+.beginnerMissionModal__groupIcon svg .accent {
+  stroke: var(--accent);
+}
+
+.beginnerMissionModal__title {
+  color: color-mix(in srgb, var(--accent) 20%, #5f7480);
+}
+
+.beginnerMissionModal__close {
+  min-height: 0;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.beginnerMissionModal__close.uiButton {
+  border-color: color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 92%, #ffffff);
+  color: var(--cardText, var(--text));
+}
+
+.beginnerMissionModal__list {
+  display: grid;
+  gap: 12px;
+}
+
+.beginnerMissionModal__group {
+  display: grid;
+  gap: 0;
+}
+
+.beginnerMissionModal__groupHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.beginnerMissionModal__groupTitleRow,
+.beginnerMissionModal__subgroupRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.beginnerMissionModal__groupTitle,
+.beginnerMissionModal__subgroupLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8798a5;
+}
+
+.beginnerMissionModal__item {
+  border: 0;
+  background: rgba(255, 255, 255, 0.46);
+  padding: 12px 10px;
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 8%, #e4ebf1);
+  border-radius: 10px;
+}
+
+.beginnerMissionModal__group > .beginnerMissionModal__item:first-of-type {
+  margin-top: 6px;
+}
+
+.beginnerMissionModal__group > .beginnerMissionModal__item + .beginnerMissionModal__item {
+  margin-top: 6px;
+}
+
+.beginnerMissionModal__item.is-done {
+  opacity: 0.82;
+}
+
+.beginnerMissionModal__itemTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.beginnerMissionModal__itemMain {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 4px;
+}
+
+.beginnerMissionModal__itemTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--log-text-2, #183144);
+  line-height: 1.4;
+}
+
+.beginnerMissionModal__itemDescription {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #718492;
+}
+
+.beginnerMissionModal__actionWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.beginnerMissionModal__status {
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.beginnerMissionModal__status.uiCompareChip {
+  border-color: color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 18%, var(--cardText, var(--text)));
+  min-height: 24px;
+  padding: 0 8px;
+}
+
+.beginnerMissionModal__status.is-pending {
+  border: 0;
+  background: rgba(245, 158, 11, 0.12);
+  color: #9b7a39;
+}
+
+.beginnerMissionModal__status.is-done {
+  border: 0;
+  background: rgba(22, 163, 74, 0.1);
+  color: #4d8062;
+}
+
+.beginnerMissionModal__subgroupRow {
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+:root[data-theme-mode="dark"] .beginnerMissionGuide__card {
+  background: rgba(20, 31, 45, 0.72);
+}
+
+:root[data-theme-mode="dark"] .beginnerMissionGuide__title,
+:root[data-theme-mode="dark"] .beginnerMissionModal__itemTitle {
+  color: var(--on-dark-1);
+}
+
+:root[data-theme-mode="dark"] .beginnerMissionGuide__description {
+  color: var(--muted-dark-1);
+}
+
+:root[data-theme-mode="dark"] .beginnerMissionGuide__label,
+:root[data-theme-mode="dark"] .beginnerMissionGuide__arrow,
+:root[data-theme-mode="dark"] .beginnerMissionModal__close,
+:root[data-theme-mode="dark"] .beginnerMissionModal__groupTitle,
+:root[data-theme-mode="dark"] .beginnerMissionModal__subgroupLabel {
+  color: var(--muted-dark-1);
+}
+
+:root[data-theme-mode="dark"] .beginnerMissionGuide__count {
+  color: color-mix(in srgb, var(--accent) 62%, var(--on-dark-1));
+}
+
+:root[data-theme-mode="dark"] .beginnerMissionGuide__progressTrack {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .beginnerMissionModal__title {
+  color: color-mix(in srgb, var(--accent) 38%, var(--on-dark-1));
+}
+
+:root[data-theme-mode="dark"] .beginnerMissionModal__item {
+  background: rgba(255, 255, 255, 0.03);
+  border-top-color: rgba(255, 255, 255, 0.08);
+}

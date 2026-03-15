@@ -88,6 +88,12 @@ export default function CommunityRankingPage() {
 
       {!loading && !error && (
         <>
+          <div className="communityRanking__sectionLabelRow communityRanking__sectionLabelRow--section">
+            <span className="communityRanking__sectionLabelIcon" aria-hidden="true">
+              <StandingIcon />
+            </span>
+            <div className="communityRanking__sectionLabel">YOUR STATUS</div>
+          </div>
           <section className="card communityRanking__focusCard">
             {current.total > 0 ? (
               <>
@@ -144,8 +150,13 @@ export default function CommunityRankingPage() {
             )}
           </section>
 
+          <div className="communityRanking__sectionLabelRow communityRanking__sectionLabelRow--section communityRanking__sectionLabelRow--community">
+            <span className="communityRanking__sectionLabelIcon" aria-hidden="true">
+              <MembersIcon />
+            </span>
+            <div className="communityRanking__sectionLabel">COMMUNITY STATUS</div>
+          </div>
           <section className="card communityRanking__listCard">
-            <div className="communityRanking__listTitle">トップメンバー</div>
             {current.rows.length === 0 ? (
               <div className="communityRanking__empty">データがありません。</div>
             ) : (
@@ -256,4 +267,26 @@ function formatWeeklyHoursFromMinutes(min: number): string {
 function formatValueForTab(tab: RankTab, value: number): string {
   if (tab === "weekly") return formatWeeklyHoursFromMinutes(value);
   return String(value);
+}
+
+function MembersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="9" cy="8.3" r="2.6" />
+      <path d="M4.8 16.8c0-2.1 1.9-3.9 4.2-3.9s4.2 1.8 4.2 3.9" />
+      <circle className="accent" cx="16.6" cy="9.4" r="2" />
+      <path className="accent" d="M14.4 16.8c.1-1.7 1.5-3 3.3-3 1 0 1.9.3 2.5.9" />
+    </svg>
+  );
+}
+
+function StandingIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="8.5" cy="8.5" r="2.5" />
+      <path d="M4.8 16.8c0-2.1 1.7-3.8 3.7-3.8s3.7 1.7 3.7 3.8" />
+      <path className="accent" d="M16 5.5v8" />
+      <path className="accent" d="m13.5 11 2.5 2.5 4.5-4.5" />
+    </svg>
+  );
 }

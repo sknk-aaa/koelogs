@@ -11,11 +11,12 @@ module Billing
     end
 
     def call
-      raise ArgumentError, "stripe customer is missing" if user.stripe_customer_id.blank?
+      customer_id = Billing::StripeCustomerLocator.call(user: user, create_if_missing: false)
+      raise ArgumentError, "stripe customer is missing" if customer_id.blank?
 
       Billing::StripeConfig.client
       Stripe::BillingPortal::Session.create(
-        customer: user.stripe_customer_id,
+        customer: customer_id,
         return_url: "#{Billing::StripeConfig.frontend_origin}/premium"
       )
     end

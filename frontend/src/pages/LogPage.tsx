@@ -2656,6 +2656,9 @@ export default function LogPage() {
                           className={`logPage__metricCard logPage__metricCard--${card.key}`}
                           onClick={card.onClick}
                         >
+                          <span className="logPage__metricCardArrow" aria-hidden="true">
+                            ⌄
+                          </span>
                           {(() => {
                             const metaText = "meta" in card ? card.meta : null;
                             return (

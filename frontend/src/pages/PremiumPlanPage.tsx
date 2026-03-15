@@ -26,10 +26,6 @@ export default function PremiumPlanPage() {
   const refreshedStatusRef = useRef(false);
 
   const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
     navigate("/log");
   };
 

@@ -2469,39 +2469,6 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
           </linearGradient>
         </defs>
 
-        <rect
-          x={padLeft}
-          y={padTop}
-          width={width - padLeft - padRight}
-          height={height - padTop - padBottom}
-          fill="var(--ins-range-plot-bg-start, #fff)"
-          rx={12}
-        />
-        {buildSparseMidiTicks(min, max, layout.bgTickMax).map((midi) => {
-          const yTop = yFromMidi(midi + 1);
-          const yBottom = yFromMidi(midi);
-          const h = Math.max(0, yBottom - yTop);
-          if (h <= 0) return null;
-          return (
-            <rect
-              key={`range-bg-row-${midi}`}
-              x={padLeft}
-              y={yTop}
-              width={width - padLeft - padRight}
-              height={h}
-              fill={
-                isBlackKey(midi % 12)
-                  ? isMobile
-                    ? "rgba(42, 67, 93, 0.016)"
-                    : "rgba(42, 67, 93, 0.024)"
-                  : isMobile
-                    ? "rgba(255, 255, 255, 0.012)"
-                    : "rgba(255, 255, 255, 0.018)"
-              }
-            />
-          );
-        })}
-
         {yTicks.map((midi, idx) => {
           const y = yFromMidi(midi);
           const isC = midi % 12 === 0;
@@ -2721,11 +2688,6 @@ function buildReadableMidiTicks(params: {
     .map((v) => v.midi);
 
   return pruned.length > 0 ? pruned : [min, max];
-}
-
-function isBlackKey(pitchClass: number): boolean {
-  const normalized = ((pitchClass % 12) + 12) % 12;
-  return normalized === 1 || normalized === 3 || normalized === 6 || normalized === 8 || normalized === 10;
 }
 
 function clamp(value: number, min: number, max: number): number {

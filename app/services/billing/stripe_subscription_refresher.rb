@@ -11,8 +11,6 @@ module Billing
     end
 
     def call
-      raise ArgumentError, "stripe customer is missing" if user.stripe_customer_id.blank?
-
       if user.stripe_subscription_id.present?
         return Billing::StripeSubscriptionSync.sync_from_subscription_id(
           user.stripe_subscription_id,
@@ -20,9 +18,12 @@ module Billing
         )
       end
 
+      customer_id = Billing::StripeCustomerLocator.call(user: user, create_if_missing: false)
+      raise ArgumentError, "stripe customer is missing" if customer_id.blank?
+
       Billing::StripeConfig.client
       subscription = Stripe::Subscription.list(
-        customer: user.stripe_customer_id,
+        customer: customer_id,
         status: "all",
         limit: 1
       ).data.first

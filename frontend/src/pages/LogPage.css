@@ -1239,7 +1239,7 @@ body:has(.page.logPage) {
   }
 
   .logPage__dayBoard {
-    grid-template-columns: minmax(340px, 388px) minmax(0, 1fr);
+    grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
     gap: 28px 28px;
     align-items: start;
   }
@@ -1411,6 +1411,11 @@ body:has(.page.logPage) {
     border-radius: 14px;
     gap: 14px;
     background: #ffffff;
+  }
+
+  .logPage__contentSection--measurePanel .logPage__metricCardArrow {
+    top: 12px;
+    right: 16px;
   }
 
   .logPage__contentSection--measurePanel .logPage__metricCard--range,
@@ -1709,6 +1714,20 @@ body:has(.page.logPage) {
   text-align: left;
   cursor: pointer;
   transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.logPage__metricCardArrow {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 700;
+  color: rgba(100, 116, 139, 0.88);
+  pointer-events: none;
 }
 
 .logPage__metricCard.is-accent {

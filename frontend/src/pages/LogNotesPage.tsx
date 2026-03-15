@@ -5,16 +5,25 @@ import {
   fetchLatestMeasurements,
   fetchMeasurements,
   updateMeasurement,
+  type MeasurementType,
   type MeasurementRun,
 } from "../api/measurements";
 import type { MeasurementPoint } from "../types/insights";
 import { useAuth } from "../features/auth/useAuth";
 import MetronomeLoader from "../components/MetronomeLoader";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
+import ExportCsvDialog, {
+  type CsvExportPeriod,
+  type CsvMetricFilter,
+} from "../features/insights/components/ExportCsvDialog";
 import insightsTrendCyan from "../assets/premium/insights-trend-cyan.svg";
 import insightsHistoryCyan from "../assets/premium/insights-history-cyan.svg";
 import insightsAnalysisCyan from "../assets/premium/insights-analysis-cyan.svg";
 import insightsLabelIcon from "../assets/premium/insights-label-icon.svg";
+import csvLabelIcon from "../assets/premium/csv-label-icon.svg";
+import csvPeriodIcon from "../assets/premium/csv-period-cyan.svg";
+import csvMetricIcon from "../assets/premium/csv-metric-cyan.svg";
+import csvExportIcon from "../assets/premium/csv-export-cyan.svg";
 import "./InsightsPages.css";
 
 type LoadState =
@@ -40,6 +49,7 @@ const PERIODS = [7, 30, 90, 365] as const;
 const PREMIUM_PERIODS = [30, 90, 365] as const;
 const FREE_MINI_GRAPH_DAYS = 7;
 const FREE_HISTORY_LIMIT = 1;
+const CSV_MEASUREMENT_TYPES: MeasurementType[] = [ "range", "long_tone", "volume_stability", "pitch_accuracy" ];
 const METRIC_TABS = [
   { key: "range", label: "音域" },
   { key: "long_tone", label: "ロングトーン" },
@@ -50,6 +60,7 @@ export type MetricTabKey = (typeof METRIC_TABS)[number]["key"];
 type RangeVoiceTab = "total" | "chest" | "falsetto";
 type RangeBandPoint = { date: string; low: number | null; high: number | null };
 type ExcludableMetric = "range" | "long_tone" | "volume_stability" | "pitch_accuracy";
+type PremiumModalReason = "insights" | "csv";
 
 type InsightsNotesViewProps = {
   embedded?: boolean;
@@ -664,7 +675,11 @@ export function InsightsNotesView({ embedded = false, initialMetric, onMetricCha
     metric: ExcludableMetric;
     run: MeasurementRun;
   } | null>(null);
+  const [csvDialogOpen, setCsvDialogOpen] = useState(false);
+  const [csvPeriod, setCsvPeriod] = useState<CsvExportPeriod>("latest");
+  const [csvMetric, setCsvMetric] = useState<CsvMetricFilter>(initialMetric ?? parseMetricTab(searchParams.get("metric")));
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
+  const [premiumModalReason, setPremiumModalReason] = useState<PremiumModalReason>("insights");
   const excludeToastTimerRef = useRef<number | null>(null);
 
   const guestMode = !authLoading && !me;
@@ -1021,6 +1036,45 @@ export function InsightsNotesView({ embedded = false, initialMetric, onMetricCha
     }
   };
 
+  const openCsvDialog = () => {
+    if (!isPremium) {
+      setPremiumModalReason("csv");
+      setPremiumModalOpen(true);
+      return;
+    }
+    setCsvMetric(metricTab);
+    setCsvDialogOpen(true);
+  };
+
+  const onDownloadCsv = async () => {
+    if (state.kind !== "ready") return;
+    try {
+      const selectedTypes = resolveCsvMeasurementTypes(csvMetric);
+      const runsByType = await loadCsvRuns({
+        period: csvPeriod,
+        types: selectedTypes,
+        latest: representativeLatest,
+      });
+      const allRuns = selectedTypes.flatMap((type) => runsByType[type] ?? []);
+
+      if (allRuns.length === 0) {
+        window.alert("出力対象のデータがありません。");
+        return;
+      }
+
+      const dailyCsv = buildDailyCsv(allRuns);
+      const measurementsCsv = buildMeasurementsCsv(allRuns);
+      const stamp = buildCsvStamp();
+      const suffix = csvMetric === "all" ? "all" : csvMetric;
+
+      downloadCsvFile(dailyCsv, `insights_daily_${suffix}_${stamp}.csv`);
+      downloadCsvFile(measurementsCsv, `insights_measurements_${suffix}_${stamp}.csv`);
+      setCsvDialogOpen(false);
+    } catch (error) {
+      window.alert(errorMessage(error, "CSV出力に失敗しました"));
+    }
+  };
+
   const content = (
     <>
       {guestMode && (
@@ -1184,7 +1238,10 @@ export function InsightsNotesView({ embedded = false, initialMetric, onMetricCha
                     valueFormatter={(v) => midiToNote(Math.round(v))}
                     deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}半音`}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                    onRequestUnlock={() => setPremiumModalOpen(true)}
+                    onRequestUnlock={() => {
+                      setPremiumModalReason("insights");
+                      setPremiumModalOpen(true);
+                    }}
                     embedded
                   />
                 )}
@@ -1194,7 +1251,10 @@ export function InsightsNotesView({ embedded = false, initialMetric, onMetricCha
                     latestLabel={formatMetricValue(metricLatest, metricTab)}
                     bestLabel={formatMetricValue(metricBest, metricTab)}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                    onRequestUnlock={() => setPremiumModalOpen(true)}
+                    onRequestUnlock={() => {
+                      setPremiumModalReason("insights");
+                      setPremiumModalOpen(true);
+                    }}
                     embedded
                   />
                 )}
@@ -1214,7 +1274,10 @@ export function InsightsNotesView({ embedded = false, initialMetric, onMetricCha
                     valueFormatter={(v) => `${v.toFixed(1)}%`}
                     deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                    onRequestUnlock={() => setPremiumModalOpen(true)}
+                    onRequestUnlock={() => {
+                      setPremiumModalReason("insights");
+                      setPremiumModalOpen(true);
+                    }}
                     embedded
                   />
                 )}
@@ -1238,7 +1301,10 @@ export function InsightsNotesView({ embedded = false, initialMetric, onMetricCha
                     deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}半音`}
                     higherIsBetter={false}
                     lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                    onRequestUnlock={() => setPremiumModalOpen(true)}
+                    onRequestUnlock={() => {
+                      setPremiumModalReason("insights");
+                      setPremiumModalOpen(true);
+                    }}
                     embedded
                   />
                 )}
@@ -1258,20 +1324,28 @@ export function InsightsNotesView({ embedded = false, initialMetric, onMetricCha
           onClose={() => setPremiumModalOpen(false)}
           variant="lp"
           tone="log"
-          sectionLabel="INSIGHTS"
-          sectionLabelIconSrc={insightsLabelIcon}
-          title="分析をもっと深く見る"
+          sectionLabel={premiumModalReason === "csv" ? "CSV EXPORT" : "INSIGHTS"}
+          sectionLabelIconSrc={premiumModalReason === "csv" ? csvLabelIcon : insightsLabelIcon}
+          title={premiumModalReason === "csv" ? "CSV出力を解放する" : "分析をもっと深く見る"}
           onCta={() => {
             setPremiumModalOpen(false);
             navigate("/premium");
           }}
-          description="無料プランでは7日間のみ表示されます。"
+          description={premiumModalReason === "csv" ? "無料プランではCSV出力は利用できません。" : "無料プランでは7日間のみ表示されます。"}
           featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
-          featureCards={[
-            { iconSrc: insightsTrendCyan, title: "TREND", sub: "30日・90日・365日ごとの推移を、グラフで確認できます。" },
-            { iconSrc: insightsHistoryCyan, title: "HISTORY", sub: "これまでの測定履歴を一覧で確認しながら、過去の記録を振り返れます。" },
-            { iconSrc: insightsAnalysisCyan, title: "ANALYSIS", sub: "数値の変化をもとに、前回比や成長の幅を確認できます。" },
-          ]}
+          featureCards={
+            premiumModalReason === "csv"
+              ? [
+                  { iconSrc: csvPeriodIcon, title: "PERIOD", sub: "最新・30日・90日など、必要な期間を選んで出力できます。" },
+                  { iconSrc: csvMetricIcon, title: "METRIC", sub: "音域やロングトーンなど、見たい指標だけを絞って確認できます。" },
+                  { iconSrc: csvExportIcon, title: "EXPORT", sub: "測定結果をCSVとして保存し、あとから整理や見返しに使えます。" },
+                ]
+              : [
+                  { iconSrc: insightsTrendCyan, title: "TREND", sub: "30日・90日・365日ごとの推移を、グラフで確認できます。" },
+                  { iconSrc: insightsHistoryCyan, title: "HISTORY", sub: "これまでの測定履歴を一覧で確認しながら、過去の記録を振り返れます。" },
+                  { iconSrc: insightsAnalysisCyan, title: "ANALYSIS", sub: "数値の変化をもとに、前回比や成長の幅を確認できます。" },
+                ]
+          }
         />
       </div>
     );
@@ -1289,9 +1363,27 @@ export function InsightsNotesView({ embedded = false, initialMetric, onMetricCha
               {explicitMetricMode ? `${metricLabel}の詳細データを表示しています。` : "音域・ロングトーン・音量安定性・音程精度を確認できます。"}
             </p>
           </div>
-          <Link to={backPath} className="insightsBack">
-            戻る
-          </Link>
+          <div className="insightsHero__actions">
+            <button
+              type="button"
+              className="csvButton uiButton uiButton--secondary"
+              onClick={openCsvDialog}
+              aria-haspopup="dialog"
+              aria-expanded={csvDialogOpen}
+            >
+              <span className="csvButton__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M12 4v11" />
+                  <path d="m8 11 4 4 4-4" />
+                  <path d="M5 19h14" />
+                </svg>
+              </span>
+              <span>CSV</span>
+            </button>
+            <Link to={backPath} className="insightsBack">
+              戻る
+            </Link>
+          </div>
         </div>
         <div className="insightsControlsInline">
           <div className="insightsSegment insightsTimePage__segment">
@@ -1316,25 +1408,42 @@ export function InsightsNotesView({ embedded = false, initialMetric, onMetricCha
       </section>
 
       {content}
+      <ExportCsvDialog
+        open={csvDialogOpen}
+        onClose={() => setCsvDialogOpen(false)}
+        period={csvPeriod}
+        setPeriod={setCsvPeriod}
+        metric={csvMetric}
+        setMetric={setCsvMetric}
+        onDownload={onDownloadCsv}
+      />
       <PremiumUpsellModal
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
         variant="lp"
         tone="log"
-        sectionLabel="INSIGHTS"
-        sectionLabelIconSrc={insightsLabelIcon}
-        title="分析をもっと深く見る"
+        sectionLabel={premiumModalReason === "csv" ? "CSV EXPORT" : "INSIGHTS"}
+        sectionLabelIconSrc={premiumModalReason === "csv" ? csvLabelIcon : insightsLabelIcon}
+        title={premiumModalReason === "csv" ? "CSV出力を解放する" : "分析をもっと深く見る"}
         onCta={() => {
           setPremiumModalOpen(false);
           navigate("/premium");
         }}
-        description="無料プランでは7日間のみ表示されます。"
+        description={premiumModalReason === "csv" ? "無料プランではCSV出力は利用できません。" : "無料プランでは7日間のみ表示されます。"}
         featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
-        featureCards={[
-          { iconSrc: insightsTrendCyan, title: "TREND", sub: "30日・90日・365日ごとの推移を、グラフで確認できます。" },
-          { iconSrc: insightsHistoryCyan, title: "HISTORY", sub: "これまでの測定履歴を一覧で確認しながら、過去の記録を振り返れます。" },
-          { iconSrc: insightsAnalysisCyan, title: "ANALYSIS", sub: "数値の変化をもとに、前回比や成長の幅を確認できます。" },
-        ]}
+        featureCards={
+          premiumModalReason === "csv"
+            ? [
+                { iconSrc: csvPeriodIcon, title: "PERIOD", sub: "最新・30日・90日など、必要な期間を選んで出力できます。" },
+                { iconSrc: csvMetricIcon, title: "METRIC", sub: "音域やロングトーンなど、見たい指標だけを絞って確認できます。" },
+                { iconSrc: csvExportIcon, title: "EXPORT", sub: "測定結果をCSVとして保存し、あとから整理や見返しに使えます。" },
+              ]
+            : [
+                { iconSrc: insightsTrendCyan, title: "TREND", sub: "30日・90日・365日ごとの推移を、グラフで確認できます。" },
+                { iconSrc: insightsHistoryCyan, title: "HISTORY", sub: "これまでの測定履歴を一覧で確認しながら、過去の記録を振り返れます。" },
+                { iconSrc: insightsAnalysisCyan, title: "ANALYSIS", sub: "数値の変化をもとに、前回比や成長の幅を確認できます。" },
+              ]
+        }
         ctaLabel="プレミアムを試す"
       />
     </div>
@@ -2843,6 +2952,258 @@ function transposeNote(note: string | null, semitones: number): string | null {
   const midi = noteToMidi(note);
   if (midi == null) return null;
   return midiToNote(midi + semitones);
+}
+
+function resolveCsvMeasurementTypes(metric: CsvMetricFilter): MeasurementType[] {
+  if (metric === "all") return CSV_MEASUREMENT_TYPES;
+  return [metric];
+}
+
+function asDateKey(recordedAt: string): string {
+  const key = recordedAt.split("T")[0];
+  return key || recordedAt;
+}
+
+function latestToRuns(latest: LatestMeasurements, type: MeasurementType): MeasurementRun[] {
+  const run =
+    type === "range"
+      ? latest.range
+      : type === "long_tone"
+        ? latest.long_tone
+        : type === "volume_stability"
+          ? latest.volume_stability
+          : latest.pitch_accuracy;
+  return run ? [run] : [];
+}
+
+async function loadCsvRuns(params: {
+  period: CsvExportPeriod;
+  types: MeasurementType[];
+  latest: LatestMeasurements;
+}): Promise<Record<MeasurementType, MeasurementRun[]>> {
+  const { period, types, latest } = params;
+  const result: Record<MeasurementType, MeasurementRun[]> = {
+    range: [],
+    long_tone: [],
+    volume_stability: [],
+    pitch_accuracy: [],
+  };
+
+  if (period === "latest") {
+    for (const type of types) {
+      result[type] = latestToRuns(latest, type);
+    }
+    return result;
+  }
+
+  const days = period === "30d" ? 30 : 90;
+  const responses = await Promise.all(
+    types.map((type) =>
+      fetchMeasurements({
+        measurement_type: type,
+        days,
+        limit: 300,
+        include_in_insights: true,
+      })
+    )
+  );
+  types.forEach((type, idx) => {
+    result[type] = responses[idx] ?? [];
+  });
+  return result;
+}
+
+function buildDailyCsv(runs: MeasurementRun[]): string {
+  const dayMap = new Map<
+    string,
+    {
+      total: number;
+      range: number;
+      long_tone: number;
+      volume_stability: number;
+      pitch_accuracy: number;
+      longToneValues: number[];
+      volumeValues: number[];
+      pitchValues: number[];
+      rangeHighest: number[];
+      rangeLowest: number[];
+    }
+  >();
+
+  for (const run of runs) {
+    const day = asDateKey(run.recorded_at);
+    const current = dayMap.get(day) ?? {
+      total: 0,
+      range: 0,
+      long_tone: 0,
+      volume_stability: 0,
+      pitch_accuracy: 0,
+      longToneValues: [],
+      volumeValues: [],
+      pitchValues: [],
+      rangeHighest: [],
+      rangeLowest: [],
+    };
+    current.total += 1;
+    current[run.measurement_type] += 1;
+
+    if (run.measurement_type === "long_tone") {
+      const longTone = asLongToneResult(run.result);
+      if (typeof longTone?.sustain_sec === "number") current.longToneValues.push(longTone.sustain_sec);
+    } else if (run.measurement_type === "volume_stability") {
+      const volume = asVolumeResult(run.result);
+      if (typeof volume?.loudness_range_pct === "number") current.volumeValues.push(volume.loudness_range_pct);
+    } else if (run.measurement_type === "pitch_accuracy") {
+      const pitch = asPitchAccuracyResult(run.result);
+      if (typeof pitch?.avg_cents_error === "number") current.pitchValues.push(pitch.avg_cents_error);
+    } else if (run.measurement_type === "range") {
+      const range = asRangeResult(run.result);
+      const highest = noteToMidi(range?.highest_note ?? null);
+      const lowest = noteToMidi(range?.lowest_note ?? null);
+      if (highest != null) current.rangeHighest.push(highest);
+      if (lowest != null) current.rangeLowest.push(lowest);
+    }
+
+    dayMap.set(day, current);
+  }
+
+  const rows: Array<Array<string | number>> = [
+    [
+      "date",
+      "total_runs",
+      "range_runs",
+      "long_tone_runs",
+      "volume_stability_runs",
+      "pitch_accuracy_runs",
+      "long_tone_avg_sec",
+      "volume_stability_avg_pct",
+      "pitch_accuracy_avg_cents",
+      "range_highest_note",
+      "range_lowest_note",
+    ],
+  ];
+
+  const sortedDays = [...dayMap.keys()].sort((a, b) => a.localeCompare(b));
+  for (const day of sortedDays) {
+    const current = dayMap.get(day);
+    if (!current) continue;
+    const highest = current.rangeHighest.length > 0 ? midiToNote(Math.max(...current.rangeHighest)) : "";
+    const lowest = current.rangeLowest.length > 0 ? midiToNote(Math.min(...current.rangeLowest)) : "";
+    rows.push([
+      day,
+      current.total,
+      current.range,
+      current.long_tone,
+      current.volume_stability,
+      current.pitch_accuracy,
+      numText(avg(current.longToneValues), 2),
+      numText(avg(current.volumeValues), 2),
+      numText(avg(current.pitchValues), 2),
+      highest,
+      lowest,
+    ]);
+  }
+
+  return toCsvString(rows);
+}
+
+function buildMeasurementsCsv(runs: MeasurementRun[]): string {
+  const rows: Array<Array<string | number>> = [
+    [
+      "recorded_at",
+      "date",
+      "measurement_type",
+      "highest_note",
+      "lowest_note",
+      "chest_top_note",
+      "falsetto_top_note",
+      "range_octaves",
+      "range_semitones",
+      "long_tone_sec",
+      "long_tone_note",
+      "volume_range_pct",
+      "volume_range_db",
+      "avg_cents_error",
+      "accuracy_score",
+      "note_count",
+      "include_in_insights",
+      "run_id",
+    ],
+  ];
+
+  const sortedRuns = [...runs].sort((a, b) => a.recorded_at.localeCompare(b.recorded_at));
+  for (const run of sortedRuns) {
+    const range = asRangeResult(run.result);
+    const longTone = asLongToneResult(run.result);
+    const volume = asVolumeResult(run.result);
+    const pitch = asPitchAccuracyResult(run.result);
+    rows.push([
+      run.recorded_at,
+      asDateKey(run.recorded_at),
+      run.measurement_type,
+      range?.highest_note ?? "",
+      range?.lowest_note ?? "",
+      range?.chest_top_note ?? "",
+      range?.falsetto_top_note ?? "",
+      numText(range?.range_octaves ?? null, 2),
+      numText(range?.range_semitones ?? null, 0),
+      numText(longTone?.sustain_sec ?? null, 2),
+      longTone?.sustain_note ?? "",
+      numText(volume?.loudness_range_pct ?? null, 2),
+      numText(volume?.loudness_range_db ?? null, 2),
+      numText(pitch?.avg_cents_error ?? null, 2),
+      numText(pitch?.accuracy_score ?? null, 2),
+      numText(pitch?.note_count ?? null, 0),
+      run.include_in_insights === false ? "false" : "true",
+      run.id,
+    ]);
+  }
+
+  return toCsvString(rows);
+}
+
+function avg(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+function numText(value: number | null | undefined, digits: number): string {
+  if (value == null || !Number.isFinite(value)) return "";
+  return value.toFixed(digits);
+}
+
+function toCsvString(rows: Array<Array<string | number>>): string {
+  return rows
+    .map((row) => row.map((cell) => csvCell(cell)).join(","))
+    .join("\n");
+}
+
+function csvCell(value: string | number): string {
+  const raw = String(value ?? "");
+  const escaped = raw.replace(/"/g, "\"\"");
+  if (/[",\n]/.test(escaped)) return `"${escaped}"`;
+  return escaped;
+}
+
+function buildCsvStamp() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}${m}${d}`;
+}
+
+function downloadCsvFile(content: string, filename: string) {
+  const csvWithBom = `\ufeff${content}`;
+  const blob = new Blob([csvWithBom], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
 }
 
 function transposeNoteToMidi(note: string | null, semitones: number): number | null {

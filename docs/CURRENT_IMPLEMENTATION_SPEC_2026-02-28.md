@@ -1,0 +1,6 @@
+# CURRENT IMPLEMENTATION SPEC（2026-02-28）
+
+このファイルは互換導線です。  
+正本は以下を参照してください。
+
+- `docs/CURRENT_IMPLEMENTATION_SPEC_2026-03-05.md`

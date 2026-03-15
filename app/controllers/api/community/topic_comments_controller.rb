@@ -5,6 +5,13 @@ module Api
 
       # POST /api/community/topics/:topic_id/comments
       def create
+        return if enforce_rate_limit!(
+          key: "community:topic_comments:create",
+          limit: 15,
+          window: 5.minutes,
+          message: "コメントの送信回数が多すぎます。しばらく待ってから再度お試しください。"
+        )
+
         topic = CommunityTopic.published.find_by(id: params[:topic_id])
         return render json: { error: "not_found" }, status: :not_found if topic.nil?
 

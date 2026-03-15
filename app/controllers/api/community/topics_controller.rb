@@ -57,6 +57,13 @@ module Api
 
       # POST /api/community/topics
       def create
+        return if enforce_rate_limit!(
+          key: "community:topics:create",
+          limit: 10,
+          window: 5.minutes,
+          message: "トピックの投稿回数が多すぎます。しばらく待ってから再度お試しください。"
+        )
+
         topic = current_user.community_topics.new(topic_params)
 
         if topic.save

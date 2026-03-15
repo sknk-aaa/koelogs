@@ -1,6 +1,13 @@
 module Api
   class AuthController < ApplicationController
     def signup
+      return if enforce_rate_limit!(
+        key: "auth:signup",
+        limit: 5,
+        window: 10.minutes,
+        message: "登録の試行回数が多すぎます。しばらく待ってから再度お試しください。"
+      )
+
       user = User.new(email: params[:email], password: params[:password], password_confirmation: params[:password_confirmation])
       token = nil
 
@@ -75,6 +82,13 @@ module Api
     # POST /api/auth/password_reset_requests
     # body: { email: "user@example.com" }
     def password_reset_request
+      return if enforce_rate_limit!(
+        key: "auth:password_reset_request",
+        limit: 5,
+        window: 15.minutes,
+        message: "パスワード再設定メールの送信回数が多すぎます。しばらく待ってから再度お試しください。"
+      )
+
       email = params[:email].to_s.strip.downcase
 
       if email.present?
@@ -123,6 +137,13 @@ module Api
     end
 
     def email_verification_request
+      return if enforce_rate_limit!(
+        key: "auth:email_verification_request",
+        limit: 5,
+        window: 15.minutes,
+        message: "確認メールの送信回数が多すぎます。しばらく待ってから再度お試しください。"
+      )
+
       email = params[:email].to_s.strip.downcase
 
       if email.present?

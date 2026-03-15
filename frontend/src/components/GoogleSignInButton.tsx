@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const GOOGLE_IDENTITY_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+let initializedGoogleClientId: string | null = null;
 
 type GoogleSignInButtonProps = {
   text: "signin_with" | "signup_with";
@@ -63,13 +64,16 @@ export default function GoogleSignInButton({ text, onCredential, disabled = fals
     const container = containerRef.current;
     container.innerHTML = "";
 
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (response) => {
-        if (!response.credential || disabled) return;
-        await callbackRef.current(response.credential);
-      },
-    });
+    if (initializedGoogleClientId !== clientId) {
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response) => {
+          if (!response.credential || disabled) return;
+          await callbackRef.current(response.credential);
+        },
+      });
+      initializedGoogleClientId = clientId;
+    }
 
     window.google.accounts.id.renderButton(container, {
       theme: "outline",

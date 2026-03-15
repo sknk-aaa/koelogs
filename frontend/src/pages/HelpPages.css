@@ -1643,3 +1643,151 @@
   background: rgba(255, 255, 255, 0.03);
   color: rgba(255, 255, 255, 0.42);
 }
+
+.legalPage {
+  display: grid;
+  gap: 18px;
+}
+
+.legalPage__hero {
+  padding-top: 8px;
+}
+
+.legalPage__toc,
+.legalPage__notice,
+.legalPage__section {
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, #dbe5ec);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+  padding: 20px 22px;
+}
+
+.legalPage__notice {
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--help-log-muted);
+}
+
+.legalPage__content {
+  display: grid;
+  gap: 16px;
+}
+
+.legalPage__tocTitle,
+.legalPage__sectionTitle {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--help-log-title);
+}
+
+.legalPage__linkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.legalPage__linkChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, #d5e3ea);
+  background: color-mix(in srgb, var(--accent) 5%, #ffffff);
+  color: var(--help-log-title);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.legalPage__paragraphs {
+  display: grid;
+  gap: 10px;
+}
+
+.legalPage__paragraph {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--help-log-body);
+}
+
+.legalPage__list {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.legalPage__facts {
+  margin: 0;
+}
+
+.legalPage__factRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 10%, #dbe5ec);
+}
+
+.legalPage__factRow:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.legalPage__factKey {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--help-log-title);
+}
+
+.legalPage__factValue {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--help-log-body);
+}
+
+@media (max-width: 640px) {
+  .legalPage__toc,
+  .legalPage__notice,
+  .legalPage__section {
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  .legalPage__factRow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+:root[data-theme-mode="dark"] .legalPage__toc,
+:root[data-theme-mode="dark"] .legalPage__notice,
+:root[data-theme-mode="dark"] .legalPage__section {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--accent) 7%, rgba(255, 255, 255, 0.04));
+}
+
+:root[data-theme-mode="dark"] .legalPage__tocTitle,
+:root[data-theme-mode="dark"] .legalPage__sectionTitle,
+:root[data-theme-mode="dark"] .legalPage__factKey,
+:root[data-theme-mode="dark"] .legalPage__linkChip {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme-mode="dark"] .legalPage__paragraph,
+:root[data-theme-mode="dark"] .legalPage__factValue,
+:root[data-theme-mode="dark"] .legalPage__notice {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme-mode="dark"] .legalPage__linkChip {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme-mode="dark"] .legalPage__factRow {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}

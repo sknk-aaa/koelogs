@@ -188,6 +188,34 @@
   gap: 10px;
 }
 
+.authPage__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #4b5563;
+}
+
+.authPage__consentCheckbox {
+  margin: 3px 0 0;
+  width: 16px;
+  height: 16px;
+  accent-color: #295cff;
+  flex: 0 0 auto;
+}
+
+.authPage__consentText a {
+  color: #0f7490;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.authPage__consentText a:hover {
+  text-decoration: underline;
+}
+
 .authPage__label {
   font-size: 14px;
   font-weight: 800;

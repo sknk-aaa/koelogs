@@ -23,6 +23,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +46,9 @@ export default function SignupPage() {
       if (password !== passwordConfirmation) {
         throw new Error("確認用パスワードが一致しません。");
       }
+      if (!termsAccepted) {
+        throw new Error("利用規約とプライバシーポリシーへの同意が必要です。");
+      }
 
       const result = await signup(normalizedEmail, password, passwordConfirmation);
       navigate("/login", {
@@ -66,6 +70,11 @@ export default function SignupPage() {
   };
 
   const onGoogleCredential = async (credential: string) => {
+    if (!termsAccepted) {
+      setError("Googleで登録するには、利用規約とプライバシーポリシーへの同意が必要です。");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -109,7 +118,7 @@ export default function SignupPage() {
             <GoogleSignInButton
               text="signup_with"
               onCredential={onGoogleCredential}
-              disabled={submitting}
+              disabled={submitting || !termsAccepted}
             />
 
             <div className="authPage__field">
@@ -144,6 +153,28 @@ export default function SignupPage() {
                 className="authPage__input"
               />
             </div>
+
+            <label className="authPage__consent">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="authPage__consentCheckbox"
+              />
+              <span className="authPage__consentText">
+                <Link to="/help/terms" target="_blank" rel="noreferrer">
+                  利用規約
+                </Link>
+                {" "}
+                と
+                {" "}
+                <Link to="/help/privacy" target="_blank" rel="noreferrer">
+                  プライバシーポリシー
+                </Link>
+                {" "}
+                に同意します
+              </span>
+            </label>
 
             {error && <div className="authPage__error">{error}</div>}
 

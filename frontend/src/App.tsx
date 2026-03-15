@@ -27,6 +27,9 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const HelpGuidePage = lazy(() => import("./pages/HelpGuidePage"));
 const HelpAboutPage = lazy(() => import("./pages/HelpAboutPage"));
 const HelpContactPage = lazy(() => import("./pages/HelpContactPage"));
+const HelpTermsPage = lazy(() => import("./pages/HelpTermsPage"));
+const HelpPrivacyPage = lazy(() => import("./pages/HelpPrivacyPage"));
+const HelpLegalPage = lazy(() => import("./pages/HelpLegalPage"));
 const PlanPage = lazy(() => import("./pages/PlanPage"));
 const PremiumPlanPage = lazy(() => import("./pages/PremiumPlanPage"));
 
@@ -73,6 +76,9 @@ export default function App() {
               <Route path="/help/guide" element={<HelpGuidePage />} />
               <Route path="/help/about" element={<HelpAboutPage />} />
               <Route path="/help/contact" element={<HelpContactPage />} />
+              <Route path="/help/terms" element={<HelpTermsPage />} />
+              <Route path="/help/privacy" element={<HelpPrivacyPage />} />
+              <Route path="/help/legal" element={<HelpLegalPage />} />
 
               {/* 404 */}
               <Route path="*" element={<NotFound />} />

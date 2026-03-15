@@ -1758,11 +1758,12 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
   const plotW = width - padLeft - padRight;
   const plotH = height - padTop - padBottom;
   const step = points.length > 1 ? plotW / (points.length - 1) : 0;
+  const singlePointX = padLeft + plotW / 2;
 
   const plotted = points
     .map((p, index) => {
       if (p.value == null) return null;
-      const x = padLeft + step * index;
+      const x = points.length === 1 ? singlePointX : padLeft + step * index;
       const y = padTop + (1 - (p.value - min) / range) * plotH;
       return { x, y, value: p.value, date: p.date, index };
     })
@@ -1862,7 +1863,7 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
 
               {xTicks.map((idx) => {
                 const p = points[idx];
-                const x = padLeft + step * idx;
+                const x = points.length === 1 ? singlePointX : padLeft + step * idx;
                 return (
                   <g key={`lt-x-${idx}`}>
                     <line x1={x} y1={padTop} x2={x} y2={xAxisY} stroke="rgba(95, 112, 134, 0.14)" />
@@ -1930,7 +1931,7 @@ function LongToneTrendChart({ points, compact = false }: { points: MeasurementPo
               )}
 
               {points.map((p, i) => {
-                const x = padLeft + step * i;
+                const x = points.length === 1 ? singlePointX : padLeft + step * i;
                 const left = i === 0 ? padLeft : x - step / 2;
                 const right = i === points.length - 1 ? width - padRight : x + step / 2;
                 return (
@@ -2029,11 +2030,12 @@ function ScoreTrendChart({
   const plotW = width - padLeft - padRight;
   const plotH = height - padTop - padBottom;
   const step = points.length > 1 ? plotW / (points.length - 1) : 0;
+  const singlePointX = padLeft + plotW / 2;
 
   const plotted = points
     .map((p, index) => {
       if (p.value == null) return null;
-      const x = padLeft + step * index;
+      const x = points.length === 1 ? singlePointX : padLeft + step * index;
       const y = padTop + (1 - (p.value - domainMin) / range) * plotH;
       return { x, y, value: p.value, date: p.date, index };
     })
@@ -2146,7 +2148,7 @@ function ScoreTrendChart({
 
               {xTicks.map((idx) => {
                 const p = points[idx];
-                const x = padLeft + step * idx;
+                const x = points.length === 1 ? singlePointX : padLeft + step * idx;
                 return (
                   <g key={`score-x-${idx}`}>
                     <line x1={x} y1={padTop} x2={x} y2={xAxisY} stroke="rgba(95, 112, 134, 0.14)" />
@@ -2204,7 +2206,7 @@ function ScoreTrendChart({
               )}
 
               {points.map((p, i) => {
-                const x = padLeft + step * i;
+                const x = points.length === 1 ? singlePointX : padLeft + step * i;
                 const left = i === 0 ? padLeft : x - step / 2;
                 const right = i === points.length - 1 ? width - padRight : x + step / 2;
                 return (
@@ -2332,6 +2334,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
   const plotLeft = padLeft + layout.plotEdgeInset;
   const plotRight = width - padRight - layout.plotEdgeInset;
   const step = points.length > 1 ? (plotRight - plotLeft) / (points.length - 1) : 0;
+  const singlePointX = plotLeft + (plotRight - plotLeft) / 2;
   const yFromMidi = (midi: number) => height - padBottom - ((midi - min) / range) * (height - padTop - padBottom);
   const yTicks = buildReadableMidiTicks({
     min,
@@ -2480,7 +2483,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
         })}
 
         {xTicks.map((idx) => {
-          const x = plotLeft + step * idx;
+          const x = points.length === 1 ? singlePointX : plotLeft + step * idx;
           return <line key={`range-x-grid-${idx}`} x1={x} y1={padTop} x2={x} y2={xAxisY} stroke="rgba(95, 112, 134, 0.14)" />;
         })}
 
@@ -2531,7 +2534,7 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
 
         {xTicks.map((idx) => {
           const point = points[idx];
-          const x = plotLeft + step * idx;
+          const x = points.length === 1 ? singlePointX : plotLeft + step * idx;
           const dateLabel = point?.date ? point.date.slice(5) : "";
           return (
             <g key={`range-x-${idx}`}>

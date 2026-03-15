@@ -350,6 +350,7 @@ export default function AiChatPage() {
   const [recommendationLimitReached, setRecommendationLimitReached] = useState(false);
   const [firstRecoGuideOpen, setFirstRecoGuideOpen] = useState(false);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
+  const [hasCurrentWeekRecommendation, setHasCurrentWeekRecommendation] = useState(false);
   const [memoryEditOpen, setMemoryEditOpen] = useState(false);
   const [memoryEditText, setMemoryEditText] = useState("");
   const [memoryEditSection, setMemoryEditSection] = useState<(typeof MEMORY_SECTION_OPTIONS)[number]>("課題");
@@ -425,6 +426,7 @@ export default function AiChatPage() {
     isRecommendationThread &&
     (recommendationUserMessageCount >= 1 || recommendationLimitReached);
   const isEmptyThread = !!activeThreadId && !threadLoading && messages.length === 0;
+  const shouldGuideToWeeklyRecommendation = !guestMode && !hasCurrentWeekRecommendation;
   const messageTimelineItems = useMemo(
     () => buildMessageTimelineItems(messages, isRecommendationThread),
     [messages, isRecommendationThread]
@@ -570,6 +572,7 @@ export default function AiChatPage() {
       setActiveThreadId(GUEST_RECOMMENDATION_THREAD_ID);
       setActiveThread(GUEST_RECOMMENDATION_THREAD);
       setMessages([ ...(GUEST_THREAD_MESSAGES[GUEST_RECOMMENDATION_THREAD_ID] ?? []) ]);
+      setHasCurrentWeekRecommendation(false);
       setLoading(false);
       return;
     }
@@ -582,6 +585,12 @@ export default function AiChatPage() {
       return;
     }
     const sanitizedThreads = sanitizeThreads(threadRes.data);
+    const latestHistory = await fetchAiRecommendationHistory(1);
+    const latestCurrentWeekRecommendation =
+      !latestHistory.error &&
+      latestHistory.data.length > 0 &&
+      latestHistory.data[0].week_start_date === toWeekStartISO(formatLocalDateKey(new Date()));
+    setHasCurrentWeekRecommendation(latestCurrentWeekRecommendation);
 
     if (isFirstVisit) {
       const latestRecoThread = sanitizedThreads
@@ -601,7 +610,6 @@ export default function AiChatPage() {
         return;
       }
 
-      const latestHistory = await fetchAiRecommendationHistory(1);
       if (!latestHistory.error && latestHistory.data.length > 0) {
         const latest = latestHistory.data[0];
         const recommendationRes = await fetchAiRecommendationByDate(
@@ -1244,14 +1252,28 @@ export default function AiChatPage() {
                 <div className="aiChatPage__emptyActionCard">
                   <div className="aiChatPage__emptyActionTitle">何から始めますか？</div>
                   <p className="aiChatPage__emptyActionText">
-                    新しい会話を作成して、AIコーチに相談できます。
+                    {shouldGuideToWeeklyRecommendation
+                      ? "今週のおすすめを作ると、AIチャットでより具体的に相談できます。"
+                      : "新しい会話を作成して、AIコーチに相談できます。"}
                   </p>
                   <div className="aiChatPage__emptyActionButtons">
-                    <button type="button" className="aiChatPage__sendBtn" onClick={() => void onCreateThread()}>
-                      <span>新しい会話を作成</span>
-                      <span className="aiChatPage__emptyPremiumTag">PREMIUM</span>
-                    </button>
-                    <Link to="/log" className="aiChatPage__logLink aiChatPage__logLink--empty">
+                    {shouldGuideToWeeklyRecommendation ? (
+                      <Link
+                        to={`/log?mode=day&date=${formatLocalDateKey(new Date())}#ai`}
+                        className="aiChatPage__sendBtn aiChatPage__sendBtn--emptyCta"
+                      >
+                        <span>今週のAIおすすめを生成する</span>
+                      </Link>
+                    ) : (
+                      <button type="button" className="aiChatPage__sendBtn" onClick={() => void onCreateThread()}>
+                        <span>新しい会話を作成</span>
+                        <span className="aiChatPage__emptyPremiumTag">PREMIUM</span>
+                      </button>
+                    )}
+                    <Link
+                      to={`/log?mode=day&date=${formatLocalDateKey(new Date())}${shouldGuideToWeeklyRecommendation ? "#ai" : ""}`}
+                      className="aiChatPage__logLink aiChatPage__logLink--empty"
+                    >
                       ログページへ
                     </Link>
                   </div>
@@ -1596,6 +1618,13 @@ function normalizeLocalDate(value: string | null | undefined): Date | null {
   }
   const d = new Date(v);
   return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatLocalDateKey(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function startOfWeek(d: Date): Date {

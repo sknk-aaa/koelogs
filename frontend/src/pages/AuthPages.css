@@ -74,7 +74,7 @@
   background: transparent;
   border-radius: 0;
   box-shadow: none;
-  padding: 40px 40px 44px;
+  padding: 12px 40px 32px;
   display: grid;
   place-items: center;
 }
@@ -109,7 +109,7 @@
   border: 0;
   box-shadow: none;
   display: grid;
-  gap: 28px;
+  gap: 24px;
 }
 
 .authPage__card,
@@ -162,7 +162,8 @@
   width: 100%;
   min-height: 52px;
   display: block;
-  padding: 0;
+  position: relative;
+  padding: 4px 0 0;
   overflow: hidden;
 }
 
@@ -172,20 +173,37 @@
 }
 
 .authPage__googleButton {
-  display: block;
+  display: flex;
+  justify-content: center;
   width: 100%;
   min-height: 44px;
 }
 
+.authPage__googleButtonOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.authPage__googleButtonHost[data-interaction-blocked="true"] .authPage__googleButton {
+  pointer-events: none;
+}
+
 .authPage__googleButton > div,
 .authPage__googleButton iframe {
-  width: 100% !important;
-  max-width: none !important;
+  width: auto !important;
+  max-width: calc(100% - 16px) !important;
+  margin: 0 auto !important;
 }
 
 .authPage__field {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .authPage__consent {
@@ -214,6 +232,14 @@
 
 .authPage__consentText a:hover {
   text-decoration: underline;
+}
+
+.authPage__consentError {
+  margin-top: -8px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: #dc2626;
 }
 
 .authPage__label {
@@ -407,5 +433,18 @@
   .authPage__input,
   .authPage__submit {
     font-size: 15px;
+  }
+}
+
+@media (min-width: 641px) {
+  .authPage--login .authPage__shell {
+    min-height: auto;
+    display: block;
+    padding-top: 0;
+    padding-bottom: 24px;
+  }
+
+  .authPage--login .authPage__card {
+    margin: 0 auto;
   }
 }

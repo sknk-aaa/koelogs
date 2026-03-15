@@ -949,6 +949,14 @@ export default function LogPage() {
   }, [isDayMode, location.hash]);
 
   useEffect(() => {
+    if (location.hash !== "#ai" || !isDayMode) return;
+    const id = window.setTimeout(() => {
+      aiCtaCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 140);
+    return () => window.clearTimeout(id);
+  }, [isDayMode, location.hash]);
+
+  useEffect(() => {
     if (!forceGuideBeginnerMissionCard || !isDayMode) return;
     const id = window.setTimeout(() => {
       beginnerMissionGuideCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });

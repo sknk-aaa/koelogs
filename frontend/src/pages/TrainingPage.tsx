@@ -18,7 +18,7 @@ import ProcessingOverlay from "../components/ProcessingOverlay";
 import PremiumUpsellModal from "../components/PremiumUpsellModal";
 import TutorialModal from "../components/TutorialModal";
 import MeasurementTypeIcon from "../components/MeasurementTypeIcon";
-import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
+import { loadTutorialStage, saveTutorialStage, type TutorialStage } from "../features/tutorial/tutorialFlow";
 import replayLabelIcon from "../assets/premium/replay-label-icon.svg";
 import replayOverlayIcon from "../assets/premium/replay-overlay-cyan.svg";
 import replaySaveIcon from "../assets/premium/replay-save-cyan.svg";
@@ -346,6 +346,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
   const [tutorialModalStage, setTutorialModalStage] = useState<
     "training_range_intro" | "range_measured" | "tutorial_completed" | null
   >(null);
+  const [tutorialFlowStage, setTutorialFlowStage] = useState<TutorialStage | null>(null);
   const [tutorialRangeDonePending, setTutorialRangeDonePending] = useState(false);
   const [rangeChestGuideOpen, setRangeChestGuideOpen] = useState(false);
   const [rangePhase, setRangePhase] = useState<RangePhase | null>(null);
@@ -384,6 +385,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
   const measurementRangeFalsettoMidiRef = useStateRef<number[]>([]);
   const bodyOverflowBackupRef = useStateRef<string | null>(null);
   const measurementSaveBtnRef = useRef<HTMLButtonElement | null>(null);
+  const measurementRangePresetBtnRef = useRef<HTMLButtonElement | null>(null);
   const measurementReplaySectionRef = useRef<HTMLDivElement | null>(null);
   const measurementResultBodyRef = useRef<HTMLDivElement | null>(null);
   const measurementSelectPaneRef = useRef<HTMLElement | null>(null);
@@ -458,6 +460,8 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
   };
 
   const guestMode = !authLoading && !me;
+  const forceGuideRangeSelection = tutorialFlowStage === "log_training_select_range";
+  const forceGuideRecordStart = tutorialFlowStage === "log_training_press_record";
   const isPremium = me?.plan_tier === "premium";
   const goLogin = () => {
     navigate("/login", { state: { fromPath: embedded ? "/log" : "/training" } });
@@ -466,6 +470,10 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
     if (guestMode) {
       goLogin();
       return;
+    }
+    if (me && forceGuideRecordStart && activeMeasurementKey === "range") {
+      saveTutorialStage(me.id, "awaiting_range_measurement");
+      setTutorialFlowStage("awaiting_range_measurement");
     }
     if (measurementRecording && activeMeasurementKey !== "range") {
       void stopMeasurementRecording(true);
@@ -477,15 +485,32 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
   useEffect(() => {
     if (!me) {
       setTutorialModalStage(null);
+      setTutorialFlowStage(null);
       return;
     }
     const stage = loadTutorialStage(me.id);
+    setTutorialFlowStage(stage);
     if (stage === "training_range_intro" || stage === "range_measured" || stage === "tutorial_completed") {
       setTutorialModalStage(stage);
       return;
     }
     setTutorialModalStage(null);
   }, [me]);
+
+  useEffect(() => {
+    if (forceGuideRangeSelection) {
+      const id = window.setTimeout(() => {
+        measurementRangePresetBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      }, 140);
+      return () => window.clearTimeout(id);
+    }
+    if (forceGuideRecordStart) {
+      const id = window.setTimeout(() => {
+        measurementSaveBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      }, 140);
+      return () => window.clearTimeout(id);
+    }
+  }, [forceGuideRangeSelection, forceGuideRecordStart]);
 
   useEffect(() => {
     if (!queryMeasurementKey || queryMeasurementKey === activeMeasurementKey) return;
@@ -1504,6 +1529,10 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
         includeInInsights: false,
       });
       emitGamificationRewards(saved.rewards);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("measurements:updated"));
+        window.dispatchEvent(new Event("insights:update"));
+      }
       return buildMeasurementInstantResult({
         runId: saved.run.id,
         measurementKey: activeMeasurementKey,
@@ -1540,6 +1569,10 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
   };
   const onSelectMeasurementShortcut = (systemKey: MeasurementSystemKey) => {
     setMeasurementError(null);
+    if (me && forceGuideRangeSelection && systemKey === "range") {
+      saveTutorialStage(me.id, "log_training_press_record");
+      setTutorialFlowStage("log_training_press_record");
+    }
     setActiveMeasurementKey(systemKey);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -2069,8 +2102,11 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                       {showSelectPane && (
                         <section
                           ref={measurementSelectPaneRef}
-                          className="trainingPage__measurementStep trainingPage__measurementStep--manage trainingPage__measurementPane trainingPage__measurementPane--select"
+                          className={`trainingPage__measurementStep trainingPage__measurementStep--manage trainingPage__measurementPane trainingPage__measurementPane--select${
+                            forceGuideRangeSelection ? " is-tutorial-guided" : ""
+                          }`}
                         >
+                          {forceGuideRangeSelection && <div className="trainingPage__tutorialBlocker" aria-hidden="true" />}
                           <div className="trainingPage__measurementStepHead">
                             <div className="trainingPage__measurementStepHeadText">
                               <div className="trainingPage__measurementTitleLine">
@@ -2095,8 +2131,9 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                                   type="button"
                                   className={`trainingPage__measurementPresetItem trainingPage__measurementPresetItemBtn${
                                     selectedNow ? " is-selected" : ""
-                                  } uiPanel`}
+                                  }${forceGuideRangeSelection && shortcut.systemKey === "range" ? " is-tutorial-target" : ""} uiPanel`}
                                   data-measurement={shortcut.systemKey}
+                                  ref={shortcut.systemKey === "range" ? measurementRangePresetBtnRef : undefined}
                                   onClick={() => onSelectMeasurementShortcut(shortcut.systemKey)}
                                   aria-pressed={selectedNow}
                                 >
@@ -2132,9 +2169,12 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
 
                       {showExecutePane && (
                         <section
-                          className="trainingPage__measurementStep trainingPage__measurementStep--record trainingPage__measurementPane trainingPage__measurementPane--execute"
+                          className={`trainingPage__measurementStep trainingPage__measurementStep--record trainingPage__measurementPane trainingPage__measurementPane--execute${
+                            forceGuideRecordStart ? " is-tutorial-guided" : ""
+                          }`}
                           data-measurement={activeMeasurementKey}
                         >
+                          {forceGuideRecordStart && <div className="trainingPage__tutorialBlocker" aria-hidden="true" />}
                           <div className="trainingPage__measurementPaneSticky">
                             <SessionStepHead
                               badge={null}
@@ -2174,7 +2214,8 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                                   type="button"
                                   className={`trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary trainingPage__playerPrimary--solo uiButton ${
                                     measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
-                                  }`}
+                                  }${forceGuideRecordStart ? " is-tutorial-target" : ""}`}
+                                    ref={measurementSaveBtnRef}
                                     onClick={onPressRecordButton}
                                     disabled={recordButtonDisabled}
                                   >
@@ -2542,9 +2583,12 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                   {showSelectPane && (
                     <section
                       ref={measurementSelectPaneRef}
-                      className="trainingPage__measurementStep trainingPage__measurementStep--manage trainingPage__measurementPane trainingPage__measurementPane--select"
+                      className={`trainingPage__measurementStep trainingPage__measurementStep--manage trainingPage__measurementPane trainingPage__measurementPane--select${
+                        forceGuideRangeSelection ? " is-tutorial-guided" : ""
+                      }`}
                     >
-                          <div className="trainingPage__measurementStepHead">
+                      {forceGuideRangeSelection && <div className="trainingPage__tutorialBlocker" aria-hidden="true" />}
+                      <div className="trainingPage__measurementStepHead">
                             <div className="trainingPage__measurementStepHeadText">
                               <div className="trainingPage__measurementTitleLine">
                                 <span className="trainingPage__measurementStepChip trainingPage__measurementStepChip--inline">STEP 1</span>
@@ -2568,8 +2612,9 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                               type="button"
                               className={`trainingPage__measurementPresetItem trainingPage__measurementPresetItemBtn${
                                 selectedNow ? " is-selected" : ""
-                              } uiPanel`}
+                              }${forceGuideRangeSelection && shortcut.systemKey === "range" ? " is-tutorial-target" : ""} uiPanel`}
                               data-measurement={shortcut.systemKey}
+                              ref={shortcut.systemKey === "range" ? measurementRangePresetBtnRef : undefined}
                               onClick={() => onSelectMeasurementShortcut(shortcut.systemKey)}
                               aria-pressed={selectedNow}
                             >
@@ -2605,9 +2650,12 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
 
                   {showExecutePane && (
                     <section
-                      className="trainingPage__measurementStep trainingPage__measurementStep--record trainingPage__measurementPane trainingPage__measurementPane--execute"
+                      className={`trainingPage__measurementStep trainingPage__measurementStep--record trainingPage__measurementPane trainingPage__measurementPane--execute${
+                        forceGuideRecordStart ? " is-tutorial-guided" : ""
+                      }`}
                       data-measurement={activeMeasurementKey}
                     >
+                      {forceGuideRecordStart && <div className="trainingPage__tutorialBlocker" aria-hidden="true" />}
                       <div className="trainingPage__measurementPaneSticky">
                         <SessionStepHead
                           badge={null}
@@ -2656,7 +2704,8 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                               type="button"
                               className={`trainingPage__saveBtn trainingPage__recordPrimaryInline trainingPage__playerPrimary uiButton ${
                                 measurementRecording ? "uiButton--danger is-recording" : "uiButton--primary"
-                              }`}
+                              }${forceGuideRecordStart ? " is-tutorial-target" : ""}`}
+                              ref={measurementSaveBtnRef}
                               onClick={onPressRecordButton}
                               disabled={recordButtonDisabled}
                             >

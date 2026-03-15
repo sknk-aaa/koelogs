@@ -2816,6 +2816,25 @@ body:has(.page.logPage) {
     0 10px 20px rgba(59, 130, 246, 0.24);
 }
 
+.logPage__sectionBlock--training.is-guided {
+  position: relative;
+  z-index: 960;
+  border-radius: 24px;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent),
+    0 16px 38px rgba(12, 24, 46, 0.22);
+  animation: logPageGuidePulse 1.15s ease-in-out infinite;
+}
+
+.logPage__missionGuideCard.is-guided.beginnerMissionGuide__card {
+  position: relative;
+  z-index: 960;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 16px 38px rgba(12, 24, 46, 0.22);
+  animation: logPageGuidePulse 1.15s ease-in-out infinite;
+}
+
 .logPage__guideOverlay {
   position: fixed;
   inset: 0;
@@ -2835,6 +2854,22 @@ body:has(.page.logPage) {
   width: 104px;
   height: 104px;
   pointer-events: none;
+}
+
+@keyframes logPageGuidePulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent),
+      0 16px 38px rgba(12, 24, 46, 0.22);
+  }
+  50% {
+    transform: translateY(-2px);
+    box-shadow:
+      0 0 0 7px color-mix(in srgb, var(--accent) 22%, transparent),
+      0 20px 42px rgba(12, 24, 46, 0.28);
+  }
 }
 
 .logPage__guideHandImage {
@@ -2977,19 +3012,24 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
   gap: 8px;
 }
 
-.logPage__missionModalOverlay {
+.beginnerMissionModal__overlay.logPage__missionModalOverlay {
   position: fixed;
   inset: 0;
   z-index: 200;
   background: rgba(0, 0, 0, 0.38);
-  display: grid;
-  place-items: center;
-  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-.logPage__missionModalCard {
+.beginnerMissionModal__card.logPage__missionModalCard {
+  position: relative;
   width: min(680px, 100%);
-  max-height: min(80vh, 760px);
+  max-height: min(calc(100dvh - 48px), 760px);
+  margin: 0;
   overflow: auto;
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--accent) 8%, #e4ebf1);
@@ -3166,6 +3206,54 @@ body[data-log-mission-guide-lock-footer="true"] nav[aria-label="mode tabs"] {
 .logPage__beginnerGuideList {
   display: grid;
   gap: 12px;
+}
+
+.logPage__missionModalIntro {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.logPage__missionModalLead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #556b79;
+}
+
+.logPage__missionModalProgressRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.logPage__missionModalProgressLabel {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8798a5;
+}
+
+.logPage__missionModalProgressValue {
+  font-size: 18px;
+  font-weight: 950;
+  color: color-mix(in srgb, var(--accent) 40%, #17324a);
+}
+
+.logPage__missionModalProgressTrack {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 8%, #e8eef3);
+}
+
+.logPage__missionModalProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent) 52%, #62d3f2);
 }
 
 .logPage__beginnerGuideLabelRow {

@@ -282,6 +282,13 @@ export default function MyPage() {
   const navigate = useNavigate();
   const { me } = useAuth();
   const summaryDays = 30;
+  const goTodayLogTraining = () => {
+    const now = new Date();
+    const yyyy = String(now.getFullYear());
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    navigate(`/log?mode=day&date=${yyyy}-${mm}-${dd}#training`);
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [summaryInsights, setSummaryInsights] = useState<InsightsData | null>(null);
@@ -372,10 +379,12 @@ export default function MyPage() {
   }, [me]);
 
   useEffect(() => {
-    if (tutorialStage === "mypage_force_click_measurement") {
+    if (tutorialStage !== "mypage_force_click_measurement") return;
+    if (!beginnerMissionModalOpen) {
       setBeginnerMissionModalOpen(true);
+      setMissionGuideStep((prev) => prev ?? "overview");
     }
-  }, [tutorialStage]);
+  }, [beginnerMissionModalOpen, tutorialStage]);
 
   const tutorialMeasurementDone = useMemo(() => {
     if (!me) return false;
@@ -537,7 +546,7 @@ export default function MyPage() {
 
   const openBeginnerMissionModal = () => {
     setBeginnerMissionModalOpen(true);
-    if (me && tutorialStage === "mypage_open_mission_modal") {
+    if (me && (tutorialStage === "mypage_open_mission_modal" || tutorialStage === "mypage_force_click_measurement")) {
       setMissionGuideStep("overview");
     }
   };
@@ -860,10 +869,16 @@ export default function MyPage() {
                   if (isTarget && forceSelectMeasurementMission) {
                     e.preventDefault();
                     if (!me) return;
-                    saveTutorialStage(me.id, "training_range_intro");
+                    saveTutorialStage(me.id, "log_training_select_range");
                     setTutorialStage(null);
                     setBeginnerMissionModalOpen(false);
-                    navigate("/training?mission=range&tutorial=beginner");
+                    goTodayLogTraining();
+                    return;
+                  }
+                  if (mission.key === "beginner_measurement") {
+                    e.preventDefault();
+                    setBeginnerMissionModalOpen(false);
+                    goTodayLogTraining();
                     return;
                   }
                   if (mission.key === "beginner_daily_log") {
@@ -1000,10 +1015,10 @@ export default function MyPage() {
       <TutorialModal
         open={missionGuideStep === "overview"}
         badge="MISSION"
-        title="ビギナーミッション一覧"
+        title="ビギナーミッションをはじめましょう"
         paragraphs={[
-          "ここでは、ビギナーミッションを一覧で確認できます。",
-          "順番にこなしていくと、Koelogsの機能をひと通り体感できます。",
+          "ビギナーミッションをこなすと、Koelogs のひと通りの機能を順番に体験できます。",
+          "まずは「測定を1回やってみよう」から進めて、声の変化を残す流れをつかみましょう。",
         ]}
         primaryLabel="次へ"
         onPrimary={() => setMissionGuideStep("log_link")}

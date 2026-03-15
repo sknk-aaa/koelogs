@@ -1,4 +1,5 @@
-import type { ReactNode, Ref } from "react";
+import { useEffect, type ReactNode, type Ref } from "react";
+import { createPortal } from "react-dom";
 
 import type { MissionItem } from "../../../types/missions";
 
@@ -122,9 +123,18 @@ export function BeginnerMissionModal({
   topContent,
   extraSections,
 }: BeginnerMissionModalProps): ReactNode {
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
       className={`beginnerMissionModal__overlay uiModalBackdrop ${overlayClassName ?? ""}`.trim()}
       role="dialog"
@@ -167,7 +177,10 @@ export function BeginnerMissionModal({
             {pendingMissions.map((mission) => (
               <article key={mission.key} className="beginnerMissionModal__item">
                 <div className="beginnerMissionModal__itemTop">
-                  <div className="beginnerMissionModal__itemTitle">{mission.title}</div>
+                  <div className="beginnerMissionModal__itemMain">
+                    <div className="beginnerMissionModal__itemTitle">{mission.title}</div>
+                    <div className="beginnerMissionModal__itemDescription">{mission.description}</div>
+                  </div>
                   <div className="beginnerMissionModal__actionWrap">{renderPendingAction(mission)}</div>
                 </div>
               </article>
@@ -183,7 +196,10 @@ export function BeginnerMissionModal({
             {doneMissions.map((mission) => (
               <article key={mission.key} className="beginnerMissionModal__item is-done">
                 <div className="beginnerMissionModal__itemTop">
-                  <div className="beginnerMissionModal__itemTitle">{mission.title}</div>
+                  <div className="beginnerMissionModal__itemMain">
+                    <div className="beginnerMissionModal__itemTitle">{mission.title}</div>
+                    <div className="beginnerMissionModal__itemDescription">{mission.description}</div>
+                  </div>
                   <span className="beginnerMissionModal__status uiCompareChip is-done">{doneLabel}</span>
                 </div>
               </article>
@@ -192,6 +208,7 @@ export function BeginnerMissionModal({
           {extraSections}
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

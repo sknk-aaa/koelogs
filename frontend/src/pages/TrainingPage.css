@@ -594,6 +594,38 @@
   transition: transform 100ms ease, background-color 120ms ease;
 }
 
+.trainingPage__measurementPane {
+  position: relative;
+}
+
+.trainingPage__measurementPane.is-tutorial-guided {
+  z-index: 2;
+}
+
+.trainingPage__tutorialBlocker {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: rgba(8, 12, 22, 0.7);
+  pointer-events: auto;
+}
+
+.trainingPage__measurementPane--execute.is-tutorial-guided .trainingPage__measurementPlayerTransport {
+  position: relative;
+  z-index: 4;
+}
+
+.trainingPage__measurementPresetItemBtn.is-tutorial-target,
+.trainingPage__saveBtn.is-tutorial-target {
+  position: relative;
+  z-index: 4;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 12px 28px rgba(59, 130, 246, 0.28);
+  animation: trainingPageGuidePulse 0.95s ease-in-out infinite;
+}
+
 .trainingPage__measurementPresetItemBtn:hover {
   transform: none;
 }
@@ -1129,6 +1161,18 @@
 
 .trainingPage__saveBtn.trainingPage__playerPrimary {
   min-height: 62px;
+}
+
+@keyframes trainingPageGuidePulse {
+  0%,
+  100% {
+    transform: scale(0.985);
+    opacity: 0.86;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
 }
 
 .trainingPage__measurementModeDetails {

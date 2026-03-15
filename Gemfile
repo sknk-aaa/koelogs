@@ -48,4 +48,6 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   gem "dotenv-rails"
+
+  gem "image_processing", "~> 1.2"
 end

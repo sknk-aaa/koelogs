@@ -164,7 +164,7 @@
   display: block;
   position: relative;
   padding: 4px 0 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .authPage__googleButtonHost[aria-disabled="true"] {
@@ -175,7 +175,7 @@
 .authPage__googleButton {
   display: flex;
   justify-content: center;
-  width: min(100%, 300px);
+  width: min(100%, 290px);
   margin: 0 auto;
   min-height: 44px;
 }
@@ -198,7 +198,7 @@
 .authPage__googleButton > div,
 .authPage__googleButton iframe {
   display: block !important;
-  width: 300px !important;
+  width: 290px !important;
   max-width: 100% !important;
   margin: 0 auto !important;
 }

@@ -88,7 +88,7 @@ export default function GoogleSignInButton({
       size: "large",
       text,
       shape: "pill",
-      width: Math.max(Math.floor(container.clientWidth) - 16, 280),
+      width: Math.max(Math.floor(container.clientWidth) - 32, 280),
       logo_alignment: "center",
     });
   }, [clientId, disabled, interactionBlocked, isReady, text]);

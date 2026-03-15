@@ -196,7 +196,8 @@
 
 .authPage__googleButton > div,
 .authPage__googleButton iframe {
-  width: auto !important;
+  display: block !important;
+  width: calc(100% - 16px) !important;
   max-width: calc(100% - 16px) !important;
   margin: 0 auto !important;
 }

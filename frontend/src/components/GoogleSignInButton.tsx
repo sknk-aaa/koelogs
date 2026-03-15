@@ -72,7 +72,7 @@ export default function GoogleSignInButton({
     const container = containerRef.current;
     container.innerHTML = "";
     const availableWidth = Math.floor(container.clientWidth);
-    const buttonWidth = Math.min(availableWidth, 280);
+    const buttonWidth = Math.min(availableWidth, 400);
 
     if (initializedGoogleClientId !== clientId) {
       window.google.accounts.id.initialize({

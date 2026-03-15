@@ -103,7 +103,7 @@
 }
 
 .authPage__card {
-  width: min(100%, 400px);
+  width: min(100%, 420px);
   padding: 0;
   background: transparent;
   border: 0;
@@ -175,7 +175,7 @@
 .authPage__googleButton {
   display: flex;
   justify-content: center;
-  width: min(100%, 280px);
+  width: min(100%, 400px);
   margin: 0 auto;
   min-height: 44px;
 }
@@ -198,7 +198,7 @@
 .authPage__googleButton > div,
 .authPage__googleButton iframe {
   display: block !important;
-  width: 280px !important;
+  width: 400px !important;
   max-width: 100% !important;
   margin: 0 auto !important;
 }

@@ -6,6 +6,7 @@ import { avatarIconPath } from "../features/profile/avatarIcons";
 import { getLastLogPath } from "../features/log/logNavigation";
 import { fetchBeginnerMissionGate } from "../features/missions/beginnerMissionGate";
 import TutorialModal from "./TutorialModal";
+import BrandLogo from "./BrandLogo";
 
 function useIsMobile(breakpointPx = 520) {
   const [isMobile, setIsMobile] = useState(() => {
@@ -320,8 +321,7 @@ export default function AppHeader() {
               style={headerStyles.brandButton}
               aria-label="Koelogsのホームへ移動"
             >
-              <img src="/Koelogs-icon.png" alt="" style={headerStyles.brandIcon} />
-              {!isMobile && <img src="/koelog-logo.svg" alt="Koelogs" style={headerStyles.brandLogo} />}
+              <BrandLogo alt="Koelogs" style={headerStyles.brandLogo} />
             </button>
           </div>
           <div style={headerStyles.right}>
@@ -466,9 +466,9 @@ const styles: Record<string, CSSProperties> = {
   brandButton: {
     display: "inline-flex",
     alignItems: "center",
-    gap: 7,
-    minHeight: 34,
-    padding: "0 6px 0 4px",
+    gap: 0,
+    minHeight: 40,
+    padding: "0 4px 0 12px",
     borderRadius: 12,
     border: "none",
     background: "transparent",
@@ -481,7 +481,7 @@ const styles: Record<string, CSSProperties> = {
     objectFit: "contain",
   },
   brandLogo: {
-    height: 15,
+    height: 28,
     width: "auto",
     display: "block",
   },
@@ -600,9 +600,8 @@ function buildHeaderStyles(isMobile: boolean): Record<string, CSSProperties> {
     },
     brandButton: {
       ...styles.brandButton,
-      gap: 13,
-      minHeight: 46,
-      padding: "0 14px 0 2px",
+      minHeight: 52,
+      padding: "0 8px 0 16px",
     },
     brandIcon: {
       ...styles.brandIcon,
@@ -611,7 +610,7 @@ function buildHeaderStyles(isMobile: boolean): Record<string, CSSProperties> {
     },
     brandLogo: {
       ...styles.brandLogo,
-      height: 25,
+      height: 40,
     },
     primaryNav: {
       ...styles.primaryNav,

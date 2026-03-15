@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import BrandLogo from "../../components/BrandLogo";
 import WaveDivider from "./components/WaveDivider";
 import "../../pages/PremiumPlanPage.css";
 
@@ -131,17 +132,7 @@ export default function PremiumPlanContent({
           <div className="premiumPlanPage__hero" aria-label="プレミアムプラン概要">
             <div className="premiumPlanPage__badge">PREMIUM</div>
             <div className="premiumPlanPage__heroVisual" aria-hidden="true">
-              <span className="premiumPlanPage__heroOrnament premiumPlanPage__heroOrnament--left" />
-              <span className="premiumPlanPage__heroMark">
-                <svg viewBox="0 0 64 64" focusable="false" aria-hidden="true">
-                  <path className="premiumPlanPage__heroLineBase" d="M10 48h44" />
-                  <rect className="premiumPlanPage__heroBar premiumPlanPage__heroBar--1" x="16" y="31" width="7" height="12" rx="2" />
-                  <rect className="premiumPlanPage__heroBar premiumPlanPage__heroBar--2" x="28.5" y="23" width="7" height="20" rx="2" />
-                  <rect className="premiumPlanPage__heroBar premiumPlanPage__heroBar--3" x="41" y="16" width="7" height="27" rx="2" />
-                  <path className="premiumPlanPage__heroTrend" d="M14 28c6 0 9-3 11-8 2.8 4.4 5.7 8 12.2 8s9.4-3.4 12.3-8c2.1 4.6 5.4 8 10.5 8" />
-                </svg>
-              </span>
-              <span className="premiumPlanPage__heroOrnament premiumPlanPage__heroOrnament--right" />
+              <BrandLogo decorative className="premiumPlanPage__heroLogo" />
             </div>
             <h1 className="premiumPlanPage__heading">プレミアムプラン</h1>
             <p className="premiumPlanPage__heroSub">あなたに合った最適なトレーニングを見つける。</p>

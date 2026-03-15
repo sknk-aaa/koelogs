@@ -33,11 +33,15 @@
 }
 
 .landingKoelogs__brand {
-  color: var(--landing-title);
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
-  font-size: 24px;
-  font-weight: 900;
-  letter-spacing: -0.03em;
+}
+
+.landingKoelogs__brandImage {
+  display: block;
+  height: 34px;
+  width: auto;
 }
 
 .landingKoelogs__nav {
@@ -635,7 +639,11 @@
   }
 
   .landingKoelogs__brand {
-    font-size: 22px;
+    min-height: 28px;
+  }
+
+  .landingKoelogs__brandImage {
+    height: 28px;
   }
 
   .landingKoelogs__nav--desktop {

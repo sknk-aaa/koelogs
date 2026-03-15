@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
+import BrandLogo from "./BrandLogo";
 
 export default function AuthHeader() {
   return (
     <header className="landingKoelogs__header authPage__header">
       <div className="landingKoelogs__shell landingKoelogs__headerInner">
         <Link to="/lp" className="landingKoelogs__brand">
-          Koelogs
+          <BrandLogo alt="Koelogs" className="landingKoelogs__brandImage" />
         </Link>
 
         <nav className="landingKoelogs__nav authPage__desktopNav" aria-label="Auth navigation">

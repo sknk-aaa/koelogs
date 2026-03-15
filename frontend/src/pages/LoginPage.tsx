@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import AuthHeader from "../components/AuthHeader";
+import BrandLogo from "../components/BrandLogo";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 import { fetchMe, requestEmailVerification, requestPasswordReset, resetPassword, verifyEmail } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
@@ -235,7 +236,9 @@ export default function LoginPage() {
 
       <div className="authPage__shell">
         <section className="authPage__hero">
-          <div className="authPage__brand">Koelogs</div>
+          <div className="authPage__brand">
+            <BrandLogo alt="Koelogs" className="authPage__brandImage" />
+          </div>
         </section>
 
         <section className="authPage__card">

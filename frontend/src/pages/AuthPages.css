@@ -27,11 +27,15 @@
 }
 
 .authPage .landingKoelogs__brand {
-  color: #111827;
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
-  font-size: 24px;
-  font-weight: 900;
-  letter-spacing: -0.03em;
+}
+
+.authPage .landingKoelogs__brandImage {
+  display: block;
+  height: 34px;
+  width: auto;
 }
 
 .authPage .landingKoelogs__nav {
@@ -81,6 +85,12 @@
 
 .authPage__brand {
   display: none;
+}
+
+.authPage__brandImage {
+  display: block;
+  height: 52px;
+  width: auto;
 }
 
 .authPage__kicker,

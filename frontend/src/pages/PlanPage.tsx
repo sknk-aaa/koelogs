@@ -9,15 +9,19 @@ const BILLING_CYCLE_LABEL: Record<BillingCycle, string> = {
   quarterly: "Premium 3か月プラン",
 };
 
+const BILLING_CYCLE_NAME: Record<BillingCycle, string> = {
+  monthly: "1か月プラン",
+  quarterly: "3か月プラン",
+};
+
 function renderPlanSectionIcon(kind: "status" | "manage"): React.ReactNode {
   if (kind === "status") {
     return (
       <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-        <path d="M4 18.5h16" />
-        <path d="M7 15V9.5" />
-        <path d="M12 15V6.5" />
-        <path d="M17 15v-3.5" />
-        <path className="accent" d="M6 7.5 9.5 10 13 6.8 18 9.2" />
+        <rect x="3.5" y="5.5" width="17" height="13" rx="3" />
+        <path d="M3.5 10h17" />
+        <path className="accent" d="M7 14h4" />
+        <path className="accent" d="M14 14h3" />
       </svg>
     );
   }
@@ -61,6 +65,10 @@ export default function PlanPage() {
 
   const hasPremiumPlan = me.plan_tier === "premium";
   const isCanceling = hasPremiumPlan && Boolean(me.stripe_cancel_at_period_end);
+  const currentPlanName =
+    hasPremiumPlan && (me.billing_cycle === "monthly" || me.billing_cycle === "quarterly")
+      ? BILLING_CYCLE_NAME[me.billing_cycle]
+      : "無料プラン";
   const currentPlanLabel =
     hasPremiumPlan && (me.billing_cycle === "monthly" || me.billing_cycle === "quarterly")
       ? BILLING_CYCLE_LABEL[me.billing_cycle]
@@ -115,54 +123,48 @@ export default function PlanPage() {
 
       {notice ? <div className={`planPage__notice planPage__notice--${notice.tone}`}>{notice.message}</div> : null}
 
-      <section className="planPage__sectionBlock">
-        <div className="planPage__sectionLabelRow">
-          <span className="planPage__sectionLabelIcon" aria-hidden="true">
-            {renderPlanSectionIcon("status")}
-          </span>
-          <div className="planPage__sectionLabel">STATUS</div>
+      <section className="planPage__card planPage__card--status">
+        <div className="planPage__cardHeader">
+          <div className="planPage__cardLabelRow">
+            <span className="planPage__sectionLabelIcon" aria-hidden="true">
+              {renderPlanSectionIcon("status")}
+            </span>
+            <div className="planPage__sectionLabel">現在のプラン</div>
+          </div>
+          {isCanceling ? <div className="planPage__summaryBadge is-canceling">解約予定</div> : null}
         </div>
 
-        <div className={`planPage__summary${hasPremiumPlan ? " is-active" : ""}${isCanceling ? " is-canceling" : ""}`}>
-          <div className="planPage__summaryHeader">
-            <div className="planPage__summaryPlan">{currentPlanLabel}</div>
-            <div className={`planPage__summaryBadge${hasPremiumPlan ? " is-premium" : ""}${isCanceling ? " is-canceling" : ""}`}>
-              {hasPremiumPlan ? (isCanceling ? "解約予定" : "利用中") : "FREE"}
+        <div className={`planPage__summary${hasPremiumPlan ? " is-active" : ""}`}>
+          <div className="planPage__summaryTop">
+            <div className="planPage__summaryPlan">{hasPremiumPlan ? "Premium" : "Free"}</div>
+            <div className="planPage__summaryName">{currentPlanName}</div>
+          </div>
+
+          <div className="planPage__fieldBlock">
+            <div className="planPage__key">{hasPremiumPlan ? (isCanceling ? "有効期限" : "次回更新日") : "現在のプラン"}</div>
+            <div className={`planPage__value${hasPremiumPlan && currentPeriodEndLabel ? " is-date" : ""}`}>
+              {hasPremiumPlan ? (currentPeriodEndLabel ?? "未設定") : currentPlanLabel}
             </div>
           </div>
 
-          <div className="planPage__rows">
-            <div className="planPage__row">
-              <div className="planPage__key">現在のプラン</div>
-              <div className="planPage__value">{currentPlanLabel}</div>
-            </div>
-
-            {hasPremiumPlan && currentPeriodEndLabel ? (
-              <div className="planPage__row">
-                <div className="planPage__key">{isCanceling ? "利用終了予定日" : "次回更新日"}</div>
-                <div className="planPage__value">{currentPeriodEndLabel}</div>
-              </div>
-            ) : null}
-          </div>
-
-          {hasPremiumPlan ? (
-            <p className="planPage__detail">
-              {isCanceling
+          <p className="planPage__detail">
+            {hasPremiumPlan
+              ? isCanceling
                 ? `${currentPeriodEndLabel ?? "契約期間終了日"} まではPremiumを利用できます。以降は無料プランへ切り替わります。`
-                : "プラン変更、解約、支払い方法の変更は契約管理から行えます。"}
-            </p>
-          ) : (
-            <p className="planPage__detail">Premiumでは月ログ比較やCSV出力などの機能を使えます。</p>
-          )}
+                : "現在ご利用中です。プラン変更、解約、支払い情報の変更は契約管理から行えます。"
+              : "現在はFreeプランです。Premiumに加入すると、制限中の機能をすぐに使えます。"}
+          </p>
         </div>
       </section>
 
-      <section className="planPage__sectionBlock">
-        <div className="planPage__sectionLabelRow">
-          <span className="planPage__sectionLabelIcon" aria-hidden="true">
-            {renderPlanSectionIcon("manage")}
-          </span>
-          <div className="planPage__sectionLabel">MANAGE</div>
+      <section className="planPage__card planPage__card--manage">
+        <div className="planPage__cardHeader">
+          <div className="planPage__cardLabelRow">
+            <span className="planPage__sectionLabelIcon" aria-hidden="true">
+              {renderPlanSectionIcon("manage")}
+            </span>
+            <div className="planPage__sectionLabel">管理</div>
+          </div>
         </div>
 
         <div className="planPage__actions">

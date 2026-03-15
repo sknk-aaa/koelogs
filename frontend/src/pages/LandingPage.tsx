@@ -1,5 +1,6 @@
 import { useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import BrandLogo from "../components/BrandLogo";
 import "./LandingPage.css";
 
 type Screenshot = {
@@ -184,7 +185,7 @@ export default function LandingPage() {
       <header className="landingKoelogs__header">
         <div className="landingKoelogs__shell landingKoelogs__headerInner">
           <Link to="/lp" className="landingKoelogs__brand" onClick={() => setMobileMenuOpen(false)}>
-            Koelogs
+            <BrandLogo alt="Koelogs" className="landingKoelogs__brandImage" />
           </Link>
           <nav className="landingKoelogs__nav landingKoelogs__nav--desktop" aria-label="LP navigation">
             <Link to="/help/guide" className="landingKoelogs__navLink">

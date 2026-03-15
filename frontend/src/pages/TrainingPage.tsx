@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import type { ScaleRange, ScaleTrack, ScaleType } from "../api/scaleTracks";
+import { resolveAudioUrl, type ScaleRange, type ScaleTrack, type ScaleType } from "../api/scaleTracks";
 import { SCALE_RANGES, SCALE_TYPES } from "../features/training/constants";
 import { useScaleTracks } from "../features/training/hooks/useScaleTracks";
 import { useAudioPlayer } from "../features/training/hooks/useAudioPlayer";
@@ -2453,7 +2453,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                   <div className="trainingPage__studioPlayer">
                     <AudioPlayer
                       audioRef={audioRef}
-                      src={selected?.file_path ?? undefined}
+                      src={selected?.file_path ? resolveAudioUrl(selected.file_path) : undefined}
                       disabled={disabled}
                       isPlaying={isPlaying}
                       onTogglePlay={togglePlay}
@@ -2515,7 +2515,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
             <div className="trainingPage__studioPlayer">
               <AudioPlayer
                 audioRef={audioRef}
-                src={selected?.file_path ?? undefined}
+                src={selected?.file_path ? resolveAudioUrl(selected.file_path) : undefined}
                 disabled={disabled}
                 isPlaying={isPlaying}
                 onTogglePlay={togglePlay}

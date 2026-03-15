@@ -10,6 +10,13 @@ module Api
     EMAIL_REGEX = /\A[^\s@]+@[^\s@]+\.[^\s@]+\z/
 
     def create
+      return if enforce_rate_limit!(
+        key: "help:contact",
+        limit: 3,
+        window: 10.minutes,
+        message: "お問い合わせの送信回数が多すぎます。しばらく待ってから再度お試しください。"
+      )
+
       payload = contact_params.to_h.symbolize_keys
       payload[:category] = payload[:category].to_s
       payload[:email] = payload[:email].to_s.strip

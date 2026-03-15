@@ -9,16 +9,10 @@
   "theme_color": "#0b1523",
   "icons": [
     {
-      "src": "/Koelog-icon.png",
+      "src": "/Koelogs-icon.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/koelog-app-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ]
 }

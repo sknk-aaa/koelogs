@@ -8,8 +8,7 @@ import { PageContainer } from "../features/ui";
 export default function AppLayout() {
   const { pathname } = useLocation();
   const isPremiumPage = pathname.startsWith("/premium");
-  const hideFooterTabs = pathname.startsWith("/log/new") || isPremiumPage;
-  const hideHeader = pathname.startsWith("/chat") || isPremiumPage;
+  const hideHeader = isPremiumPage || pathname.startsWith("/chat");
 
   return (
     <div style={styles.page}>
@@ -23,7 +22,7 @@ export default function AppLayout() {
           </PageContainer>
         )}
       </main>
-      {!hideFooterTabs && <AppFooterTabs />}
+      {!isPremiumPage && <AppFooterTabs />}
       <LevelUpToast />
       <BadgeUnlockPopup />
     </div>

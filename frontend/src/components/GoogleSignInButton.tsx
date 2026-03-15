@@ -77,7 +77,7 @@ export default function GoogleSignInButton({ text, onCredential, disabled = fals
       text,
       shape: "pill",
       width: Math.max(Math.floor(container.clientWidth), 280),
-      logo_alignment: "left",
+      logo_alignment: "center",
     });
   }, [clientId, disabled, isReady, text]);
 

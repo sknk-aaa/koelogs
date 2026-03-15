@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import "./TutorialModal.css";
 
@@ -6,12 +6,14 @@ type Props = {
   open: boolean;
   badge?: string;
   title: string;
-  paragraphs: string[];
+  paragraphs: ReactNode[];
   primaryLabel: string;
   onPrimary: () => void;
   secondaryLabel?: string;
   onSecondary?: () => void;
   onClose?: () => void;
+  children?: ReactNode;
+  variant?: "default" | "welcome";
 };
 
 export default function TutorialModal({
@@ -24,6 +26,8 @@ export default function TutorialModal({
   secondaryLabel,
   onSecondary,
   onClose,
+  children,
+  variant = "default",
 }: Props) {
   useEffect(() => {
     if (!open) return;
@@ -51,12 +55,13 @@ export default function TutorialModal({
         onClick={() => onClose?.()}
         aria-label="モーダルを閉じる"
       />
-      <section className="tutorialModal__card uiModalPanel">
+      <section className={`tutorialModal__card uiModalPanel ${variant === "welcome" ? "is-welcome" : ""}`.trim()}>
         <div className="tutorialModal__badge">{badge}</div>
+        {children ? <div className="tutorialModal__hero">{children}</div> : null}
         <h2 className="tutorialModal__title uiModalTitle">{title}</h2>
         <div className="tutorialModal__body">
           {paragraphs.map((line, idx) => (
-            <p key={`${line}-${idx}`} className="tutorialModal__paragraph">
+            <p key={idx} className="tutorialModal__paragraph">
               {line}
             </p>
           ))}

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_15_161000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -190,6 +190,47 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
     t.index ["user_id"], name: "index_community_posts_on_user_id"
   end
 
+  create_table "community_topic_comments", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.bigint "parent_id"
+    t.bigint "topic_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["parent_id"], name: "index_community_topic_comments_on_parent_id"
+    t.index ["topic_id", "created_at"], name: "index_community_topic_comments_on_topic_id_and_created_at"
+    t.index ["topic_id"], name: "index_community_topic_comments_on_topic_id"
+    t.index ["user_id"], name: "index_community_topic_comments_on_user_id"
+  end
+
+  create_table "community_topic_likes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "topic_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["topic_id", "user_id"], name: "index_community_topic_likes_on_topic_id_and_user_id", unique: true
+    t.index ["topic_id"], name: "index_community_topic_likes_on_topic_id"
+    t.index ["user_id"], name: "index_community_topic_likes_on_user_id"
+  end
+
+  create_table "community_topics", force: :cascade do |t|
+    t.text "body", null: false
+    t.string "category", null: false
+    t.integer "comments_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.integer "likes_count", default: 0, null: false
+    t.boolean "published", default: true, null: false
+    t.string "title", limit: 120, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["category"], name: "index_community_topics_on_category"
+    t.index ["created_at"], name: "index_community_topics_on_created_at"
+    t.index ["likes_count"], name: "index_community_topics_on_likes_count"
+    t.index ["published", "created_at"], name: "index_community_topics_on_published_and_created_at"
+    t.index ["published", "likes_count"], name: "index_community_topics_on_published_and_likes_count"
+    t.index ["user_id"], name: "index_community_topics_on_user_id"
+  end
+
   create_table "measurement_long_tone_results", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "measurement_run_id", null: false
@@ -349,8 +390,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
     t.datetime "email_verification_sent_at"
     t.string "email_verification_token_digest"
     t.datetime "email_verified_at"
+    t.integer "failed_login_attempts", default: 0, null: false
     t.string "goal_text", limit: 50
     t.string "google_sub"
+    t.datetime "login_locked_until"
     t.string "password_digest", null: false
     t.datetime "password_reset_sent_at"
     t.string "password_reset_token_digest"
@@ -358,6 +401,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
     t.boolean "public_goal_enabled", default: false, null: false
     t.boolean "public_profile_enabled", default: false, null: false
     t.boolean "ranking_participation_enabled", default: false, null: false
+    t.boolean "stripe_cancel_at_period_end", default: false, null: false
+    t.datetime "stripe_current_period_end"
+    t.string "stripe_customer_id"
+    t.string "stripe_subscription_id"
+    t.string "stripe_subscription_status"
     t.datetime "updated_at", null: false
     t.index ["avatar_icon"], name: "index_users_on_avatar_icon"
     t.index ["display_name"], name: "index_users_on_display_name"
@@ -367,6 +415,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
     t.index ["google_sub"], name: "index_users_on_google_sub", unique: true
     t.index ["password_reset_token_digest"], name: "index_users_on_password_reset_token_digest", unique: true
     t.index ["plan_tier"], name: "index_users_on_plan_tier"
+    t.index ["stripe_customer_id"], name: "index_users_on_stripe_customer_id", unique: true
+    t.index ["stripe_subscription_id"], name: "index_users_on_stripe_subscription_id", unique: true
   end
 
   create_table "xp_events", force: :cascade do |t|
@@ -399,6 +449,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_13_133000) do
   add_foreign_key "community_post_favorites", "users"
   add_foreign_key "community_posts", "training_menus"
   add_foreign_key "community_posts", "users"
+  add_foreign_key "community_topic_comments", "community_topic_comments", column: "parent_id"
+  add_foreign_key "community_topic_comments", "community_topics", column: "topic_id"
+  add_foreign_key "community_topic_comments", "users"
+  add_foreign_key "community_topic_likes", "community_topics", column: "topic_id"
+  add_foreign_key "community_topic_likes", "users"
+  add_foreign_key "community_topics", "users"
   add_foreign_key "measurement_long_tone_results", "measurement_runs"
   add_foreign_key "measurement_pitch_accuracy_results", "measurement_runs"
   add_foreign_key "measurement_range_results", "measurement_runs"

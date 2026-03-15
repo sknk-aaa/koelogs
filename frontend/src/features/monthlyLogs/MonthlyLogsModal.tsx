@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { fetchTrainingLogsByMonth } from "../../api/trainingLogs";
-import ColoredTag from "../../components/ColoredTag";
 import type { TrainingLog } from "../../types/trainingLog";
 import "./monthlyLogsModal.css";
 
@@ -47,18 +47,6 @@ function matchesLog(log: TrainingLog, q: string): boolean {
   const menuText = (log.menus ?? []).map((menu) => menu.name).join(" ");
 
   return normalize(date).includes(nq) || normalize(notes).includes(nq) || normalize(menuText).includes(nq);
-}
-
-function tagTextColor(bg: string) {
-  const hex = bg.trim();
-  const matched = hex.match(/^#([0-9a-fA-F]{6})$/);
-  if (!matched) return "#17324a";
-  const value = matched[1];
-  const r = parseInt(value.slice(0, 2), 16);
-  const g = parseInt(value.slice(2, 4), 16);
-  const b = parseInt(value.slice(4, 6), 16);
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return luminance > 0.68 ? "#17324a" : "#ffffff";
 }
 
 export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }: Props) {
@@ -109,6 +97,27 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const { body, documentElement } = document;
+    const prevBodyOverflow = body.style.overflow;
+    const prevBodyTouchAction = body.style.touchAction;
+    const prevHtmlOverflow = documentElement.style.overflow;
+
+    body.style.overflow = "hidden";
+    body.style.touchAction = "none";
+    documentElement.style.overflow = "hidden";
+    body.classList.add("monthlyLogsModal--open");
+
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      body.style.touchAction = prevBodyTouchAction;
+      documentElement.style.overflow = prevHtmlOverflow;
+      body.classList.remove("monthlyLogsModal--open");
+    };
+  }, [open]);
+
   const logsAll = useMemo(() => {
     if (state.kind !== "ready") return [];
     return [...state.logs].sort((a, b) => a.practiced_on.localeCompare(b.practiced_on));
@@ -117,8 +126,9 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
   const filtered = useMemo(() => logsAll.filter((log) => matchesLog(log, q)), [logsAll, q]);
 
   if (!open) return null;
+  if (typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div className="mlm__overlay" role="dialog" aria-modal="true" aria-label={title}>
       <button className="mlm__backdrop uiModalBackdrop" onClick={onClose} aria-label="閉じる" />
       <div className="mlm__panel uiModalPanel">
@@ -187,17 +197,18 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
                     <div className="mlm__rowMid">
                       <div className="mlm__tags">
                         {(log.menus ?? []).length === 0 ? (
-                          <ColoredTag text="メニューなし" color="#E5E7EB" />
+                          <span className="mlm__menuTag mlm__menuTag--empty">メニューなし</span>
                         ) : (
                           (log.menus ?? []).map((menu) => (
-                            <ColoredTag
+                            <span
                               key={menu.id}
-                              text={menu.name}
-                              color={menu.color || "#E5E7EB"}
-                              style={{ color: tagTextColor(menu.color || "#E5E7EB") }}
+                              className={`mlm__menuTag${menu.archived ? " is-archived" : ""}`}
                               title={menu.archived ? "このメニューは現在アーカイブされています" : undefined}
-                              className={menu.archived ? "is-archived" : undefined}
-                            />
+                              style={{ ["--menu-color" as string]: menu.color || "#E5E7EB" }}
+                            >
+                              <span className="mlm__menuTagDot" aria-hidden="true" />
+                              <span className="mlm__menuTagText">{menu.name}</span>
+                            </span>
                           ))
                         )}
                       </div>
@@ -215,6 +226,7 @@ export default function MonthlyLogsModal({ open, month, onClose, onSelectDate }:
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

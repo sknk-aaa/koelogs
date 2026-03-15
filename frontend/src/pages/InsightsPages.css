@@ -551,6 +551,35 @@
   border-color: rgba(255, 255, 255, 0.12);
 }
 
+:root[data-theme-mode="dark"] .insightsNotesPage__metricTabs {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--card) 92%, rgba(255, 255, 255, 0.04));
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+:root[data-theme-mode="dark"] .insightsNotesPage__metricTab {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-theme-mode="dark"] .insightsNotesPage__metricTab.is-active {
+  color: #ffffff;
+}
+
+:root[data-theme-mode="dark"] .insightsNotesPage__metricTab.is-active::after {
+  background: color-mix(in srgb, var(--accent) 84%, #ffffff);
+}
+
+:root[data-theme-mode="dark"] .insightsNotesPage__metricTabs.is-embedded .insightsNotesPage__metricTab {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.74);
+}
+
+:root[data-theme-mode="dark"] .insightsNotesPage__metricTabs.is-embedded .insightsNotesPage__metricTab.is-active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
 :root[data-theme-mode="dark"] .insightsSegment__btn {
   color: rgba(255, 255, 255, 0.78);
   opacity: 1;
@@ -898,7 +927,159 @@
 }
 
 .page.insightsNotesPage {
-  padding-top: 8px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding-top: 0;
+}
+
+.insightsNotesPage__metricTabs {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 70;
+  width: 100%;
+  margin: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 10%, var(--border));
+  background: color-mix(in srgb, var(--card) 96%, #ffffff);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.insightsNotesPage__metricTabsSpacer {
+  height: 66px;
+  flex: 0 0 auto;
+}
+
+.insightsNotesPage__metricTabs.is-embedded {
+  position: static;
+  width: auto;
+  top: auto;
+  left: auto;
+  right: auto;
+  z-index: auto;
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 10px;
+  border-bottom: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.insightsNotesPage__metricTabsInner {
+  width: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 0;
+  padding: 0 24px;
+}
+
+.insightsNotesPage__metricTab {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  min-width: 0;
+  min-height: 62px;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  color: #6f8493;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+}
+
+.insightsNotesPage__metricTab::before {
+  content: "";
+  grid-column: 3;
+}
+
+.insightsNotesPage__metricTabIcon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  grid-column: 1;
+  justify-self: end;
+  margin-right: 8px;
+}
+
+.insightsNotesPage__metricTabIcon svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.insightsNotesPage__metricTabLabel {
+  min-width: 0;
+  grid-column: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  justify-self: center;
+  align-self: center;
+}
+
+.insightsNotesPage__metricTab.is-active {
+  color: var(--ui-accent-strong);
+}
+
+.insightsNotesPage__metricTab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 84%, #1d4ed8);
+}
+
+.insightsNotesPage__metricTabs.is-embedded .insightsNotesPage__metricTabsInner {
+  width: 100%;
+  display: flex;
+  padding: 0;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.insightsNotesPage__metricTabs.is-embedded .insightsNotesPage__metricTab {
+  min-width: fit-content;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: #6e808c;
+}
+
+.insightsNotesPage__metricTabs.is-embedded .insightsNotesPage__metricTab.is-active {
+  background: color-mix(in srgb, var(--ui-measure-section-bg) 72%, #ffffff);
+  color: var(--ui-accent-strong);
+}
+
+.insightsNotesPage__metricTabs.is-embedded .insightsNotesPage__metricTab.is-active::after {
+  content: none;
+}
+
+@media (max-width: 640px) {
+  .insightsNotesPage__metricTabs:not(.is-embedded) {
+    display: none;
+  }
+
+  .insightsNotesPage__metricTabsSpacer {
+    display: none;
+  }
 }
 
 .insightsTimePage {

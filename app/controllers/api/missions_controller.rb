@@ -8,20 +8,6 @@ module Api
 
       beginner = [
         {
-          key: "beginner_daily_log",
-          title: "日ログを記録しよう",
-          description: "まずは日ログを1件保存して、改善サイクルを開始しましょう。",
-          to: "/log?mode=day&date=#{today.iso8601}&missionGuide=beginner_daily_log",
-          done: current_user.training_logs.exists?
-        },
-        {
-          key: "beginner_goal",
-          title: "目標を設定しよう",
-          description: "目標を設定すると、AIおすすめがあなた向けに最適化されます。",
-          to: "/log?mode=day&date=#{today.iso8601}&missionGuide=beginner_goal",
-          done: current_user.goal_text.present?
-        },
-        {
           key: "beginner_ai_customization",
           title: "AIカスタム指示を設定しよう",
           description: "AIカスタム指示か改善したい項目を設定して、提案を自分向けにしましょう。",
@@ -29,10 +15,17 @@ module Api
           done: ai_customization_configured?
         },
         {
+          key: "beginner_community",
+          title: "参考になった投稿を保存してみよう",
+          description: "コミュニティで気になった投稿に「参考になった」をつけてみましょう。",
+          to: "/community",
+          done: community_started?
+        },
+        {
           key: "beginner_measurement",
           title: "測定を1回やってみよう",
-          description: "トレーニング画面でどれか1つの測定を実行しましょう。",
-          to: "/training",
+          description: "ログページのトレーニング欄から、どれか1つの測定を実行しましょう。",
+          to: "/log?mode=day&date=#{today.iso8601}#training",
           done: current_user.measurement_runs.exists?
         }
       ]
@@ -96,6 +89,10 @@ module Api
           value.present?
         end
       end
+    end
+
+    def community_started?
+      current_user.community_post_favorites.exists?
     end
   end
 end

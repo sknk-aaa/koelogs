@@ -1,0 +1,335 @@
+.planPage {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  background: #ffffff;
+  --plan-border: #e5e7eb;
+  --plan-text: #0f172a;
+  --plan-muted: #64748b;
+  --plan-accent: #0ea5e9;
+  --plan-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.page.planPage {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-top: 28px;
+  padding-bottom: 92px;
+}
+
+body:has(.page.planPage) {
+  background: #ffffff;
+}
+
+.planPage > * + * {
+  margin-top: 24px;
+}
+
+.planPage__hero {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.planPage__hero > * {
+  margin: 0;
+}
+
+.planPage__heroTitle {
+  font-size: 2rem;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--plan-text);
+}
+
+.planPage__heroSub {
+  max-width: 42rem;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--plan-muted);
+}
+
+.planPage__notice {
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.planPage__notice--error {
+  background: #fff3f2;
+  color: #9d4b44;
+}
+
+.planPage__notice--info {
+  background: #eff6ff;
+  color: #315568;
+}
+
+.planPage__section {
+  padding: 24px;
+  border: 1px solid var(--plan-border);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: var(--plan-shadow);
+}
+
+.planPage__sub {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--plan-muted);
+}
+
+.planPage__card {
+  padding: 24px;
+  border: 1px solid var(--plan-border);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: var(--plan-shadow);
+}
+
+.planPage__cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.planPage__cardLabelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.planPage__sectionLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.planPage__sectionLabelIcon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--plan-accent);
+  flex: 0 0 auto;
+}
+
+.planPage__sectionLabelIcon svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.planPage__sectionLabelIcon svg .accent {
+  stroke: currentColor;
+}
+
+.planPage__summary {
+  display: grid;
+  gap: 20px;
+}
+
+.planPage__summaryTop {
+  display: grid;
+  gap: 4px;
+}
+
+.planPage__summaryPlan {
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.planPage__summaryName {
+  font-size: 30px;
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--plan-text);
+}
+
+.planPage__summaryBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.planPage__summaryBadge.is-canceling {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.planPage__fieldBlock {
+  display: grid;
+  gap: 8px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.planPage__key {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.planPage__value {
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--plan-text);
+}
+
+.planPage__value.is-date {
+  font-size: 22px;
+  color: var(--plan-accent);
+}
+
+.planPage__detail {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--plan-muted);
+}
+
+.planPage__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.planPage__button {
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--plan-accent);
+  color: #ffffff;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+}
+
+.planPage__button:hover {
+  background: #0284c7;
+}
+
+.planPage__button:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.planPage__button--ghost {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.planPage__button--ghost:hover {
+  background: #f8fafc;
+}
+
+@media (max-width: 720px) {
+  .page.planPage {
+    padding-top: 12px;
+  }
+
+  .planPage__heroTitle {
+    font-size: 1.75rem;
+  }
+
+  .planPage__card,
+  .planPage__section {
+    padding: 20px;
+  }
+
+  .planPage__cardHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .planPage__summaryName {
+    font-size: 26px;
+  }
+
+  .planPage__actions {
+    display: grid;
+    gap: 10px;
+  }
+
+  .planPage__button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+:root[data-theme-mode="dark"] .planPage,
+:root[data-theme-mode="dark"] .page.planPage,
+:root[data-theme-mode="dark"] body:has(.page.planPage) {
+  background: var(--bg);
+}
+
+:root[data-theme-mode="dark"] .planPage {
+  --plan-border: rgba(255, 255, 255, 0.1);
+  --plan-text: #eef5ff;
+  --plan-muted: rgba(255, 255, 255, 0.7);
+  --plan-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .planPage__card,
+:root[data-theme-mode="dark"] .planPage__section {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+:root[data-theme-mode="dark"] .planPage__sectionLabel {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme-mode="dark"] .planPage__summaryPlan {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme-mode="dark"] .planPage__summaryBadge {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+:root[data-theme-mode="dark"] .planPage__summaryBadge.is-canceling {
+  background: rgba(146, 64, 14, 0.24);
+  color: #ffd9a8;
+}
+
+:root[data-theme-mode="dark"] .planPage__fieldBlock {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .planPage__button--ghost {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: #eef5ff;
+}
+
+:root[data-theme-mode="dark"] .planPage__button--ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+}

@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, useCallback, type CSSProperties } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/useAuth";
 import HamburgerDrawer, { type DrawerSection } from "./HamburgerDrawer";
 import { avatarIconPath } from "../features/profile/avatarIcons";
+import { getLastLogPath } from "../features/log/logNavigation";
+import { fetchBeginnerMissionGate } from "../features/missions/beginnerMissionGate";
+import TutorialModal from "./TutorialModal";
+import BrandLogo from "./BrandLogo";
 
 function useIsMobile(breakpointPx = 520) {
   const [isMobile, setIsMobile] = useState(() => {
@@ -19,38 +23,110 @@ function useIsMobile(breakpointPx = 520) {
   return isMobile;
 }
 
-function headerTitleForPath(pathname: string): string {
-  if (pathname.startsWith("/log/new")) return "NEW LOG";
-  if (pathname.startsWith("/training")) return "TRAINING";
-  if (pathname.startsWith("/insights/time")) return "PRACTICE TIME";
-  if (pathname.startsWith("/insights/notes")) return "MEASURE DETAILS";
-  if (pathname.startsWith("/insights")) return "INSIGHTS";
-  if (pathname.startsWith("/community/rankings")) return "RANKINGS";
-  if (pathname.startsWith("/community/profile")) return "PROFILE";
-  if (pathname.startsWith("/community")) return "COMMUNITY";
-  if (pathname.startsWith("/settings/ai")) return "AI SETTINGS";
-  if (pathname.startsWith("/settings")) return "SETTINGS";
-  if (pathname.startsWith("/profile")) return "ACCOUNT";
-  if (pathname.startsWith("/mypage")) return "MY PAGE";
-  if (pathname.startsWith("/help/guide")) return "GUIDE";
-  if (pathname.startsWith("/help/about")) return "ABOUT";
-  if (pathname.startsWith("/help/contact")) return "CONTACT";
-  if (pathname.startsWith("/premium")) return "PREMIUM";
-  return "";
+type NavKey = "log" | "chat" | "community";
+const BEGINNER_LAST_PENDING_KEY_PREFIX = "koelogs:beginner_last_pending:user_";
+
+function LogTabIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path
+        d="M4 10.6L12 4l8 6.6V19a1 1 0 0 1-1 1h-5.4v-5.3a1 1 0 0 0-1-1h-1.2a1 1 0 0 0-1 1V20H5a1 1 0 0 1-1-1v-8.4Z"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
-function formatLogHeaderDate(value: string | null): string {
-  if (!value) return "";
-  const matched = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (matched) {
-    return `${Number(matched[2])}月${Number(matched[3])}日`;
-  }
-  const monthMatched = value.match(/^(\d{4})-(\d{2})$/);
-  if (monthMatched) {
-    return `${Number(monthMatched[2])}月`;
-  }
-  return "";
+function ChatTabIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path
+        d="M4.6 6.8a2 2 0 0 1 2-2h10.8a2 2 0 0 1 2 2v7.2a2 2 0 0 1-2 2H10l-3.4 2.8v-2.8H6.6a2 2 0 0 1-2-2V6.8Z"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9.2" cy="10.4" r="0.95" fill={active ? "rgba(255,255,255,0.92)" : "currentColor"} />
+      <circle cx="12" cy="10.4" r="0.95" fill={active ? "rgba(255,255,255,0.92)" : "currentColor"} />
+      <circle cx="14.8" cy="10.4" r="0.95" fill={active ? "rgba(255,255,255,0.92)" : "currentColor"} />
+    </svg>
+  );
 }
+
+function CommunityTabIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <circle cx="9.2" cy="8.2" r="2.5" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" />
+      <path
+        d="M4.8 16.9c0-2.2 1.9-4 4.4-4s4.4 1.8 4.4 4"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <circle cx="16.3" cy="9.1" r="2" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M14 16.9c.1-1.8 1.5-3.2 3.4-3.2 1 0 1.9.4 2.5 1.1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function LockedChatBadgeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+      <rect x="6.8" y="10.4" width="10.4" height="8" rx="2.4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M9.2 10.4V8.8a2.8 2.8 0 0 1 5.6 0v1.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function readBeginnerLastPending(userId: number): number | null {
+  try {
+    const raw = window.localStorage.getItem(`${BEGINNER_LAST_PENDING_KEY_PREFIX}${userId}`);
+    if (raw == null) return null;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  } catch {
+    return null;
+  }
+}
+
+const PRIMARY_NAV: {
+  key: NavKey;
+  label: string;
+  to: string;
+  renderIcon: (isActive: boolean) => React.ReactNode;
+}[] = [
+  {
+    key: "log",
+    label: "ログ",
+    to: "/log",
+    renderIcon: (isActive) => <LogTabIcon active={isActive} />,
+  },
+  {
+    key: "chat",
+    label: "AIチャット",
+    to: "/chat",
+    renderIcon: (isActive) => <ChatTabIcon active={isActive} />,
+  },
+  {
+    key: "community",
+    label: "コミュニティ",
+    to: "/community",
+    renderIcon: (isActive) => <CommunityTabIcon active={isActive} />,
+  },
+];
 
 function renderDrawerSectionIcon(kind: "settings" | "account" | "help"): React.ReactNode {
   if (kind === "settings") {
@@ -84,16 +160,14 @@ export default function AppHeader() {
   const location = useLocation();
 
   const [open, setOpen] = useState(false);
+  const [beginnerCompleted, setBeginnerCompleted] = useState<boolean>(false);
+  const [chatLockedModalOpen, setChatLockedModalOpen] = useState(false);
   const isMobile = useIsMobile(520);
-  const isLogPage = location.pathname === "/log";
-  const headerTitle = useMemo(() => headerTitleForPath(location.pathname), [location.pathname]);
-  const logHeaderDate = useMemo(() => {
-    if (!isLogPage) return "";
-    const params = new URLSearchParams(location.search);
-    const mode = params.get("mode");
-    if (mode === "month") return formatLogHeaderDate(params.get("month"));
-    return formatLogHeaderDate(params.get("date")) || formatLogHeaderDate(new Date().toISOString().slice(0, 10));
-  }, [isLogPage, location.search]);
+  const lastUserIdRef = useState<{ current: number | null }>({ current: null })[0];
+  const logTabTo = getLastLogPath();
+  const applyBeginnerCompleted = (next: boolean) => {
+    setBeginnerCompleted((prev) => (prev ? true : next));
+  };
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -102,6 +176,39 @@ export default function AppHeader() {
 
     return () => clearTimeout(id);
   }, [location.pathname]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!me) {
+      setBeginnerCompleted(true);
+      lastUserIdRef.current = null;
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (lastUserIdRef.current !== me.id) {
+      lastUserIdRef.current = me.id;
+      setBeginnerCompleted(false);
+    }
+
+    const lastPending = readBeginnerLastPending(me.id);
+    if (lastPending === 0) {
+      applyBeginnerCompleted(true);
+    } else if (typeof me.beginner_missions_completed === "boolean") {
+      applyBeginnerCompleted(me.beginner_missions_completed);
+    }
+
+    void (async () => {
+      const gate = await fetchBeginnerMissionGate();
+      if (cancelled || !gate) return;
+      applyBeginnerCompleted(gate.completed);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [me]);
 
   const onLogout = useCallback(async () => {
     try {
@@ -171,6 +278,12 @@ export default function AppHeader() {
               match: "exact",
               onClick: () => navigate("/profile"),
             },
+            {
+              label: me.plan_tier === "premium" ? "プラン管理" : "プレミアムプラン",
+              onClick: () => navigate(me.plan_tier === "premium" ? "/plan" : "/premium"),
+              to: me.plan_tier === "premium" ? "/plan" : "/premium",
+              match: "exact",
+            },
           ],
         },
         {
@@ -186,65 +299,78 @@ export default function AppHeader() {
     },
     [me, navigate, onLogout]
   );
-
-  const onClickLogHeaderDate = useCallback(() => {
-    window.dispatchEvent(new CustomEvent("koelog:open-monthly-logs"));
-  }, []);
+  const chatLocked = !!me && !beginnerCompleted;
+  const navItems = useMemo(
+    () =>
+      PRIMARY_NAV.map((item) => {
+        if (item.key === "log") return { ...item, to: logTabTo };
+        return item;
+      }),
+    [logTabTo]
+  );
+  const headerStyles = useMemo(() => buildHeaderStyles(isMobile), [isMobile]);
 
   return (
     <>
-      <header style={styles.header}>
-        <div style={styles.inner}>
-          <div style={styles.left} aria-hidden="true">
-            <div style={styles.sideSpacer} />
+      <header style={headerStyles.header}>
+        <div style={headerStyles.inner}>
+          <div style={headerStyles.left}>
+            <button
+              type="button"
+              onClick={() => navigate("/log")}
+              style={headerStyles.brandButton}
+              aria-label="Koelogsのホームへ移動"
+            >
+              <BrandLogo alt="Koelogs" style={headerStyles.brandLogo} />
+            </button>
           </div>
-          <div style={styles.center}>
-            {isLogPage ? (
-              <button type="button" onClick={onClickLogHeaderDate} style={styles.logTitleBtn} aria-label="今月のログ一覧を開く">
-                <span style={styles.logTitleText}>{logHeaderDate}</span>
-                <span style={styles.logTitleChevron} aria-hidden="true">▾</span>
-              </button>
-            ) : headerTitle ? (
-              <div style={styles.pageTitle}>{headerTitle}</div>
-            ) : null}
-          </div>
-
-          <div style={styles.right}>
-            {!isLoading && me && !isMobile && (
-              <div style={styles.email} title={me.display_name ?? me.email}>
-                {me.display_name ?? me.email}
-              </div>
-            )}
-
-            {!isLoading && !me && !isMobile && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => navigate("/login")}
-                  style={styles.authBtn}
-                >
-                  ログイン
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/signup")}
-                  style={{ ...styles.authBtn, ...styles.authBtnPrimary }}
-                >
-                  Sign up
-                </button>
-              </>
-            )}
-
+          <div style={headerStyles.right}>
+            <div style={headerStyles.center}>
+              <nav style={headerStyles.primaryNav} aria-label="primary navigation">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.key}
+                    to={item.to}
+                    aria-disabled={item.key === "chat" && chatLocked ? true : undefined}
+                    onClick={(event) => {
+                      if (item.key === "chat" && chatLocked) {
+                        event.preventDefault();
+                        setChatLockedModalOpen(true);
+                      }
+                    }}
+                    style={({ isActive }) => ({
+                      ...headerStyles.primaryNavLink,
+                      ...(isActive ? headerStyles.primaryNavLinkActive : null),
+                      ...(item.key === "chat" && chatLocked ? headerStyles.primaryNavLinkLocked : null),
+                    })}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span style={headerStyles.primaryNavIconWrap}>
+                          <span style={headerStyles.primaryNavIcon}>{item.renderIcon(isActive)}</span>
+                          {item.key === "chat" && chatLocked && (
+                            <span style={headerStyles.lockBadge}>
+                              <LockedChatBadgeIcon />
+                            </span>
+                          )}
+                        </span>
+                        <span style={headerStyles.primaryNavLabel}>{item.label}</span>
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
             {!isLoading && (
               <button
                 type="button"
                 aria-label="メニューを開く"
                 onClick={() => setOpen(true)}
-                style={styles.menuBtn}
+                style={headerStyles.menuBtn}
               >
-                <span style={styles.bar} />
-                <span style={styles.bar} />
-                <span style={styles.bar} />
+                <span style={headerStyles.bar} />
+                <span style={headerStyles.bar} />
+                <span style={headerStyles.bar} />
               </button>
             )}
           </div>
@@ -275,11 +401,28 @@ export default function AppHeader() {
         footerItem={me ? { label: "ログアウト", variant: "danger", onClick: onLogout } : undefined}
         activePath={location.pathname}
       />
+      <TutorialModal
+        open={chatLockedModalOpen}
+        badge="LOCKED"
+        title="AIチャットはビギナーミッション完了で解放されます"
+        paragraphs={[
+          "まずはビギナーミッションを進めましょう。",
+          "完了すると、AIチャットを利用できるようになります。",
+        ]}
+        primaryLabel="ビギナーミッションへ"
+        onPrimary={() => {
+          setChatLockedModalOpen(false);
+          navigate("/mypage");
+        }}
+        secondaryLabel="あとで"
+        onSecondary={() => setChatLockedModalOpen(false)}
+        onClose={() => setChatLockedModalOpen(false)}
+      />
     </>
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   header: {
     height: 56,
     position: "sticky",
@@ -292,107 +435,125 @@ const styles: Record<string, React.CSSProperties> = {
 
   inner: {
     height: "100%",
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: "auto minmax(0, 1fr)",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 16px",
-    position: "relative",
+    gap: 10,
+    padding: "0 14px",
   },
 
   left: {
     display: "flex",
     alignItems: "center",
-    gap: 10,
-    minWidth: 36,
+    minWidth: 0,
   },
   center: {
-    position: "absolute",
-    left: "50%",
-    top: "50%",
-    transform: "translate(-50%, -50%)",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-end",
     minWidth: 0,
-    maxWidth: "calc(100% - 132px)",
-    pointerEvents: "none",
+    overflow: "hidden",
   },
 
   right: {
     display: "flex",
     alignItems: "center",
-    gap: 8,
     justifyContent: "flex-end",
+    gap: 10,
+    minWidth: 0,
   },
 
-  sideSpacer: {
-    width: 36,
-    height: 36,
-  },
-  logTitleBtn: {
+  brandButton: {
     display: "inline-flex",
     alignItems: "center",
-    gap: 6,
+    gap: 0,
+    minHeight: 40,
+    padding: "0 4px 0 12px",
+    borderRadius: 12,
     border: "none",
     background: "transparent",
-    padding: "6px 10px",
+    cursor: "pointer",
+  },
+  brandIcon: {
+    width: 24,
+    height: 24,
+    display: "block",
+    objectFit: "contain",
+  },
+  brandLogo: {
+    height: 28,
+    width: "auto",
+    display: "block",
+  },
+  primaryNav: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+    width: "auto",
+    maxWidth: "100%",
+  },
+  primaryNavLink: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 5,
+    minHeight: 34,
+    border: "none",
     borderRadius: 12,
-    color: "var(--headerTitleText, var(--pageText, var(--text)))",
-    cursor: "pointer",
-    pointerEvents: "auto",
+    padding: "0 9px",
+    justifyContent: "center",
+    textDecoration: "none",
+    color: "var(--headerTitleText, color-mix(in srgb, var(--pageText, var(--text)) 72%, transparent))",
+    minWidth: "fit-content",
+    flexShrink: 1,
   },
-  logTitleText: {
-    fontSize: 18,
-    fontWeight: 800,
-    letterSpacing: "-0.02em",
-    color: "var(--headerTitleText, var(--pageText, var(--text)))",
-    whiteSpace: "nowrap",
+  primaryNavLinkActive: {
+    color: "var(--accent)",
+    background: "color-mix(in srgb, var(--accent) 10%, transparent)",
   },
-  logTitleChevron: {
-    fontSize: 14,
-    fontWeight: 800,
-    opacity: 0.65,
+  primaryNavLinkLocked: {
+    opacity: 0.84,
   },
-  pageTitle: {
-    fontSize: "var(--ui-section-eyebrow-size, 1.05rem)",
+  primaryNavIconWrap: {
+    position: "relative",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  primaryNavIcon: {
+    width: 18,
+    height: 18,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  primaryNavLabel: {
+    fontSize: 10.5,
     fontWeight: 800,
-    letterSpacing: "var(--ui-section-eyebrow-letter-spacing, 0.16em)",
-    color: "var(--headerTitleText, var(--ui-section-eyebrow-color, var(--pageText, var(--text))))",
-    textTransform: "uppercase",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
-
-  email: {
-    color: "var(--text)",
-    fontSize: 12,
-    opacity: 0.7,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    maxWidth: 220,
-  },
-  authBtn: {
-    height: 38,
-    borderRadius: 10,
-    border: "1px solid var(--border)",
-    background: "var(--surface)",
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 900,
-    padding: "0 10px",
-    whiteSpace: "nowrap",
-  },
-  authBtnPrimary: {
-    borderColor: "color-mix(in srgb, var(--accent) 44%, rgba(0,0,0,0.1))",
-    background: "var(--accent)",
-  },
-
-  menuBtn: {
-    width: 36,
-    height: 36,
+  lockBadge: {
+    position: "absolute",
+    right: -5,
+    top: -5,
+    width: 16,
+    height: 16,
     borderRadius: 999,
+    border: "1px solid rgba(89, 117, 137, 0.18)",
+    backgroundColor: "#f6fafc",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+    color: "#7e919d",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
     border: "none",
     background: "transparent",
     cursor: "pointer",
@@ -400,16 +561,87 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
+    gap: 3,
     padding: 0,
   },
 
   bar: {
     display: "block",
-    width: 20,
+    width: 16,
     height: 1.5,
     borderRadius: 999,
     background: "var(--menuLine, rgba(0, 0, 0, 0.78))",
     margin: 0,
   },
 };
+
+function buildHeaderStyles(isMobile: boolean): Record<string, CSSProperties> {
+  if (isMobile) return styles;
+
+  return {
+    ...styles,
+    header: {
+      ...styles.header,
+      height: 72,
+      borderBottom: "1px solid color-mix(in srgb, var(--pageText, var(--text)) 8%, transparent)",
+    },
+    inner: {
+      ...styles.inner,
+      gap: 22,
+      padding: "0 32px",
+    },
+    center: {
+      ...styles.center,
+      justifyContent: "flex-start",
+    },
+    right: {
+      ...styles.right,
+      gap: 12,
+    },
+    brandButton: {
+      ...styles.brandButton,
+      minHeight: 52,
+      padding: "0 8px 0 16px",
+    },
+    brandIcon: {
+      ...styles.brandIcon,
+      width: 38,
+      height: 38,
+    },
+    brandLogo: {
+      ...styles.brandLogo,
+      height: 40,
+    },
+    primaryNav: {
+      ...styles.primaryNav,
+      gap: 8,
+    },
+    primaryNavLink: {
+      ...styles.primaryNavLink,
+      minHeight: 44,
+      gap: 9,
+      padding: "0 20px",
+      borderRadius: 16,
+    },
+    primaryNavIcon: {
+      ...styles.primaryNavIcon,
+      width: 20,
+      height: 20,
+    },
+    primaryNavLabel: {
+      ...styles.primaryNavLabel,
+      fontSize: 13.5,
+      letterSpacing: "0.01em",
+    },
+    menuBtn: {
+      ...styles.menuBtn,
+      width: 40,
+      height: 40,
+      borderRadius: 14,
+    },
+    bar: {
+      ...styles.bar,
+      width: 18,
+    },
+  };
+}

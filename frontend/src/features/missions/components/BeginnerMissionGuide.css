@@ -87,9 +87,9 @@
 }
 
 .beginnerMissionModal__card.uiModalPanel {
-  border-color: inherit;
-  background: inherit;
-  color: inherit;
+  border-color: color-mix(in srgb, var(--accent) 10%, var(--border));
+  background: var(--card);
+  color: var(--cardText, var(--text));
 }
 
 .beginnerMissionModal__head {
@@ -143,9 +143,9 @@
 }
 
 .beginnerMissionModal__close.uiButton {
-  border-color: inherit;
-  background: inherit;
-  color: inherit;
+  border-color: color-mix(in srgb, var(--accent) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 92%, #ffffff);
+  color: var(--cardText, var(--text));
 }
 
 .beginnerMissionModal__list {
@@ -211,11 +211,24 @@
   gap: 8px;
 }
 
+.beginnerMissionModal__itemMain {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 4px;
+}
+
 .beginnerMissionModal__itemTitle {
   font-size: 12px;
   font-weight: 900;
   color: var(--log-text-2, #183144);
   line-height: 1.4;
+}
+
+.beginnerMissionModal__itemDescription {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #718492;
 }
 
 .beginnerMissionModal__actionWrap {
@@ -238,9 +251,9 @@
 }
 
 .beginnerMissionModal__status.uiCompareChip {
-  border-color: inherit;
-  background: inherit;
-  color: inherit;
+  border-color: color-mix(in srgb, var(--accent) 14%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 18%, var(--cardText, var(--text)));
   min-height: 24px;
   padding: 0 8px;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   fetchLatestMeasurements,
@@ -46,12 +46,88 @@ const METRIC_TABS = [
   { key: "volume_stability", label: "音量安定性" },
   { key: "pitch_accuracy", label: "音程精度" },
 ] as const;
-type MetricTabKey = (typeof METRIC_TABS)[number]["key"];
+export type MetricTabKey = (typeof METRIC_TABS)[number]["key"];
 type RangeVoiceTab = "total" | "chest" | "falsetto";
 type RangeBandPoint = { date: string; low: number | null; high: number | null };
 type ExcludableMetric = "range" | "long_tone" | "volume_stability" | "pitch_accuracy";
 
-const GUEST_RANGE_RUNS: MeasurementRun[] = [
+type InsightsNotesViewProps = {
+  embedded?: boolean;
+  initialMetric?: MetricTabKey;
+  onMetricChange?: (metric: MetricTabKey) => void;
+};
+
+function renderMetricTabIcon(kind: MetricTabKey): React.ReactNode {
+  if (kind === "range") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M12 4.2v15.6" />
+        <path d="M12 4.2 8.4 7.8" />
+        <path d="M12 4.2 15.6 7.8" />
+        <path d="M12 19.8 8.4 16.2" />
+        <path d="M12 19.8 15.6 16.2" />
+        <path d="M6.2 12h11.6" />
+      </svg>
+    );
+  }
+  if (kind === "long_tone") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="9" cy="12" r="5.5" />
+        <path d="M9 9v3.6l2.4 1.6" />
+        <path d="M16 12h4.5" />
+        <path d="M18.4 9.8v4.4" />
+      </svg>
+    );
+  }
+  if (kind === "volume_stability") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M4 14.5V9.5h3.6l3.2-2.7v10.4l-3.2-2.7Z" />
+        <path d="M15 9.3a4.6 4.6 0 0 1 0 5.4" />
+        <path d="M17.8 7.2a7.2 7.2 0 0 1 0 9.6" />
+        <rect x="4.2" y="18.2" width="2.2" height="1.8" rx="0.9" fill="currentColor" stroke="none" />
+        <rect x="7.6" y="17.2" width="2.2" height="2.8" rx="0.9" fill="currentColor" stroke="none" />
+        <rect x="11" y="16.1" width="2.2" height="3.9" rx="0.9" fill="currentColor" stroke="none" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <rect x="8.2" y="4.3" width="5.6" height="9.3" rx="2.8" />
+      <path d="M5.8 10.8v.6a5.7 5.7 0 0 0 11.4 0v-.6" />
+      <path d="M12 17.1v3.2" />
+      <path d="M8.8 20.3h6.4" />
+    </svg>
+  );
+}
+
+function formatGuestIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function createGuestDateRange(start: string, end: string): string[] {
+  const startDate = new Date(`${start}T00:00:00+09:00`);
+  const endDate = new Date(`${end}T00:00:00+09:00`);
+  const dates: string[] = [];
+  const current = new Date(startDate);
+  while (current <= endDate) {
+    dates.push(formatGuestIsoDate(current));
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
+}
+
+function guestRecordedAt(date: string): string {
+  return `${date}T08:00:00+09:00`;
+}
+
+const GUEST_DETAIL_MARCH_APRIL_DATES = createGuestDateRange("2026-03-01", "2026-04-30");
+
+const GUEST_RANGE_BASE_RUNS: MeasurementRun[] = [
   {
     id: -101,
     measurement_type: "range",
@@ -118,7 +194,37 @@ const GUEST_RANGE_RUNS: MeasurementRun[] = [
   },
 ];
 
-const GUEST_LONG_TONE_RUNS: MeasurementRun[] = [
+const GUEST_RANGE_RUNS: MeasurementRun[] = [
+  ...GUEST_RANGE_BASE_RUNS,
+  ...GUEST_DETAIL_MARCH_APRIL_DATES.filter(
+    (date) => !new Set(GUEST_RANGE_BASE_RUNS.map((run) => run.recorded_at.slice(0, 10))).has(date)
+  ).map((date, index) => {
+    const semitones = 41 + Math.min(6, Math.floor(index / 10)) + (index % 3);
+    const highestNotes = [ "F5", "F#5", "G5", "G#5", "A5" ] as const;
+    const lowestNotes = [ "C2", "B1", "C#2", "C2", "A#1" ] as const;
+    const chestNotes = [ "G4", "G#4", "A4", "A#4", "B4" ] as const;
+    const highest = highestNotes[index % highestNotes.length];
+    const lowest = lowestNotes[index % lowestNotes.length];
+    const chest = chestNotes[index % chestNotes.length];
+    return {
+      id: -1000 - index,
+      measurement_type: "range",
+      include_in_insights: true,
+      recorded_at: guestRecordedAt(date),
+      created_at: guestRecordedAt(date),
+      result: {
+        lowest_note: lowest,
+        highest_note: highest,
+        chest_top_note: chest,
+        falsetto_top_note: highest,
+        range_semitones: semitones,
+        range_octaves: Number((semitones / 12).toFixed(2)),
+      },
+    } satisfies MeasurementRun;
+  }),
+];
+
+const GUEST_LONG_TONE_BASE_RUNS: MeasurementRun[] = [
   {
     id: -209,
     measurement_type: "long_tone",
@@ -201,7 +307,26 @@ const GUEST_LONG_TONE_RUNS: MeasurementRun[] = [
   },
 ];
 
-const GUEST_VOLUME_RUNS: MeasurementRun[] = [
+const GUEST_LONG_TONE_RUNS: MeasurementRun[] = [
+  ...GUEST_LONG_TONE_BASE_RUNS,
+  ...GUEST_DETAIL_MARCH_APRIL_DATES.map((date, index) => {
+    const sustain = 11.2 + Math.min(4.8, index * 0.08) + [ 0, 0.4, -0.2, 0.6 ][index % 4];
+    const notes = [ "A3", "A#3", "B3", "C4" ] as const;
+    return {
+      id: -2000 - index,
+      measurement_type: "long_tone",
+      include_in_insights: true,
+      recorded_at: guestRecordedAt(date),
+      created_at: guestRecordedAt(date),
+      result: {
+        sustain_sec: Number(sustain.toFixed(1)),
+        sustain_note: notes[index % notes.length],
+      },
+    } satisfies MeasurementRun;
+  }),
+];
+
+const GUEST_VOLUME_BASE_RUNS: MeasurementRun[] = [
   {
     id: -309,
     measurement_type: "volume_stability",
@@ -354,7 +479,33 @@ const GUEST_VOLUME_RUNS: MeasurementRun[] = [
   },
 ];
 
-const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
+const GUEST_VOLUME_RUNS: MeasurementRun[] = [
+  ...GUEST_VOLUME_BASE_RUNS,
+  ...GUEST_DETAIL_MARCH_APRIL_DATES.map((date, index) => {
+    const avg = -68.6 + (index % 5) * 0.22 - Math.min(1.8, index * 0.03);
+    const rangeDb = Math.max(8.8, 13.4 - index * 0.05 + [ 0.4, -0.2, 0.1 ][index % 3]);
+    const min = avg - rangeDb * 0.55;
+    const max = avg + rangeDb * 0.45;
+    const pct = Math.min(91.5, 79.8 + index * 0.18 + [ 0, 0.8, -0.5, 0.4 ][index % 4]);
+    return {
+      id: -3000 - index,
+      measurement_type: "volume_stability",
+      include_in_insights: true,
+      recorded_at: guestRecordedAt(date),
+      created_at: guestRecordedAt(date),
+      result: {
+        avg_loudness_db: Number(avg.toFixed(1)),
+        min_loudness_db: Number(min.toFixed(1)),
+        max_loudness_db: Number(max.toFixed(1)),
+        loudness_range_db: Number(rangeDb.toFixed(1)),
+        loudness_range_ratio: Number((rangeDb / Math.abs(avg)).toFixed(3)),
+        loudness_range_pct: Number(pct.toFixed(1)),
+      },
+    } satisfies MeasurementRun;
+  }),
+];
+
+const GUEST_PITCH_ACCURACY_BASE_RUNS: MeasurementRun[] = [
   {
     id: -409,
     measurement_type: "pitch_accuracy",
@@ -477,15 +628,36 @@ const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
   },
 ];
 
-export default function InsightsNotesPage() {
+const GUEST_PITCH_ACCURACY_RUNS: MeasurementRun[] = [
+  ...GUEST_PITCH_ACCURACY_BASE_RUNS,
+  ...GUEST_DETAIL_MARCH_APRIL_DATES.map((date, index) => {
+    const avgCents = Math.max(11.8, 22.8 - index * 0.12 + [ 0.8, -0.4, 0.2 ][index % 3]);
+    const accuracy = Math.min(88.8, 77.2 + index * 0.16 + [ 0.6, -0.3, 0.2, 0.1 ][index % 4]);
+    const noteCount = 96 + (index % 7) * 2;
+    return {
+      id: -4000 - index,
+      measurement_type: "pitch_accuracy",
+      include_in_insights: true,
+      recorded_at: guestRecordedAt(date),
+      created_at: guestRecordedAt(date),
+      result: {
+        avg_cents_error: Number(avgCents.toFixed(1)),
+        accuracy_score: Number(accuracy.toFixed(1)),
+        note_count: noteCount,
+      },
+    } satisfies MeasurementRun;
+  }),
+];
+
+export function InsightsNotesView({ embedded = false, initialMetric, onMetricChange }: InsightsNotesViewProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { me, isLoading: authLoading } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [days, setDays] = useState<(typeof PERIODS)[number]>(30);
-  const [metricTab, setMetricTab] = useState<MetricTabKey>(() => parseMetricTab(searchParams.get("metric")));
+  const [metricTab, setMetricTab] = useState<MetricTabKey>(() => initialMetric ?? parseMetricTab(searchParams.get("metric")));
   const [rangeVoiceTab, setRangeVoiceTab] = useState<RangeVoiceTab>("total");
   const [state, setState] = useState<LoadState>({ kind: "loading" });
-  const [bestMenuOpen, setBestMenuOpen] = useState(false);
   const [excludeBusy, setExcludeBusy] = useState(false);
   const [excludeActionError, setExcludeActionError] = useState<string | null>(null);
   const [excludeToast, setExcludeToast] = useState<{
@@ -566,9 +738,15 @@ export default function InsightsNotesPage() {
   }, [authLoading, guestMode, days]);
 
   useEffect(() => {
+    if (embedded) return;
     const metric = parseMetricTab(searchParams.get("metric"));
     setMetricTab((prev) => (prev === metric ? prev : metric));
-  }, [searchParams]);
+  }, [embedded, searchParams]);
+
+  useEffect(() => {
+    if (!embedded || !initialMetric) return;
+    setMetricTab((prev) => (prev === initialMetric ? prev : initialMetric));
+  }, [embedded, initialMetric]);
 
   const monthFilteredRangeRuns = useMemo(() => {
     if (state.kind !== "ready") return [] as MeasurementRun[];
@@ -754,6 +932,38 @@ export default function InsightsNotesPage() {
   }, [monthFilteredLongToneRuns, monthFilteredPitchAccuracyRuns, monthFilteredRangeRuns, monthFilteredVolumeRuns, state]);
   const explicitMetricMode = searchParams.has("metric");
   const metricLabel = METRIC_TABS.find((v) => v.key === metricTab)?.label ?? "音域";
+  const metricSelector = (
+    <>
+      <div className={`insightsNotesPage__metricTabs${embedded ? " is-embedded" : ""}`}>
+        <div className="insightsNotesPage__metricTabsInner">
+          {METRIC_TABS.map((tab) => {
+            const active = tab.key === metricTab;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => {
+                  setMetricTab(tab.key);
+                  onMetricChange?.(tab.key);
+                }}
+                className={`insightsNotesPage__metricTab${active ? " is-active" : ""}`}
+              >
+                <span className="insightsNotesPage__metricTabIcon" aria-hidden="true">
+                  {renderMetricTabIcon(tab.key)}
+                </span>
+                <span className="insightsNotesPage__metricTabLabel">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {!embedded && <div className="insightsNotesPage__metricTabsSpacer" aria-hidden="true" />}
+    </>
+  );
+  const backPath =
+    typeof location.state === "object" && location.state && "fromPath" in location.state && typeof location.state.fromPath === "string"
+      ? location.state.fromPath
+      : "/log";
   const rangeBestRun = useMemo(() => {
     if (monthFilteredRangeRuns.length === 0) return null;
     const candidates = monthFilteredRangeRuns
@@ -766,18 +976,6 @@ export default function InsightsNotesPage() {
     return candidates.reduce((best, cur) => (cur.result.range_semitones! > best.result.range_semitones! ? cur : best));
   }, [monthFilteredRangeRuns]);
 
-  const excludableBestTarget = useMemo(() => {
-    if (metricTab === "range") return rangeBestRun?.run ?? null;
-    if (metricTab === "long_tone") return longToneBestRun?.run ?? null;
-    if (metricTab === "volume_stability") return volumeBestRun?.run ?? null;
-    if (metricTab === "pitch_accuracy") return pitchAccuracyBestRun?.run ?? null;
-    return null;
-  }, [metricTab, rangeBestRun, longToneBestRun, volumeBestRun, pitchAccuracyBestRun]);
-
-  useEffect(() => {
-    setBestMenuOpen(false);
-  }, [metricTab, days]);
-
   useEffect(() => {
     return () => {
       if (excludeToastTimerRef.current != null) {
@@ -786,45 +984,6 @@ export default function InsightsNotesPage() {
       }
     };
   }, []);
-
-  const handleExcludeBest = async () => {
-    if (!excludableBestTarget) return;
-    if (excludeBusy) return;
-    const targetMetric = metricTab as ExcludableMetric;
-    setExcludeActionError(null);
-    setExcludeBusy(true);
-    setBestMenuOpen(false);
-    try {
-      await updateMeasurement({ id: excludableBestTarget.id, include_in_insights: false });
-      setState((prev) => {
-        if (prev.kind !== "ready") return prev;
-        if (targetMetric === "range") {
-          const nextRuns = nextRunsAfterExcluding(prev.rangeRuns, excludableBestTarget.id);
-          return { ...prev, rangeRuns: nextRuns, latest: updateLatestByMetric(prev.latest, targetMetric, nextRuns) };
-        }
-        if (targetMetric === "long_tone") {
-          const nextRuns = nextRunsAfterExcluding(prev.longToneRuns, excludableBestTarget.id);
-          return { ...prev, longToneRuns: nextRuns, latest: updateLatestByMetric(prev.latest, targetMetric, nextRuns) };
-        }
-        if (targetMetric === "volume_stability") {
-          const nextRuns = nextRunsAfterExcluding(prev.volumeRuns, excludableBestTarget.id);
-          return { ...prev, volumeRuns: nextRuns, latest: updateLatestByMetric(prev.latest, targetMetric, nextRuns) };
-        }
-        const nextRuns = nextRunsAfterExcluding(prev.pitchAccuracyRuns, excludableBestTarget.id);
-        return { ...prev, pitchAccuracyRuns: nextRuns, latest: updateLatestByMetric(prev.latest, targetMetric, nextRuns) };
-      });
-      setExcludeToast({ metric: targetMetric, run: excludableBestTarget });
-      if (excludeToastTimerRef.current != null) window.clearTimeout(excludeToastTimerRef.current);
-      excludeToastTimerRef.current = window.setTimeout(() => {
-        setExcludeToast(null);
-        excludeToastTimerRef.current = null;
-      }, 5000);
-    } catch (e) {
-      setExcludeActionError(errorMessage(e, "最高記録の除外に失敗しました"));
-    } finally {
-      setExcludeBusy(false);
-    }
-  };
 
   const handleUndoExclude = async () => {
     if (!excludeToast || excludeBusy) return;
@@ -862,44 +1021,8 @@ export default function InsightsNotesPage() {
     }
   };
 
-  return (
-    <div className="page insightsPage insightsNotesPage">
-      <div className="insightsPage__bg" aria-hidden="true" />
-
-      <section className="card insightsHero">
-        <div className="insightsHero__head">
-          <div>
-            <p className="insightsHero__sub">
-              {explicitMetricMode ? `${metricLabel}の詳細データを表示しています。` : "音域・ロングトーン・音量安定性・音程精度を確認できます。"}
-            </p>
-          </div>
-          <Link to="/insights" className="insightsBack">
-            戻る
-          </Link>
-        </div>
-
-        <div className="insightsControlsInline">
-          <div className="insightsSegment insightsTimePage__segment">
-            {visiblePeriods.map((p) => {
-              const active = p === days;
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setDays(p as (typeof PERIODS)[number])}
-                  className={`insightsSegment__btn${active ? " is-active" : ""}`}
-                >
-                  {p} DAYS
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        {isFreeLimited && (
-          <div className="insightsFreeMiniPill">無料プランは7日まで表示。期間拡張はプレミアムで解放されます。</div>
-        )}
-      </section>
-
+  const content = (
+    <>
       {guestMode && (
         <section className="card insightsGuest">
           <div className="insightsGuest__title">ゲスト表示中</div>
@@ -926,10 +1049,24 @@ export default function InsightsNotesPage() {
 
       {state.kind === "ready" && (
         <div className="insightsStack">
-          {explicitMetricMode ? (
-            <>
+          <>
+              {embedded && (
+                <section className="insightsCard">
+                  <div className="insightsCard__head">
+                    <div className="insightsCard__headMain">
+                      <div className="insightsCard__eyebrowRow">
+                        <span className="insightsCard__eyebrowIcon" aria-hidden="true">
+                          <HistorySectionIcon />
+                        </span>
+                        <div className="insightsCard__eyebrow">METRIC</div>
+                      </div>
+                    </div>
+                  </div>
+                  {metricSelector}
+                </section>
+              )}
               <section className="insightsCard">
-                <div className="insightsCard__head insightsCard__head--withMenu">
+                <div className="insightsCard__head">
                   <div className="insightsCard__headMain">
                     <div className="insightsCard__eyebrowRow">
                       <span className="insightsCard__eyebrowIcon" aria-hidden="true">
@@ -938,35 +1075,6 @@ export default function InsightsNotesPage() {
                       <div className="insightsCard__eyebrow">BEST</div>
                     </div>
                   </div>
-                  {!guestMode && excludableBestTarget && (
-                    <div className="insightsBestMenu">
-                      <button
-                        type="button"
-                        className="insightsBestMenu__trigger"
-                        onClick={() => setBestMenuOpen((prev) => !prev)}
-                        aria-expanded={bestMenuOpen}
-                        aria-label="最高記録メニューを開く"
-                        disabled={excludeBusy}
-                      >
-                        <span className="insightsBestMenu__triggerIcon" aria-hidden="true">
-                          <EditPencilIcon />
-                        </span>
-                      </button>
-                      {bestMenuOpen && (
-                        <div className="insightsBestMenu__panel" role="menu" aria-label="最高記録メニュー">
-                          <button
-                            type="button"
-                            className="insightsBestMenu__item"
-                            role="menuitem"
-                            onClick={() => void handleExcludeBest()}
-                            disabled={excludeBusy}
-                          >
-                            この記録を最高記録から除外
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
                 <LatestSingleMetricCard
                   latest={representativeLatest}
@@ -989,10 +1097,8 @@ export default function InsightsNotesPage() {
                       </span>
                       <div className="insightsCard__eyebrow">HISTORY</div>
                     </div>
-                    <div className="insightsMuted">{days}日分の測定履歴をグラフで確認できます。</div>
                   </div>
                 </div>
-                {isFreeLimited && <div className="insightsGraphWindowHint">7日間のグラフを表示中</div>}
                 {metricTab === "range" ? (
                   <>
                     <div className="insightsSegment" style={{ marginBottom: 8 }}>
@@ -1038,7 +1144,7 @@ export default function InsightsNotesPage() {
                       maxPaddingRatio: 0.12,
                     }}
                   />
-                ) : metricTab === "pitch_accuracy" ? (
+                ) : (
                   <ScoreTrendChart
                     points={metricPoints}
                     color="#eab83a"
@@ -1054,14 +1160,6 @@ export default function InsightsNotesPage() {
                       maxPaddingRatio: 0.16,
                     }}
                   />
-                ) : (
-                  <SimpleTrendChart points={metricPoints} compact={isFreeLimited} />
-                )}
-                {metricTab !== "range" && metricTab !== "long_tone" && metricTab !== "volume_stability" && metricTab !== "pitch_accuracy" && (
-                  <div className="insightsSummaryRow" style={{ marginTop: 10 }}>
-                    <div className="insightsBadge">最新: {formatMetricValue(metricLatest, metricTab)}</div>
-                    <div className="insightsBadge">最大: {formatMetricValue(metricBest, metricTab)}</div>
-                  </div>
                 )}
               </section>
 
@@ -1074,7 +1172,6 @@ export default function InsightsNotesPage() {
                       </span>
                       <div className="insightsCard__eyebrow">RECORDS</div>
                     </div>
-                    <div className="insightsMuted insightsNotesPage__sectionNote">選択期間内の測定履歴を一覧で確認できます。</div>
                   </div>
                 </div>
                 {metricTab === "range" && (
@@ -1146,219 +1243,79 @@ export default function InsightsNotesPage() {
                   />
                 )}
               </section>
-            </>
-          ) : (
-            <>
-              <section className="insightsCard">
-                <div className="insightsCard__head">
-                  <div className="insightsCard__headMain">
-                    <div className="insightsCard__eyebrowRow">
-                      <span className="insightsCard__eyebrowIcon" aria-hidden="true">
-                        <BestSectionIcon />
-                      </span>
-                      <div className="insightsCard__eyebrow">BEST</div>
-                    </div>
-                  </div>
-                </div>
-                <LatestSummaryCards
-                  latest={representativeLatest}
-                  rangeBestRun={rangeBestRun}
-                  longToneBest={longToneBest}
-                  longToneBestRun={longToneBestRun}
-                />
-              </section>
-
-              <section className="insightsCard">
-                <div className="insightsCard__head">
-                  <div className="insightsCard__headMain">
-                    <div className="insightsCard__eyebrowRow">
-                      <span className="insightsCard__eyebrowIcon" aria-hidden="true">
-                        <HistorySectionIcon />
-                      </span>
-                      <div className="insightsCard__eyebrow">HISTORY</div>
-                    </div>
-                    <div className="insightsMuted">{days}日分の測定履歴をグラフで確認できます。</div>
-                  </div>
-                </div>
-                {isFreeLimited && <div className="insightsGraphWindowHint">7日間のグラフを表示中</div>}
-                <div className="insightsSegment" style={{ marginBottom: 10 }}>
-                  {METRIC_TABS.map((tab) => {
-                    const active = tab.key === metricTab;
-                    return (
-                      <button
-                        key={tab.key}
-                        type="button"
-                        onClick={() => {
-                          setMetricTab(tab.key);
-                          const next = new URLSearchParams(searchParams);
-                          next.set("metric", tab.key);
-                          setSearchParams(next, { replace: true });
-                        }}
-                        className={`insightsSegment__btn${active ? " is-active" : ""}`}
-                      >
-                        {tab.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {metricTab === "range" ? (
-                  <>
-                    <div className="insightsSegment" style={{ marginBottom: 8 }}>
-                      <button
-                        type="button"
-                        onClick={() => setRangeVoiceTab("total")}
-                        className={`insightsSegment__btn${rangeVoiceTab === "total" ? " is-active" : ""}`}
-                      >
-                        トータル
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRangeVoiceTab("chest")}
-                        className={`insightsSegment__btn${rangeVoiceTab === "chest" ? " is-active" : ""}`}
-                      >
-                        地声
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRangeVoiceTab("falsetto")}
-                        className={`insightsSegment__btn${rangeVoiceTab === "falsetto" ? " is-active" : ""}`}
-                      >
-                        裏声
-                      </button>
-                    </div>
-                    <RangeBandTrendChart points={rangeBandPoints} compact={isFreeLimited} />
-                  </>
-                ) : metricTab === "long_tone" ? (
-                  <LongToneTrendChart points={metricPoints} compact={isFreeLimited} />
-                ) : metricTab === "volume_stability" ? (
-                  <ScoreTrendChart
-                    points={metricPoints}
-                    color="#52c176"
-                    unit="%"
-                    tickFormatter={(v) => `${v.toFixed(0)}%`}
-                    compact={isFreeLimited}
-                    autoScale={{
-                      hardMin: 0,
-                      hardMax: 100,
-                      minSpan: 8,
-                      maxTicks: 6,
-                      minPaddingRatio: 0.12,
-                      maxPaddingRatio: 0.12,
-                    }}
-                  />
-                ) : metricTab === "pitch_accuracy" ? (
-                  <ScoreTrendChart
-                    points={metricPoints}
-                    color="#eab83a"
-                    unit="半音"
-                    tickFormatter={(v) => `${v.toFixed(1)}半音`}
-                    higherIsBetter={false}
-                    compact={isFreeLimited}
-                    autoScale={{
-                      hardMin: 0,
-                      minSpan: 0.2,
-                      maxTicks: 6,
-                      minPaddingRatio: 0.16,
-                      maxPaddingRatio: 0.16,
-                    }}
-                  />
-                ) : (
-                  <SimpleTrendChart points={metricPoints} compact={isFreeLimited} />
-                )}
-                {metricTab !== "range" && metricTab !== "long_tone" && metricTab !== "volume_stability" && metricTab !== "pitch_accuracy" && (
-                  <div className="insightsSummaryRow" style={{ marginTop: 10 }}>
-                    <div className="insightsBadge">最新: {formatMetricValue(metricLatest, metricTab)}</div>
-                    <div className="insightsBadge">最大: {formatMetricValue(metricBest, metricTab)}</div>
-                  </div>
-                )}
-              </section>
-
-              <section className="insightsCard">
-                <div className="insightsCard__head">
-                  <div className="insightsCard__headMain">
-                    <div className="insightsCard__eyebrowRow">
-                      <span className="insightsCard__eyebrowIcon" aria-hidden="true">
-                        <RecordsSectionIcon />
-                      </span>
-                      <div className="insightsCard__eyebrow">RECORDS</div>
-                    </div>
-                    <div className="insightsMuted insightsNotesPage__sectionNote">選択期間内の測定履歴を一覧で確認できます。</div>
-                  </div>
-                </div>
-                {metricTab === "range" && (
-                  <MetricScoreHistoryList
-                    runs={monthFilteredRangeRuns}
-                    latestLabel={formatMetricValue(metricLatest, metricTab)}
-                    bestLabel={formatMetricValue(metricBest, metricTab)}
-                    valueExtractor={(run) => rangeTopMidiForTab(asRangeResult(run.result), rangeVoiceTab)}
-                    detailRenderer={(run) => formatRangeHistoryDetail(asRangeResult(run.result), rangeVoiceTab)}
-                    valueFormatter={(v) => midiToNote(Math.round(v))}
-                    deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}半音`}
-                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                    onRequestUnlock={() => setPremiumModalOpen(true)}
-                    embedded
-                  />
-                )}
-                {metricTab === "long_tone" && (
-                  <LongToneHistoryList
-                    runs={monthFilteredLongToneRuns}
-                    latestLabel={formatMetricValue(metricLatest, metricTab)}
-                    bestLabel={formatMetricValue(metricBest, metricTab)}
-                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                    onRequestUnlock={() => setPremiumModalOpen(true)}
-                    embedded
-                  />
-                )}
-                {metricTab === "volume_stability" && (
-                  <MetricScoreHistoryList
-                    runs={monthFilteredVolumeRuns}
-                    latestLabel={formatMetricValue(metricLatest, metricTab)}
-                    bestLabel={formatMetricValue(metricBest, metricTab)}
-                    valueExtractor={(run) => asVolumeResult(run.result)?.loudness_range_pct ?? null}
-                    detailRenderer={(run) => {
-                      const r = asVolumeResult(run.result);
-                      if (!r) return "-";
-                      const avg = r.avg_loudness_db != null ? `${r.avg_loudness_db.toFixed(1)}dB` : "-";
-                      const range = r.loudness_range_db != null ? `${r.loudness_range_db.toFixed(1)}dB` : "-";
-                      return `平均 ${avg} / 差 ${range}`;
-                    }}
-                    valueFormatter={(v) => `${v.toFixed(1)}%`}
-                    deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`}
-                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                    onRequestUnlock={() => setPremiumModalOpen(true)}
-                    embedded
-                  />
-                )}
-                {metricTab === "pitch_accuracy" && (
-                  <MetricScoreHistoryList
-                    runs={monthFilteredPitchAccuracyRuns}
-                    latestLabel={formatSemitoneValue(pitchAccuracySemitoneLatest)}
-                    bestLabel={formatSemitoneValue(pitchAccuracySemitoneBest)}
-                    valueExtractor={(run) => {
-                      const r = asPitchAccuracyResult(run.result);
-                      return r?.avg_cents_error != null ? Math.max(0, r.avg_cents_error / 100) : null;
-                    }}
-                    detailRenderer={(run) => {
-                      const r = asPitchAccuracyResult(run.result);
-                      if (!r) return "-";
-                      const cents = r.avg_cents_error != null ? `${r.avg_cents_error.toFixed(1)}cent` : "-";
-                      const notes = r.note_count ?? "-";
-                      return `平均ズレ ${cents} / 発声音数 ${notes}`;
-                    }}
-                    valueFormatter={(v) => `${v.toFixed(2)}半音`}
-                    deltaFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}半音`}
-                    higherIsBetter={false}
-                    lockedFromIndex={isFreeLimited ? FREE_HISTORY_LIMIT : null}
-                    onRequestUnlock={() => setPremiumModalOpen(true)}
-                    embedded
-                  />
-                )}
-              </section>
-            </>
-          )}
+          </>
         </div>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="insightsNotesPage insightsNotesPage--embedded">
+        {content}
+        <PremiumUpsellModal
+          open={premiumModalOpen}
+          onClose={() => setPremiumModalOpen(false)}
+          variant="lp"
+          tone="log"
+          sectionLabel="INSIGHTS"
+          sectionLabelIconSrc={insightsLabelIcon}
+          title="分析をもっと深く見る"
+          onCta={() => {
+            setPremiumModalOpen(false);
+            navigate("/premium");
+          }}
+          description="無料プランでは7日間のみ表示されます。"
+          featureCardsTitle="プレミアムプランに加入することで以下の機能が解放されます"
+          featureCards={[
+            { iconSrc: insightsTrendCyan, title: "TREND", sub: "30日・90日・365日ごとの推移を、グラフで確認できます。" },
+            { iconSrc: insightsHistoryCyan, title: "HISTORY", sub: "これまでの測定履歴を一覧で確認しながら、過去の記録を振り返れます。" },
+            { iconSrc: insightsAnalysisCyan, title: "ANALYSIS", sub: "数値の変化をもとに、前回比や成長の幅を確認できます。" },
+          ]}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="page insightsPage insightsNotesPage">
+      <div className="insightsPage__bg" aria-hidden="true" />
+
+      {metricSelector}
+      <section className="card insightsHero">
+        <div className="insightsHero__head">
+          <div>
+            <p className="insightsHero__sub">
+              {explicitMetricMode ? `${metricLabel}の詳細データを表示しています。` : "音域・ロングトーン・音量安定性・音程精度を確認できます。"}
+            </p>
+          </div>
+          <Link to={backPath} className="insightsBack">
+            戻る
+          </Link>
+        </div>
+        <div className="insightsControlsInline">
+          <div className="insightsSegment insightsTimePage__segment">
+            {visiblePeriods.map((p) => {
+              const active = p === days;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setDays(p as (typeof PERIODS)[number])}
+                  className={`insightsSegment__btn${active ? " is-active" : ""}`}
+                >
+                  {p} DAYS
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {isFreeLimited && (
+          <div className="insightsFreeMiniPill">無料プランは7日まで表示。期間拡張はプレミアムで解放されます。</div>
+        )}
+      </section>
+
+      {content}
       <PremiumUpsellModal
         open={premiumModalOpen}
         onClose={() => setPremiumModalOpen(false)}
@@ -1382,6 +1339,10 @@ export default function InsightsNotesPage() {
       />
     </div>
   );
+}
+
+export default function InsightsNotesPage() {
+  return <InsightsNotesView />;
 }
 
 function BestSectionIcon() {
@@ -1412,16 +1373,6 @@ function RecordsSectionIcon() {
       <path className="accent" d="M8.5 9h7" />
       <path d="M8.5 12.5h7" />
       <path d="M8.5 16h4.2" />
-    </svg>
-  );
-}
-
-function EditPencilIcon() {
-  return (
-    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-      <path d="M4 20h4.2l9.9-9.9-4.2-4.2L4 15.8Z" />
-      <path d="m12.8 6.1 4.2 4.2" />
-      <path d="M4 20h16" />
     </svg>
   );
 }
@@ -1469,10 +1420,6 @@ function pickDailyRepresentativeRuns(
   return Array.from(byDate.values())
     .map(({ run }) => run)
     .sort((a, b) => a.recorded_at.localeCompare(b.recorded_at));
-}
-
-function nextRunsAfterExcluding(runs: MeasurementRun[], runId: number): MeasurementRun[] {
-  return runs.filter((run) => run.id !== runId);
 }
 
 function nextRunsAfterRestoring(runs: MeasurementRun[], run: MeasurementRun): MeasurementRun[] {
@@ -1586,90 +1533,6 @@ function LatestSingleMetricCard({
         差: {volume?.loudness_range_db != null ? `${volume.loudness_range_db.toFixed(2)} dB` : "-"}
       </div>
       <div className="insightsMuted">許容幅内率 (平均±3dB): {volume?.loudness_range_pct != null ? `${volume.loudness_range_pct.toFixed(1)}%` : "-"}</div>
-    </div>
-  );
-}
-
-function LatestSummaryCards({
-  latest,
-  rangeBestRun,
-  longToneBest,
-  longToneBestRun,
-}: {
-  latest: {
-    range: MeasurementRun | null;
-    long_tone: MeasurementRun | null;
-    volume_stability: MeasurementRun | null;
-    pitch_accuracy: MeasurementRun | null;
-  };
-  rangeBestRun: { run: MeasurementRun; result: NonNullable<ReturnType<typeof asRangeResult>> } | null;
-  longToneBest: number | null;
-  longToneBestRun: { run: MeasurementRun; sec: number; note: string | null } | null;
-}) {
-  const range = rangeBestRun?.result ?? asRangeResult(latest.range?.result);
-  const longTone = asLongToneResult(latest.long_tone?.result);
-  const volume = asVolumeResult(latest.volume_stability?.result);
-  const pitchAccuracy = asPitchAccuracyResult(latest.pitch_accuracy?.result);
-
-  return (
-    <div className="insightsMeasureGrid">
-      <div className="insightsMeasureCard">
-        <div className="insightsMeasureLabel">音域（過去最高）</div>
-        <RangeLikeCard range={range} compact />
-      </div>
-
-      <div className="insightsMeasureCard">
-        <div className="insightsMeasureLabel">ロングトーン（最高記録）</div>
-        <LongToneDial
-          seconds={longToneBestRun?.sec ?? longTone?.sustain_sec ?? null}
-          note={longToneBestRun?.note ?? longTone?.sustain_note ?? null}
-          bestSeconds={longToneBest}
-          recordedAt={longToneBestRun?.run.recorded_at ?? null}
-          latestSeconds={longTone?.sustain_sec ?? null}
-        />
-      </div>
-
-      <div className="insightsMeasureCard">
-        <div className="insightsMeasureLabel">音量安定性（最高記録）</div>
-        <div className="insightsKeyValue">
-          <div className="insightsKeyValue__k">平均</div>
-          <div className="insightsKeyValue__v">{formatDb(volume?.avg_loudness_db ?? null)}</div>
-        </div>
-        <div className="insightsKeyValue">
-          <div className="insightsKeyValue__k">最小</div>
-          <div className="insightsKeyValue__v">{formatDb(volume?.min_loudness_db ?? null)}</div>
-        </div>
-        <div className="insightsKeyValue">
-          <div className="insightsKeyValue__k">最大</div>
-          <div className="insightsKeyValue__v">{formatDb(volume?.max_loudness_db ?? null)}</div>
-        </div>
-        <div className="insightsMuted" style={{ marginTop: 6 }}>
-          差: {volume?.loudness_range_db != null ? `${volume.loudness_range_db.toFixed(2)} dB` : "-"}
-        </div>
-        <div className="insightsMuted">許容幅内率 (平均±3dB): {volume?.loudness_range_pct != null ? `${volume.loudness_range_pct.toFixed(1)}%` : "-"}</div>
-      </div>
-
-      <div className="insightsMeasureCard">
-        <div className="insightsMeasureLabel">音程精度（最新）</div>
-        <div className="insightsPitchHeroCard">
-          <div className="insightsPitchHeroCard__valueRow">
-            <span className="insightsPitchHeroCard__value">{pitchAccuracy?.accuracy_score != null ? pitchAccuracy.accuracy_score.toFixed(1) : "-"}</span>
-            <span className="insightsPitchHeroCard__unit">点</span>
-          </div>
-          <div className="insightsPitchHeroCard__sub">
-            平均ズレ: {pitchAccuracy?.avg_cents_error != null ? `${pitchAccuracy.avg_cents_error.toFixed(1)} cent` : "-"}
-          </div>
-          <div className="insightsPitchHeroCard__chips">
-            <div className="insightsPitchHeroCard__chip">発声音数 {pitchAccuracy?.note_count ?? "-"}</div>
-            <div className="insightsPitchHeroCard__chip">
-              目安 ±{pitchAccuracy?.avg_cents_error != null ? Math.round(Math.max(1, pitchAccuracy.avg_cents_error)) : "-"} cent
-            </div>
-            <div className="insightsPitchHeroCard__chip">
-              精度 {pitchAccuracy?.accuracy_score != null ? `${pitchAccuracy.accuracy_score.toFixed(1)}点` : "-"}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -1857,75 +1720,6 @@ function RangeCardSection({
   );
 }
 
-function LongToneDial({
-  seconds,
-  note,
-  bestSeconds,
-  recordedAt,
-  latestSeconds,
-}: {
-  seconds: number | null;
-  note: string | null;
-  bestSeconds: number | null;
-  recordedAt?: string | null;
-  latestSeconds?: number | null;
-}) {
-  const safeSec = seconds == null ? 0 : Math.max(0, seconds);
-  const goalSec = 20;
-  const bestRatio = safeSec > 0 ? Math.max(0, Math.min(100, Math.round((safeSec / goalSec) * 100))) : 0;
-  const progress = bestRatio / 100;
-  const isBest = seconds != null && bestSeconds != null && seconds >= bestSeconds;
-  const diffFromLatest = seconds != null && latestSeconds != null ? seconds - latestSeconds : null;
-  const progressColor = "#3b82f6";
-  const r = 42;
-  const c = 52;
-  const arc = 2 * Math.PI * r;
-  const offset = arc * (1 - progress);
-
-  return (
-    <div className="insightsLongTone insightsLongTone--record">
-      <div className="insightsLongTone__main">
-        <div className="insightsLongTone__ringWrap">
-          <svg viewBox="0 0 104 104" className="insightsLongTone__ring" aria-hidden="true">
-            <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(59, 130, 246, 0.22)" strokeWidth="8" />
-            <circle
-              cx={c}
-              cy={c}
-              r={r}
-              fill="none"
-              stroke={progressColor}
-              strokeWidth="8"
-              strokeDasharray={arc}
-              strokeDashoffset={offset}
-              strokeLinecap="round"
-              transform="rotate(-90 52 52)"
-            />
-          </svg>
-          <div className="insightsLongTone__center">
-            <div className="insightsLongTone__value">{seconds != null ? seconds.toFixed(1) : "-"}</div>
-            <div className="insightsLongTone__unit">秒</div>
-          </div>
-        </div>
-        <div className="insightsLongTone__compareRow insightsLongTone__compareRow--record">
-          <div className="insightsLongTone__compareItem">
-            <span className="insightsLongTone__compareLabel">最高記録</span>
-            <strong>{seconds != null ? `${seconds.toFixed(1)}s` : "—"}</strong>
-            {isBest && <span className="insightsLongTone__bestBadge">BEST</span>}
-            {recordedAt && <span className="insightsLongTone__meta">記録日: {recordedAt.slice(0, 10)}</span>}
-            {diffFromLatest != null && (
-              <span className="insightsLongTone__meta">
-                最新との差: {diffFromLatest >= 0 ? "+" : ""}
-                {diffFromLatest.toFixed(1)}s
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="insightsLongTone__note">発声音程: {note ?? "-"}</div>
-    </div>
-  );
-}
-
 function formatMetricValue(v: number | null, key: (typeof METRIC_TABS)[number]["key"]) {
   if (v == null) return "—";
   if (key === "range") return midiToNote(Math.round(v));
@@ -1933,88 +1727,6 @@ function formatMetricValue(v: number | null, key: (typeof METRIC_TABS)[number]["
   if (key === "volume_stability") return `${Number(v).toFixed(1)}%`;
   if (key === "pitch_accuracy") return `${Number(v).toFixed(1)}点`;
   return `${Number(v).toFixed(1)}点`;
-}
-
-function SimpleTrendChart({
-  points,
-  yMode = "number",
-  compact = false,
-}: {
-  points: MeasurementPoint[];
-  yMode?: "number" | "note";
-  compact?: boolean;
-}) {
-  const width = compact ? Math.max(280, 92 + points.length * 30) : 760;
-  const height = 220;
-  const padTop = 14;
-  const padBottom = 34;
-  const padLeft = 44;
-  const padRight = 16;
-  const values = points.map((p) => p.value).filter((v): v is number => v != null);
-  const maxRaw = values.length ? Math.max(...values) : 1;
-  const minRaw = values.length ? Math.min(...values) : 0;
-  let max = maxRaw;
-  let min = minRaw;
-  if (yMode === "note") {
-    const paddedMin = Math.floor(minRaw) - 2;
-    const paddedMax = Math.ceil(maxRaw) + 2;
-    min = paddedMin;
-    max = paddedMax;
-    const span = max - min;
-    if (span < 12) {
-      const center = (max + min) / 2;
-      min = Math.floor(center - 6);
-      max = Math.ceil(center + 6);
-    }
-  }
-  const range = Math.max(1, max - min);
-  const step = points.length > 1 ? (width - padLeft - padRight) / (points.length - 1) : 0;
-
-  let d = "";
-  points.forEach((p, i) => {
-    if (p.value == null) return;
-    const x = padLeft + step * i;
-    const y = height - padBottom - ((p.value - min) / range) * (height - padTop - padBottom);
-    d += d.length === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
-  });
-  const xTicks = buildAdaptiveXTicks(points.length);
-
-  return (
-    <div style={{ overflowX: "auto" }}>
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", minWidth: compact ? width : 520, height: 220 }} aria-hidden="true">
-        <line x1={padLeft} y1={height - padBottom} x2={width - padRight} y2={height - padBottom} stroke="rgba(40,79,130,0.36)" />
-        <line x1={padLeft} y1={padTop} x2={padLeft} y2={height - padBottom} stroke="rgba(40,79,130,0.36)" />
-        {yMode === "note" &&
-          Array.from({ length: 7 }).map((_, idx) => {
-            const r = idx / 6;
-            const midi = Math.round(min + (max - min) * (1 - r));
-            const y = padTop + (height - padTop - padBottom) * r;
-            return (
-              <g key={`note-tick-${idx}`}>
-                <line x1={padLeft} y1={y} x2={width - padRight} y2={y} stroke="rgba(54,110,182,0.2)" />
-                <text x={padLeft - 8} y={y + 4} textAnchor="end" style={{ fontSize: 12, opacity: 0.82, fontWeight: 800 }}>
-                  {midiToNote(midi)}
-                </text>
-              </g>
-            );
-          })}
-        {xTicks.map((idx) => {
-          const point = points[idx];
-          const x = padLeft + step * idx;
-          const dateLabel = point?.date ? point.date.slice(5) : "";
-          return (
-            <g key={`x-tick-${idx}`}>
-              <line x1={x} y1={height - padBottom} x2={x} y2={height - padBottom + 4} stroke="rgba(42,89,155,0.38)" />
-              <text x={x} y={height - 8} textAnchor="middle" style={{ fontSize: 11, opacity: 0.76 }}>
-                {dateLabel}
-              </text>
-            </g>
-          );
-        })}
-        <path d={d} fill="none" stroke="color-mix(in srgb, var(--accent) 72%, #0b3f77)" strokeWidth="3" />
-      </svg>
-    </div>
-  );
 }
 
 function LongToneTrendChart({ points, compact = false }: { points: MeasurementPoint[]; compact?: boolean }) {
@@ -2757,39 +2469,6 @@ function RangeBandTrendChart({ points, compact = false }: { points: RangeBandPoi
           </linearGradient>
         </defs>
 
-        <rect
-          x={padLeft}
-          y={padTop}
-          width={width - padLeft - padRight}
-          height={height - padTop - padBottom}
-          fill="var(--ins-range-plot-bg-start, #fff)"
-          rx={12}
-        />
-        {buildSparseMidiTicks(min, max, layout.bgTickMax).map((midi) => {
-          const yTop = yFromMidi(midi + 1);
-          const yBottom = yFromMidi(midi);
-          const h = Math.max(0, yBottom - yTop);
-          if (h <= 0) return null;
-          return (
-            <rect
-              key={`range-bg-row-${midi}`}
-              x={padLeft}
-              y={yTop}
-              width={width - padLeft - padRight}
-              height={h}
-              fill={
-                isBlackKey(midi % 12)
-                  ? isMobile
-                    ? "rgba(42, 67, 93, 0.016)"
-                    : "rgba(42, 67, 93, 0.024)"
-                  : isMobile
-                    ? "rgba(255, 255, 255, 0.012)"
-                    : "rgba(255, 255, 255, 0.018)"
-              }
-            />
-          );
-        })}
-
         {yTicks.map((midi, idx) => {
           const y = yFromMidi(midi);
           const isC = midi % 12 === 0;
@@ -3009,11 +2688,6 @@ function buildReadableMidiTicks(params: {
     .map((v) => v.midi);
 
   return pruned.length > 0 ? pruned : [min, max];
-}
-
-function isBlackKey(pitchClass: number): boolean {
-  const normalized = ((pitchClass % 12) + 12) % 12;
-  return normalized === 1 || normalized === 3 || normalized === 6 || normalized === 8 || normalized === 10;
 }
 
 function clamp(value: number, min: number, max: number): number {

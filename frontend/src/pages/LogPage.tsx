@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchTrainingLogByDate, upsertTrainingLog } from "../api/trainingLogs";
 import { fetchMonthlyLog, fetchMonthlyLogComparison, upsertMonthlyLog } from "../api/monthlyLogs";
@@ -25,12 +26,14 @@ import {
 import TodayMenuModal from "../features/log/components/TodayMenuModal";
 import MonthlyLogsModal from "../features/monthlyLogs/MonthlyLogsModal";
 import ProcessingOverlay from "../components/ProcessingOverlay";
+import TrainingPage from "./TrainingPage";
 
 import "./LogPage.css";
+import "./TrainingPage.css";
 
 import { setLastLogPath } from "../features/log/logNavigation";
 import TutorialModal from "../components/TutorialModal";
-import { loadTutorialStage, saveTutorialStage } from "../features/tutorial/tutorialFlow";
+import { loadTutorialStage, saveTutorialStage, subscribeTutorialStage, type TutorialStage } from "../features/tutorial/tutorialFlow";
 import handPointerImage from "../assets/tutorial/pointer.png";
 import coachLabelIcon from "../assets/premium/coach-label-icon.svg";
 import coachTrackIcon from "../assets/premium/coach-track-cyan.svg";
@@ -65,6 +68,29 @@ function monthDatesISO(value: string): string[] {
   const month = base.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   return Array.from({ length: daysInMonth }, (_, index) => toISODate(new Date(year, month, index + 1)));
+}
+
+function monthDatesForMonth(month: string): string[] {
+  const m = month.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return monthDatesISO(todayISO());
+  const year = Number.parseInt(m[1], 10);
+  const monthIndex = Number.parseInt(m[2], 10) - 1;
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  return Array.from({ length: daysInMonth }, (_, index) => toISODate(new Date(year, monthIndex, index + 1)));
+}
+
+function shiftMonthISO(month: string, diff: number): string {
+  const m = month.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return todayISO().slice(0, 7);
+  const year = Number.parseInt(m[1], 10);
+  const monthIndex = Number.parseInt(m[2], 10) - 1;
+  return toISODate(new Date(year, monthIndex + diff, 1)).slice(0, 7);
+}
+
+function monthGridOffsetSunday(month: string): number {
+  const firstDate = parseISODate(`${month}-01`);
+  if (!firstDate) return 0;
+  return firstDate.getDay();
 }
 
 function addDaysISO(value: string, diff: number): string {
@@ -323,12 +349,66 @@ function renderSectionIcon(kind: "goal" | "measure" | "practice" | "today_menus"
   );
 }
 
+function StepArrowIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      {direction === "left" ? (
+        <path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      ) : (
+        <path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      )}
+    </svg>
+  );
+}
+
 function renderEditPencilIcon(): React.ReactNode {
   return (
     <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
       <path d="M4 20h4.2l9.9-9.9-4.2-4.2L4 15.8Z" />
       <path d="m12.8 6.1 4.2 4.2" />
       <path d="M4 20h16" />
+    </svg>
+  );
+}
+
+function renderCalendarSummaryIcon(kind: "days" | "time" | "menu"): React.ReactNode {
+  if (kind === "days") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <rect x="4" y="6.5" width="16" height="13" rx="3" />
+        <path d="M8 4.5v4M16 4.5v4M4 10h16" />
+        <path className="accent" d="M8 13h3M8 16h6" />
+      </svg>
+    );
+  }
+  if (kind === "time") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <circle cx="12" cy="12" r="7.5" />
+        <path d="M12 8.5v4.2l2.9 1.7" />
+        <path className="accent" d="M17.5 6.5 19 5" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M6.5 8.5h11M6.5 12h8M6.5 15.5h6" />
+      <path d="M17.5 15.5 19 17l2.5-3" />
+      <rect x="4" y="5" width="16" height="14" rx="3" />
+    </svg>
+  );
+}
+
+function renderMonthSectionIcon(): React.ReactNode {
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+      <path d="M6 18.5h12" />
+      <path d="M7.5 18V9.5" />
+      <path d="M12 18V5.5" />
+      <path d="M16.5 18v-6.5" />
+      <circle className="accent" cx="7.5" cy="8.5" r="1.4" />
+      <circle className="accent" cx="12" cy="4.5" r="1.4" />
+      <circle className="accent" cx="16.5" cy="10.5" r="1.4" />
     </svg>
   );
 }
@@ -517,6 +597,8 @@ export default function LogPage() {
   const isMonthMode = false;
   const currentLogPath = `/log?date=${encodeURIComponent(selectedDate)}`;
   const weekDates = useMemo(() => monthDatesISO(selectedDate), [selectedDate]);
+  const monthDates = useMemo(() => monthDatesForMonth(selectedMonth), [selectedMonth]);
+  const monthGridOffset = useMemo(() => monthGridOffsetSunday(selectedMonth), [selectedMonth]);
   const isToday = selectedDate === today;
   const missionGuide = params.get("missionGuide");
   const forceGuideDailyLog = missionGuide === "beginner_daily_log" && isDayMode && isToday && !guestMode;
@@ -557,6 +639,8 @@ export default function LogPage() {
   const aiGenerateBtnRef = useRef<HTMLButtonElement | null>(null);
   const aiThemeToggleBtnRef = useRef<HTMLButtonElement | null>(null);
   const aiThemeInputRef = useRef<HTMLInputElement | null>(null);
+  const beginnerMissionGuideCardRef = useRef<HTMLButtonElement | null>(null);
+  const trainingSectionRef = useRef<HTMLDivElement | null>(null);
   const [aiGenerateGuidePos, setAiGenerateGuidePos] = useState<{ left: number; top: number } | null>(null);
   const forceGuideAiThemeToggle = aiMissionGuideStep === "theme_toggle";
   const forceGuideAiThemeInput = aiMissionGuideStep === "theme_input";
@@ -600,6 +684,10 @@ export default function LogPage() {
   const [monthModalOpen, setMonthModalOpen] = useState(false);
   const [todayMenuModalOpen, setTodayMenuModalOpen] = useState(false);
   const [monthlyLogsModalOpen, setMonthlyLogsModalOpen] = useState(false);
+  const [trainingTutorialStage, setTrainingTutorialStage] = useState<TutorialStage | null>(null);
+  const forceGuideBeginnerMissionCard = trainingTutorialStage === "log_open_beginner_missions";
+  const forceGuideTrainingSection =
+    trainingTutorialStage === "log_training_select_range" || trainingTutorialStage === "log_training_press_record";
 
   // Daily log fetch
   useEffect(() => {
@@ -775,6 +863,23 @@ export default function LogPage() {
     };
   }, [authMe]);
 
+  useEffect(() => {
+    if (!authMe) return;
+    const handler = () => {
+      void (async () => {
+        const [missionsRes, latestRes] = await Promise.allSettled([fetchMissions(), fetchLatestMeasurements()]);
+        if (missionsRes.status === "fulfilled" && !missionsRes.value.error && missionsRes.value.data) {
+          setBeginnerMissions(missionsRes.value.data.beginner ?? []);
+        }
+        if (latestRes.status === "fulfilled") {
+          setLatestMeasurements(latestRes.value);
+        }
+      })();
+    };
+    window.addEventListener("measurements:updated", handler);
+    return () => window.removeEventListener("measurements:updated", handler);
+  }, [authMe]);
+
   // /log/new 保存後のトースト受け取り
   useEffect(() => {
     const navState = location.state as LogPageNavState;
@@ -822,11 +927,42 @@ export default function LogPage() {
   useEffect(() => {
     if (authLoading || !authMe) {
       setTutorialWelcomeOpen(false);
+      setTrainingTutorialStage(null);
       return;
     }
     const stage = loadTutorialStage(authMe.id);
     setTutorialWelcomeOpen(stage === "log_welcome");
+    setTrainingTutorialStage(stage);
   }, [authLoading, authMe]);
+
+  useEffect(() => {
+    if (!authMe) return;
+    return subscribeTutorialStage(authMe.id, setTrainingTutorialStage);
+  }, [authMe]);
+
+  useEffect(() => {
+    if (location.hash !== "#training" || !isDayMode) return;
+    const id = window.setTimeout(() => {
+      trainingSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 140);
+    return () => window.clearTimeout(id);
+  }, [isDayMode, location.hash]);
+
+  useEffect(() => {
+    if (!forceGuideBeginnerMissionCard || !isDayMode) return;
+    const id = window.setTimeout(() => {
+      beginnerMissionGuideCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 140);
+    return () => window.clearTimeout(id);
+  }, [forceGuideBeginnerMissionCard, isDayMode]);
+
+  useEffect(() => {
+    if (!forceGuideTrainingSection || !isDayMode) return;
+    const id = window.setTimeout(() => {
+      trainingSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 140);
+    return () => window.clearTimeout(id);
+  }, [forceGuideTrainingSection, isDayMode]);
 
   useEffect(() => {
     if (!shouldRunAiMissionGuide) {
@@ -923,6 +1059,14 @@ export default function LogPage() {
     });
   };
 
+  const onChangeMonth = (nextMonth: string) => {
+    const nextDates = monthDatesForMonth(nextMonth);
+    const fallbackDate = nextDates[0] ?? today;
+    const nextSelectedDate =
+      selectedDate.startsWith(`${nextMonth}-`) && nextDates.includes(selectedDate) ? selectedDate : fallbackDate;
+    onChangeDate(nextSelectedDate);
+  };
+
   const goLogin = () => {
     navigate("/login", { state: { fromPath: currentLogPath } });
   };
@@ -975,12 +1119,6 @@ export default function LogPage() {
       longPressTriggeredRef.current = false;
     }, 0);
     clearWeekLongPress();
-  };
-
-  const scrollToGuestPreview = () => {
-    const el = document.getElementById("guest-preview");
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const openTodayMenuModal = () => {
@@ -1166,10 +1304,114 @@ export default function LogPage() {
       result: { avg_cents_error: 22.4, accuracy_score: 77.6, note_count: 96 },
     },
   };
+  const previewMonthData = useMemo<MonthlyLogData | null>(() => {
+    if (!guestMode) return null;
+
+    const previewMenus = [
+      { id: -11, name: "リップロール", color: "#F59E0B", archived: false },
+      { id: -12, name: "ハミング", color: "#34D399", archived: false },
+      { id: -13, name: "ミックス練習", color: "#60A5FA", archived: false },
+    ];
+    const menuById = new Map(previewMenus.map((menu) => [menu.id, menu]));
+    const buildPreviewLog = (
+      id: number,
+      practiced_on: string,
+      duration_min: number,
+      menuIds: number[],
+      notes: string
+    ): TrainingLog => ({
+      id,
+      practiced_on,
+      duration_min,
+      menus: menuIds
+        .map((menuId) => menuById.get(menuId))
+        .filter((menu): menu is NonNullable<typeof menu> => menu != null),
+      notes,
+    });
+    const previewLogsByMonth: Record<string, TrainingLog[]> = {
+      "2026-02": [
+        buildPreviewLog(-201, "2026-02-03", 18, [ -11 ], "声の立ち上がりを軽く確認。"),
+        buildPreviewLog(-202, "2026-02-06", 34, [ -12, -13 ], "ミドル付近のつながりを確認。"),
+        buildPreviewLog(-203, "2026-02-09", 52, [ -11, -12 ], "息漏れを減らして安定感を意識。"),
+        buildPreviewLog(-209, "2026-02-11", 70, [ -11, -12, -13 ], "週の軸として長めに通して実施。"),
+        buildPreviewLog(-204, "2026-02-12", 27, [ -13 ], "音程を優先してテンポを落とした。"),
+        buildPreviewLog(-205, "2026-02-16", 41, [ -11, -13 ], "換声点前後を重点的に練習。"),
+        buildPreviewLog(-210, "2026-02-18", 70, [ -11, -12, -13 ], "基礎からフレーズまでまとめて確認。"),
+        buildPreviewLog(-206, "2026-02-20", 63, [ -12, -13 ], "語尾で喉を締めない感覚を確認。"),
+        buildPreviewLog(-207, "2026-02-24", 22, [ -11 ], "ウォームアップ中心。"),
+        buildPreviewLog(-211, "2026-02-25", 70, [ -11, -12, -13 ], "週後半の確認としてしっかり練習。"),
+        buildPreviewLog(-208, "2026-02-27", 48, [ -11, -12, -13 ], "全体を通して録音しながら確認。"),
+      ],
+      "2026-03": [
+        buildPreviewLog(-301, "2026-03-02", 24, [ -11 ], "軽くウォームアップしてスタート。"),
+        buildPreviewLog(-302, "2026-03-05", 38, [ -12, -13 ], "地声からミックスへのつなぎを確認。"),
+        buildPreviewLog(-309, "2026-03-07", 70, [ -11, -12, -13 ], "週末にまとめて長めの練習を実施。"),
+        buildPreviewLog(-303, "2026-03-08", 46, [ -11, -12 ], "響きを前に集める意識。"),
+        buildPreviewLog(-304, "2026-03-11", 19, [ -13 ], "短めに音程確認。"),
+        buildPreviewLog(-310, "2026-03-14", 70, [ -11, -12, -13 ], "録音を聞き返しながら全体を調整。"),
+        buildPreviewLog(-305, "2026-03-15", 28, [ -11, -12, -13 ], "高音で喉が締まりやすい。息を少し減らすと安定。"),
+        buildPreviewLog(-306, "2026-03-18", 57, [ -12, -13 ], "ロングトーン後にフレーズへ接続。"),
+        buildPreviewLog(-311, "2026-03-21", 70, [ -11, -12, -13 ], "週の仕上げとして通しで確認。"),
+        buildPreviewLog(-307, "2026-03-22", 66, [ -11, -13 ], "換声点をまたぐ流れを重点的に。"),
+        buildPreviewLog(-308, "2026-03-27", 31, [ -11, -12 ], "録音を聞き返して音量差を調整。"),
+        buildPreviewLog(-312, "2026-03-28", 70, [ -11, -12, -13 ], "月末に向けて長めに記録を残した。"),
+      ],
+      "2026-04": [
+        buildPreviewLog(-401, "2026-04-01", 16, [ -11 ], "短いウォームアップ。"),
+        buildPreviewLog(-402, "2026-04-04", 36, [ -12, -13 ], "高音前の脱力を確認。"),
+        buildPreviewLog(-409, "2026-04-06", 70, [ -11, -12, -13 ], "週の前半に長めの練習を実施。"),
+        buildPreviewLog(-403, "2026-04-07", 44, [ -11, -12 ], "ハミング中心で当たりを整える。"),
+        buildPreviewLog(-404, "2026-04-10", 29, [ -13 ], "地声の支えを確認。"),
+        buildPreviewLog(-410, "2026-04-13", 70, [ -11, -12, -13 ], "録音と聞き返しをセットで実施。"),
+        buildPreviewLog(-405, "2026-04-14", 53, [ -11, -13 ], "音域を広げるより安定を優先。"),
+        buildPreviewLog(-406, "2026-04-19", 68, [ -12, -13 ], "テンポを上げても崩れないか確認。"),
+        buildPreviewLog(-411, "2026-04-20", 70, [ -11, -12, -13 ], "週1回の長めメニューを継続。"),
+        buildPreviewLog(-407, "2026-04-23", 21, [ -11 ], "短時間で確認のみ。"),
+        buildPreviewLog(-412, "2026-04-27", 70, [ -11, -12, -13 ], "月末前に全体をまとめて確認。"),
+        buildPreviewLog(-408, "2026-04-28", 47, [ -11, -12, -13 ], "月末のまとめとして全体を実施。"),
+      ],
+    };
+    const daily_logs = previewLogsByMonth[selectedMonth] ?? [];
+    const menuCountsMap = new Map<number, { menu_id: number; name: string; color: string | null; count: number }>();
+    let totalDuration = 0;
+    let totalMenuCount = 0;
+
+    for (const logItem of daily_logs) {
+      totalDuration += logItem.duration_min ?? 0;
+      totalMenuCount += logItem.menus?.length ?? 0;
+      for (const menu of logItem.menus ?? []) {
+        const current = menuCountsMap.get(menu.id);
+        if (current) {
+          current.count += 1;
+        } else {
+          menuCountsMap.set(menu.id, {
+            menu_id: menu.id,
+            name: menu.name,
+            color: menu.color ?? null,
+            count: 1,
+          });
+        }
+      }
+    }
+
+    return {
+      month: selectedMonth,
+      month_start: monthDates[0] ?? `${selectedMonth}-01`,
+      month_end: monthDates[monthDates.length - 1] ?? `${selectedMonth}-28`,
+      notes: null,
+      summary: {
+        total_duration_min: totalDuration,
+        total_menu_count: totalMenuCount,
+        menu_counts: Array.from(menuCountsMap.values()).sort((a, b) => b.count - a.count),
+      },
+      daily_logs,
+    };
+  }, [guestMode, monthDates, selectedMonth]);
 
   const effectiveLog = guestMode ? previewLog : log;
   const effectiveLatestMeasurements = guestMode ? previewMeasurements : latestMeasurements;
   const effectiveAiRec = guestMode ? previewAiRec : aiRec;
+  const effectiveMonthData = guestMode ? previewMonthData : monthData;
   const showAiLauncher = isDayMode;
 
   const menuItems = effectiveLog?.menus ?? [];
@@ -1177,11 +1419,23 @@ export default function LogPage() {
   const emptyHint = isToday
     ? "最初は1項目だけでもOKです。入力した分だけ反映されます。"
     : "この日付で入力すると、今日の結果と同じ形式で表示されます。";
-  const monthTotalDuration = monthData?.summary.total_duration_min ?? 0;
+  const monthTotalDuration = effectiveMonthData?.summary.total_duration_min ?? 0;
   const monthTotalDurationHourText = minutesToHoursText(monthTotalDuration);
-  const monthTotalMenuCount = monthData?.summary.total_menu_count ?? 0;
-  const monthMenuCounts = monthData?.summary.menu_counts ?? [];
-  const monthPracticeDays = monthData?.daily_logs?.length ?? 0;
+  const monthTotalMenuCount = effectiveMonthData?.summary.total_menu_count ?? 0;
+  const monthMenuCounts = effectiveMonthData?.summary.menu_counts ?? [];
+  const monthPracticeDays = effectiveMonthData?.daily_logs?.length ?? 0;
+  const topMonthMenus = monthMenuCounts.slice(0, 3);
+  const calendarActivityByDate = useMemo(() => {
+    const entries = new Map<string, { level: "none" | "light" | "active"; dots: number }>();
+    for (const logItem of effectiveMonthData?.daily_logs ?? []) {
+      const duration = logItem.duration_min ?? 0;
+      const menuCount = logItem.menus?.length ?? 0;
+      const dots = duration >= 60 ? 3 : duration >= 30 ? 2 : duration > 0 ? 1 : 0;
+      const level = duration >= 45 || menuCount >= 3 ? "active" : dots > 0 ? "light" : "none";
+      entries.set(logItem.practiced_on, { level, dots });
+    }
+    return entries;
+  }, [effectiveMonthData?.daily_logs]);
   const comparisonDiagnosis = useMemo(
     () => (monthComparisonData ? buildComparisonDiagnosis(monthComparisonData) : null),
     [monthComparisonData]
@@ -1282,15 +1536,6 @@ export default function LogPage() {
   }, [authMe, beginnerCompletedOnce, beginnerPendingCount, beginnerTotalCount]);
 
   useEffect(() => {
-    if (!beginnerMissionModalOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [beginnerMissionModalOpen]);
-
-  useEffect(() => {
     if (!beginnerCompletedOnce) return;
     setBeginnerMissionModalOpen(false);
   }, [beginnerCompletedOnce]);
@@ -1342,7 +1587,7 @@ export default function LogPage() {
           ? `${rangeResult.range_octaves.toFixed(1)}オクターブ`
           : formatRecordedAtLabel(effectiveLatestMeasurements.range?.recorded_at),
       tone: "default",
-      onClick: () => navigate("/training?measurement=range&measureStep=select"),
+      onClick: () => navigate("/log/notes?metric=range", { state: { fromPath: currentLogPath } }),
     },
     {
       key: "long_tone",
@@ -1353,7 +1598,7 @@ export default function LogPage() {
           ? `音程 ${longToneResult.sustain_note}`
           : formatRecordedAtLabel(effectiveLatestMeasurements.long_tone?.recorded_at),
       tone: "default",
-      onClick: () => navigate("/training?measurement=long_tone&measureStep=select"),
+      onClick: () => navigate("/log/notes?metric=long_tone", { state: { fromPath: currentLogPath } }),
     },
     {
       key: "volume_stability",
@@ -1364,7 +1609,7 @@ export default function LogPage() {
           ? `平均 ${volumeResult.avg_loudness_db.toFixed(1)} dB`
           : formatRecordedAtLabel(effectiveLatestMeasurements.volume_stability?.recorded_at),
       tone: "default",
-      onClick: () => navigate("/training?measurement=volume_stability&measureStep=select"),
+      onClick: () => navigate("/log/notes?metric=volume_stability", { state: { fromPath: currentLogPath } }),
     },
     {
       key: "pitch_accuracy",
@@ -1372,7 +1617,7 @@ export default function LogPage() {
       value: pitchErrorSemitones != null ? `${pitchErrorSemitones.toFixed(2)}半音` : "未測定",
       meta: null,
       tone: "default",
-      onClick: () => navigate("/training?measurement=pitch_accuracy&measureStep=select"),
+      onClick: () => navigate("/log/notes?metric=pitch_accuracy", { state: { fromPath: currentLogPath } }),
     },
   ] as const;
   const measurementCardOrder = ["range", "pitch_accuracy", "long_tone", "volume_stability"] as const;
@@ -1454,6 +1699,167 @@ export default function LogPage() {
     return () => window.removeEventListener("koelog:open-monthly-logs", onOpenMonthlyLogs);
   }, [guestMode]);
 
+  const practicePanel = (
+    <>
+      {!guestMode && loading && <div className="logPage__muted">読み込み中…</div>}
+      {!guestMode && error && <div className="logPage__error">取得に失敗しました: {error}</div>}
+      <div className="logPage__sectionBlock logPage__sectionBlock--practicePanel">
+        <div className="logPage__sectionLabelRow">
+          <span className="logPage__sectionLabelIcon is-practice" aria-hidden="true">
+            {renderSectionIcon("practice")}
+          </span>
+          <div className="logPage__sectionLabel">PRACTICE</div>
+        </div>
+        <div className="logPage__daySummaryGrid">
+          <section className="logPage__summaryCard logPage__summaryCard--time logPage__summaryCard--timeOnly">
+            <div className="logPage__summaryCardArtwork" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.2" />
+                <path d="M12 7.9v4.7l3.1 2" />
+              </svg>
+            </div>
+            <div className="logPage__summaryCardTop">
+              <div className="logPage__summaryCardLabel">今日の練習時間</div>
+              <button type="button" className="logPage__summaryCardAction uiButton uiButton--secondary uiIconButton" onClick={openDurationModal}>
+                <span className="logPage__actionIconOnly" aria-hidden="true">
+                  {renderEditPencilIcon()}
+                </span>
+                <span className="logPage__srOnly">記録</span>
+              </button>
+            </div>
+            <div className="logPage__summaryCardMainRow">
+              <div className="logPage__summaryCardValueBlock">
+                <div
+                  className="logPage__summaryCardRing"
+                  aria-hidden="true"
+                  style={{ ["--ring-progress" as string]: String(practiceProgress) }}
+                >
+                  <div className="logPage__summaryCardRingValue">
+                    <span>{displayDuration ?? "--"}</span>
+                    <small>min</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section className="logPage__summaryCard logPage__summaryCard--status">
+            <div className="logPage__summaryCardTop">
+              <div className="logPage__summaryCardLabel">練習ステータス</div>
+            </div>
+            <div className="logPage__practiceStatusList">
+              {practiceMetaItems.map((item) => (
+                <div key={item.key} className="logPage__practiceStatusItem">
+                  <span className="logPage__practiceStatusLabel">{item.label}</span>
+                  <span className="logPage__practiceStatusValue">
+                    <span className="logPage__practiceStatusValueMain">{item.value.replace(/(日|件)$/, "")}</span>
+                    <span className="logPage__practiceStatusValueUnit">{item.value.match(/(日|件)$/)?.[0] ?? ""}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    </>
+  );
+
+  const aiLauncherSection = showAiLauncher ? (
+    <section
+      ref={aiCtaCardRef}
+      className={[
+        "logPage__aiWeekAction",
+        effectiveAiRec && !guestMode ? "is-ready" : "is-entry",
+        aiThemeOpen ? "is-theme-open" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <div className="logPage__aiWeekActionTop">
+        <div className="logPage__aiWeekActionMain">
+          <div className="logPage__aiWeekActionTitle">
+            <span className="logPage__aiWeekActionIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                <path d="M12 3.8 13.1 7l3.2 1.1-3.2 1.1L12 12.4l-1.1-3.2L7.7 8.1 10.9 7 12 3.8Z" />
+                <path className="accent" d="M18 11.5 18.7 13.4 20.6 14.1 18.7 14.8 18 16.7 17.3 14.8 15.4 14.1 17.3 13.4 18 11.5Z" />
+                <path d="M7.1 13.6 7.7 15.1 9.2 15.7 7.7 16.3 7.1 17.8 6.5 16.3 5 15.7 6.5 15.1 7.1 13.6Z" />
+              </svg>
+            </span>
+            <span>今週のAIおすすめ</span>
+          </div>
+          <div className="logPage__aiWeekActionSubtext">
+            {!aiFeaturesUnlocked && !guestMode
+              ? "ビギナーミッション完了で解放されます"
+              : !effectiveAiRec || guestMode
+              ? "記録・目標・測定結果をもとに、今週の練習メニューを提案します"
+              : "今週の提案を確認できます"}
+          </div>
+        </div>
+        <div className="logPage__aiWeekActionRow">
+          {!aiFeaturesUnlocked && !guestMode ? (
+            <span className="logPage__aiWeekActionLock">LOCKED</span>
+          ) : effectiveAiRec && !guestMode ? (
+            <button type="button" className="logPage__aiWeekActionLink" onClick={() => openAiChat()}>
+              <span>提案を見る</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          ) : (
+            <>
+              <button
+                ref={aiThemeToggleBtnRef}
+                type="button"
+                className={`logPage__btn logPage__aiThemeToggle uiButton uiButton--secondary ${forceGuideAiThemeToggle ? "is-guided" : ""}`.trim()}
+                onClick={() => setAiThemeOpen((current) => !current)}
+                aria-expanded={aiThemeOpen}
+              >
+                {aiThemeOpen ? "テーマ入力を閉じる" : "テーマを指定"}
+              </button>
+              {!aiThemeOpen && (
+                <button
+                  ref={aiGenerateBtnRef}
+                  type="button"
+                  className={`logPage__btn logPage__aiWeekActionBtn uiButton uiButton--primary ${forceGuideAiGenerate ? "is-guided" : ""}`.trim()}
+                  onClick={onAskAi}
+                  disabled={aiLoading}
+                >
+                  {guestMode ? "ログインして生成" : aiLoading ? "生成中…" : "AIおすすめを生成"}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      {(aiFeaturesUnlocked || guestMode) && (!effectiveAiRec || guestMode) && aiThemeOpen ? (
+        <div className={`logPage__aiThemeInputWrap ${forceGuideAiThemeInput ? "is-guided" : ""}`.trim()}>
+          <label className="logPage__aiThemeInputLabel" htmlFor="log-ai-theme-input">
+            今週のテーマ
+          </label>
+          <div className="logPage__aiThemeInputRow">
+            <input
+              ref={aiThemeInputRef}
+              id="log-ai-theme-input"
+              className="logPage__aiThemeInput"
+              type="text"
+              value={aiThemeDraft}
+              onChange={(event) => setAiThemeDraft(event.target.value)}
+              placeholder="例：高音で喉を締めない"
+              maxLength={40}
+            />
+            <button
+              ref={aiGenerateBtnRef}
+              type="button"
+              className={`logPage__btn logPage__aiWeekActionBtn logPage__aiThemeGenerateBtn uiButton uiButton--primary ${forceGuideAiGenerate ? "is-guided" : ""}`.trim()}
+              onClick={onAskAi}
+              disabled={aiLoading}
+            >
+              {guestMode ? "ログインして生成" : aiLoading ? "生成中…" : "AIおすすめを生成"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {aiError && !guestMode && <div className="logPage__error">生成に失敗しました: {aiError}</div>}
+    </section>
+  ) : null;
+
   return (
     <div className="page logPage" onTouchStart={onPageTouchStart} onTouchEnd={onPageTouchEnd}>
       <ProcessingOverlay
@@ -1461,71 +1867,207 @@ export default function LogPage() {
         title="生成中..."
         description="今週のおすすめを作成しています"
       />
-      <section
-        className="logPage__dateRail"
-        onTouchStart={onWeekTouchStart}
-        onTouchMove={onWeekTouchMove}
-        onTouchEnd={onWeekTouchEnd}
-      >
-        <div className="logPage__weekRail">
-          <div ref={weekStripRef} className="logPage__weekStrip" role="group" aria-label="週カレンダー">
-            {weekDates.map((date) => {
-              const isSelected = date === selectedDate;
-              const isTodayDate = date === today;
-              return (
+      <div className="logPage__desktopShell">
+        <aside className="logPage__desktopSidebar" aria-label="月カレンダー">
+          <section className="logPage__calendarCard">
+            <div className="logPage__calendarHead">
+              <div className="logPage__calendarHeadTop">
+                <div className="logPage__calendarEyebrow">CALENDAR</div>
                 <button
-                  key={date}
                   type="button"
-                  className={`logPage__weekDay ${isSelected ? "is-selected" : ""} ${isTodayDate ? "is-today" : ""}`}
-                  onClick={() => {
-                    if (longPressTriggeredRef.current) return;
-                    onChangeDate(date);
-                  }}
-                  aria-pressed={isSelected}
-                  aria-label={date}
+                  className="logPage__calendarMonthLink uiButton uiButton--secondary"
+                  onClick={() => setMonthlyLogsModalOpen(true)}
                 >
-                  <span className="logPage__weekDayNumber">{Number(date.slice(8, 10))}</span>
-                  <span className="logPage__weekDayLabel">{isTodayDate ? "今日" : weekdayShortJa(date)}</span>
+                  月ログ
                 </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+              </div>
+              <div className="logPage__calendarMonthRow">
+                <button
+                  type="button"
+                  className="logPage__calendarMonthNav uiButton uiButton--secondary uiIconButton"
+                  onClick={() => onChangeMonth(shiftMonthISO(selectedMonth, -1))}
+                  aria-label="前の月"
+                >
+                  <StepArrowIcon direction="left" />
+                </button>
+                <div className="logPage__calendarMonthValue">{monthLabel(selectedMonth)}</div>
+                <button
+                  type="button"
+                  className="logPage__calendarMonthNav uiButton uiButton--secondary uiIconButton"
+                  onClick={() => onChangeMonth(shiftMonthISO(selectedMonth, 1))}
+                  aria-label="次の月"
+                >
+                  <StepArrowIcon direction="right" />
+                </button>
+              </div>
+            </div>
+            <div className="logPage__calendarWeekdays" aria-hidden="true">
+              {["日", "月", "火", "水", "木", "金", "土"].map((day) => (
+                <span key={day} className="logPage__calendarWeekdayLabel">
+                  {day}
+                </span>
+              ))}
+            </div>
+            <div className="logPage__calendarGrid" role="grid" aria-label={`${monthLabel(selectedMonth)}の日付一覧`}>
+              {Array.from({ length: monthGridOffset }).map((_, index) => (
+                <span key={`spacer-${index}`} className="logPage__calendarSpacer" aria-hidden="true" />
+              ))}
+              {monthDates.map((date) => {
+                const isSelected = date === selectedDate;
+                const isTodayDate = date === today;
+                const activity = calendarActivityByDate.get(date) ?? { level: "none" as const, dots: 0 };
+                return (
+                  <button
+                    key={date}
+                    type="button"
+                    className={`logPage__calendarDay is-${activity.level} ${isSelected ? "is-selected" : ""} ${isTodayDate ? "is-today" : ""}`}
+                    onClick={() => onChangeDate(date)}
+                    aria-pressed={isSelected}
+                    aria-label={date}
+                  >
+                    <span className="logPage__calendarDayNumber">{Number(date.slice(8, 10))}</span>
+                    <span className="logPage__calendarDayDots" aria-hidden="true">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <span
+                          key={`${date}-dot-${index}`}
+                          className={`logPage__calendarDayDot ${index < activity.dots ? "is-filled" : ""}`}
+                        />
+                      ))}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+          <section className="logPage__calendarSummary" aria-label="今月の要約">
+            <div className="logPage__calendarSummaryHead">
+              <span className="logPage__calendarSummaryHeadIcon" aria-hidden="true">
+                {renderMonthSectionIcon()}
+              </span>
+              <div className="logPage__calendarSummaryEyebrow">今月のまとめ</div>
+            </div>
+            <div className="logPage__calendarSummaryStats">
+              <div className="logPage__calendarSummaryStat is-days">
+                <span className="logPage__calendarSummaryStatIcon" aria-hidden="true">
+                  {renderCalendarSummaryIcon("days")}
+                </span>
+                <div className="logPage__calendarSummaryStatBody">
+                  <span className="logPage__calendarSummaryLabel">練習日数</span>
+                  <span className="logPage__calendarSummaryValue">{monthPracticeDays}<small>日</small></span>
+                </div>
+              </div>
+              <div className="logPage__calendarSummaryStat is-time">
+                <span className="logPage__calendarSummaryStatIcon" aria-hidden="true">
+                  {renderCalendarSummaryIcon("time")}
+                </span>
+                <div className="logPage__calendarSummaryStatBody">
+                  <span className="logPage__calendarSummaryLabel">合計時間</span>
+                  <span className="logPage__calendarSummaryValue">{monthTotalDurationHourText}<small>h</small></span>
+                </div>
+              </div>
+            </div>
+            <div className="logPage__calendarSummaryMenus">
+              <div className="logPage__calendarSummaryMenusLabel">
+                <span className="logPage__calendarSummaryMenusIcon" aria-hidden="true">
+                  {renderCalendarSummaryIcon("menu")}
+                </span>
+                <span>よくやったメニュー</span>
+              </div>
+              {topMonthMenus.length > 0 ? (
+                <div className="logPage__calendarSummaryMenuTags">
+                  {topMonthMenus.map((menu) => (
+                    <span
+                      key={`calendar-summary-menu-${menu.menu_id}`}
+                      className="logPage__calendarSummaryMenuTag"
+                      style={{ ["--calendar-menu-color" as string]: menu.color ?? "#9BDDE5" }}
+                    >
+                      <span
+                        className="logPage__calendarSummaryMenuDot"
+                        aria-hidden="true"
+                      />
+                      <span className="logPage__calendarSummaryMenuName">{menu.name}</span>
+                      <span className="logPage__calendarSummaryMenuCount">
+                        <strong>{menu.count}</strong>
+                        <span>回</span>
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="logPage__calendarSummaryEmpty">まだ記録がありません</div>
+              )}
+            </div>
+          </section>
+        </aside>
 
-      <MonthCalendarSheet
-        open={monthModalOpen}
-        month={selectedDate.slice(0, 7)}
-        selectedDate={selectedDate}
-        onClose={() => setMonthModalOpen(false)}
-        onSelectDate={(date) => {
-          setMonthModalOpen(false);
-          onChangeDate(date);
-        }}
-      />
+        <div className="logPage__desktopMain">
+          <div className="logPage__desktopAiTop">{aiLauncherSection}</div>
+          <section
+            className="logPage__dateRail"
+            onTouchStart={onWeekTouchStart}
+            onTouchMove={onWeekTouchMove}
+            onTouchEnd={onWeekTouchEnd}
+          >
+            <div className="logPage__weekRail">
+              <div ref={weekStripRef} className="logPage__weekStrip" role="group" aria-label="週カレンダー">
+                {weekDates.map((date) => {
+                  const isSelected = date === selectedDate;
+                  const isTodayDate = date === today;
+                  return (
+                    <button
+                      key={date}
+                      type="button"
+                      className={`logPage__weekDay ${isSelected ? "is-selected" : ""} ${isTodayDate ? "is-today" : ""}`}
+                      onClick={() => {
+                        if (longPressTriggeredRef.current) return;
+                        onChangeDate(date);
+                      }}
+                      aria-pressed={isSelected}
+                      aria-label={date}
+                    >
+                      <span className="logPage__weekDayNumber">{Number(date.slice(8, 10))}</span>
+                      <span className="logPage__weekDayLabel">{isTodayDate ? "今日" : weekdayShortJa(date)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
 
-      {!guestMode && (
-        <TodayMenuModal
-          open={todayMenuModalOpen}
-          initialSelectedIds={log?.menu_ids ?? log?.menus?.map((item) => item.id) ?? []}
-          onClose={() => setTodayMenuModalOpen(false)}
-          onSave={async (menuIds) => {
-            const result = await upsertTrainingLog({
-              practiced_on: selectedDate,
-              duration_min: log?.duration_min ?? null,
-              menu_ids: menuIds,
-              notes: dayNotesDraft.trim() || null,
-            });
-            if (!result.ok) {
-              throw new Error(result.errors.join("\n"));
-            }
-            setLog(result.data);
-            emitGamificationRewards(result.rewards);
-          }}
-        />
-      )}
+          <MonthCalendarSheet
+            open={monthModalOpen}
+            month={selectedDate.slice(0, 7)}
+            selectedDate={selectedDate}
+            onClose={() => setMonthModalOpen(false)}
+            onSelectDate={(date) => {
+              setMonthModalOpen(false);
+              onChangeDate(date);
+            }}
+          />
 
-      {durationModalOpen ? (
+          {!guestMode && (
+            <TodayMenuModal
+              open={todayMenuModalOpen}
+              initialSelectedIds={log?.menu_ids ?? log?.menus?.map((item) => item.id) ?? []}
+              onClose={() => setTodayMenuModalOpen(false)}
+              onSave={async (menuIds) => {
+                const result = await upsertTrainingLog({
+                  practiced_on: selectedDate,
+                  duration_min: log?.duration_min ?? null,
+                  menu_ids: menuIds,
+                  notes: dayNotesDraft.trim() || null,
+                });
+                if (!result.ok) {
+                  throw new Error(result.errors.join("\n"));
+                }
+                setLog(result.data);
+                emitGamificationRewards(result.rewards);
+              }}
+            />
+          )}
+
+      {durationModalOpen && typeof document !== "undefined"
+        ? createPortal(
         <div className="logPage__durationModal" role="dialog" aria-modal="true" aria-labelledby="duration-modal-title">
           <button
             type="button"
@@ -1579,8 +2121,10 @@ export default function LogPage() {
             </div>
             {durationError ? <div className="logPage__durationModalError">{durationError}</div> : null}
           </div>
-        </div>
-      ) : null}
+        </div>,
+        document.body
+      )
+        : null}
 
       {!guestMode && (
         <MonthlyLogsModal
@@ -1594,80 +2138,7 @@ export default function LogPage() {
         />
       )}
 
-      {showAiLauncher && (
-        <section ref={aiCtaCardRef} className="logPage__aiWeekAction">
-          <div className="logPage__aiWeekActionTop">
-            <div className="logPage__aiWeekActionMain">
-              <div className="logPage__aiWeekActionTitle">
-                <span className="logPage__aiWeekActionIcon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                    <path d="M12 3.8 13.1 7l3.2 1.1-3.2 1.1L12 12.4l-1.1-3.2L7.7 8.1 10.9 7 12 3.8Z" />
-                    <path className="accent" d="M18 11.5 18.7 13.4 20.6 14.1 18.7 14.8 18 16.7 17.3 14.8 15.4 14.1 17.3 13.4 18 11.5Z" />
-                    <path d="M7.1 13.6 7.7 15.1 9.2 15.7 7.7 16.3 7.1 17.8 6.5 16.3 5 15.7 6.5 15.1 7.1 13.6Z" />
-                  </svg>
-                </span>
-                <span>今週のAIおすすめ</span>
-              </div>
-              <div className="logPage__aiWeekActionSubtext">
-                {!aiFeaturesUnlocked && !guestMode
-                  ? "ビギナーミッション完了で解放されます"
-                  : !effectiveAiRec || guestMode
-                  ? "記録・目標・測定結果をもとに、今週の練習メニューを提案します"
-                  : "今週の提案を確認できます"}
-              </div>
-            </div>
-            <div className="logPage__aiWeekActionRow">
-              {!aiFeaturesUnlocked && !guestMode ? (
-                <span className="logPage__aiWeekActionLock">LOCKED</span>
-              ) : effectiveAiRec && !guestMode ? (
-                <button type="button" className="logPage__aiWeekActionLink" onClick={() => openAiChat()}>
-                  <span>提案を見る</span>
-                  <span aria-hidden="true">→</span>
-                </button>
-              ) : (
-                <>
-                  <button
-                    ref={aiThemeToggleBtnRef}
-                    type="button"
-                    className={`logPage__btn logPage__aiThemeToggle uiButton uiButton--secondary ${forceGuideAiThemeToggle ? "is-guided" : ""}`.trim()}
-                    onClick={() => setAiThemeOpen((current) => !current)}
-                    aria-expanded={aiThemeOpen}
-                  >
-                    {aiThemeOpen ? "テーマ入力を閉じる" : "テーマを指定"}
-                  </button>
-                  <button
-                    ref={aiGenerateBtnRef}
-                    type="button"
-                    className={`logPage__btn logPage__aiWeekActionBtn uiButton uiButton--primary ${forceGuideAiGenerate ? "is-guided" : ""}`.trim()}
-                    onClick={onAskAi}
-                    disabled={aiLoading}
-                  >
-                    {guestMode ? "ログインして生成" : aiLoading ? "生成中…" : "AIおすすめを生成"}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-          {(aiFeaturesUnlocked || guestMode) && (!effectiveAiRec || guestMode) && aiThemeOpen ? (
-            <div className={`logPage__aiThemeInputWrap ${forceGuideAiThemeInput ? "is-guided" : ""}`.trim()}>
-              <label className="logPage__aiThemeInputLabel" htmlFor="log-ai-theme-input">
-                今週のテーマ
-              </label>
-              <input
-                ref={aiThemeInputRef}
-                id="log-ai-theme-input"
-                className="logPage__aiThemeInput"
-                type="text"
-                value={aiThemeDraft}
-                onChange={(event) => setAiThemeDraft(event.target.value)}
-                placeholder="例：高音で喉を締めない"
-                maxLength={40}
-              />
-            </div>
-          ) : null}
-          {aiError && !guestMode && <div className="logPage__error">生成に失敗しました: {aiError}</div>}
-        </section>
-      )}
+      <div className="logPage__mobileAi">{aiLauncherSection}</div>
 
       {!!authMe && isMonthMode && (
         <button
@@ -1712,8 +2183,14 @@ export default function LogPage() {
             <span className="logPage__beginnerGuideLabelText">BEGINNER</span>
           </div>
           <BeginnerMissionGuideCard
-            className="logPage__missionGuideCard"
-            onClick={() => setBeginnerMissionModalOpen(true)}
+            buttonRef={beginnerMissionGuideCardRef}
+            className={`logPage__missionGuideCard${forceGuideBeginnerMissionCard ? " is-guided" : ""}`}
+            onClick={() => {
+              setBeginnerMissionModalOpen(true);
+              if (authMe && forceGuideBeginnerMissionCard) {
+                saveTutorialStage(authMe.id, "completed");
+              }
+            }}
             expanded={beginnerMissionModalOpen}
             doneCount={beginnerDoneCount}
             totalCount={beginnerTotalCount}
@@ -1735,6 +2212,22 @@ export default function LogPage() {
         overlayClassName="logPage__missionModalOverlay"
         cardClassName="logPage__missionModalCard"
         cardBodyClassName="logPage__beginnerGuideList"
+        topContent={
+          <div className="logPage__missionModalIntro">
+            <p className="logPage__missionModalLead">
+              ビギナーミッション完了で、AIおすすめとAIチャットが使えるようになります。
+            </p>
+            <div className="logPage__missionModalProgressRow">
+              <span className="logPage__missionModalProgressLabel">ビギナーミッション</span>
+              <span className="logPage__missionModalProgressValue">
+                {beginnerDoneCount} / {beginnerTotalCount}
+              </span>
+            </div>
+            <div className="logPage__missionModalProgressTrack" aria-hidden="true">
+              <span className="logPage__missionModalProgressFill" style={{ width: `${beginnerProgressPercent}%` }} />
+            </div>
+          </div>
+        }
         renderPendingAction={(mission) => (
           <Link
             to={
@@ -1743,27 +2236,119 @@ export default function LogPage() {
                 : mission.to
             }
             className="logPage__beginnerGuideItemAction"
-            onClick={() => setBeginnerMissionModalOpen(false)}
+            onClick={(event) => {
+              if (mission.key === "beginner_measurement") {
+                event.preventDefault();
+                setBeginnerMissionModalOpen(false);
+                navigate(mission.to);
+                return;
+              }
+              setBeginnerMissionModalOpen(false);
+            }}
           >
             挑戦する
           </Link>
         )}
       />
 
+      {(forceGuideBeginnerMissionCard || forceGuideTrainingSection) && <div className="logPage__guideOverlay" aria-hidden="true" />}
+
       <TutorialModal
         open={tutorialWelcomeOpen}
-        badge="WELCOME"
-        title="はじめまして、Koelogsへようこそ！"
+        variant="welcome"
+        badge="KOELOGS START"
+        title="声の変化が、ちゃんと残る場所へ。"
         paragraphs={[
-          "このアプリは、あなたの「練習記録」と「測定データ」をもとに、AIが次の練習メニューを提案するボイストレーニング支援アプリです。",
-          "まずは基本の流れを体験してみましょう。",
+          <>
+            Koelogs は、練習をただ頑張るだけで終わらせず、<strong>記録</strong>・<strong>測定</strong>・<strong>次の練習</strong>をひとつにつなげるためのアプリです。
+          </>,
         ]}
-        primaryLabel="ビギナーミッションをはじめる"
+        primaryLabel="Koelogsをはじめる"
         onPrimary={() => {
           if (!authMe) return;
-          saveTutorialStage(authMe.id, "mypage_intro");
+          saveTutorialStage(authMe.id, "log_beginner_intro");
           setTutorialWelcomeOpen(false);
-          navigate("/mypage");
+        }}
+        onClose={() => {}}
+      >
+        <div className="tutorialModal__welcomeTop">
+          <div className="tutorialModal__welcomeScene" aria-hidden="true">
+            <div className="tutorialModal__welcomeSceneBadge tutorialModal__welcomeSceneBadge--log">LOG</div>
+            <div className="tutorialModal__welcomeSceneBadge tutorialModal__welcomeSceneBadge--ai">AI</div>
+            <div className="tutorialModal__welcomeSceneSheet">
+              <div className="tutorialModal__welcomeSceneDots">
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="tutorialModal__welcomeSceneLineGroup tutorialModal__welcomeSceneLineGroup--wide">
+                <span />
+                <span />
+              </div>
+              <div className="tutorialModal__welcomeSceneWave">
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="tutorialModal__welcomeSceneLineGroup tutorialModal__welcomeSceneLineGroup--split">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+          <div className="tutorialModal__welcomeAside">
+            <div className="tutorialModal__welcomeAsideLabel">FIRST LOOP</div>
+            <div className="tutorialModal__welcomeAsideTitle">記録して、測って、次を決める。</div>
+          </div>
+        </div>
+        <div className="tutorialModal__welcomeRail" aria-hidden="true">
+          <div className="tutorialModal__welcomeRailStep">
+            <div className="tutorialModal__welcomeRailIndex">01</div>
+            <div className="tutorialModal__welcomeRailCopy">今日の練習を記録する</div>
+          </div>
+          <div className="tutorialModal__welcomeRailStep">
+            <div className="tutorialModal__welcomeRailIndex">02</div>
+            <div className="tutorialModal__welcomeRailCopy">測定で声の変化を残す</div>
+          </div>
+          <div className="tutorialModal__welcomeRailStep">
+            <div className="tutorialModal__welcomeRailIndex">03</div>
+            <div className="tutorialModal__welcomeRailCopy">AIに次の練習を提案してもらう</div>
+          </div>
+        </div>
+      </TutorialModal>
+
+      <TutorialModal
+        open={trainingTutorialStage === "log_beginner_intro"}
+        badge="MISSION"
+        title="まずはビギナーミッションから"
+        paragraphs={[
+          "Koelogsを使い始めたら、まずはビギナーミッションを進めるのがおすすめです。",
+          "順番にこなすだけで、記録・測定・AI活用までひと通りの流れを体験できます。",
+        ]}
+        primaryLabel="次へ"
+        onPrimary={() => {
+          if (!authMe) return;
+          saveTutorialStage(authMe.id, "log_beginner_unlocks");
+        }}
+        onClose={() => {}}
+      />
+
+      <TutorialModal
+        open={trainingTutorialStage === "log_beginner_unlocks"}
+        badge="UNLOCK"
+        title="達成するとAIチャットが使えます"
+        paragraphs={[
+          "ビギナーミッションを進めると、AIおすすめやAIチャットが順番に解放されます。",
+          "まずは最初の一歩として、測定を一度試してみましょう。",
+        ]}
+        primaryLabel="Koelogsをはじめる"
+        onPrimary={() => {
+          if (!authMe) return;
+          saveTutorialStage(authMe.id, "log_open_beginner_missions");
         }}
         onClose={() => {}}
       />
@@ -2044,107 +2629,12 @@ export default function LogPage() {
         }}
       />
 
-      {guestMode && isDayMode && (
-        <>
-          <section className="card logPage__guestHero">
-            <div className="logPage__guestHeroTitle">声の状態を記録すると、今日の練習がすぐ決まる</div>
-            <div className="logPage__guestHeroText">まずはサンプルで使い方を30秒で確認できます</div>
-            <div className="logPage__guestHeroActions">
-              <button className="logPage__btn logPage__btn--subtle uiButton uiButton--secondary" onClick={scrollToGuestPreview}>
-                サンプルを見る
-              </button>
-              <button className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary" onClick={goLogin}>
-                ログインして始める
-              </button>
-            </div>
-          </section>
-
-          <section id="guest-preview" className="card logPage__guestPreview">
-            <div className="logPage__guestPreviewTitle">サンプルデータ表示中（保存されません）</div>
-            <div className="logPage__guestPreviewGrid">
-              <article className="logPage__guestPreviewCard">
-                <div className="logPage__guestPreviewCardTitle">月ごとの積み上げが見える</div>
-                <div className="logPage__guestPreviewCardValue">合計 420 分 / 37 回</div>
-                <div className="logPage__guestPreviewCardText">今月の日ログ・実施数・合計時間を確認</div>
-              </article>
-
-              <article className="logPage__guestPreviewCard">
-                <div className="logPage__guestPreviewCardTitle">継続状況が一目で分かる</div>
-                <div className="logPage__guestPreviewCardValue">現在 3 日 / 最長 11 日</div>
-                <div className="logPage__guestPreviewCardText">現在連続日数 / 最長記録</div>
-              </article>
-
-              <article className="logPage__guestPreviewCard">
-                <div className="logPage__guestPreviewCardTitle">次にやることが決まる</div>
-                <div className="logPage__guestPreviewCardValue">今週のおすすめ</div>
-                <div className="logPage__guestPreviewCardText">目標と記録からAIが提案</div>
-              </article>
-            </div>
-
-            <div className="logPage__guestReCtaText">ここまでの流れをあなたのデータで始める</div>
-            <button className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary" onClick={goLogin}>
-              ログインして始める
-            </button>
-          </section>
-        </>
-      )}
-
       <div className="logPage__stack">
         {isDayMode ? (
           <>
             <section className="logPage__dayBoard">
-              {!guestMode && loading && <div className="logPage__muted">読み込み中…</div>}
-              {!guestMode && error && <div className="logPage__error">取得に失敗しました: {error}</div>}
-              <div className="logPage__sectionBlock">
-                <div className="logPage__sectionLabelRow">
-                  <span className="logPage__sectionLabelIcon is-practice" aria-hidden="true">
-                    {renderSectionIcon("practice")}
-                  </span>
-                  <div className="logPage__sectionLabel">PRACTICE</div>
-                </div>
-                <div className="logPage__daySummaryGrid">
-                  <section className="logPage__summaryCard logPage__summaryCard--time logPage__summaryCard--combined">
-                    <div className="logPage__summaryCardArtwork" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                        <circle cx="12" cy="12" r="8.2" />
-                        <path d="M12 7.9v4.7l3.1 2" />
-                      </svg>
-                    </div>
-                    <div className="logPage__summaryCardTop">
-                      <div className="logPage__summaryCardLabel">今日の練習時間</div>
-                      <button type="button" className="logPage__summaryCardAction uiButton uiButton--secondary uiIconButton" onClick={openDurationModal}>
-                        <span className="logPage__actionIconOnly" aria-hidden="true">
-                          {renderEditPencilIcon()}
-                        </span>
-                        <span className="logPage__srOnly">記録</span>
-                      </button>
-                    </div>
-                    <div className="logPage__summaryCardMainRow">
-                      <div className="logPage__summaryCardValueBlock">
-                        <div
-                          className="logPage__summaryCardRing"
-                          aria-hidden="true"
-                          style={{ ["--ring-progress" as string]: String(practiceProgress) }}
-                        >
-                          <div className="logPage__summaryCardRingValue">
-                            <span>{displayDuration ?? "--"}</span>
-                            <small>min</small>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="logPage__summaryCardMetaColumn">
-                        {practiceMetaItems.map((item) => (
-                          <div key={item.key} className="logPage__summaryCardSubMeta">
-                            <span className="logPage__summaryCardSubMetaLabel">{item.label}</span>
-                            <span className="logPage__summaryCardSubMetaValue">{item.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </section>
-                </div>
-              </div>
-              <div className="logPage__contentSection">
+              {practicePanel}
+              <div className="logPage__contentSection logPage__contentSection--measurePanel">
                 <div className="logPage__contentWave logPage__contentWave--measure" aria-hidden="true">
                   <svg viewBox="0 0 100 16" preserveAspectRatio="none">
                     <path d="M0 16V8C18 8 22 2 38 2C56 2 64 10 82 10C91 10 96 8 100 6V16Z" fill="currentColor" />
@@ -2166,6 +2656,9 @@ export default function LogPage() {
                           className={`logPage__metricCard logPage__metricCard--${card.key}`}
                           onClick={card.onClick}
                         >
+                          <span className="logPage__metricCardArrow" aria-hidden="true">
+                            ⌄
+                          </span>
                           {(() => {
                             const metaText = "meta" in card ? card.meta : null;
                             return (
@@ -2245,121 +2738,143 @@ export default function LogPage() {
                       ))}
                     </div>
                   </div>
-                  <div className="logPage__contentSection logPage__contentSection--white">
-                    <div className="logPage__contentWave logPage__contentWave--white" aria-hidden="true">
-                      <svg viewBox="0 0 100 16" preserveAspectRatio="none">
-                        <path d="M0 16V8C18 8 22 2 38 2C56 2 64 10 82 10C91 10 96 8 100 6V16Z" fill="currentColor" />
-                      </svg>
+                </div>
+                <div className="logPage__contentWave logPage__contentWave--measure logPage__contentWave--measureBottom" aria-hidden="true">
+                  <svg viewBox="0 0 100 16" preserveAspectRatio="none">
+                    <path d="M0 16V8C18 8 22 2 38 2C56 2 64 10 82 10C91 10 96 8 100 6V16Z" fill="currentColor" />
+                  </svg>
+                </div>
+              </div>
+              <div className="logPage__contentSection logPage__contentSection--white logPage__contentSection--outputPanel">
+                <div className="logPage__contentWave logPage__contentWave--white" aria-hidden="true">
+                  <svg viewBox="0 0 100 16" preserveAspectRatio="none">
+                    <path d="M0 16V8C18 8 22 2 38 2C56 2 64 10 82 10C91 10 96 8 100 6V16Z" fill="currentColor" />
+                  </svg>
+                </div>
+                <div className="logPage__contentInner logPage__contentInner--white">
+                  <div className="logPage__sectionBlock">
+                    <div className="logPage__sectionLabelRow">
+                      <span className="logPage__sectionLabelIcon is-menus" aria-hidden="true">
+                        {renderSectionIcon("today_menus")}
+                      </span>
+                      <div className="logPage__sectionLabel">TODAY MENUS</div>
                     </div>
-                    <div className="logPage__contentInner logPage__contentInner--white">
-                      <div className="logPage__sectionBlock">
-                        <div className="logPage__sectionLabelRow">
-                          <span className="logPage__sectionLabelIcon is-menus" aria-hidden="true">
-                            {renderSectionIcon("today_menus")}
+                    <section className="logPage__todayMenusCard">
+                      <div className="logPage__daySectionHead">
+                        <div className="logPage__noteSubtext">今日実施したトレーニングメニューを記録します</div>
+                        <button
+                          type="button"
+                          className="logPage__btn logPage__summaryCardAction logPage__todayMenusEditBtn uiButton uiButton--secondary uiIconButton"
+                          onClick={openTodayMenuModal}
+                        >
+                          <span className="logPage__actionIconOnly" aria-hidden="true">
+                            {renderEditPencilIcon()}
                           </span>
-                          <div className="logPage__sectionLabel">TODAY MENUS</div>
+                          <span className="logPage__srOnly">{guestMode ? "記録" : "編集"}</span>
+                        </button>
+                      </div>
+                      {menuItems.length ? (
+                        <div className="logPage__todayMenuList" role="list">
+                          {menuItems.map((m) => (
+                            <div
+                              key={m.id}
+                              className="logPage__todayMenuItem"
+                              style={{ ["--menu-chip-color" as string]: m.color ?? "#9BDDE5" }}
+                              title={m.archived ? "このメニューは現在アーカイブされています" : undefined}
+                              role="listitem"
+                            >
+                              <span className="logPage__todayMenuItemDot" aria-hidden="true" />
+                              <span className="logPage__todayMenuItemName">{m.name}</span>
+                            </div>
+                          ))}
                         </div>
-                        <section className="logPage__todayMenusCard">
-                          <div className="logPage__daySectionHead">
-                            <div className="logPage__noteSubtext">今日実施したトレーニングメニューを記録します</div>
+                      ) : (
+                        <div className="logPage__metricEmpty">{emptyHint}</div>
+                      )}
+                    </section>
+                  </div>
+                  <div className="logPage__sectionBlock">
+                    <div className="logPage__sectionLabelRow">
+                      <span className="logPage__sectionLabelIcon is-note" aria-hidden="true">
+                        {renderSectionIcon("note")}
+                      </span>
+                      <div className="logPage__sectionLabel">NOTE</div>
+                    </div>
+                    <section className="logPage__memoCard">
+                      <div className="logPage__daySectionHead">
+                        <div className="logPage__noteSubtext">その日の気づきや、うまくいった感覚を残します</div>
+                        {dayNotesEditing ? (
+                          <div className="logPage__noteActions">
                             <button
                               type="button"
-                              className="logPage__btn logPage__summaryCardAction logPage__todayMenusEditBtn uiButton uiButton--secondary uiIconButton"
-                              onClick={openTodayMenuModal}
+                              className="logPage__btn uiButton uiButton--secondary"
+                              onClick={() => {
+                                setDayNotesDraft(effectiveLog?.notes ?? "");
+                                setDayNotesEditing(false);
+                                setDayNotesError(null);
+                              }}
+                              disabled={dayNotesSaving}
                             >
-                              <span className="logPage__actionIconOnly" aria-hidden="true">
-                                {renderEditPencilIcon()}
-                              </span>
-                              <span className="logPage__srOnly">{guestMode ? "記録" : "編集"}</span>
+                              キャンセル
+                            </button>
+                            <button
+                              type="button"
+                              className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary"
+                              onClick={() => void onSaveDayNotes()}
+                              disabled={dayNotesSaving}
+                            >
+                              {guestMode ? "ログインして保存" : dayNotesSaving ? "保存中…" : "保存"}
                             </button>
                           </div>
-                          {menuItems.length ? (
-                            <div className="logPage__todayMenuList" role="list">
-                              {menuItems.map((m) => (
-                                <div
-                                  key={m.id}
-                                  className="logPage__todayMenuItem"
-                                  style={{ ["--menu-chip-color" as string]: m.color ?? "#9BDDE5" }}
-                                  title={m.archived ? "このメニューは現在アーカイブされています" : undefined}
-                                  role="listitem"
-                                >
-                                  <span className="logPage__todayMenuItemDot" aria-hidden="true" />
-                                  <span className="logPage__todayMenuItemName">{m.name}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="logPage__metricEmpty">{emptyHint}</div>
-                          )}
-                        </section>
-                      </div>
-                      <div className="logPage__sectionBlock">
-                        <div className="logPage__sectionLabelRow">
-                          <span className="logPage__sectionLabelIcon is-note" aria-hidden="true">
-                            {renderSectionIcon("note")}
-                          </span>
-                          <div className="logPage__sectionLabel">NOTE</div>
-                        </div>
-                      <section className="logPage__memoCard">
-                        <div className="logPage__daySectionHead">
-                          <div className="logPage__noteSubtext">その日の気づきや、うまくいった感覚を残します</div>
-                          {dayNotesEditing ? (
-                            <div className="logPage__noteActions">
-                              <button
-                                type="button"
-                                className="logPage__btn uiButton uiButton--secondary"
-                                onClick={() => {
-                                  setDayNotesDraft(effectiveLog?.notes ?? "");
-                                  setDayNotesEditing(false);
-                                  setDayNotesError(null);
-                                }}
-                                disabled={dayNotesSaving}
-                              >
-                                キャンセル
-                              </button>
-                              <button
-                                type="button"
-                                className="logPage__btn logPage__btn--softAccent uiButton uiButton--primary"
-                                onClick={() => void onSaveDayNotes()}
-                                disabled={dayNotesSaving}
-                              >
-                                {guestMode ? "ログインして保存" : dayNotesSaving ? "保存中…" : "保存"}
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              className="logPage__btn logPage__summaryCardAction uiButton uiButton--secondary uiIconButton"
-                              onClick={() => setDayNotesEditing(true)}
-                            >
-                              <span className="logPage__actionIconOnly" aria-hidden="true">
-                                {renderEditPencilIcon()}
-                              </span>
-                              <span className="logPage__srOnly">{dayNotesDraft.trim() ? "編集" : "記入"}</span>
-                            </button>
-                          )}
-                        </div>
-                        {dayNotesEditing ? (
-                          <textarea
-                            className="logPage__dayMemoInput"
-                            value={dayNotesDraft}
-                            onChange={(e) => setDayNotesDraft(e.target.value)}
-                            placeholder="その日の気づきや、うまくいった感覚を書いておく"
-                            rows={5}
-                          />
                         ) : (
                           <button
                             type="button"
-                            className={`logPage__notePreview ${dayNotesDraft.trim() ? "" : "is-placeholder"}`.trim()}
+                            className="logPage__btn logPage__summaryCardAction uiButton uiButton--secondary uiIconButton"
                             onClick={() => setDayNotesEditing(true)}
                           >
-                            {dayNotesDraft.trim() || "その日の気づきや、うまくいった感覚を書いておく"}
+                            <span className="logPage__actionIconOnly" aria-hidden="true">
+                              {renderEditPencilIcon()}
+                            </span>
+                            <span className="logPage__srOnly">{dayNotesDraft.trim() ? "編集" : "記入"}</span>
                           </button>
                         )}
-                        {dayNotesError && <div className="logPage__error">{dayNotesError}</div>}
-                      </section>
                       </div>
+                      {dayNotesEditing ? (
+                        <textarea
+                          className="logPage__dayMemoInput"
+                          value={dayNotesDraft}
+                          onChange={(e) => setDayNotesDraft(e.target.value)}
+                          placeholder="その日の気づきや、うまくいった感覚を書いておく"
+                          rows={5}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className={`logPage__notePreview ${dayNotesDraft.trim() ? "" : "is-placeholder"}`.trim()}
+                          onClick={() => setDayNotesEditing(true)}
+                        >
+                          {dayNotesDraft.trim() || "その日の気づきや、うまくいった感覚を書いておく"}
+                        </button>
+                      )}
+                      {dayNotesError && <div className="logPage__error">{dayNotesError}</div>}
+                    </section>
+                  </div>
+                  <div
+                    ref={trainingSectionRef}
+                    id="training"
+                    className={`logPage__sectionBlock logPage__sectionBlock--training${
+                      forceGuideTrainingSection ? " is-guided" : ""
+                    }`}
+                  >
+                    <div className="logPage__sectionLabelRow">
+                      <span className="logPage__sectionLabelIcon is-practice" aria-hidden="true">
+                        {renderSectionIcon("practice")}
+                      </span>
+                      <div className="logPage__sectionLabel">TRAINING</div>
                     </div>
+                    <section className="logPage__trainingCard logPage__trainingEmbedded">
+                      <TrainingPage embedded />
+                    </section>
                   </div>
                 </div>
               </div>
@@ -2466,6 +2981,8 @@ export default function LogPage() {
           </section>
         )}
 
+          </div>
+        </div>
       </div>
     </div>
   );

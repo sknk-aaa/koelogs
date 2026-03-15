@@ -20,6 +20,12 @@
   height: 56px;
 }
 
+.miniPreview--lg {
+  width: 128px;
+  height: 74px;
+  border-radius: 14px;
+}
+
 .miniPreview__svg {
   width: 100%;
   height: 100%;

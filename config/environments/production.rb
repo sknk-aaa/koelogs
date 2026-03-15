@@ -37,6 +37,13 @@ Rails.application.configure do
   # Change to "debug" to log everything (including potentially personally-identifiable information!)
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
+  config.action_dispatch.default_headers = config.action_dispatch.default_headers.merge(
+    "X-Frame-Options" => "SAMEORIGIN",
+    "X-Content-Type-Options" => "nosniff",
+    "Referrer-Policy" => "strict-origin-when-cross-origin",
+    "X-Permitted-Cross-Domain-Policies" => "none"
+  )
+
   # Prevent health checks from clogging up the logs.
   config.silence_healthcheck_path = "/up"
 
@@ -83,10 +90,8 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
+  allowed_hosts = ENV.fetch("APP_HOSTS", "").split(",").map(&:strip).reject(&:blank?)
+  config.hosts = allowed_hosts if allowed_hosts.any?
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }

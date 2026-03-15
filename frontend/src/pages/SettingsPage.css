@@ -1,3 +1,8 @@
+.settingsPage.page {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
 .settingsPage {
   position: relative;
   display: grid;

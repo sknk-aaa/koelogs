@@ -1,5 +1,7 @@
 .myPage.page {
   padding-bottom: 0;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 .myPage {
@@ -7,6 +9,7 @@
   display: grid;
   gap: 26px;
   overflow-x: hidden;
+  padding-top: 10px;
 }
 
 .myPage__hero {
@@ -901,6 +904,16 @@
   pointer-events: auto;
 }
 
+.myPage__missionBtn.is-guided::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  border: 2px solid color-mix(in srgb, var(--accent) 58%, #ffffff);
+  opacity: 0.9;
+  animation: myPageGuidePulseRing 0.95s ease-in-out infinite;
+}
+
 .myPage__guideOverlay {
   position: fixed;
   inset: 0;
@@ -933,6 +946,18 @@
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.42));
+}
+
+@keyframes myPageGuidePulseRing {
+  0%,
+  100% {
+    transform: scale(0.98);
+    opacity: 0.58;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
 }
 
 .myPage__missionGroups.is-guide-hidden {

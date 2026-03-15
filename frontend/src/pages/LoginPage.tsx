@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
+import AuthHeader from "../components/AuthHeader";
+import BrandLogo from "../components/BrandLogo";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 import { fetchMe, requestEmailVerification, requestPasswordReset, resetPassword, verifyEmail } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
@@ -230,20 +232,21 @@ export default function LoginPage() {
   return (
     <div className="authPage">
       <div className="authPage__bg" aria-hidden="true" />
+      <AuthHeader />
 
       <div className="authPage__shell">
-        <section className="card authPage__hero">
-          <div className="authPage__kicker">Welcome Back</div>
-          <h1 className="authPage__title">ログイン</h1>
-          <p className="authPage__sub">記録・分析・トレーニングの続きから再開できます。</p>
-          <div className="authPage__chips">
-            <div className="authPage__chip">練習ログ管理</div>
-            <div className="authPage__chip">音源トレーニング</div>
-            <div className="authPage__chip">推移分析</div>
+        <section className="authPage__hero">
+          <div className="authPage__brand">
+            <BrandLogo alt="Koelogs" className="authPage__brandImage" />
           </div>
         </section>
 
-        <section className="card authPage__card">
+        <section className="authPage__card">
+          <div className="authPage__cardHeader">
+            <h1 className="authPage__cardTitle">ログイン</h1>
+            <p className="authPage__cardSub">続行するにはログインしてください。</p>
+          </div>
+
           {showResetForm ? (
             <form onSubmit={onResetPasswordSubmit} className="authPage__form">
               <div className="authPage__field">
@@ -311,6 +314,12 @@ export default function LoginPage() {
             </form>
           ) : (
             <form onSubmit={onLoginSubmit} className="authPage__form">
+              <GoogleSignInButton
+                text="signin_with"
+                onCredential={onGoogleCredential}
+                disabled={submitting || verifyingEmail}
+              />
+
               <div className="authPage__field">
                 <label className="authPage__label">Email</label>
                 <input
@@ -342,12 +351,6 @@ export default function LoginPage() {
               <button type="submit" disabled={submitting} className="authPage__submit">
                 {submitting ? "ログイン中..." : "ログイン"}
               </button>
-
-              <GoogleSignInButton
-                text="signin_with"
-                onCredential={onGoogleCredential}
-                disabled={submitting || verifyingEmail}
-              />
 
               <div className="authPage__actions">
                 <button
@@ -383,17 +386,8 @@ export default function LoginPage() {
           )}
 
           <div className="authPage__link">
-            アカウントが無い？ <Link to="/signup">新規登録</Link>
+            アカウントをお持ちでない方 → <Link to="/signup">新規登録</Link>
           </div>
-        </section>
-
-        <section className="card authPage__valueCard">
-          <div className="authPage__valueTitle">voice-app でできること</div>
-          <ul className="authPage__valueList">
-            <li>その日の練習メニューと時間を素早く記録</li>
-            <li>スケール音源を選んで反復トレーニング</li>
-            <li>継続状況や頻度を可視化して改善</li>
-          </ul>
         </section>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { updateMe } from "../api/auth";
 import { useAuth } from "../features/auth/useAuth";
@@ -6,7 +7,12 @@ import { avatarIconPath } from "../features/profile/avatarIcons";
 
 import "./ProfilePage.css";
 
-function renderProfileSectionIcon(kind: "account" | "identity" | "visibility" | "contribution"): React.ReactNode {
+const BILLING_CYCLE_LABEL = {
+  monthly: "Premium 1か月プラン",
+  quarterly: "Premium 3か月プラン",
+} as const;
+
+function renderProfileSectionIcon(kind: "account" | "identity" | "plan" | "visibility" | "contribution"): React.ReactNode {
   if (kind === "account") {
     return (
       <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
@@ -21,6 +27,15 @@ function renderProfileSectionIcon(kind: "account" | "identity" | "visibility" | 
         <path d="M6.8 6.2h10.4" />
         <path d="M6.8 11h10.4" />
         <path className="accent" d="M6.8 15.8h7.2" />
+      </svg>
+    );
+  }
+  if (kind === "plan") {
+    return (
+      <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+        <path d="M5.5 8.5 12 4l6.5 4.5" />
+        <path d="M7 10.2V18h10v-7.8" />
+        <path className="accent" d="M9.5 13h5" />
       </svg>
     );
   }
@@ -39,8 +54,22 @@ function renderProfileSectionIcon(kind: "account" | "identity" | "visibility" | 
   );
 }
 
+function formatBillingDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).format(date);
+}
+
 export default function ProfilePage() {
   const { me, refresh } = useAuth();
+  const navigate = useNavigate();
 
   const initial = useMemo(() => me?.display_name ?? "", [me?.display_name]);
   const [displayName, setDisplayName] = useState(initial);
@@ -73,6 +102,14 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  const hasPremiumPlan = me.plan_tier === "premium";
+  const isCanceling = hasPremiumPlan && Boolean(me.stripe_cancel_at_period_end);
+  const currentPlanLabel =
+    hasPremiumPlan && (me.billing_cycle === "monthly" || me.billing_cycle === "quarterly")
+      ? BILLING_CYCLE_LABEL[me.billing_cycle]
+      : "Free";
+  const currentPeriodEndLabel = formatBillingDate(me.stripe_current_period_end);
 
   const onSave = async () => {
     setIsSaving(true);
@@ -282,6 +319,37 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="profilePage__section">
+        <div className="profilePage__sectionHead">
+          <div className="profilePage__sectionHeadMain">
+            <span className="profilePage__sectionIcon" aria-hidden="true">
+              {renderProfileSectionIcon("plan")}
+            </span>
+            <div className="profilePage__sectionEyebrow">PLAN</div>
+          </div>
+        </div>
+
+        <div className="profilePage__row">
+          <div className="profilePage__k">現在のプラン</div>
+          <div className="profilePage__v">{currentPlanLabel}</div>
+        </div>
+
+        {hasPremiumPlan && currentPeriodEndLabel ? (
+          <div className="profilePage__row">
+            <div className="profilePage__k">{isCanceling ? "利用終了予定日" : "次回更新日"}</div>
+            <div className="profilePage__v">{currentPeriodEndLabel}</div>
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          className="profilePage__saveBtn profilePage__saveBtn--secondary profilePage__planAction"
+          onClick={() => navigate(hasPremiumPlan ? "/plan" : "/premium")}
+        >
+          {hasPremiumPlan ? "契約を管理" : "プランを見る"}
+        </button>
       </section>
 
       <section className="profilePage__section">

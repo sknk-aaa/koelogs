@@ -22,6 +22,11 @@ Rails.application.routes.draw do
     get "insights", to: "insights#show"
     get "missions", to: "missions#show"
     post "help/contact", to: "help_contacts#create"
+    post "billing/checkout", to: "billing#create_checkout_session"
+    post "billing/checkout/confirm", to: "billing#confirm_checkout_session"
+    post "billing/portal", to: "billing#create_portal_session"
+    post "billing/refresh", to: "billing#refresh_subscription"
+    post "billing/webhook", to: "billing#webhook"
 
     # ✅ AI recommendations
     get "ai_recommendations", to: "ai_recommendations#show"
@@ -50,6 +55,15 @@ Rails.application.routes.draw do
     delete "community/posts/:id/favorite", to: "community_posts#unfavorite"
     get "community/rankings", to: "community_rankings#show"
     get "community/profiles/:id", to: "community_profiles#show"
+    get "community/topics", to: "community/topics#index"
+    post "community/topics", to: "community/topics#create"
+    get "community/topics/:id", to: "community/topics#show"
+    patch "community/topics/:id", to: "community/topics#update"
+    delete "community/topics/:id", to: "community/topics#destroy"
+    post "community/topics/:id/like", to: "community/topics#like"
+    delete "community/topics/:id/like", to: "community/topics#unlike"
+    post "community/topics/:topic_id/comments", to: "community/topic_comments#create"
+    delete "community/topics/:topic_id/comments/:id", to: "community/topic_comments#destroy"
 
     # auth
     post "auth/signup", to: "auth#signup"

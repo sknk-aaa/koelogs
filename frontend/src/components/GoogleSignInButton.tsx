@@ -71,6 +71,8 @@ export default function GoogleSignInButton({
 
     const container = containerRef.current;
     container.innerHTML = "";
+    const availableWidth = Math.floor(container.clientWidth);
+    const buttonWidth = Math.max(Math.min(availableWidth, 320), 280);
 
     if (initializedGoogleClientId !== clientId) {
       window.google.accounts.id.initialize({
@@ -88,7 +90,7 @@ export default function GoogleSignInButton({
       size: "large",
       text,
       shape: "pill",
-      width: Math.max(Math.floor(container.clientWidth) - 32, 280),
+      width: buttonWidth,
       logo_alignment: "center",
     });
   }, [clientId, disabled, interactionBlocked, isReady, text]);

@@ -175,7 +175,8 @@
 .authPage__googleButton {
   display: flex;
   justify-content: center;
-  width: 100%;
+  width: min(100%, 320px);
+  margin: 0 auto;
   min-height: 44px;
 }
 
@@ -197,8 +198,8 @@
 .authPage__googleButton > div,
 .authPage__googleButton iframe {
   display: block !important;
-  width: calc(100% - 32px) !important;
-  max-width: calc(100% - 32px) !important;
+  width: 320px !important;
+  max-width: 100% !important;
   margin: 0 auto !important;
 }
 

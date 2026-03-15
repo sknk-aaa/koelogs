@@ -40,8 +40,14 @@ module VoiceApp
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+    session_same_site = ENV["RAILS_ENV"] == "production" ? :none : :lax
+
     config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore
+    config.middleware.use ActionDispatch::Session::CookieStore,
+      key: "_voice_app_session",
+      same_site: session_same_site,
+      secure: ENV["RAILS_ENV"] == "production",
+      httponly: true
     config.time_zone = "Tokyo"
     config.active_record.default_timezone = :local
   end

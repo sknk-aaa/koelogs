@@ -8,7 +8,6 @@ import type { TrainingLog } from "../types/trainingLog";
 import type { SaveRewards } from "../types/gamification";
 import { fetchTrainingMenus, createTrainingMenu, updateTrainingMenu } from "../api/trainingMenus";
 import type { TrainingMenu } from "../types/trainingMenu";
-import { useSettings } from "../features/settings/useSettings";
 import { mergeRewards } from "../features/gamification/rewardBus";
 import ColoredTag from "../components/ColoredTag";
 import TutorialModal from "../components/TutorialModal";
@@ -45,7 +44,6 @@ export default function LogNewPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
-  const { settings } = useSettings();
   const navState = location.state as { quickFromWelcome?: boolean } | null;
   const quickMode = navState?.quickFromWelcome === true;
   const menuManageMode = params.get("panel") === "menus";
@@ -260,7 +258,7 @@ export default function LogNewPage() {
 
     const res = await createAiRecommendation({
       date: aiPromptDate,
-      range_days: settings.aiRangeDays,
+      range_days: 14,
     });
 
     if (!res.ok) {

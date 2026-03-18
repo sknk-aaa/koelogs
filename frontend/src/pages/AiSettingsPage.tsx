@@ -219,7 +219,7 @@ function renderAiSettingsSectionIcon(kind: "goal" | "memory" | "style" | "focus"
 export default function AiSettingsPage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
-  const { settings, patchSettings } = useSettings();
+  useSettings();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -574,6 +574,7 @@ export default function AiSettingsPage() {
                 rows={4}
                 value={strengthsText}
                 onChange={(e) => setStrengthsText(e.target.value)}
+                placeholder="例：低音は安定しやすい"
               />
             </div>
 
@@ -586,6 +587,7 @@ export default function AiSettingsPage() {
                 rows={4}
                 value={challengesText}
                 onChange={(e) => setChallengesText(e.target.value)}
+                placeholder="例：高音で喉が締まりやすい"
               />
             </div>
 
@@ -598,6 +600,7 @@ export default function AiSettingsPage() {
                 rows={4}
                 value={growthJourneyText}
                 onChange={(e) => setGrowthJourneyText(e.target.value)}
+                placeholder="例：以前より裏声への切り替えが自然になった"
               />
             </div>
 
@@ -610,7 +613,7 @@ export default function AiSettingsPage() {
                 rows={4}
                 value={avoidPracticeText}
                 onChange={(e) => setAvoidPracticeText(e.target.value)}
-                placeholder="喉締めしやすい練習は短めに、など"
+                placeholder="例：力んだらすぐに半音下げる"
               />
             </div>
           </div>
@@ -746,31 +749,6 @@ export default function AiSettingsPage() {
               </button>
             );
           })}
-        </div>
-      </section>
-
-      <section className="aiSettingsPage__section">
-        <div className="aiSettingsPage__sectionHead">
-          <div className="aiSettingsPage__sectionHeadMain">
-            <span className="aiSettingsPage__sectionIcon" aria-hidden="true">
-              {renderAiSettingsSectionIcon("range")}
-            </span>
-            <div className="aiSettingsPage__sectionEyebrow">RANGE</div>
-          </div>
-        </div>
-        <p className="aiSettingsPage__hint">AIおすすめを作るときに、どのくらいの期間の記録を参照するかを設定できます。</p>
-        <div className="aiSettingsPage__rangeOptions">
-          {[ 14, 30, 90 ].map((days) => (
-            <button
-              key={`ai-range-days-${days}`}
-              type="button"
-              className={`aiSettingsPage__rangeOption ${settings.aiRangeDays === days ? "is-active" : ""}`}
-              onClick={() => patchSettings({ aiRangeDays: days as 14 | 30 | 90 })}
-              aria-pressed={settings.aiRangeDays === days}
-            >
-              {days}日
-            </button>
-          ))}
         </div>
       </section>
 

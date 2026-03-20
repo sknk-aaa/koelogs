@@ -9,4 +9,4 @@ Disallow: /profile
 Disallow: /mypage
 Disallow: /plan
 
-Sitemap: https://koelogs-frontend-vgkk.onrender.com/sitemap.xml
+Sitemap: https://koelogs.com/sitemap.xml

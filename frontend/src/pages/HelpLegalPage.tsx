@@ -3,17 +3,27 @@ import "./HelpPages.css";
 
 const BUSINESS_ITEMS = [
   { label: "販売事業者", value: "Koelogs" },
-  { label: "運営責任者", value: "請求があった場合には遅滞なく開示します" },
+  { label: "代表責任者", value: "請求があった場合には遅滞なく開示します" },
   { label: "所在地", value: "請求があった場合には遅滞なく開示します" },
   { label: "電話番号", value: "請求があった場合には遅滞なく開示します" },
-  { label: "連絡先", value: "koelogs.app@gmail.com" },
-  { label: "販売価格", value: "各プランページに表示された金額" },
+  { label: "メールアドレス", value: "koelogs.app@gmail.com" },
+  { label: "サイトURL", value: "https://koelogs.com" },
+  { label: "商品販売価格", value: "各プランページに記載の金額" },
   { label: "商品代金以外に必要な費用", value: "インターネット接続に必要な通信料等" },
-  { label: "支払方法", value: "クレジットカード等、決済画面に表示される方法" },
-  { label: "支払時期", value: "申込時または各決済事業者の定める時期" },
-  { label: "提供時期", value: "決済完了後、対象プランの機能を利用できる状態になります" },
+  { label: "支払方法", value: "クレジットカード決済" },
+  { label: "支払時期", value: "購入手続き時に直ちに決済されます。以後は契約中、各更新日に自動課金されます。" },
+  { label: "商品の引渡時期", value: "決済完了後、直ちに対象プランの機能を利用できる状態になります。" },
   { label: "解約方法", value: "プラン管理画面または Stripe の契約管理画面からいつでも手続きできます" },
-  { label: "返金・キャンセル", value: "法令上認められる場合を除き、決済完了後の返金は原則として行いません" },
+  {
+    label: "返品・交換",
+    value:
+      "商品の性質上、購入手続き完了後の返品・交換には対応していません。法令上認められる場合を除き、返金は行いません。",
+  },
+  {
+    label: "返金・キャンセル",
+    value:
+      "次回更新日前までに解約手続きを行うことで、次回以降の請求を停止できます。解約後も契約期間満了までは利用可能です。",
+  },
 ] as const;
 
 export default function HelpLegalPage() {
@@ -30,7 +40,8 @@ export default function HelpLegalPage() {
       </section>
 
       <section className="legalPage__notice">
-        個人開発で運営しているサービスのため、所在地や運営責任者、電話番号は請求があった場合に遅滞なく開示する形を採用しています。
+        Koelogs は、ボイストレーニングの練習記録、音声測定、AI による練習支援機能を提供するサブスクリプション型 Web
+        サービスです。
       </section>
 
       <section className="legalPage__content">

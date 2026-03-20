@@ -1,7 +1,7 @@
 ![Koelogs ログページ](readme/log-top.png)
 
 # Koelogs
-公開ページ: https://koelogs-frontend-vgkk.onrender.com/lp
+公開ページ: https://koelogs.com/log
 
 ## ゲストログイン
 

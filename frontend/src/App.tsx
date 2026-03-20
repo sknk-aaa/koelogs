@@ -40,7 +40,7 @@ export default function App() {
       <AuthProvider>
         <Suspense fallback={<RouteLoading />}>
           <Routes>
-            <Route path="/" element={<Navigate to="/log" replace />} />
+            <Route path="/" element={<LandingPage />} />
 
             {/* 公開ページ（レイアウト外） */}
             <Route path="/lp" element={<LandingPage />} />
@@ -102,7 +102,8 @@ function PageTitleManager() {
 }
 
 function resolvePageTitle(pathname: string): string {
-  if (pathname === "/" || pathname === "/log") return "ログ | Koelogs";
+  if (pathname === "/") return "Koelogs | AIボイトレ分析・練習記録アプリ";
+  if (pathname === "/log") return "ログ | Koelogs";
   if (pathname === "/lp") return "Koelogs | AIボイトレ分析・練習記録アプリ";
   if (pathname === "/login") return "ログイン | Koelogs";
   if (pathname === "/signup") return "新規登録 | Koelogs";

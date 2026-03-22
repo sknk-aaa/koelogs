@@ -3,9 +3,9 @@ import "./HelpPages.css";
 
 const BUSINESS_ITEMS = [
   { label: "販売事業者", value: "Koelogs" },
-  { label: "代表責任者", value: "請求があった場合には遅滞なく開示します" },
-  { label: "所在地", value: "請求があった場合には遅滞なく開示します" },
-  { label: "電話番号", value: "請求があった場合には遅滞なく開示します" },
+  { label: "代表責任者", value: "請求があった場合には速やかに開示いたします" },
+  { label: "所在地", value: "請求があった場合には速やかに開示いたします" },
+  { label: "電話番号", value: "請求があった場合には速やかに開示いたします" },
   { label: "メールアドレス", value: "koelogs.app@gmail.com" },
   { label: "サイトURL", value: "https://koelogs.com" },
   { label: "商品販売価格", value: "各プランページに記載の金額" },

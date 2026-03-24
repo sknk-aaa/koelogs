@@ -82,7 +82,7 @@ export default function AiRecommendationInfoContent() {
           <InfoModalItem
             icon={<LogItemIcon />}
             title="主に使う"
-            description="詳細ログは直近14日を使い、選択した参照期間が30日 / 90日の場合は月ログ傾向も補助で参照します。"
+            description="詳細ログは直近14日を主に使い、今の練習状況に近い内容をもとに提案します。"
           />
           <InfoModalItem
             icon={<SupportItemIcon />}

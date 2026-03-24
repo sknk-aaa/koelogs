@@ -12,7 +12,6 @@ import type { MonthlyLogComparisonData, MonthlyLogData } from "../types/monthlyL
 import type { SaveRewards } from "../types/gamification";
 import type { MissionItem } from "../types/missions";
 import { fetchLatestMeasurements, type MeasurementRun } from "../api/measurements";
-import { useSettings } from "../features/settings/useSettings";
 import { useAuth } from "../features/auth/useAuth";
 import { emitGamificationRewards } from "../features/gamification/rewardBus";
 import { improvementTagToneClass } from "../features/improvementTags/improvementTags";
@@ -589,7 +588,6 @@ export default function LogPage() {
     () => params.get("month") || selectedDate.slice(0, 7),
     [params, selectedDate]
   );
-  const { settings } = useSettings();
   const { me: authMe, isLoading: authLoading } = useAuth();
   const guestMode = !authLoading && !authMe;
 
@@ -908,7 +906,7 @@ export default function LogPage() {
 
       setAiError(null);
 
-      const res = await fetchAiRecommendationByDate(selectedDate, settings.aiRangeDays);
+      const res = await fetchAiRecommendationByDate(selectedDate, 14);
       if (cancelled) return;
 
       if (res.error) {
@@ -922,7 +920,7 @@ export default function LogPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate, authMe, isDayMode, settings.aiRangeDays]);
+  }, [selectedDate, authMe, isDayMode]);
 
   useEffect(() => {
     if (authLoading || !authMe) {
@@ -944,6 +942,14 @@ export default function LogPage() {
     if (location.hash !== "#training" || !isDayMode) return;
     const id = window.setTimeout(() => {
       trainingSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 140);
+    return () => window.clearTimeout(id);
+  }, [isDayMode, location.hash]);
+
+  useEffect(() => {
+    if (location.hash !== "#ai" || !isDayMode) return;
+    const id = window.setTimeout(() => {
+      aiCtaCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 140);
     return () => window.clearTimeout(id);
   }, [isDayMode, location.hash]);
@@ -1184,7 +1190,7 @@ export default function LogPage() {
     setAiError(null);
 
     const res = await createAiRecommendation({
-      range_days: settings.aiRangeDays,
+      range_days: 14,
       date: selectedDate,
       today_theme: aiThemeDraft.trim() || undefined,
     });

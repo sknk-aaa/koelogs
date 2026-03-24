@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import type { ScaleRange, ScaleTrack, ScaleType } from "../api/scaleTracks";
+import { resolveAudioUrl, type ScaleRange, type ScaleTrack, type ScaleType } from "../api/scaleTracks";
 import { SCALE_RANGES, SCALE_TYPES } from "../features/training/constants";
 import { useScaleTracks } from "../features/training/hooks/useScaleTracks";
 import { useAudioPlayer } from "../features/training/hooks/useAudioPlayer";
@@ -125,6 +125,11 @@ const PITCH_AXIS_BY_RANGE: Record<PitchGuideRange, { minMidi: number; maxMidi: n
   high: { minMidi: noteToMidi("A3") ?? 57, maxMidi: noteToMidi("E5") ?? 76 },
 };
 const PITCH_SCROLL_WINDOW_SEC = 9;
+const RANGE_MONITOR_AXIS = {
+  minMidi: noteToMidi("C2") ?? 36,
+  maxMidi: noteToMidi("C6") ?? 84,
+} as const;
+const RANGE_MONITOR_WINDOW_SEC = 12;
 
 const MEASUREMENT_SHORTCUTS: Array<{
   title: string;
@@ -929,7 +934,9 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
 
       if (activeMeasurementKey === "pitch_accuracy") {
         stopPitchGuideAudio();
-        const guideAudio = new Audio(`/scales/pitch_accuracy-${effectivePitchGuideRange}.mp3`);
+        const guideAudio = new Audio(
+          resolveAudioUrl(`/scales/pitch_accuracy-${effectivePitchGuideRange}.mp3`)
+        );
         guideAudio.preload = "auto";
         guideAudio.currentTime = 0;
         const onEnded = () => {
@@ -1087,6 +1094,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
       };
       measurementRafRef.current = requestAnimationFrame(tick);
     } catch (e) {
+      await stopMeasurementRecording(false);
       setMeasurementError(errorMessage(e, "録音開始に失敗しました"));
     }
   };
@@ -2453,7 +2461,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
                   <div className="trainingPage__studioPlayer">
                     <AudioPlayer
                       audioRef={audioRef}
-                      src={selected?.file_path ?? undefined}
+                      src={selected?.file_path ? resolveAudioUrl(selected.file_path) : undefined}
                       disabled={disabled}
                       isPlaying={isPlaying}
                       onTogglePlay={togglePlay}
@@ -2515,7 +2523,7 @@ export default function TrainingPage({ embedded = false }: { embedded?: boolean 
             <div className="trainingPage__studioPlayer">
               <AudioPlayer
                 audioRef={audioRef}
-                src={selected?.file_path ?? undefined}
+                src={selected?.file_path ? resolveAudioUrl(selected.file_path) : undefined}
                 disabled={disabled}
                 isPlaying={isPlaying}
                 onTogglePlay={togglePlay}
@@ -3004,6 +3012,7 @@ function RealtimePitchMonitor({
   const tunerPos = (clampedCents + 50) / 100;
 
   const isPitchAccuracy = systemKey === "pitch_accuracy" && pitchGuide != null;
+  const isRangeMonitor = systemKey === "range";
   if (!isPitchAccuracy && points.length < 2) {
     return (
       <div className="trainingPage__monitor trainingPage__monitor--pitch">
@@ -3018,13 +3027,19 @@ function RealtimePitchMonitor({
 
   const minBound = isPitchAccuracy
     ? PITCH_AXIS_BY_RANGE[pitchGuideRange].minMidi
+    : isRangeMonitor
+      ? RANGE_MONITOR_AXIS.minMidi
     : Math.max(24, Math.floor(Math.min(...points.map((v) => v.midi))) - 2);
   const maxBound = isPitchAccuracy
     ? PITCH_AXIS_BY_RANGE[pitchGuideRange].maxMidi
+    : isRangeMonitor
+      ? RANGE_MONITOR_AXIS.maxMidi
     : Math.min(96, Math.ceil(Math.max(...points.map((v) => v.midi))) + 2);
   const range = Math.max(1, maxBound - minBound);
   const axisDurationSec = isPitchAccuracy
     ? Math.max(1, Math.min(PITCH_SCROLL_WINDOW_SEC, pitchGuide.totalSec))
+    : isRangeMonitor
+      ? RANGE_MONITOR_WINDOW_SEC
     : Math.max(1, totalDurationSec ?? ((points.at(-1)?.t ?? 0) - (points[0]?.t ?? 0)));
   const axisStartSec = isPitchAccuracy
     ? Math.max(
@@ -3034,8 +3049,14 @@ function RealtimePitchMonitor({
           elapsedSec - axisDurationSec * 0.35
         )
       )
+    : isRangeMonitor
+      ? Math.max(0, elapsedSec - axisDurationSec)
     : points[0]?.t ?? 0;
-  const projectedPoints = points.map((point) => {
+  const axisEndSec = axisStartSec + axisDurationSec;
+  const visiblePoints = isRangeMonitor
+    ? points.filter((point) => point.t >= axisStartSec && point.t <= axisEndSec)
+    : points;
+  const projectedPoints = visiblePoints.map((point) => {
     const x = padLeft + (((point.t - axisStartSec) / axisDurationSec) * (width - padLeft - padRight));
     const y = height - padBottom - ((point.midi - minBound) / range) * (height - padTop - padBottom);
     const tone: PitchJudgeTone =

@@ -23,13 +23,16 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [consentError, setConsentError] = useState<string | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setConsentError(null);
 
     try {
       const normalizedEmail = normalizeEmail(email);
@@ -44,6 +47,10 @@ export default function SignupPage() {
       }
       if (password !== passwordConfirmation) {
         throw new Error("確認用パスワードが一致しません。");
+      }
+      if (!termsAccepted) {
+        setConsentError("利用規約とプライバシーポリシーへの同意が必要です。");
+        throw new Error("利用規約とプライバシーポリシーへの同意が必要です。");
       }
 
       const result = await signup(normalizedEmail, password, passwordConfirmation);
@@ -66,6 +73,12 @@ export default function SignupPage() {
   };
 
   const onGoogleCredential = async (credential: string) => {
+    setConsentError(null);
+    if (!termsAccepted) {
+      setConsentError("利用規約とプライバシーポリシーへの同意が必要です。");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -110,6 +123,8 @@ export default function SignupPage() {
               text="signup_with"
               onCredential={onGoogleCredential}
               disabled={submitting}
+              interactionBlocked={!termsAccepted}
+              onBlockedClick={() => setConsentError("利用規約とプライバシーポリシーへの同意が必要です。")}
             />
 
             <div className="authPage__field">
@@ -145,9 +160,40 @@ export default function SignupPage() {
               />
             </div>
 
+            <label className="authPage__consent">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => {
+                  setTermsAccepted(e.target.checked);
+                  if (e.target.checked) setConsentError(null);
+                }}
+                className="authPage__consentCheckbox"
+              />
+              <span className="authPage__consentText">
+                <Link to="/help/terms" target="_blank" rel="noreferrer">
+                  利用規約
+                </Link>
+                {" "}
+                と
+                {" "}
+                <Link to="/help/privacy" target="_blank" rel="noreferrer">
+                  プライバシーポリシー
+                </Link>
+                {" "}
+                に同意します
+              </span>
+            </label>
+
+            {consentError && (
+              <div className="authPage__consentError">
+                {consentError}
+              </div>
+            )}
+
             {error && <div className="authPage__error">{error}</div>}
 
-            <button type="submit" disabled={submitting} className="authPage__submit">
+            <button type="submit" disabled={submitting || !termsAccepted} className="authPage__submit">
               {submitting ? "登録中..." : "新規登録"}
             </button>
 

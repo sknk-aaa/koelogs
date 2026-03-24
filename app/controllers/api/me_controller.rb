@@ -108,11 +108,30 @@ module Api
       ai_customization_done =
         user.ai_custom_instructions.present? ||
         Array(user.ai_improvement_tags).any? ||
-        Ai::ResponseStylePreferences.customized?(user.ai_response_style_prefs)
+        Ai::ResponseStylePreferences.customized?(user.ai_response_style_prefs) ||
+        long_term_profile_overrides_present?(user)
       community_started = user.community_post_favorites.exists?
       measurement_done = user.measurement_runs.exists?
 
       ai_customization_done && community_started && measurement_done
+    end
+
+    def long_term_profile_overrides_present?(user)
+      profile = user.ai_user_profile
+      return false unless profile&.user_overrides.is_a?(Hash)
+
+      profile.user_overrides.values.any? do |value|
+        case value
+        when String
+          value.strip.present?
+        when Array
+          value.any?(&:present?)
+        when Hash
+          value.present?
+        else
+          value.present?
+        end
+      end
     end
   end
 end

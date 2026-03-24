@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 
 const GOOGLE_IDENTITY_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+let initializedGoogleClientId: string | null = null;
 
 type GoogleSignInButtonProps = {
   text: "signin_with" | "signup_with";
   onCredential: (credential: string) => Promise<void> | void;
   disabled?: boolean;
+  interactionBlocked?: boolean;
+  onBlockedClick?: () => void;
 };
 
 function loadGoogleIdentityScript(): Promise<void> {
@@ -32,7 +35,13 @@ function loadGoogleIdentityScript(): Promise<void> {
   });
 }
 
-export default function GoogleSignInButton({ text, onCredential, disabled = false }: GoogleSignInButtonProps) {
+export default function GoogleSignInButton({
+  text,
+  onCredential,
+  disabled = false,
+  interactionBlocked = false,
+  onBlockedClick,
+}: GoogleSignInButtonProps) {
   const clientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "").trim();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const callbackRef = useRef(onCredential);
@@ -62,24 +71,29 @@ export default function GoogleSignInButton({ text, onCredential, disabled = fals
 
     const container = containerRef.current;
     container.innerHTML = "";
+    const availableWidth = Math.floor(container.clientWidth);
+    const buttonWidth = Math.max(Math.min(availableWidth, 360), 280);
 
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (response) => {
-        if (!response.credential || disabled) return;
-        await callbackRef.current(response.credential);
-      },
-    });
+    if (initializedGoogleClientId !== clientId) {
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response) => {
+          if (!response.credential || disabled || interactionBlocked) return;
+          await callbackRef.current(response.credential);
+        },
+      });
+      initializedGoogleClientId = clientId;
+    }
 
     window.google.accounts.id.renderButton(container, {
       theme: "outline",
       size: "large",
       text,
       shape: "pill",
-      width: Math.max(Math.floor(container.clientWidth), 280),
+      width: buttonWidth,
       logo_alignment: "center",
     });
-  }, [clientId, disabled, isReady, text]);
+  }, [clientId, disabled, interactionBlocked, isReady, text]);
 
   if (!clientId) return null;
 
@@ -88,8 +102,20 @@ export default function GoogleSignInButton({ text, onCredential, disabled = fals
       <div className="authPage__divider" aria-hidden="true">
         <span>または</span>
       </div>
-      <div className="authPage__googleButtonHost" aria-disabled={disabled}>
+      <div
+        className="authPage__googleButtonHost"
+        aria-disabled={disabled ? "true" : "false"}
+        data-interaction-blocked={interactionBlocked ? "true" : "false"}
+      >
         <div ref={containerRef} className="authPage__googleButton" />
+        {interactionBlocked && !disabled ? (
+          <button
+            type="button"
+            className="authPage__googleButtonOverlay"
+            aria-label="利用規約とプライバシーポリシーへの同意が必要です"
+            onClick={onBlockedClick}
+          />
+        ) : null}
       </div>
     </div>
   );

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /login
+Disallow: /signup
+Disallow: /settings
+Disallow: /settings/ai
+Disallow: /profile
+Disallow: /mypage
+Disallow: /plan
+
+Sitemap: https://koelogs.com/sitemap.xml

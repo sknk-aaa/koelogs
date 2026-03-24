@@ -1,6 +1,6 @@
 // frontend/src/App.tsx
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { AuthProvider } from "./features/auth/AuthProvider";
 import RequireAuth from "./features/auth/RequireAuth";
@@ -27,16 +27,20 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const HelpGuidePage = lazy(() => import("./pages/HelpGuidePage"));
 const HelpAboutPage = lazy(() => import("./pages/HelpAboutPage"));
 const HelpContactPage = lazy(() => import("./pages/HelpContactPage"));
+const HelpTermsPage = lazy(() => import("./pages/HelpTermsPage"));
+const HelpPrivacyPage = lazy(() => import("./pages/HelpPrivacyPage"));
+const HelpLegalPage = lazy(() => import("./pages/HelpLegalPage"));
 const PlanPage = lazy(() => import("./pages/PlanPage"));
 const PremiumPlanPage = lazy(() => import("./pages/PremiumPlanPage"));
 
 export default function App() {
   return (
     <BrowserRouter>
+      <PageTitleManager />
       <AuthProvider>
         <Suspense fallback={<RouteLoading />}>
           <Routes>
-            <Route path="/" element={<Navigate to="/log" replace />} />
+            <Route path="/" element={<LandingPage />} />
 
             {/* 公開ページ（レイアウト外） */}
             <Route path="/lp" element={<LandingPage />} />
@@ -73,6 +77,9 @@ export default function App() {
               <Route path="/help/guide" element={<HelpGuidePage />} />
               <Route path="/help/about" element={<HelpAboutPage />} />
               <Route path="/help/contact" element={<HelpContactPage />} />
+              <Route path="/help/terms" element={<HelpTermsPage />} />
+              <Route path="/help/privacy" element={<HelpPrivacyPage />} />
+              <Route path="/help/legal" element={<HelpLegalPage />} />
 
               {/* 404 */}
               <Route path="*" element={<NotFound />} />
@@ -82,6 +89,47 @@ export default function App() {
       </AuthProvider>
     </BrowserRouter>
   );
+}
+
+function PageTitleManager() {
+  const location = useLocation();
+
+  useEffect(() => {
+    document.title = resolvePageTitle(location.pathname);
+  }, [location.pathname]);
+
+  return null;
+}
+
+function resolvePageTitle(pathname: string): string {
+  if (pathname === "/") return "Koelogs | AIボイトレ分析・練習記録アプリ";
+  if (pathname === "/log") return "ログ | Koelogs";
+  if (pathname === "/lp") return "Koelogs | AIボイトレ分析・練習記録アプリ";
+  if (pathname === "/login") return "ログイン | Koelogs";
+  if (pathname === "/signup") return "新規登録 | Koelogs";
+  if (pathname === "/log/new") return "今日の記録 | Koelogs";
+  if (pathname === "/training") return "トレーニング | Koelogs";
+  if (pathname === "/insights") return "分析 | Koelogs";
+  if (pathname === "/insights/time") return "練習時間 | 分析 | Koelogs";
+  if (pathname === "/log/notes" || pathname === "/insights/notes") return "測定詳細 | Koelogs";
+  if (pathname === "/community") return "コミュニティ | Koelogs";
+  if (pathname.startsWith("/community/topics/")) return "トピック | コミュニティ | Koelogs";
+  if (pathname === "/community/rankings") return "ランキング | コミュニティ | Koelogs";
+  if (pathname.startsWith("/community/profile/")) return "プロフィール | コミュニティ | Koelogs";
+  if (pathname === "/chat") return "AIチャット | Koelogs";
+  if (pathname === "/premium") return "プレミアムプラン | Koelogs";
+  if (pathname === "/settings") return "設定 | Koelogs";
+  if (pathname === "/settings/ai") return "AIカスタム指示 | Koelogs";
+  if (pathname === "/plan") return "プラン管理 | Koelogs";
+  if (pathname === "/profile") return "プロフィール | Koelogs";
+  if (pathname === "/mypage") return "マイページ | Koelogs";
+  if (pathname === "/help/guide") return "使い方ガイド | Koelogs";
+  if (pathname === "/help/about") return "Koelogsについて | Koelogs";
+  if (pathname === "/help/contact") return "お問い合わせ | Koelogs";
+  if (pathname === "/help/terms") return "利用規約 | Koelogs";
+  if (pathname === "/help/privacy") return "プライバシーポリシー | Koelogs";
+  if (pathname === "/help/legal") return "特定商取引法に基づく表記 | Koelogs";
+  return "ページが見つかりません | Koelogs";
 }
 
 function RouteLoading() {

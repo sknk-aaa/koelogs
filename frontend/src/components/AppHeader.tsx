@@ -244,6 +244,24 @@ export default function AppHeader() {
             match: "exact",
             onClick: () => navigate("/help/contact"),
           },
+          {
+            label: "利用規約",
+            to: "/help/terms",
+            match: "exact",
+            onClick: () => navigate("/help/terms"),
+          },
+          {
+            label: "プライバシー",
+            to: "/help/privacy",
+            match: "exact",
+            onClick: () => navigate("/help/privacy"),
+          },
+          {
+            label: "特商法表記",
+            to: "/help/legal",
+            match: "exact",
+            onClick: () => navigate("/help/legal"),
+          },
         ],
       };
 

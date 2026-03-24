@@ -8,8 +8,10 @@ export type ScaleTrack = {
   file_path: string;
 };
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+
 export async function fetchScaleTracks(): Promise<ScaleTrack[]> {
-  const res = await fetch("/api/scale_tracks", {
+  const res = await fetch(`${API_BASE}/api/scale_tracks`, {
     credentials: "include", 
     headers: {
       Accept: "application/json",

@@ -1,0 +1,33 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#F7FBFE"/>
+  <rect x="56" y="52" width="1088" height="526" rx="40" fill="#FFFFFF"/>
+  <rect x="56" y="52" width="1088" height="526" rx="40" stroke="#D8E8F6" stroke-width="2"/>
+  <rect x="844" y="94" width="256" height="256" rx="36" fill="#EAF6FD"/>
+  <rect x="826" y="112" width="256" height="256" rx="36" fill="#DFF1FB"/>
+  <rect x="802" y="132" width="256" height="256" rx="36" fill="#D4ECFA"/>
+  <circle cx="978" cy="166" r="10" fill="#7ED3FC"/>
+  <circle cx="1014" cy="166" r="10" fill="#38BDF8"/>
+  <circle cx="1050" cy="166" r="10" fill="#0EA5E9"/>
+  <image href="/koelog-logo.png" x="120" y="112" width="440" height="165" preserveAspectRatio="xMinYMin meet"/>
+  <text x="120" y="334" fill="#0F172A" font-family="'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="56" font-weight="700" letter-spacing="-0.04em">
+    AIボイトレ分析・練習記録アプリ
+  </text>
+  <text x="120" y="394" fill="#475569" font-family="'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="28" font-weight="500">
+    練習記録と音声測定をAIが分析し、最適な練習メニューを提案。
+  </text>
+  <text x="120" y="438" fill="#64748B" font-family="'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="28" font-weight="500">
+    コミュニティの実践レポートも活用して、継続しやすいボイトレを支援します。
+  </text>
+  <rect x="120" y="486" width="136" height="52" rx="26" fill="#E0F2FE"/>
+  <rect x="272" y="486" width="136" height="52" rx="26" fill="#E0F2FE"/>
+  <rect x="424" y="486" width="176" height="52" rx="26" fill="#E0F2FE"/>
+  <text x="188" y="520" text-anchor="middle" fill="#0369A1" font-family="'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="24" font-weight="700">
+    記録
+  </text>
+  <text x="340" y="520" text-anchor="middle" fill="#0369A1" font-family="'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="24" font-weight="700">
+    測定
+  </text>
+  <text x="512" y="520" text-anchor="middle" fill="#0369A1" font-family="'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="24" font-weight="700">
+    AIおすすめ
+  </text>
+</svg>

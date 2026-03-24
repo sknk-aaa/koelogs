@@ -1463,14 +1463,14 @@
 }
 
 .aiChatPage__emptyActionCard {
-  width: min(560px, calc(100vw - 64px));
+  width: min(720px, calc(100vw - 64px));
   border: 1px solid var(--chat-soft-line);
   border-radius: 18px;
   background: color-mix(in srgb, var(--card) 98%, #fff);
   box-shadow: 0 14px 30px rgba(13, 23, 42, 0.08);
-  padding: 18px;
+  padding: 22px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .aiChatPage__emptyActionTitle {
@@ -1492,6 +1492,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .aiChatPage__emptyActionButtons .aiChatPage__sendBtn {
@@ -1499,6 +1500,15 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  width: auto;
+  min-width: fit-content;
+  padding: 0 18px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.aiChatPage__sendBtn.aiChatPage__sendBtn--emptyCta {
+  text-decoration: none;
 }
 
 .aiChatPage__emptyPremiumTag {

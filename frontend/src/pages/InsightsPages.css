@@ -765,6 +765,14 @@
   gap: 12px;
 }
 
+.insightsHero__actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .insightsHero__kicker {
   font-size: var(--ui-section-eyebrow-size, 1.05rem);
   font-weight: 800;

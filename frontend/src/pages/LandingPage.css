@@ -137,6 +137,40 @@
   padding: 0;
 }
 
+.landingKoelogs__footer {
+  border-top: 1px solid color-mix(in srgb, var(--accent) 10%, var(--landing-border));
+  background: #ffffff;
+}
+
+.landingKoelogs__footerInner {
+  display: grid;
+  gap: 14px;
+  padding: 20px 0 28px;
+}
+
+.landingKoelogs__footerBrand {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--landing-title);
+}
+
+.landingKoelogs__footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.landingKoelogs__footerLink {
+  color: var(--landing-body);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.landingKoelogs__footerLink:hover {
+  text-decoration: underline;
+}
+
 .landingKoelogs__heroBand {
   position: relative;
   overflow: hidden;

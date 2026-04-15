@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   confirmCheckoutSession,
   createBillingPortalSession,
@@ -156,6 +156,20 @@ export default function PremiumPlanPage() {
           ctaLabel={ctaLabel}
           ctaDisabled={isLoading || isSubmitting}
         />
+        <section className="premiumPlanLegalLinks" aria-label="決済関連情報">
+          <div className="premiumPlanLegalLinks__title">決済前にご確認ください</div>
+          <div className="premiumPlanLegalLinks__row">
+            <Link to="/help/legal" className="premiumPlanLegalLinks__link">
+              特定商取引法に基づく表記
+            </Link>
+            <Link to="/help/terms" className="premiumPlanLegalLinks__link">
+              利用規約
+            </Link>
+            <Link to="/help/privacy" className="premiumPlanLegalLinks__link">
+              プライバシーポリシー
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

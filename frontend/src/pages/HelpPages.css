@@ -1702,6 +1702,16 @@
   font-weight: 800;
 }
 
+.legalPage__inlineLink {
+  color: color-mix(in srgb, var(--accent) 72%, #0f4f57);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.legalPage__inlineLink:hover {
+  text-decoration: underline;
+}
+
 .legalPage__paragraphs {
   display: grid;
   gap: 10px;
@@ -1749,6 +1759,41 @@
   color: var(--help-log-body);
 }
 
+.legalPage__priceList {
+  display: grid;
+  gap: 12px;
+}
+
+.legalPage__priceRow {
+  display: grid;
+  gap: 4px;
+  padding: 14px 0;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 10%, #dbe5ec);
+}
+
+.legalPage__priceRow:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.legalPage__priceName {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--help-log-title);
+}
+
+.legalPage__priceValue {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--help-log-title);
+}
+
+.legalPage__priceDetail {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--help-log-muted);
+}
+
 @media (max-width: 640px) {
   .legalPage__toc,
   .legalPage__notice,
@@ -1773,14 +1818,21 @@
 :root[data-theme-mode="dark"] .legalPage__tocTitle,
 :root[data-theme-mode="dark"] .legalPage__sectionTitle,
 :root[data-theme-mode="dark"] .legalPage__factKey,
-:root[data-theme-mode="dark"] .legalPage__linkChip {
+:root[data-theme-mode="dark"] .legalPage__linkChip,
+:root[data-theme-mode="dark"] .legalPage__priceName,
+:root[data-theme-mode="dark"] .legalPage__priceValue {
   color: rgba(255, 255, 255, 0.92);
 }
 
 :root[data-theme-mode="dark"] .legalPage__paragraph,
 :root[data-theme-mode="dark"] .legalPage__factValue,
-:root[data-theme-mode="dark"] .legalPage__notice {
+:root[data-theme-mode="dark"] .legalPage__notice,
+:root[data-theme-mode="dark"] .legalPage__priceDetail {
   color: rgba(255, 255, 255, 0.76);
+}
+
+:root[data-theme-mode="dark"] .legalPage__inlineLink {
+  color: #84ddeb;
 }
 
 :root[data-theme-mode="dark"] .legalPage__linkChip {
@@ -1789,5 +1841,9 @@
 }
 
 :root[data-theme-mode="dark"] .legalPage__factRow {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme-mode="dark"] .legalPage__priceRow {
   border-top-color: rgba(255, 255, 255, 0.1);
 }

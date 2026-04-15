@@ -221,6 +221,9 @@ export default function LandingPage() {
               <Link to="/help/guide" className="landingKoelogs__mobileNavLink" onClick={() => setMobileMenuOpen(false)}>
                 使い方
               </Link>
+              <Link to="/help/legal" className="landingKoelogs__mobileNavLink" onClick={() => setMobileMenuOpen(false)}>
+                特商法表記
+              </Link>
               <Link to="/log" className="landingKoelogs__mobileNavLink" onClick={() => setMobileMenuOpen(false)}>
                 ゲストで試す
               </Link>
@@ -324,6 +327,31 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+      <footer className="landingKoelogs__footer">
+        <div className="landingKoelogs__shell landingKoelogs__footerInner">
+          <div className="landingKoelogs__footerBrand">Koelogs</div>
+          <div className="landingKoelogs__footerLinks">
+            <Link to="/premium" className="landingKoelogs__footerLink">
+              プレミアムプラン
+            </Link>
+            <Link to="/help/about" className="landingKoelogs__footerLink">
+              このアプリについて
+            </Link>
+            <Link to="/help/terms" className="landingKoelogs__footerLink">
+              利用規約
+            </Link>
+            <Link to="/help/privacy" className="landingKoelogs__footerLink">
+              プライバシーポリシー
+            </Link>
+            <Link to="/help/legal" className="landingKoelogs__footerLink">
+              特定商取引法に基づく表記
+            </Link>
+            <Link to="/help/contact" className="landingKoelogs__footerLink">
+              お問い合わせ
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -11,6 +11,44 @@
   grid-template-rows: auto minmax(0, 1fr);
 }
 
+.premiumPlanLegalLinks {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto 24px;
+  padding-bottom: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.premiumPlanLegalLinks__title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #5e728a;
+}
+
+.premiumPlanLegalLinks__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.premiumPlanLegalLinks__link {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #d6e2ee;
+  background: #ffffff;
+  color: #34506d;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.premiumPlanLegalLinks__link:hover {
+  text-decoration: underline;
+}
+
 .premiumPlanNotice {
   margin: 12px 16px 0;
   padding: 12px 14px;

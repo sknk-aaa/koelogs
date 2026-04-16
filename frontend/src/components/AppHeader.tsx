@@ -271,6 +271,7 @@ export default function AppHeader() {
             title: "ACCOUNT",
             icon: renderDrawerSectionIcon("account"),
             items: [
+              { label: "プレミアムプラン", onClick: () => navigate("/premium"), to: "/premium", match: "exact" },
               { label: "ログイン", onClick: () => navigate("/login"), to: "/login", match: "exact" },
               { label: "Sign up", onClick: () => navigate("/signup"), to: "/signup", match: "exact" },
             ],

@@ -116,6 +116,11 @@
   color: var(--landing-muted);
 }
 
+.landingKoelogs__navLink--strong {
+  color: color-mix(in srgb, var(--accent) 74%, #0e3f46);
+  font-weight: 800;
+}
+
 .landingKoelogs__navButton,
 .landingKoelogs__button {
   padding: 0 18px;

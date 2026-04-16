@@ -188,6 +188,9 @@ export default function LandingPage() {
             <BrandLogo alt="Koelogs" className="landingKoelogs__brandImage" />
           </Link>
           <nav className="landingKoelogs__nav landingKoelogs__nav--desktop" aria-label="LP navigation">
+            <Link to="/premium" className="landingKoelogs__navLink landingKoelogs__navLink--strong">
+              プレミアムプラン
+            </Link>
             <Link to="/help/guide" className="landingKoelogs__navLink">
               使い方
             </Link>
@@ -218,6 +221,9 @@ export default function LandingPage() {
         {mobileMenuOpen ? (
           <div className="landingKoelogs__mobileMenu">
             <nav className="landingKoelogs__mobileNav" aria-label="LP navigation mobile">
+              <Link to="/premium" className="landingKoelogs__mobileNavLink" onClick={() => setMobileMenuOpen(false)}>
+                プレミアムプラン
+              </Link>
               <Link to="/help/guide" className="landingKoelogs__mobileNavLink" onClick={() => setMobileMenuOpen(false)}>
                 使い方
               </Link>
@@ -248,6 +254,14 @@ export default function LandingPage() {
                 <p className="landingKoelogs__heroText">
                   投稿から蓄積された練習データをAIが根拠として活用し、自分の記録や測定結果も踏まえて相談できるボイストレーニング支援アプリです。
                 </p>
+                <div className="landingKoelogs__heroActions">
+                  <Link to="/premium" className="landingKoelogs__button">
+                    プレミアムプランを見る
+                  </Link>
+                  <Link to="/help/legal" className="landingKoelogs__button landingKoelogs__button--ghost">
+                    特商法表記
+                  </Link>
+                </div>
               </div>
             </section>
             <section className="landingKoelogs__showcase" aria-label="主要機能の紹介">

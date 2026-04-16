@@ -16,16 +16,16 @@ type PricePlan = {
 };
 
 const BUSINESS_ITEMS: readonly BusinessItem[] = [
-  { label: "販売事業者", value: "Koelogs" },
-  { label: "運営統括責任者", value: "請求があった場合には遅滞なく開示いたします" },
+  { label: "販売事業者", value: "金子蒼天" },
+  { label: "運営統括責任者", value: "金子蒼天" },
   { label: "所在地", value: "請求があった場合には遅滞なく開示いたします" },
   { label: "電話番号", value: "請求があった場合には遅滞なく開示いたします" },
   { label: "メールアドレス", value: "koelogs.app@gmail.com" },
   {
     label: "販売URL",
     value: (
-      <a href="https://koelogs.com" className="legalPage__inlineLink">
-        https://koelogs.com
+      <a href="https://koelogs.com/premium" className="legalPage__inlineLink">
+        https://koelogs.com/premium
       </a>
     ),
   },
@@ -39,7 +39,7 @@ const BUSINESS_ITEMS: readonly BusinessItem[] = [
   },
   {
     label: "返品・交換・返金",
-    value: "デジタルサービスの性質上、決済完了後の返品・交換は受け付けていません。法令上認められる場合を除き、返金は行いません。",
+    value: "デジタルサービスの性質上、決済完了後の返金は原則として行いません。ただし、当社の不具合等によりサービス提供が著しく困難な場合は、この限りではありません。",
   },
 ];
 
@@ -72,6 +72,24 @@ export default function HelpLegalPage() {
       <section className="legalPage__notice">
         Koelogs は、ボイストレーニングの練習記録、音声測定、AI による練習支援機能を提供するサブスクリプション型 Web
         サービスです。
+      </section>
+
+      <section className="legalPage__cta">
+        <div className="legalPage__ctaCopy">
+          <h2 className="legalPage__ctaTitle">販売ページはこちら</h2>
+          <p className="legalPage__ctaText">
+            有料プランの機能、料金、購入導線は
+            {" "}
+            <Link to="/premium" className="legalPage__inlineLink">
+              プレミアムプランページ
+            </Link>
+            {" "}
+            に掲載しています。
+          </p>
+        </div>
+        <Link to="/premium" className="legalPage__ctaButton">
+          プレミアムプランを見る
+        </Link>
       </section>
 
       <section className="legalPage__content">

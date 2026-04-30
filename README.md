@@ -1,14 +1,8 @@
 ![Koelogs ログページ](readme/log-top.png)
 
 # Koelogs
-公開ページ: https://koelogs.com/log
+公開ページ: https://koelogs.com/log（現在非公開）
 
-## ゲストログイン
-
-上記リンク先の LP から、ログイン不要でゲストユーザーとして画面を試せます。  
-また、デモ用アカウントでも確認できます。  
-- Email: `koelogs.app@gmail.com`
-- Password: `password`
 
 ## サービス概要・開発背景
 
